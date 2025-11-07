@@ -69,7 +69,7 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ option, userData, i
       theme: 'grid',
       headStyles: { fillColor: '#2d3748' },
       didDrawPage: (data) => {
-        // Total - Lógica robusta para evitar erros
+        // Total - Lógica robusta para evitar erros de tipo
         const yPos = (data.cursor?.y ?? 0) + 10;
         doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
