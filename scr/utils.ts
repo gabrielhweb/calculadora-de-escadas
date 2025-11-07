@@ -55,17 +55,18 @@ export const getCoordinatesForCep = async (cep: string): Promise<Coordinates> =>
 };
 
 export const getRouteDistance = async (coords1: Coordinates, coords2: Coordinates): Promise<number> => {
-  // CORREÇÃO: Acessa a chave de API da forma correta para projetos Vite
+  // Acessa a chave de API da forma correta para projetos Vite
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
   if (!apiKey) {
-    throw new Error('A chave de API do Google Maps não está configurada. Adicione-a ao arquivo .env na raiz do projeto.');
+    throw new Error('A chave de API do Google Maps não está configurada. Adicione-a ao arquivo .env e nas variáveis de ambiente da Vercel.');
   }
   
   const origin = `${coords1.latitude},${coords1.longitude}`;
   const destination = `${coords2.latitude},${coords2.longitude}`;
   
-  const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${destination}&key=${apiKey}`;
+  // Usa o proxy configurado no arquivo vercel.json para evitar erros de CORS
+  const url = `/api/maps?origin=${origin}&destination=${destination}&key=${apiKey}`;
 
   try {
     const response = await fetch(url);
