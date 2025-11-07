@@ -1,0 +1,5 @@
+{
+  "name": "Calculadora de Escadas Zilinski",
+  "description": "Uma ferramenta online para clientes calcularem o custo de escadas personalizadas, gerando orçamentos com 3 opções de projeto e uma proposta comercial detalhada em PDF.",
+  "requestFramePermissions": []
+}
