@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import { useState } from 'react';
 import CalculatorForm from './components/CalculatorForm';
 import ProposalOptions from './components/ProposalOptions';
 import ProposalDocument from './components/ProposalDocument';
@@ -106,3 +105,4 @@ function App() {
 }
 
 export default App;
+

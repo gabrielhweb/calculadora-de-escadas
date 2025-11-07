@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -70,15 +69,15 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ option, userData, i
       theme: 'grid',
       headStyles: { fillColor: '#2d3748' },
       didDrawPage: (data) => {
-        // Total
+        // Total - Lógica robusta para evitar erros
         const yPos = (data.cursor?.y ?? 0) + 10;
         doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
         doc.text('Valor Total do Projeto:', data.settings.margin.left, yPos);
-        // FIX: Cast `data.table` to `any` to access the `width` property. This is likely due to a type definition issue.
-        doc.text(formatCurrencyBRL(finalPrice), data.settings.margin.left + (data.table as any).width, yPos, { align: 'right' });
+        const tableWidth = (data.table as any).width ?? (doc.internal.pageSize.getWidth() - data.settings.margin.left - data.settings.margin.right);
+        doc.text(formatCurrencyBRL(finalPrice), data.settings.margin.left + tableWidth, yPos, { align: 'right' });
       },
-       margin: { left: 14, right: 14 },
+      margin: { left: 14, right: 14 },
     });
 
     // Rodapé
