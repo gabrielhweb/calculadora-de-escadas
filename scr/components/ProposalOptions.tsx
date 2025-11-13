@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ProposalOption, UserData } from '../types';
-import { formatCurrencyBRL, getCoordinatesForCep, getRouteDistance, calculateFreightCost } from '../utils';
+import { formatCurrencyBRL, calculateFreightCost, getRouteInfoFromGemini } from '../utils';
 
 interface ProposalOptionsProps {
   options: ProposalOption[];
@@ -9,6 +9,8 @@ interface ProposalOptionsProps {
   onGenerateProposal: (userData: UserData) => void;
   freightCost: number;
   setFreightCost: (cost: number) => void;
+  tollCost: number;
+  setTollCost: (cost: number) => void;
   isInstallationIncluded: boolean;
   setIsInstallationIncluded: (included: boolean) => void;
   installationCost: number;
@@ -54,43 +56,79 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
     onGenerateProposal,
     freightCost,
     setFreightCost,
+    tollCost,
+    setTollCost,
     isInstallationIncluded,
     setIsInstallationIncluded,
     installationCost,
     setInstallationCost
 }) => {
     
-  const [originCep, setOriginCep] = useState('01001000'); // Default: Sé, São Paulo
+  const [originCep, setOriginCep] = useState('13104-096');
   const [destinationCep, setDestinationCep] = useState('');
   const [fuelPrice, setFuelPrice] = useState('5.80');
   const [consumption, setConsumption] = useState('8');
   const [distance, setDistance] = useState(0);
+  const [autoTollCost, setAutoTollCost] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  
+  const [freightMode, setFreightMode] = useState<'auto' | 'manual'>('auto');
+  const [manualDistance, setManualDistance] = useState('');
+  const [manualTollCost, setManualTollCost] = useState('');
+
+  const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>, setCep: (value: string) => void) => {
+    let { value } = e.target;
+    value = value.replace(/\D/g, '').slice(0, 8);
+    if (value.length > 5) {
+      value = `${value.slice(0, 5)}-${value.slice(5)}`;
+    }
+    setCep(value);
+  };
 
   const handleAutomaticDistance = async () => {
-    if (!originCep || !destinationCep) {
-      setError('Por favor, preencha ambos os CEPs.');
+    const isOriginValid = originCep.replace(/\D/g, '').length === 8;
+    const isDestinationValid = destinationCep.replace(/\D/g, '').length === 8;
+
+    if (!isOriginValid || !isDestinationValid) {
+      setError('Por favor, preencha ambos os CEPs com 8 dígitos válidos.');
       return;
     }
+    
     setIsLoading(true);
     setError('');
+    setDistance(0);
+    setAutoTollCost(0);
     try {
-      const originCoords = await getCoordinatesForCep(originCep);
-      const destCoords = await getCoordinatesForCep(destinationCep);
-      const routeDistance = await getRouteDistance(originCoords, destCoords);
+      const { distance: routeDistance, tolls: routeTolls } = await getRouteInfoFromGemini(originCep, destinationCep);
       setDistance(routeDistance);
+      setAutoTollCost(routeTolls);
     } catch (err: any) {
       setError(err.message || 'Ocorreu um erro ao calcular a distância.');
+      setDistance(0);
+      setAutoTollCost(0);
     } finally {
       setIsLoading(false);
     }
   };
   
   useEffect(() => {
-    const calculatedFreight = calculateFreightCost(distance, parseFloat(fuelPrice), parseFloat(consumption));
-    setFreightCost(calculatedFreight);
-  }, [distance, fuelPrice, consumption, setFreightCost]);
+    let currentDistance = 0;
+    let currentTolls = 0;
+
+    if (freightMode === 'auto') {
+        currentDistance = distance;
+        currentTolls = autoTollCost;
+    } else { // manual
+        currentDistance = parseFloat(manualDistance) || 0;
+        currentTolls = parseFloat(manualTollCost) || 0;
+    }
+
+    const fuelCost = calculateFreightCost(currentDistance, parseFloat(fuelPrice), parseFloat(consumption));
+    setFreightCost(fuelCost);
+    setTollCost(currentTolls);
+
+}, [freightMode, distance, autoTollCost, manualDistance, manualTollCost, fuelPrice, consumption, setFreightCost, setTollCost]);
 
   const finalInstallationCost = isInstallationIncluded ? installationCost : 0;
     
@@ -99,7 +137,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
       <h2 className="text-2xl font-bold mb-6 text-white">Opções de Orçamento</h2>
       <div className="space-y-4">
         {options.map((option) => {
-            const totalCost = option.totalPrice + freightCost + finalInstallationCost;
+            const totalCost = option.totalPrice + freightCost + tollCost + finalInstallationCost;
             return (
                 <div
                     key={option.optionNumber}
@@ -125,7 +163,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                         <p><strong>Comp. Total:</strong> {(option.totalLength / 100).toFixed(2)} m</p>
                     </div>
                     <div className={`mt-2 pt-2 border-t text-xs ${selectedOption?.optionNumber === option.optionNumber ? 'border-primary/30' : 'border-gray-600'}`}>
-                        Escada: {formatCurrencyBRL(option.totalPrice)} | Frete: {formatCurrencyBRL(freightCost)} | Instalação: {formatCurrencyBRL(finalInstallationCost)}
+                        Escada: {formatCurrencyBRL(option.totalPrice)} | Frete: {formatCurrencyBRL(freightCost)} | Pedágios: {formatCurrencyBRL(tollCost)} | Instalação: {formatCurrencyBRL(finalInstallationCost)}
                     </div>
                 </div>
             )
@@ -134,17 +172,50 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
 
       <div className="mt-8 pt-6 border-t border-gray-700">
         <h3 className="text-xl font-bold text-white mb-4">Cálculo de Frete e Serviços</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input type="text" value={originCep} onChange={e => setOriginCep(e.target.value)} placeholder="CEP de Origem" className="w-full bg-accent text-white p-2 rounded-md"/>
-          <input type="text" value={destinationCep} onChange={e => setDestinationCep(e.target.value)} placeholder="CEP de Destino" className="w-full bg-accent text-white p-2 rounded-md"/>
-          <input type="number" value={fuelPrice} onChange={e => setFuelPrice(e.target.value)} placeholder="Preço Combustível (R$)" className="w-full bg-accent text-white p-2 rounded-md" step="0.01" min="0"/>
+        
+        <div className="flex bg-accent rounded-lg p-1 mb-4">
+            <button 
+                onClick={() => setFreightMode('auto')}
+                className={`w-1/2 py-2 text-sm rounded-md font-semibold transition ${freightMode === 'auto' ? 'bg-highlight text-primary' : 'text-gray-300'}`}
+            >
+                Automático (IA)
+            </button>
+            <button 
+                onClick={() => setFreightMode('manual')}
+                className={`w-1/2 py-2 text-sm rounded-md font-semibold transition ${freightMode === 'manual' ? 'bg-highlight text-primary' : 'text-gray-300'}`}
+            >
+                Manual
+            </button>
+        </div>
+
+        {freightMode === 'auto' ? (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <input type="text" value={originCep} onChange={e => handleCepChange(e, setOriginCep)} placeholder="CEP de Origem" className="w-full bg-accent text-white p-2 rounded-md" maxLength={9}/>
+              <input type="text" value={destinationCep} onChange={e => handleCepChange(e, setDestinationCep)} placeholder="CEP de Destino" className="w-full bg-accent text-white p-2 rounded-md" maxLength={9}/>
+            </div>
+            <button onClick={handleAutomaticDistance} disabled={isLoading} className="mt-4 w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-700 transition disabled:bg-gray-500 disabled:cursor-not-allowed">
+              {isLoading ? 'Calculando com IA...' : 'Calcular Rota com Google Maps'}
+            </button>
+             {distance > 0 && (
+                <div className="text-green-400 mt-2 text-sm text-center bg-accent p-2 rounded-md">
+                    <p>Distância da rota: <strong>{distance.toFixed(2)} km</strong> (ida)</p>
+                    <p>Custo estimado de pedágios: <strong>{formatCurrencyBRL(autoTollCost)}</strong></p>
+                </div>
+            )}
+            {error && <p className="text-red-400 mt-2 text-sm">{error}</p>}
+          </>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <input type="number" value={manualDistance} onChange={e => setManualDistance(e.target.value)} placeholder="Distância (km - apenas ida)" className="w-full bg-accent text-white p-2 rounded-md" min="0" step="any"/>
+              <input type="number" value={manualTollCost} onChange={e => setManualTollCost(e.target.value)} placeholder="Custo Pedágios (R$)" className="w-full bg-accent text-white p-2 rounded-md" min="0" step="0.01"/>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          <input type="number" value={fuelPrice} onChange={e => setFuelPrice(e.target.value)} placeholder="Preço Combustível (R$/L)" className="w-full bg-accent text-white p-2 rounded-md" step="0.01" min="0"/>
           <input type="number" value={consumption} onChange={e => setConsumption(e.target.value)} placeholder="Consumo (km/L)" className="w-full bg-accent text-white p-2 rounded-md" step="0.1" min="0"/>
         </div>
-        <button onClick={handleAutomaticDistance} disabled={isLoading} className="mt-4 w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-700 transition disabled:bg-gray-500">
-          {isLoading ? 'Calculando...' : 'Calcular Distância da Rota'}
-        </button>
-        {distance > 0 && <p className="text-green-400 mt-2 text-sm">Distância da rota: {distance.toFixed(2)} km</p>}
-        {error && <p className="text-red-400 mt-2 text-sm">{error}</p>}
       
         <div className="mt-6">
           <div className="flex items-center justify-between">

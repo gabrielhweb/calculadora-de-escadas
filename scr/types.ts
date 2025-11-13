@@ -1,4 +1,3 @@
-
 export interface CalculatorInput {
   totalHeight: number; // in cm
   desiredSteps: number;

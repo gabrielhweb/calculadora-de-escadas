@@ -11,6 +11,7 @@ function App() {
   const [selectedOption, setSelectedOption] = useState<ProposalOption | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [freightCost, setFreightCost] = useState(0);
+  const [tollCost, setTollCost] = useState(0);
   const [isInstallationIncluded, setIsInstallationIncluded] = useState(true);
   const [installationCost, setInstallationCost] = useState(350);
 
@@ -69,10 +70,11 @@ function App() {
         <section className="flex flex-col">
           {userData && selectedOption && inputData ? (
             <ProposalDocument
-              option={selectedOption}
+              options={options}
               userData={userData}
               inputData={inputData}
               freightCost={freightCost}
+              tollCost={tollCost}
               installationCost={finalInstallationCost}
             />
           ) : options.length > 0 ? (
@@ -83,6 +85,8 @@ function App() {
               onGenerateProposal={handleGenerateProposal}
               freightCost={freightCost}
               setFreightCost={setFreightCost}
+              tollCost={tollCost}
+              setTollCost={setTollCost}
               isInstallationIncluded={isInstallationIncluded}
               setIsInstallationIncluded={setIsInstallationIncluded}
               installationCost={installationCost}
