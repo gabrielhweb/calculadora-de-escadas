@@ -40,37 +40,41 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
     onCalculate({ ...formData, totalHeight: heightInCm });
   };
 
+  // Input com fundo BRANCO e borda cinza para máximo contraste
   const InputField: React.FC<{ label: string; value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; unit?: string; type?: string; children?: React.ReactNode }> = ({ label, value, onChange, unit, type = "number", children }) => (
     <div>
-      <label className="block text-sm font-medium text-gray-300 mb-1">{label}</label>
-      <div className="flex items-center">
+      <label className="block text-sm font-black text-gray-900 mb-1">{label}</label>
+      <div className="flex items-center shadow-sm">
         <input
           type={type}
           value={value}
           onChange={onChange}
-          className="w-full bg-accent text-white p-3 rounded-l-md border-2 border-transparent focus:outline-none focus:ring-2 focus:ring-highlight focus:border-transparent transition"
+          className="w-full bg-white text-black p-3 rounded-l-md border-2 border-gray-300 focus:outline-none focus:border-highlight focus:ring-1 focus:ring-highlight transition font-bold text-lg"
           placeholder={label}
           min="0"
           step="any"
         />
-        {unit && <span className="bg-secondary p-3 rounded-r-md border-y-2 border-r-2 border-secondary">{unit}</span>}
+        {unit && <span className="bg-gray-100 text-gray-800 p-3 rounded-r-md border-2 border-l-0 border-gray-300 font-bold">{unit}</span>}
         {children}
       </div>
     </div>
   );
   
   return (
-    <div className="bg-secondary p-6 rounded-lg shadow-lg sticky top-8">
-      <h2 className="text-2xl font-bold mb-6 text-white flex items-center"><CalculatorIcon /> Inserir Medidas</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200 sticky top-24">
+      <h2 className="text-2xl font-black mb-6 text-gray-900 flex items-center border-b-2 border-highlight pb-4">
+        <CalculatorIcon /> 
+        Medidas
+      </h2>
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">Altura Total a Vencer</label>
-          <div className="flex">
+          <label className="block text-sm font-black text-gray-900 mb-1">Altura Total a Vencer</label>
+          <div className="flex shadow-sm">
             <input
               type="number"
               value={totalHeight}
               onChange={(e) => setTotalHeight(e.target.value)}
-              className="w-full bg-accent text-white p-3 rounded-l-md border-2 border-transparent focus:outline-none focus:ring-2 focus:ring-highlight focus:border-transparent transition"
+              className="w-full bg-white text-black p-3 rounded-l-md border-2 border-gray-300 focus:outline-none focus:border-highlight focus:ring-1 focus:ring-highlight transition font-bold text-lg"
               placeholder="Ex: 300"
               min="0"
               step="any"
@@ -78,7 +82,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
             <select
               value={heightUnit}
               onChange={(e) => setHeightUnit(e.target.value as 'cm' | 'm')}
-              className="bg-secondary text-white p-3 rounded-r-md border-y-2 border-r-2 border-secondary focus:outline-none focus:ring-2 focus:ring-highlight"
+              className="bg-gray-100 text-gray-800 p-3 rounded-r-md border-2 border-l-0 border-gray-300 font-bold focus:outline-none focus:border-highlight"
             >
               <option value="cm">cm</option>
               <option value="m">m</option>
@@ -86,13 +90,13 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
           </div>
         </div>
 
-        <InputField label="Número de Degraus Desejado (pisos)" value={desiredSteps} onChange={e => setDesiredSteps(e.target.value)} unit="un"/>
+        <InputField label="Número de Degraus (pisos)" value={desiredSteps} onChange={e => setDesiredSteps(e.target.value)} unit="un"/>
         <InputField label="Largura da Escada" value={stairWidth} onChange={e => setStairWidth(e.target.value)} unit="cm"/>
         <InputField label="Profundidade do Pisante" value={treadDepth} onChange={e => setTreadDepth(e.target.value)} unit="cm"/>
         
-        {error && <p className="text-red-400 text-sm">{error}</p>}
+        {error && <p className="text-red-600 text-sm font-bold bg-red-50 p-2 rounded border border-red-200">{error}</p>}
 
-        <button type="submit" className="w-full bg-highlight text-primary font-bold py-3 px-4 rounded-md hover:bg-yellow-500 transition-transform transform hover:scale-105 shadow-md flex items-center justify-center">
+        <button type="submit" className="w-full bg-highlight text-white font-black py-4 px-4 rounded-md hover:bg-yellow-600 transition-all shadow-md flex items-center justify-center text-xl mt-6 uppercase tracking-wide">
           <CalculatorIcon />
           Calcular Opções
         </button>

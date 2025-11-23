@@ -1,14 +1,13 @@
 import { useState } from 'react';
-import CalculatorForm from './components/CalculatorForm';
-import ProposalOptions from './components/ProposalOptions';
-import ProposalDocument from './components/ProposalDocument';
-import { CalculatorInput, ProposalOption, UserData } from './types';
-import { calculateTotalPrice } from './utils';
+import CalculatorForm from '../components/CalculatorForm';
+import ProposalOptions from '../components/ProposalOptions';
+import ProposalDocument from '../components/ProposalDocument';
+import { CalculatorInput, ProposalOption, UserData } from '../types';
+import { calculateTotalPrice } from '../utils';
 
-function App() {
+function Calculator() {
   const [inputData, setInputData] = useState<CalculatorInput | null>(null);
   const [options, setOptions] = useState<ProposalOption[]>([]);
-  const [selectedOption, setSelectedOption] = useState<ProposalOption | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [freightCost, setFreightCost] = useState(0);
   const [tollCost, setTollCost] = useState(0);
@@ -17,12 +16,12 @@ function App() {
 
   const handleCalculate = (data: CalculatorInput) => {
     setInputData(data);
-    setUserData(null);
-    setSelectedOption(null);
+    setUserData(null); // Reseta dados do cliente ao recalcular
 
     const baseSteps = data.desiredSteps;
+    // Gera 3 opções: menos degraus, degraus exatos, mais degraus
     const stepOptions = [baseSteps - 1, baseSteps, baseSteps + 1]
-      .filter(s => s > 1);
+      .filter(s => s > 1); // Garante que não tenha degrau negativo ou zero
 
     const newOptions: ProposalOption[] = stepOptions.map((steps, index) => {
       const stepHeight = data.totalHeight / steps;
@@ -41,34 +40,27 @@ function App() {
     });
     
     setOptions(newOptions);
-    if (newOptions.length > 0) {
-      const desiredOptionIndex = newOptions.findIndex(opt => opt.steps === baseSteps);
-      setSelectedOption(newOptions[desiredOptionIndex !== -1 ? desiredOptionIndex : 0]);
-    }
   };
 
   const handleGenerateProposal = (data: UserData) => {
-    if (!selectedOption) {
-      alert("Por favor, selecione uma opção antes de gerar a proposta.");
-      return;
-    }
     setUserData(data);
   };
 
   const finalInstallationCost = isInstallationIncluded ? installationCost : 0;
 
   return (
-    <div className="bg-primary min-h-screen text-white font-sans p-4 sm:p-8">
+    <div className="p-4 sm:p-8 max-w-7xl mx-auto">
       <header className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-highlight">Calculadora de Escadas</h1>
-        <p className="text-gray-400 mt-2">Gere orçamentos detalhados para escadas pré-moldadas.</p>
+        <h1 className="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tight">Calculadora Oficial</h1>
+        <p className="text-gray-500 mt-2 font-light">Ferramenta interna para geração de propostas comerciais.</p>
       </header>
-      <main className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-7xl mx-auto">
+      <main className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <aside>
           <CalculatorForm onCalculate={handleCalculate} />
         </aside>
         <section className="flex flex-col">
-          {userData && selectedOption && inputData ? (
+          {/* Lógica de Exibição */}
+          {userData && inputData && options.length > 0 ? (
             <ProposalDocument
               options={options}
               userData={userData}
@@ -76,12 +68,11 @@ function App() {
               freightCost={freightCost}
               tollCost={tollCost}
               installationCost={finalInstallationCost}
+              onBack={() => setUserData(null)}
             />
           ) : options.length > 0 ? (
             <ProposalOptions
               options={options}
-              selectedOption={selectedOption}
-              onSelect={setSelectedOption}
               onGenerateProposal={handleGenerateProposal}
               freightCost={freightCost}
               setFreightCost={setFreightCost}
@@ -93,19 +84,24 @@ function App() {
               setInstallationCost={setInstallationCost}
             />
           ) : (
-            <div className="bg-secondary p-6 rounded-lg shadow-lg h-full flex items-center justify-center">
-              <p className="text-gray-400 text-center">
-                Insira as medidas na calculadora ao lado para ver as opções de orçamento.
-              </p>
+            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 h-full flex items-center justify-center min-h-[300px]">
+              <div className="text-center">
+                  <div className="bg-gray-100 p-4 rounded-full inline-block mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 7h6m0 10v-3m-3 3h3m-3-10h.01M9 17h.01M12 17h.01M15 17h.01M9 14h.01M12 14h.01M15 14h.01M4 7h16a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V8a1 1 0 011-1z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-700">Aguardando Medidas</h3>
+                  <p className="text-gray-500 mt-2">
+                    Preencha o formulário ao lado para iniciar.
+                  </p>
+              </div>
             </div>
           )}
         </section>
       </main>
-      <footer className="text-center mt-12 text-gray-500 text-sm">
-        <p>&copy; {new Date().getFullYear()} Gerador de Propostas de Escada. Todos os direitos reservados.</p>
-      </footer>
     </div>
   );
 }
 
-export default App;
+export default Calculator;
