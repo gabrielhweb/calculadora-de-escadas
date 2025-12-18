@@ -1,3 +1,4 @@
+
 export interface OptionalItem {
   id: string;
   name: string;
@@ -22,6 +23,10 @@ export interface CalculatorInput {
   customTotalLength?: number; // Optional manual total length
   optionalItems: OptionalItem[]; // Lista de itens extras
   landings: LandingInfo[]; // Agora é uma lista de patamares
+  
+  // Novos campos de ambiente
+  slabThickness?: number; // Espessura da laje (cm)
+  slabOpening?: number; // Tamanho do vão livre (cm)
 }
 
 export interface ProposalOption {

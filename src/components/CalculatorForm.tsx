@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { CalculatorInput, OptionalItem, LandingInfo } from '../types';
 import { calculateLandingPrice } from '../utils';
@@ -74,8 +75,12 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
 
   const [dampers, setDampers] = useState<string>('4');
   
+  // --- Estados de Ambiente (Novo) ---
+  const [slabThickness, setSlabThickness] = useState<string>('15');
+  const [slabOpening, setSlabOpening] = useState<string>(''); // Vazio = sem restrição
+  const [openingUnit, setOpeningUnit] = useState<'cm' | 'm'>('cm');
+
   // --- Estados Avançados ---
-  // Alterado padrão para 440
   const [customStepPrice, setCustomStepPrice] = useState<string>('440');
   const [customTotalLength, setCustomTotalLength] = useState<string>('');
   const [lengthUnit, setLengthUnit] = useState<'cm' | 'm'>('cm');
@@ -105,14 +110,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
 
   // Handlers para Patamares
   const handleAddLanding = () => {
-    // Configurações padrão solicitadas:
-    // Degrau: Último (total de peças atual)
-    // Preço: 1030
-    // Comprimento: 80
-    // Largura: 70
-    
     const lastStep = parseInt(desiredSteps) || 1;
-
     const newLanding: LandingInfo = {
         id: Date.now().toString(),
         step: lastStep,
@@ -149,6 +147,8 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
     const widthInCm = convertToCm(stairWidth, widthUnit);
     const depthInCm = convertToCm(treadDepth, depthUnit);
     const lengthInCm = convertToCm(customTotalLength, lengthUnit);
+    const openingInCm = convertToCm(slabOpening, openingUnit);
+    const slabThickInCm = parseFloat(slabThickness) || 0;
 
     const formData: CalculatorInput = {
       totalHeight: heightInCm || 0,
@@ -160,6 +160,8 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
       customTotalLength: lengthInCm || undefined,
       optionalItems: optionalItems,
       landings: landings,
+      slabThickness: slabThickInCm,
+      slabOpening: openingInCm || undefined
     };
 
     if (formData.totalHeight <= 0 || formData.desiredSteps <= 0) {
@@ -167,7 +169,6 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
       return;
     }
     
-    // Validação básica: Não pode ter mais patamares que degraus
     if (landings.length >= formData.desiredSteps) {
         setError('O número de patamares não pode ser maior ou igual ao número total de degraus.');
         return;
@@ -188,7 +189,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
         {/* ALTURA E DEGRAUS */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-            <label className="block text-sm font-black text-gray-900 mb-1">Altura Total *</label>
+            <label className="block text-sm font-black text-gray-900 mb-1">Altura Piso-Piso *</label>
             <div className="flex shadow-sm">
                 <input
                 type="number"
@@ -208,7 +209,6 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                 <option value="m">m</option>
                 </select>
             </div>
-            <p className="text-xs text-gray-500 mt-1 italic">Piso a Piso.</p>
             </div>
 
             <InputField 
@@ -220,6 +220,29 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
             />
         </div>
         
+        {/* AMBIENTE (LAJE/VÃO) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-3 rounded border border-gray-200">
+             <InputField 
+                label="Tamanho do Vão" 
+                value={slabOpening} 
+                onChange={e => setSlabOpening(e.target.value)} 
+                isOptional={true}
+                onUnitChange={setOpeningUnit}
+                currentUnit={openingUnit}
+                helperText="Abertura na laje superior"
+                className="mb-0"
+            />
+             <InputField 
+                label="Espessura Laje" 
+                value={slabThickness} 
+                onChange={e => setSlabThickness(e.target.value)} 
+                unit="cm"
+                isOptional={true}
+                helperText="Para calcular 'cabeçada'"
+                className="mb-0"
+            />
+        </div>
+
         {/* LARGURA E PISANTE */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <InputField 
@@ -243,7 +266,6 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
             />
         </div>
         
-        {/* AMORTECEDORES E AVANÇADO */}
         <div className="pt-4 border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-4">
              <InputField 
                 label="Amortecedores" 
@@ -285,10 +307,10 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
             </div>
             
             {landings.length === 0 ? (
-                <p className="text-xs text-gray-500 italic mb-2">Nenhum patamar adicionado. A escada será apenas de degraus.</p>
+                <p className="text-xs text-gray-500 italic mb-2">Nenhum patamar adicionado.</p>
             ) : (
                 <div className="space-y-3">
-                    <p className="text-[10px] text-orange-800 font-bold mb-2">* Cada patamar substitui 1 degrau na contagem final.</p>
+                    <p className="text-[10px] text-orange-800 font-bold mb-2">* Cada patamar substitui 1 degrau.</p>
                     {landings.map((landing, index) => (
                         <div key={landing.id} className="bg-white p-3 rounded-lg border border-orange-200 shadow-sm relative">
                             <button 
@@ -338,13 +360,13 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
 
         {/* --- SEÇÃO EXTRAS --- */}
         <div className="pt-4 border-t border-gray-100">
-          <label className="block text-sm font-black text-gray-900 mb-2">Itens Extras (Guarda-corpo, etc)</label>
+          <label className="block text-sm font-black text-gray-900 mb-2">Itens Extras</label>
           <div className="flex gap-2 mb-2">
             <input type="text" placeholder="Nome do item" value={newItemName} onChange={e => setNewItemName(e.target.value)} className="flex-1 p-2 border-2 border-gray-200 rounded font-medium focus:border-highlight outline-none"/>
             <input type="number" placeholder="R$" value={newItemPrice} onChange={e => setNewItemPrice(e.target.value)} className="w-24 p-2 border-2 border-gray-200 rounded font-medium focus:border-highlight outline-none"/>
             <button type="button" onClick={handleAddItem} className="bg-green-600 text-white px-3 rounded font-bold hover:bg-green-700">+</button>
           </div>
-          {optionalItems.length > 0 ? (
+          {optionalItems.length > 0 && (
              <div className="space-y-1">
                  {optionalItems.map(item => (
                     <div key={item.id} className="flex justify-between items-center text-sm bg-gray-100 p-2 rounded border border-gray-200">
@@ -356,8 +378,6 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                     </div>
                  ))}
              </div>
-          ) : (
-              <p className="text-xs text-gray-400 italic">Nenhum item extra adicionado.</p>
           )}
         </div>
 

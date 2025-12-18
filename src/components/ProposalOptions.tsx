@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { ProposalOption, UserData, CalculatorInput } from '../types';
 import { formatCurrencyBRL, calculateFreightCost, getRouteInfoFromGemini } from '../utils';
+import StaircaseVisualizer from './StaircaseVisualizer';
 
 interface ProposalOptionsProps {
   options: ProposalOption[];
@@ -97,6 +98,9 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
   const [manualTollCost, setManualTollCost] = useState('');
   const [isFreightIncluded, setIsFreightIncluded] = useState(true);
 
+  // Novo estado para o visualizador
+  const [selectedVisualizerOption, setSelectedVisualizerOption] = useState<ProposalOption | null>(null);
+
   const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>, setCep: (value: string) => void) => {
     let { value } = e.target;
     value = value.replace(/\D/g, '').slice(0, 8);
@@ -175,7 +179,6 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
             const stairOnlyPrice = option.totalPrice - landingsTotalPrice;
             
             // Cálculo do comprimento apenas da escada para mostrar na memória
-            // (Comprimento Total - Comprimento dos Patamares)
             const stairOnlyLengthCm = option.totalLength - landingsTotalLength;
 
             return (
@@ -183,10 +186,22 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                     key={option.optionNumber}
                     className="p-5 rounded-lg bg-gray-50 border-2 border-gray-200 shadow-sm hover:border-highlight transition-colors"
                 >
-                    <div className="flex justify-between items-center mb-3 border-b border-gray-200 pb-2">
-                        <h3 className="text-lg font-black text-gray-900 uppercase">
-                            Opção {option.optionNumber}
-                        </h3>
+                    <div className="flex justify-between items-start mb-3 border-b border-gray-200 pb-2">
+                        <div>
+                            <h3 className="text-lg font-black text-gray-900 uppercase">
+                                Opção {option.optionNumber}
+                            </h3>
+                            <button 
+                                onClick={() => setSelectedVisualizerOption(option)}
+                                className="text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded mt-1 flex items-center gap-1 shadow-sm transition-all"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                                Ver Projeto 3D
+                            </button>
+                        </div>
                         <span className="text-2xl font-black text-green-700">
                             {formatCurrencyBRL(totalCost)}
                         </span>
@@ -373,6 +388,17 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
       </div>
       
       <UserDataForm onSubmit={onGenerateProposal} />
+
+      {/* RENDERIZAÇÃO DO MODAL DE VISUALIZAÇÃO SE HOUVER OPÇÃO SELECIONADA */}
+      {selectedVisualizerOption && (
+          <StaircaseVisualizer 
+             option={selectedVisualizerOption} 
+             totalHeight={inputData?.totalHeight || 300} 
+             slabOpening={inputData?.slabOpening}
+             slabThickness={inputData?.slabThickness}
+             onClose={() => setSelectedVisualizerOption(null)} 
+          />
+      )}
     </div>
   );
 };
