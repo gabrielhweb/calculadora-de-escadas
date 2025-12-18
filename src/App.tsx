@@ -1,7 +1,9 @@
+
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Layout from './components/Layout.tsx';
-import Home from './pages/Home.tsx';
-import Calculator from './pages/Calculator.tsx';
+import Layout from './components/Layout';
+import Home from './pages/Home';
+import Calculator from './pages/Calculator';
+import Contract from './pages/Contract';
 
 function App() {
   return (
@@ -10,6 +12,7 @@ function App() {
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="calculadora" element={<Calculator />} />
+          <Route path="contrato" element={<Contract />} />
         </Route>
       </Routes>
     </BrowserRouter>

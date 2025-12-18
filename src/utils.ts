@@ -37,12 +37,17 @@ export const formatCurrencyBRL = (value: number): string => {
   }).format(value);
 };
 
-// --- NEW GEMINI FUNCTION ---
+export const getCurrentDateFormatted = (): string => {
+  const date = new Date();
+  return date.toLocaleDateString('pt-BR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  });
+};
 
-/**
- * Gets the user's current geographical coordinates.
- * @returns A promise that resolves to an object with latitude and longitude, or null if permission is denied.
- */
+// --- GEMINI FUNCTION ---
+
 const getCurrentLocation = (): Promise<{ latitude: number; longitude: number } | null> => {
   return new Promise((resolve) => {
     if (!navigator.geolocation) {
@@ -56,27 +61,21 @@ const getCurrentLocation = (): Promise<{ latitude: number; longitude: number } |
         });
       },
       () => {
-        // User denied permission or an error occurred
         resolve(null);
       },
-      {
-        timeout: 5000 // 5 second timeout
-      }
+      { timeout: 5000 }
     );
   });
 };
 
-
-/**
- * Calculates driving distance and toll costs between two locations using Gemini with Google Maps Grounding.
- * @param origin The starting point (CEP or address).
- * @param destination The ending point (CEP or address).
- * @returns A promise that resolves to an object with distance in km and toll costs in BRL.
- */
 export const getRouteInfoFromGemini = async (origin: string, destination: string): Promise<{ distance: number; tolls: number }> => {
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+    const apiKey = process.env.API_KEY;
+    if (!apiKey || apiKey.includes("SUA_CHAVE")) {
+        throw new Error('Chave de API inválida ou não configurada no arquivo .env');
+    }
 
+    const ai = new GoogleGenAI({ apiKey: apiKey });
     const userLocation = await getCurrentLocation();
 
     const config: any = {
@@ -94,7 +93,14 @@ export const getRouteInfoFromGemini = async (origin: string, destination: string
         };
     }
 
-    const prompt = `Calcule a rota de carro entre a origem "${origin}" e o destino "${destination}". Forneça a distância total em quilômetros e o custo total de pedágio em BRL. Sua resposta deve ser um objeto JSON contendo apenas as chaves "distancia" e "pedagios". Exemplo: {"distancia": 123.4, "pedagios": 56.7}`;
+    // Prompt ajustado para Rota Recomendada
+    const prompt = `Calcule a rota de carro entre a origem "${origin}" e o destino "${destination}".
+    Use a rota padrão/recomendada pelo Google Maps (evite rotas excessivamente longas ou curtas demais).
+    Retorne APENAS um JSON com este formato exato:
+    {
+      "distancia": (número em km, ex: 120.5),
+      "pedagios": (custo total estimado em reais, ex: 45.20)
+    }`;
 
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
@@ -102,39 +108,33 @@ export const getRouteInfoFromGemini = async (origin: string, destination: string
       config: config,
     });
 
-    const text = response.text.trim();
-    // Find the JSON part of the response, even if it includes markdown backticks
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-
-    if (!jsonMatch) {
-      console.error("Gemini response did not contain a valid JSON object:", text);
-      throw new Error('Não foi possível extrair os dados de rota da resposta. O formato retornado pela IA é inesperado.');
+    const text = response.text || "{}";
+    let data;
+    try {
+        const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+        const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
+        
+        if (jsonMatch) {
+            data = JSON.parse(jsonMatch[0]);
+        } else {
+            data = JSON.parse(cleanText);
+        }
+    } catch (e) {
+        throw new Error("Não foi possível extrair os dados de rota.");
     }
-    
-    const jsonString = jsonMatch[0];
-    const data = JSON.parse(jsonString);
 
-    const distance = data.distancia;
-    const tolls = data.pedagios;
-
-    if (typeof distance !== 'number' || typeof tolls !== 'number') {
-      console.error("Parsed JSON does not have the expected numeric properties 'distancia' and 'pedagios':", data);
-      throw new Error('A resposta da IA não continha os dados de rota no formato numérico esperado.');
-    }
+    const distance = Number(data.distancia) || 0;
+    const tolls = Number(data.pedagios) || 0;
     
     return { distance, tolls };
 
   } catch (error) {
-    console.error("Error fetching route info from Gemini:", error);
-    if (error instanceof SyntaxError) {
-        throw new Error('Erro ao processar a resposta da IA. O JSON retornado é inválido.');
-    }
     if (error instanceof Error) {
         if (error.message.includes('API key')) {
-             throw new Error('A chave de API não é válida ou está faltando. Verifique a configuração.');
+             throw new Error('Erro de Configuração: Chave de API inválida.');
         }
         throw new Error(`Erro ao calcular a rota: ${error.message}`);
     }
-    throw new Error('Falha na comunicação com a IA para calcular a rota.');
+    throw new Error('Falha na comunicação com a IA.');
   }
 };
