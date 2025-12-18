@@ -12,6 +12,7 @@ const getMultiplier = (depth: number): number => {
   if (depth <= 20) return 1.0;
   if (depth >= 21 && depth <= 25) return 1.05;
   if (depth >= 26 && depth <= 30) return 1.10;
+  if (depth > 30) return 1.20;
   return 1.0; // Default multiplier
 };
 
@@ -20,6 +21,16 @@ export const calculateTotalPrice = (width: number, depth: number, steps: number)
   const multiplier = getMultiplier(depth);
   if (steps <= 0) return 0;
   return basePrice * multiplier * steps;
+};
+
+/**
+ * Função necessária para o módulo de Patamar
+ */
+export const calculateLandingPrice = (width: number, length: number): number => {
+  if (length <= 0) return 0;
+  const basePrice = getBasePrice(width);
+  const sizeFactor = length / 25; 
+  return basePrice * sizeFactor * 1.3; 
 };
 
 export const calculateFreightCost = (distance: number, fuelPrice: number, consumption: number): number => {
@@ -46,7 +57,7 @@ export const getCurrentDateFormatted = (): string => {
   });
 };
 
-// --- GEMINI FUNCTION ---
+// --- GEMINI FUNCTION COM MAPS GROUNDING ---
 
 const getCurrentLocation = (): Promise<{ latitude: number; longitude: number } | null> => {
   return new Promise((resolve) => {
@@ -71,8 +82,8 @@ const getCurrentLocation = (): Promise<{ latitude: number; longitude: number } |
 export const getRouteInfoFromGemini = async (origin: string, destination: string): Promise<{ distance: number; tolls: number }> => {
   try {
     const apiKey = process.env.API_KEY;
-    if (!apiKey || apiKey.includes("SUA_CHAVE")) {
-        throw new Error('Chave de API inválida ou não configurada no arquivo .env');
+    if (!apiKey) {
+        throw new Error('Chave de API não configurada.');
     }
 
     const ai = new GoogleGenAI({ apiKey: apiKey });
@@ -93,7 +104,6 @@ export const getRouteInfoFromGemini = async (origin: string, destination: string
         };
     }
 
-    // Prompt ajustado para Rota Recomendada
     const prompt = `Calcule a rota de carro entre a origem "${origin}" e o destino "${destination}".
     Use a rota padrão/recomendada pelo Google Maps (evite rotas excessivamente longas ou curtas demais).
     Retorne APENAS um JSON com este formato exato:
@@ -129,12 +139,7 @@ export const getRouteInfoFromGemini = async (origin: string, destination: string
     return { distance, tolls };
 
   } catch (error) {
-    if (error instanceof Error) {
-        if (error.message.includes('API key')) {
-             throw new Error('Erro de Configuração: Chave de API inválida.');
-        }
-        throw new Error(`Erro ao calcular a rota: ${error.message}`);
-    }
-    throw new Error('Falha na comunicação com a IA.');
+    console.error('Erro Logística Gemini:', error);
+    return { distance: 0, tolls: 0 };
   }
 };
