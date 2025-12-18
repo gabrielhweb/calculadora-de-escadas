@@ -1,4 +1,3 @@
-
 export interface OptionalItem {
   id: string;
   name: string;
@@ -6,8 +5,8 @@ export interface OptionalItem {
 }
 
 export interface LandingInfo {
-  active: boolean;
-  step: number;
+  id: string;
+  step: number; // Em qual degrau ele fica
   length: number; // cm
   width: number; // cm
   price: number;
@@ -22,18 +21,19 @@ export interface CalculatorInput {
   customStepPrice?: number; // Optional manual price per step
   customTotalLength?: number; // Optional manual total length
   optionalItems: OptionalItem[]; // Lista de itens extras
-  landing?: LandingInfo;
+  landings: LandingInfo[]; // Agora é uma lista de patamares
 }
 
 export interface ProposalOption {
   optionNumber: number;
-  steps: number;
+  steps: number; // Número TOTAL de subidas (degraus comuns + patamares)
+  structureSteps: number; // Apenas degraus comuns (steps - qtdPatamares)
   stepHeight: number; // in cm
   totalLength: number; // in cm
   totalPrice: number;
   stairWidth: number; // in cm
   treadDepth: number; // in cm
-  landing?: LandingInfo;
+  landings: LandingInfo[];
 }
 
 export interface UserData {

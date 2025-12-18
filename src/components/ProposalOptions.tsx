@@ -164,13 +164,19 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
       <h2 className="text-2xl font-black mb-6 text-gray-900 border-b-2 border-highlight pb-4">Opções Calculadas</h2>
       
       <div className="space-y-4 mb-8">
-        <p className="text-sm text-gray-500 font-medium">Confira as 3 opções geradas (Quantidade de degraus a fabricar):</p>
+        <p className="text-sm text-gray-500 font-medium">Confira as 3 opções geradas (Quantidade TOTAL de peças):</p>
         {options.map((option) => {
             const totalCost = option.totalPrice + freightCost + tollCost + finalInstallationCost + extrasCost;
             
             // Lógica do Detalhamento da Estrutura
-            const landingPrice = option.landing?.active ? option.landing.price : 0;
-            const stairOnlyPrice = option.totalPrice - landingPrice;
+            const landingsTotalPrice = option.landings.reduce((acc, l) => acc + l.price, 0);
+            const landingsTotalLength = option.landings.reduce((acc, l) => acc + l.length, 0);
+            
+            const stairOnlyPrice = option.totalPrice - landingsTotalPrice;
+            
+            // Cálculo do comprimento apenas da escada para mostrar na memória
+            // (Comprimento Total - Comprimento dos Patamares)
+            const stairOnlyLengthCm = option.totalLength - landingsTotalLength;
 
             return (
                 <div
@@ -186,7 +192,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                         </span>
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 text-sm text-gray-700 font-medium mb-4">
-                        <p><strong className="text-gray-900">Degraus:</strong> {option.steps} un</p>
+                        <p><strong className="text-gray-900">Total Peças:</strong> {option.steps} un</p>
                         <p><strong className="text-gray-900">Alt/Degrau:</strong> {option.stepHeight.toFixed(2)} cm</p>
                         <p><strong className="text-gray-900">Pisante:</strong> {option.treadDepth.toFixed(2)} cm</p>
                         <p><strong className="text-gray-900">Largura:</strong> {option.stairWidth} cm</p>
@@ -200,12 +206,16 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                                 <span className="text-base font-black text-gray-900">{formatCurrencyBRL(option.totalPrice)}</span>
                             </div>
                             
-                            {option.landing?.active && (
-                                <div className="flex justify-between text-[10px] font-bold text-orange-600 bg-orange-50 p-1.5 rounded border border-orange-100 italic">
-                                    <span>Composição: Escada ({formatCurrencyBRL(stairOnlyPrice)}) + Patamar ({formatCurrencyBRL(landingPrice)})</span>
-                                    <span>Incluso</span>
-                                </div>
-                            )}
+                            <div className="flex flex-wrap gap-2 text-[10px]">
+                                <span className="bg-gray-200 px-2 py-1 rounded text-gray-700">
+                                    {option.structureSteps} Degraus ({formatCurrencyBRL(stairOnlyPrice)})
+                                </span>
+                                {option.landings.length > 0 && (
+                                    <span className="bg-orange-100 px-2 py-1 rounded text-orange-800 font-bold border border-orange-200">
+                                        + {option.landings.length} Patamar(es) ({formatCurrencyBRL(landingsTotalPrice)})
+                                    </span>
+                                )}
+                            </div>
                         </div>
 
                         <div className="flex justify-between pt-1">
@@ -219,6 +229,39 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                                 <span>{formatCurrencyBRL(extrasCost)}</span>
                             </div>
                         )}
+
+                        {/* --- MEMÓRIA DE CÁLCULO (EXPANSÍVEL) --- */}
+                        <details className="mt-2 group">
+                            <summary className="cursor-pointer text-highlight font-bold text-[10px] uppercase hover:underline list-none flex items-center gap-1">
+                                <span className="bg-highlight text-white w-4 h-4 flex items-center justify-center rounded-full text-[8px]">+</span>
+                                Ver Memória de Cálculo (Entenda a conta)
+                            </summary>
+                            <div className="mt-2 p-3 bg-gray-200 rounded text-[11px] text-gray-700 space-y-2 font-mono border border-gray-300">
+                                <div>
+                                    <strong className="block text-gray-900 border-b border-gray-300 pb-1 mb-1">1. Altura do Degrau:</strong>
+                                    <p>Altura Total ({inputData?.totalHeight}cm) ÷ ({option.steps} Peças + 1) = <strong className="text-black">{option.stepHeight.toFixed(2)} cm</strong></p>
+                                    <p className="text-[9px] text-gray-500 italic">*Fórmula padrão: Altura dividida pelo número de espelhos (nº degraus + 1).</p>
+                                </div>
+                                
+                                <div>
+                                    <strong className="block text-gray-900 border-b border-gray-300 pb-1 mb-1">2. Comprimento Total:</strong>
+                                    <p>• Escada: {option.structureSteps} degraus x ({option.treadDepth.toFixed(2)}cm pisante + 1cm transpasse) = {stairOnlyLengthCm.toFixed(1)} cm</p>
+                                    <p>• Patamares: Soma dos comprimentos = {landingsTotalLength} cm</p>
+                                    <p className="mt-1 font-bold text-black border-t border-gray-300 pt-1">
+                                        Total: {stairOnlyLengthCm.toFixed(1)} + {landingsTotalLength} = {option.totalLength.toFixed(1)} cm ({(option.totalLength/100).toFixed(2)}m)
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <strong className="block text-gray-900 border-b border-gray-300 pb-1 mb-1">3. Preço da Estrutura:</strong>
+                                    <p>• Escada: Base Tabela x {option.structureSteps} degraus = {formatCurrencyBRL(stairOnlyPrice)}</p>
+                                    <p>• Patamares: Soma dos preços manuais = {formatCurrencyBRL(landingsTotalPrice)}</p>
+                                    <p className="mt-1 font-bold text-black border-t border-gray-300 pt-1">
+                                        Total: {formatCurrencyBRL(option.totalPrice)}
+                                    </p>
+                                </div>
+                            </div>
+                        </details>
                     </div>
                 </div>
             )

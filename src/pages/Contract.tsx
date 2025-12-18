@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { generateContractPDF } from '../utils/contractGenerator';
-import { ProposalOption, UserData, CalculatorInput } from '../types';
+import { ProposalOption, UserData, CalculatorInput, LandingInfo } from '../types';
 
 const SectionTitle = ({ title, icon }: { title: string; icon?: React.ReactNode }) => (
     <h2 className="text-xl font-black text-gray-900 mb-4 border-b-2 border-highlight pb-2 flex items-center gap-2 uppercase">
@@ -27,9 +26,12 @@ const ContractInput = ({ label, value, onChange, type = "text", placeholder = ""
 const Contract = () => {
     const location = useLocation();
     
+    // Dados do Cliente
     const [clientName, setClientName] = useState('');
     const [clientCpf, setClientCpf] = useState('');
     const [clientAddress, setClientAddress] = useState('');
+
+    // Dados Técnicos Escada
     const [totalHeight, setTotalHeight] = useState('300');
     const [width, setWidth] = useState('70');
     const [totalSteps, setTotalSteps] = useState('15');
@@ -37,6 +39,11 @@ const Contract = () => {
     const [treadDepth, setTreadDepth] = useState('25');
     const [totalLength, setTotalLength] = useState('300');
     const [dampers, setDampers] = useState('4');
+
+    // Dados Técnicos Patamares (Lista)
+    const [landings, setLandings] = useState<LandingInfo[]>([]);
+
+    // Dados Financeiros
     const [structurePrice, setStructurePrice] = useState('0');
     const [freightPrice, setFreightPrice] = useState('0');
     const [installationPrice, setInstallationPrice] = useState('0');
@@ -64,6 +71,14 @@ const Contract = () => {
                 setTreadDepth(selectedOption.treadDepth.toFixed(2));
                 setTotalLength(selectedOption.totalLength.toString());
                 setDampers(inputData.dampers.toString());
+                
+                // Configuração Patamares
+                if (selectedOption.landings && selectedOption.landings.length > 0) {
+                    setLandings(selectedOption.landings);
+                } else {
+                    setLandings([]);
+                }
+
                 setStructurePrice(selectedOption.totalPrice.toFixed(2));
                 setFreightPrice(((freightCost || 0) + (tollCost || 0)).toFixed(2));
                 setInstallationPrice((installationCost || 0).toFixed(2));
@@ -78,24 +93,34 @@ const Contract = () => {
             return;
         }
 
+        // Reconstrói a estrutura de steps/degraus para o PDF
+        // Considerando que structureSteps não é salvo no state local da página de contrato (apenas o totalSteps visual)
+        // Recalculamos se necessário, mas como passamos o objeto selectedOption.landings direto, usamos o state local 'landings'
+        const numLandings = landings.length;
+        const totalStepsNum = parseFloat(totalSteps) || 0;
+        const structureStepsNum = totalStepsNum - numLandings;
+
         generateContractPDF({
             userData: { name: clientName, cpf: clientCpf, address: clientAddress },
             selectedOption: {
                 optionNumber: 1,
-                steps: parseFloat(totalSteps) || 0,
+                steps: totalStepsNum,
+                structureSteps: structureStepsNum,
                 stepHeight: parseFloat(stepHeight) || 0,
                 totalLength: parseFloat(totalLength) || 0,
                 totalPrice: parseFloat(structurePrice) || 0,
                 stairWidth: parseFloat(width) || 0,
-                treadDepth: parseFloat(treadDepth) || 0
+                treadDepth: parseFloat(treadDepth) || 0,
+                landings: landings
             },
             inputData: {
                 totalHeight: parseFloat(totalHeight) || 0,
-                desiredSteps: parseFloat(totalSteps) || 0,
+                desiredSteps: totalStepsNum,
                 stairWidth: parseFloat(width) || 0,
                 treadDepth: parseFloat(treadDepth) || 0,
                 dampers: parseFloat(dampers) || 4,
-                optionalItems: []
+                optionalItems: [],
+                landings: landings
             },
             extraClauses,
             freightCost: parseFloat(freightPrice) || 0,
@@ -105,21 +130,28 @@ const Contract = () => {
         });
     };
 
+    const updateLanding = (index: number, field: keyof LandingInfo, val: string) => {
+        const newLandings = [...landings];
+        newLandings[index] = { ...newLandings[index], [field]: parseFloat(val) || 0 };
+        setLandings(newLandings);
+    };
+
     return (
-        <div className="max-w-5xl mx-auto p-6 md:p-12">
+        <div className="max-w-5xl mx-auto p-4 sm:p-6 md:p-12">
             <header className="mb-10 text-center">
-                <h1 className="text-4xl font-black text-gray-900 mb-2">Emissão de Contrato</h1>
+                <h1 className="text-3xl md:text-4xl font-black text-gray-900 mb-2">Emissão de Contrato</h1>
                 <p className="text-gray-500">Gere o PDF oficial de venda.</p>
             </header>
 
             <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-                <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-10">
+                <div className="p-6 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-10">
                     <div className="space-y-6">
                         <SectionTitle title="1. Dados do Cliente" />
                         <ContractInput label="Nome Completo *" value={clientName} onChange={(e: any) => setClientName(e.target.value)} />
                         <ContractInput label="CPF / CNPJ" value={clientCpf} onChange={(e: any) => setClientCpf(e.target.value)} />
                         <ContractInput label="Endereço Completo *" value={clientAddress} onChange={(e: any) => setClientAddress(e.target.value)} />
                     </div>
+                    
                     <div className="space-y-6">
                         <SectionTitle title="2. Especificações" />
                         <div className="grid grid-cols-2 gap-4">
@@ -127,30 +159,53 @@ const Contract = () => {
                             <ContractInput label="Largura (cm)" value={width} onChange={(e: any) => setWidth(e.target.value)} type="number" />
                         </div>
                         <div className="grid grid-cols-3 gap-4">
-                            <ContractInput label="Degraus" value={totalSteps} onChange={(e: any) => setTotalSteps(e.target.value)} type="number" />
+                            <ContractInput label="Total Peças" value={totalSteps} onChange={(e: any) => setTotalSteps(e.target.value)} type="number" />
                             <ContractInput label="Pisante" value={treadDepth} onChange={(e: any) => setTreadDepth(e.target.value)} type="number" />
                             <ContractInput label="Comp." value={totalLength} onChange={(e: any) => setTotalLength(e.target.value)} type="number" />
                         </div>
+
+                        {/* Seção Patamares Dinâmica */}
+                        {landings.length > 0 && (
+                             <div className="bg-orange-50 p-4 rounded-lg border border-orange-200 mt-4 space-y-4">
+                                <h3 className="text-sm font-black text-orange-800 uppercase border-b border-orange-200 pb-1">Detalhes dos Patamares</h3>
+                                {landings.map((l, idx) => (
+                                    <div key={idx} className="bg-white p-3 rounded border border-orange-100">
+                                        <p className="text-xs font-bold text-gray-500 mb-2">Patamar #{idx + 1}</p>
+                                        <div className="grid grid-cols-3 gap-3">
+                                            <ContractInput label="Degrau nº" value={l.step.toString()} onChange={(e: any) => updateLanding(idx, 'step', e.target.value)} type="number" className="text-sm" />
+                                            <ContractInput label="Comp. (cm)" value={l.length.toString()} onChange={(e: any) => updateLanding(idx, 'length', e.target.value)} type="number" className="text-sm" />
+                                            <ContractInput label="Larg. (cm)" value={l.width.toString()} onChange={(e: any) => updateLanding(idx, 'width', e.target.value)} type="number" className="text-sm" />
+                                        </div>
+                                    </div>
+                                ))}
+                             </div>
+                        )}
                     </div>
+
                     <div className="space-y-6">
                         <SectionTitle title="3. Financeiro" />
                         <div className="grid grid-cols-2 gap-4">
                             <ContractInput label="Estrutura (R$)" value={structurePrice} onChange={(e: any) => setStructurePrice(e.target.value)} type="number" />
                             <ContractInput label="Logística (R$)" value={freightPrice} onChange={(e: any) => setFreightPrice(e.target.value)} type="number" />
                         </div>
+                        <div className="grid grid-cols-2 gap-4">
+                             <ContractInput label="Instalação (R$)" value={installationPrice} onChange={(e: any) => setInstallationPrice(e.target.value)} type="number" />
+                             <ContractInput label="Extras (R$)" value={extrasPrice} onChange={(e: any) => setExtrasPrice(e.target.value)} type="number" />
+                        </div>
                     </div>
+
                     <div className="space-y-6">
                          <SectionTitle title="4. Observações" />
                         <textarea 
                             value={extraClauses}
                             onChange={(e) => setExtraClauses(e.target.value)}
-                            className="w-full h-32 p-4 rounded border border-gray-300 focus:border-highlight outline-none font-medium"
-                            placeholder="Notas adicionais..."
+                            className="w-full h-32 p-4 rounded border border-gray-300 focus:border-highlight outline-none font-medium resize-none"
+                            placeholder="Descreva aqui observações adicionais para o contrato (ex: restrições de horário, detalhes de pintura, etc)..."
                         ></textarea>
                     </div>
                 </div>
                 <div className="bg-gray-50 p-8 border-t border-gray-200 text-center">
-                    <button onClick={handleGeneratePDF} className="bg-dark text-white font-black py-4 px-10 rounded-lg hover:bg-black transition-all shadow-xl uppercase">
+                    <button onClick={handleGeneratePDF} className="bg-dark text-white font-black py-4 px-10 rounded-lg hover:bg-black transition-all shadow-xl uppercase w-full sm:w-auto">
                         Gerar e Baixar PDF do Contrato
                     </button>
                 </div>
