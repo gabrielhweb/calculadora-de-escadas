@@ -1,3 +1,4 @@
+
 import React, { useCallback, useState } from 'react';
 import jsPDF from 'jspdf';
 import { useNavigate } from 'react-router-dom';
@@ -85,7 +86,7 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
         doc.setFontSize(11);
         doc.setFont('helvetica', 'normal');
         
-        // Descrição Principal (IDÊNTICA AO MODELO)
+        // Descrição Principal (IDÊNTICO AO MODELO)
         const alturaM = (inputData.totalHeight / 100).toFixed(2).replace('.', ',');
         const compM = (opt.totalLength / 100).toFixed(2).replace('.', ',');
         // Corrimão fixo em 70cm conforme texto do modelo
@@ -118,7 +119,12 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
                 const lM = (landing.length / 100).toFixed(2).replace('.', ',');
                 const wM = (landing.width / 100).toFixed(2).replace('.', ',');
                 
-                const label = opt.landings.length > 1 ? `Patamar ${idx + 1}` : `Patamar`;
+                let label = opt.landings.length > 1 ? `Patamar ${idx + 1}` : `Patamar`;
+                
+                // Adiciona direção se não for reto
+                if (landing.direction === 'left') label += ` (Curva p/ Esquerda)`;
+                else if (landing.direction === 'right') label += ` (Curva p/ Direita)`;
+                else label += ` (Reto)`;
 
                 // Texto detalhando medida e preço individual
                 doc.text(`-${label} em chapa xadrez 3mm (${lM}m x ${wM}m): ${formatCurrencyBRL(landing.price)}`, pageMargin, currentY);

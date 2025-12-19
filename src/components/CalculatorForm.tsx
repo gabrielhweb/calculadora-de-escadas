@@ -13,7 +13,21 @@ const CalculatorIcon = () => (
   </svg>
 );
 
-// Componente de Input Auxiliar
+// Componente Helper de Tooltip Isolado para reuso
+const TooltipIcon: React.FC<{ text: string }> = ({ text }) => (
+    <div className="group relative flex items-center justify-center cursor-help ml-1">
+        {/* Ícone Roxo/Lilás */}
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-purple-500 hover:text-purple-700 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 bg-purple-900 text-white text-xs font-medium p-3 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 text-center leading-relaxed border border-purple-700">
+            {text}
+            <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-6 border-transparent border-t-purple-900"></div>
+        </div>
+    </div>
+);
+
+// Componente de Input Auxiliar com Tooltip Integrado
 const InputField: React.FC<{ 
   label: string; 
   value: string; 
@@ -26,17 +40,25 @@ const InputField: React.FC<{
   onUnitChange?: (unit: 'cm' | 'm') => void; 
   currentUnit?: 'cm' | 'm';
   className?: string;
-}> = ({ label, value, onChange, unit, type = "number", placeholder, helperText, isOptional, onUnitChange, currentUnit, className }) => (
+  tooltip?: string;
+  disabled?: boolean;
+}> = ({ label, value, onChange, unit, type = "number", placeholder, helperText, isOptional, onUnitChange, currentUnit, className, tooltip, disabled }) => (
   <div className={className}>
-    <label className="block text-sm font-black text-gray-900 mb-1">
-        {label} {isOptional ? <span className="text-gray-400 font-normal">(Opcional)</span> : <span className="text-red-500">*</span>}
-    </label>
+    <div className="flex items-center mb-1">
+        <label className={`text-sm font-black mr-1 ${disabled ? 'text-gray-400' : 'text-gray-900'}`}>
+            {label}
+        </label>
+        {isOptional ? <span className="text-gray-400 font-normal text-xs mr-1">(Opcional)</span> : <span className="text-red-500 font-bold mr-1">*</span>}
+        
+        {tooltip && <TooltipIcon text={tooltip} />}
+    </div>
     <div className="flex items-center shadow-sm">
       <input
         type={type}
         value={value}
         onChange={onChange}
-        className="w-full bg-white text-black p-3 rounded-l-md border-2 border-gray-300 focus:outline-none focus:border-highlight focus:ring-1 focus:ring-highlight transition font-bold text-lg"
+        disabled={disabled}
+        className={`w-full p-3 rounded-l-md border-2 border-gray-300 focus:outline-none focus:border-highlight focus:ring-1 focus:ring-highlight transition font-bold text-lg ${disabled ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-black'}`}
         placeholder={placeholder || (isOptional ? "Automático" : label)}
         min="0"
         step="any"
@@ -116,7 +138,9 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
         step: lastStep,
         length: 80,
         width: 70,
-        price: 1030
+        price: 1030,
+        isLastStep: false,
+        direction: 'straight'
     };
     setLandings([...landings, newLanding]);
   };
@@ -125,9 +149,16 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
       setLandings(landings.filter(l => l.id !== id));
   };
 
-  const updateLanding = (id: string, field: keyof LandingInfo, value: string) => {
+  const updateLanding = (id: string, field: keyof LandingInfo, value: any) => {
       setLandings(landings.map(l => {
           if (l.id === id) {
+              if (field === 'isLastStep') {
+                 return { ...l, isLastStep: value };
+              }
+              // Atualização de Direção não precisa de parseFloat
+              if (field === 'direction') {
+                  return { ...l, direction: value };
+              }
               return { ...l, [field]: parseFloat(value) || 0 };
           }
           return l;
@@ -170,8 +201,9 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
     }
     
     if (landings.length >= formData.desiredSteps) {
-        setError('O número de patamares não pode ser maior ou igual ao número total de degraus.');
-        return;
+        // Se todos forem 'lastStep', tecnicamente não dá erro de validação aqui, 
+        // mas a lógica de cálculo deve lidar com isso.
+        // Vamos permitir e validar na geração.
     }
 
     setError('');
@@ -189,26 +221,30 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
         {/* ALTURA E DEGRAUS */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-            <label className="block text-sm font-black text-gray-900 mb-1">Altura Piso-Piso *</label>
-            <div className="flex shadow-sm">
-                <input
-                type="number"
-                value={totalHeight}
-                onChange={(e) => setTotalHeight(e.target.value)}
-                className="w-full bg-white text-black p-3 rounded-l-md border-2 border-gray-300 focus:outline-none focus:border-highlight transition font-bold text-lg"
-                placeholder="300"
-                min="0"
-                step="any"
-                />
-                <select
-                value={heightUnit}
-                onChange={(e) => setHeightUnit(e.target.value as 'cm' | 'm')}
-                className="bg-gray-100 text-gray-800 p-3 rounded-r-md border-2 border-l-0 border-gray-300 font-bold cursor-pointer outline-none"
-                >
-                <option value="cm">cm</option>
-                <option value="m">m</option>
-                </select>
-            </div>
+                <div className="flex items-center mb-1">
+                    <label className="block text-sm font-black text-gray-900 mr-1">Altura Piso-Piso</label>
+                    <span className="text-red-500 font-bold mr-1">*</span>
+                    <TooltipIcon text="Distância vertical exata do chão de baixo até o chão de cima (já considerando o piso acabado)." />
+                </div>
+                <div className="flex shadow-sm">
+                    <input
+                    type="number"
+                    value={totalHeight}
+                    onChange={(e) => setTotalHeight(e.target.value)}
+                    className="w-full bg-white text-black p-3 rounded-l-md border-2 border-gray-300 focus:outline-none focus:border-highlight transition font-bold text-lg"
+                    placeholder="300"
+                    min="0"
+                    step="any"
+                    />
+                    <select
+                    value={heightUnit}
+                    onChange={(e) => setHeightUnit(e.target.value as 'cm' | 'm')}
+                    className="bg-gray-100 text-gray-800 p-3 rounded-r-md border-2 border-l-0 border-gray-300 font-bold cursor-pointer outline-none"
+                    >
+                    <option value="cm">cm</option>
+                    <option value="m">m</option>
+                    </select>
+                </div>
             </div>
 
             <InputField 
@@ -217,11 +253,12 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                 onChange={e => setDesiredSteps(e.target.value)} 
                 unit="un"
                 helperText="Subidas totais (Degraus + Patamares)."
+                tooltip="Quantidade total de espelhos (subidas). Inclui a soma de degraus comuns + patamares."
             />
         </div>
         
         {/* AMBIENTE (LAJE/VÃO) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-3 rounded border border-gray-200">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-blue-50 p-3 rounded border border-blue-100">
              <InputField 
                 label="Tamanho do Vão" 
                 value={slabOpening} 
@@ -231,6 +268,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                 currentUnit={openingUnit}
                 helperText="Abertura na laje superior"
                 className="mb-0"
+                tooltip="Comprimento livre do buraco na laje superior. Se a escada for maior que este valor, o usuário baterá a cabeça ao subir."
             />
              <InputField 
                 label="Espessura Laje" 
@@ -240,6 +278,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                 isOptional={true}
                 helperText="Para calcular 'cabeçada'"
                 className="mb-0"
+                tooltip="Altura total da laje (concreto + acabamento). Essencial para calcular a altura livre (cabeçada) e garantir segurança."
             />
         </div>
 
@@ -253,6 +292,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                 onUnitChange={setWidthUnit}
                 currentUnit={widthUnit}
                 helperText="Padrão: 70cm"
+                tooltip="Largura útil da escada. Padrão comercial é 70cm, mas pode variar conforme necessidade."
             />
             
             <InputField 
@@ -263,6 +303,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                 onUnitChange={setDepthUnit}
                 currentUnit={depthUnit}
                 helperText="Padrão: 24cm"
+                tooltip="Profundidade do degrau onde se coloca o pé. Padrão confortável é entre 25cm e 30cm."
             />
         </div>
         
@@ -273,6 +314,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                 onChange={e => setDampers(e.target.value)} 
                 unit="un"
                 helperText="Padrão: 4"
+                tooltip="Borrachas instaladas entre a estrutura da escada e a parede para reduzir vibração e ruído."
             />
             <InputField 
                 label="Preço/Degrau" 
@@ -281,6 +323,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                 unit="R$" 
                 isOptional={true}
                 helperText="Manual (Substitui tabela)"
+                tooltip="Define um preço fixo por degrau, ignorando a tabela de preços automática baseada na largura."
             />
         </div>
         
@@ -292,6 +335,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
             onUnitChange={setLengthUnit}
             currentUnit={lengthUnit}
             helperText="Trava o comprimento da escada"
+            tooltip="Força a escada a ter um comprimento exato, ajustando o pisante automaticamente se necessário."
         />
 
         {/* --- SEÇÃO PATAMARES --- */}
@@ -300,6 +344,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                 <h3 className="text-sm font-black text-gray-900 uppercase flex items-center gap-2">
                     <span className="bg-highlight text-white w-6 h-6 flex items-center justify-center rounded-full text-xs">P</span>
                     Patamares ({landings.length})
+                    <TooltipIcon text="Plataformas de descanso ou curva. Cada patamar substitui 1 degrau na contagem total de peças." />
                 </h3>
                 <button type="button" onClick={handleAddLanding} className="text-xs bg-gray-800 text-white px-3 py-1 rounded font-bold hover:bg-black transition">
                     + Adicionar
@@ -323,19 +368,65 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                             <span className="text-xs font-bold text-gray-400 absolute top-1 left-2">#{index + 1}</span>
                             
                             <div className="grid grid-cols-2 gap-2 mt-2">
-                                <InputField 
-                                    label="Qual Degrau?" 
-                                    value={landing.step.toString()} 
-                                    onChange={e => updateLanding(landing.id, 'step', e.target.value)} 
-                                    unit="º" 
-                                    className="mb-0"
-                                />
+                                {/* CONTROLE DINÂMICO DE DEGRAU */}
+                                <div className="mb-0 col-span-2">
+                                    <div className="flex justify-between items-center mb-1">
+                                         <label className="text-sm font-black text-gray-900 mr-1">Qual Degrau?</label>
+                                         <label className="flex items-center gap-1 cursor-pointer">
+                                             <input 
+                                                type="checkbox" 
+                                                checked={landing.isLastStep} 
+                                                onChange={(e) => updateLanding(landing.id, 'isLastStep', e.target.checked)} 
+                                                className="w-4 h-4 accent-highlight"
+                                             />
+                                             <span className="text-xs font-bold text-highlight uppercase">Último?</span>
+                                         </label>
+                                    </div>
+                                    <input
+                                        type="number"
+                                        value={landing.isLastStep ? "" : landing.step.toString()}
+                                        disabled={landing.isLastStep}
+                                        onChange={e => updateLanding(landing.id, 'step', e.target.value)}
+                                        className={`w-full p-2 rounded border-2 focus:outline-none transition font-bold ${landing.isLastStep ? 'bg-gray-200 border-gray-300 text-gray-400' : 'bg-white border-gray-300 focus:border-highlight text-black'}`}
+                                        placeholder={landing.isLastStep ? "Auto (Topo)" : "Ex: 5"}
+                                    />
+                                </div>
+                                
+                                {/* CONTROLE DE DIREÇÃO */}
+                                <div className="col-span-2 mb-2 bg-gray-50 p-2 rounded border border-gray-100">
+                                    <label className="text-xs font-black text-gray-800 mb-1 block">Direção / Curva:</label>
+                                    <div className="flex gap-1">
+                                        <button 
+                                            type="button"
+                                            onClick={() => updateLanding(landing.id, 'direction', 'left')}
+                                            className={`flex-1 py-1 rounded text-xs font-bold transition flex items-center justify-center gap-1 ${landing.direction === 'left' ? 'bg-blue-600 text-white shadow' : 'bg-white border text-gray-600 hover:bg-gray-100'}`}
+                                        >
+                                            ⬅️ Esq
+                                        </button>
+                                        <button 
+                                            type="button"
+                                            onClick={() => updateLanding(landing.id, 'direction', 'straight')}
+                                            className={`flex-1 py-1 rounded text-xs font-bold transition flex items-center justify-center gap-1 ${(!landing.direction || landing.direction === 'straight') ? 'bg-blue-600 text-white shadow' : 'bg-white border text-gray-600 hover:bg-gray-100'}`}
+                                        >
+                                            ⬆️ Reto
+                                        </button>
+                                        <button 
+                                            type="button"
+                                            onClick={() => updateLanding(landing.id, 'direction', 'right')}
+                                            className={`flex-1 py-1 rounded text-xs font-bold transition flex items-center justify-center gap-1 ${landing.direction === 'right' ? 'bg-blue-600 text-white shadow' : 'bg-white border text-gray-600 hover:bg-gray-100'}`}
+                                        >
+                                            Dir ➡️
+                                        </button>
+                                    </div>
+                                </div>
+
                                 <InputField 
                                     label="Preço (R$)" 
                                     value={landing.price.toString()} 
                                     onChange={e => updateLanding(landing.id, 'price', e.target.value)} 
                                     unit="R$" 
                                     className="mb-0"
+                                    tooltip="Custo unitário deste patamar."
                                 />
                                 <InputField 
                                     label="Comp. (cm)" 
@@ -343,6 +434,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                     onChange={e => updateLanding(landing.id, 'length', e.target.value)} 
                                     unit="cm" 
                                     className="mb-0"
+                                    tooltip="Comprimento do patamar no sentido da subida."
                                 />
                                 <InputField 
                                     label="Larg. (cm)" 
@@ -350,6 +442,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                     onChange={e => updateLanding(landing.id, 'width', e.target.value)} 
                                     unit="cm" 
                                     className="mb-0"
+                                    tooltip="Largura lateral do patamar."
                                 />
                             </div>
                         </div>
@@ -360,7 +453,10 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
 
         {/* --- SEÇÃO EXTRAS --- */}
         <div className="pt-4 border-t border-gray-100">
-          <label className="block text-sm font-black text-gray-900 mb-2">Itens Extras</label>
+          <div className="flex items-center mb-2">
+            <label className="block text-sm font-black text-gray-900 mr-2">Itens Extras</label>
+            <TooltipIcon text="Adicione custos adicionais como corrimão extra, pintura especial, guarda-corpo, etc." />
+          </div>
           <div className="flex gap-2 mb-2">
             <input type="text" placeholder="Nome do item" value={newItemName} onChange={e => setNewItemName(e.target.value)} className="flex-1 p-2 border-2 border-gray-200 rounded font-medium focus:border-highlight outline-none"/>
             <input type="number" placeholder="R$" value={newItemPrice} onChange={e => setNewItemPrice(e.target.value)} className="w-24 p-2 border-2 border-gray-200 rounded font-medium focus:border-highlight outline-none"/>

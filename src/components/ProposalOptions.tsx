@@ -1,8 +1,10 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ProposalOption, UserData, CalculatorInput } from '../types';
-import { formatCurrencyBRL, calculateFreightCost, getRouteInfoFromGemini } from '../utils';
+import { formatCurrencyBRL, calculateFreightCost, getRouteInfoFromGemini, calculateTotalPrice } from '../utils';
 import StaircaseVisualizer from './StaircaseVisualizer';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 interface ProposalOptionsProps {
   options: ProposalOption[];
@@ -70,6 +72,22 @@ const UserDataForm: React.FC<{ onSubmit: (data: UserData) => void }> = ({ onSubm
   )
 }
 
+// Tipo atualizado para controlar versões 2D e 3D de cada opção
+interface ExportSelection {
+    original2D: boolean;
+    original3D: boolean;
+    fixOpening2D: boolean;
+    fixOpening3D: boolean;
+    fixStair2D: boolean;
+    fixStair3D: boolean;
+}
+
+const defaultSelection: ExportSelection = {
+    original2D: false, original3D: false,
+    fixOpening2D: false, fixOpening3D: false,
+    fixStair2D: false, fixStair3D: false
+};
+
 const ProposalOptions: React.FC<ProposalOptionsProps> = ({ 
     options, 
     inputData,
@@ -98,8 +116,18 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
   const [manualTollCost, setManualTollCost] = useState('');
   const [isFreightIncluded, setIsFreightIncluded] = useState(true);
 
-  // Novo estado para o visualizador
+  // Novo estado para o visualizador modal
   const [selectedVisualizerOption, setSelectedVisualizerOption] = useState<ProposalOption | null>(null);
+  const [visualizerForcedState, setVisualizerForcedState] = useState<{simulateSafe: boolean, correctionType: 'expand_opening' | 'shrink_stair'} | undefined>(undefined);
+  
+  // Armazena as opções corrigidas (alteradas pelo usuário via "Aplicar")
+  const [overriddenOptions, setOverriddenOptions] = useState<{[key: number]: ProposalOption}>({});
+  
+  // Controle de exportação em lote: chave é o numero da opção
+  const [exportConfig, setExportConfig] = useState<{[key: number]: ExportSelection}>({});
+
+  const [isBatchExporting, setIsBatchExporting] = useState(false);
+  const batchExportContainerRef = useRef<HTMLDivElement>(null);
 
   const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>, setCep: (value: string) => void) => {
     let { value } = e.target;
@@ -108,6 +136,50 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
       value = `${value.slice(0, 5)}-${value.slice(5)}`;
     }
     setCep(value);
+  };
+
+  const handleApplyCorrection = (optionNum: number, newTread: number, newLength: number) => {
+      const original = options.find(o => o.optionNumber === optionNum);
+      if (!original) return;
+
+      // Recalcula preço
+      let newTotalPrice = 0;
+      if (inputData?.customStepPrice && inputData.customStepPrice > 0) {
+          newTotalPrice += inputData.customStepPrice * original.structureSteps;
+      } else {
+          newTotalPrice += calculateTotalPrice(original.stairWidth, newTread, original.structureSteps);
+      }
+      const landingsPrice = original.landings.reduce((acc, l) => acc + l.price, 0);
+      newTotalPrice += landingsPrice;
+
+      const newOption: ProposalOption = {
+          ...original,
+          treadDepth: newTread,
+          totalLength: newLength,
+          totalPrice: newTotalPrice,
+          isModified: true
+      };
+
+      setOverriddenOptions(prev => ({ ...prev, [optionNum]: newOption }));
+  };
+  
+  // Função para desfazer a alteração e voltar ao original
+  const handleRevertCorrection = (optionNum: number) => {
+      setOverriddenOptions(prev => {
+          const newState = { ...prev };
+          delete newState[optionNum];
+          return newState;
+      });
+  };
+
+  const toggleExportSelection = (optionNum: number, type: keyof ExportSelection) => {
+      setExportConfig(prev => {
+          const current = prev[optionNum] || { ...defaultSelection };
+          return {
+              ...prev,
+              [optionNum]: { ...current, [type]: !current[type] }
+          };
+      });
   };
 
   const handleAutomaticDistance = async () => {
@@ -160,123 +232,264 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
 
 }, [freightMode, distance, autoTollCost, manualDistance, manualTollCost, fuelPrice, consumption, setFreightCost, setTollCost, isFreightIncluded]);
 
+  const countSelectedExports = () => {
+      let count = 0;
+      (Object.values(exportConfig) as ExportSelection[]).forEach(sel => {
+          if (sel.original2D) count++;
+          if (sel.original3D) count++;
+          if (sel.fixOpening2D) count++;
+          if (sel.fixOpening3D) count++;
+          if (sel.fixStair2D) count++;
+          if (sel.fixStair3D) count++;
+      });
+      return count;
+  };
+
+  const handleBatchExport = async () => {
+      if (countSelectedExports() === 0) return;
+      setIsBatchExporting(true);
+
+      setTimeout(async () => {
+          if (!batchExportContainerRef.current) {
+              console.error("Container de exportação não encontrado");
+              setIsBatchExporting(false);
+              return;
+          }
+          
+          const doc = new jsPDF('landscape', 'mm', 'a4');
+          const elements = batchExportContainerRef.current.children;
+          let pageCount = 0;
+
+          // Processamento sequencial
+          for (let i = 0; i < elements.length; i++) {
+              const element = elements[i] as HTMLElement;
+              const optionNumStr = element.getAttribute('data-option-number');
+              const variant = element.getAttribute('data-variant');
+              const viewMode = element.getAttribute('data-viewmode'); // 2D ou 3D
+              
+              if(!optionNumStr) continue;
+              const optionNum = parseInt(optionNumStr);
+              
+              let titleSuffix = "";
+              if (variant === 'original') titleSuffix = "(Original)";
+              if (variant === 'fixOpening') titleSuffix = "(Solução: Aumentar Vão)";
+              if (variant === 'fixStair') titleSuffix = "(Solução: Ajustar Escada)";
+
+              const viewTitle = viewMode === '3d' ? "Visualização 3D" : "Desenho Técnico 2D";
+
+              try {
+                  const canvas = await html2canvas(element, { 
+                      scale: 2, 
+                      backgroundColor: '#ffffff',
+                      logging: false,
+                      useCORS: true,
+                      allowTaint: true,
+                      width: element.offsetWidth, // Força captura da largura correta
+                      height: element.offsetHeight
+                  });
+                  const imgData = canvas.toDataURL('image/png');
+                  
+                  if (pageCount > 0) doc.addPage();
+                  
+                  const pdfWidth = doc.internal.pageSize.getWidth();
+                  const pdfHeight = doc.internal.pageSize.getHeight();
+                  const ratio = canvas.width / canvas.height;
+                  
+                  let w = pdfWidth - 20;
+                  let h = w / ratio;
+                  
+                  // Ajusta se passar da altura da página
+                  if (h > pdfHeight - 40) {
+                      h = pdfHeight - 40;
+                      w = h * ratio;
+                  }
+                  
+                  doc.setFontSize(16);
+                  doc.text(`${viewTitle} - Opção ${optionNum} ${titleSuffix}`, 10, 15);
+                  doc.addImage(imgData, 'PNG', 10, 25, w, h);
+                  pageCount++;
+                  
+              } catch (e) {
+                  console.error("Erro ao processar imagem para PDF", e);
+              }
+          }
+          
+          if (pageCount > 0) {
+              doc.save('desenhos_selecionados.pdf');
+          } else {
+              alert("Não foi possível gerar as imagens. Tente selecionar novamente.");
+          }
+          setIsBatchExporting(false);
+      }, 3000); // 3 segundos para garantir renderização completa (especialmente 3D)
+  };
+
   const finalInstallationCost = isInstallationIncluded ? installationCost : 0;
   const extrasCost = inputData?.optionalItems.reduce((acc, item) => acc + item.price, 0) || 0;
-    
+  
+  const hasSlabInfo = inputData?.slabOpening && inputData.slabOpening > 0;
+
   return (
     <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-      <h2 className="text-2xl font-black mb-6 text-gray-900 border-b-2 border-highlight pb-4">Opções Calculadas</h2>
+      <div className="flex justify-between items-center mb-6 border-b-2 border-highlight pb-4">
+          <h2 className="text-2xl font-black text-gray-900">Opções Calculadas</h2>
+          
+          {/* Botão de Exportação em Lote */}
+          <div className="flex gap-2">
+              <button 
+                onClick={handleBatchExport}
+                disabled={countSelectedExports() === 0 || isBatchExporting}
+                className={`text-sm font-bold px-4 py-2 rounded shadow transition-all flex items-center gap-2 ${countSelectedExports() > 0 ? 'bg-purple-600 text-white hover:bg-purple-700' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
+              >
+                  {isBatchExporting ? 'Gerando...' : `📥 Baixar Desenhos Selecionados (${countSelectedExports()})`}
+              </button>
+          </div>
+      </div>
       
       <div className="space-y-4 mb-8">
-        <p className="text-sm text-gray-500 font-medium">Confira as 3 opções geradas (Quantidade TOTAL de peças):</p>
-        {options.map((option) => {
-            const totalCost = option.totalPrice + freightCost + tollCost + finalInstallationCost + extrasCost;
-            
-            // Lógica do Detalhamento da Estrutura
-            const landingsTotalPrice = option.landings.reduce((acc, l) => acc + l.price, 0);
-            const landingsTotalLength = option.landings.reduce((acc, l) => acc + l.length, 0);
-            
-            const stairOnlyPrice = option.totalPrice - landingsTotalPrice;
-            
-            // Cálculo do comprimento apenas da escada para mostrar na memória
-            const stairOnlyLengthCm = option.totalLength - landingsTotalLength;
+        <p className="text-sm text-gray-500 font-medium">Selecione quais versões de desenho você deseja incluir no PDF:</p>
+        {options.map((originalOption) => {
+            // Usa a versão modificada se houver, para exibir os dados "Atuais" no card
+            const activeOption = overriddenOptions[originalOption.optionNumber] || originalOption;
+            const currentSelection = exportConfig[activeOption.optionNumber] || { ...defaultSelection };
 
+            const totalCost = activeOption.totalPrice + freightCost + tollCost + finalInstallationCost + extrasCost;
+            
             return (
                 <div
-                    key={option.optionNumber}
-                    className="p-5 rounded-lg bg-gray-50 border-2 border-gray-200 shadow-sm hover:border-highlight transition-colors"
+                    key={activeOption.optionNumber}
+                    className={`p-5 rounded-lg border-2 shadow-sm transition-colors relative bg-gray-50 border-gray-200 hover:border-highlight`}
                 >
                     <div className="flex justify-between items-start mb-3 border-b border-gray-200 pb-2">
                         <div>
-                            <h3 className="text-lg font-black text-gray-900 uppercase">
-                                Opção {option.optionNumber}
+                            <h3 className="text-lg font-black text-gray-900 uppercase flex items-center gap-2">
+                                Opção {activeOption.optionNumber}
+                                {activeOption.isModified && <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded border border-green-200">MODIFICADA</span>}
                             </h3>
                             <button 
-                                onClick={() => setSelectedVisualizerOption(option)}
+                                onClick={() => { setSelectedVisualizerOption(originalOption); setVisualizerForcedState(undefined); }}
                                 className="text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded mt-1 flex items-center gap-1 shadow-sm transition-all"
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                </svg>
-                                Ver Projeto 3D
+                                👁️ Abrir Visualizador 3D
                             </button>
                         </div>
                         <span className="text-2xl font-black text-green-700">
                             {formatCurrencyBRL(totalCost)}
                         </span>
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 text-sm text-gray-700 font-medium mb-4">
-                        <p><strong className="text-gray-900">Total Peças:</strong> {option.steps} un</p>
-                        <p><strong className="text-gray-900">Alt/Degrau:</strong> {option.stepHeight.toFixed(2)} cm</p>
-                        <p><strong className="text-gray-900">Pisante:</strong> {option.treadDepth.toFixed(2)} cm</p>
-                        <p><strong className="text-gray-900">Largura:</strong> {option.stairWidth} cm</p>
-                        <p><strong className="text-gray-900">Comp. Total:</strong> {(option.totalLength / 100).toFixed(2)} m</p>
+
+                    {/* Feedback de Modificação e Reversão */}
+                    {activeOption.isModified && (
+                        <div className="mb-4 bg-yellow-50 p-3 rounded border border-yellow-200 flex justify-between items-center text-sm">
+                            <div className="text-yellow-800">
+                                <strong>Alteração Aplicada:</strong> Pisante de {originalOption.treadDepth}cm ➝ <span className="font-bold">{activeOption.treadDepth}cm</span>
+                            </div>
+                            <button 
+                                onClick={() => handleRevertCorrection(activeOption.optionNumber)}
+                                className="text-red-600 underline font-bold hover:text-red-800 text-xs uppercase"
+                            >
+                                Desfazer
+                            </button>
+                        </div>
+                    )}
+                    
+                    {/* ÁREA DE SELEÇÃO DE EXPORTAÇÃO */}
+                    <div className="bg-white p-3 rounded border border-gray-200 mb-4">
+                        <span className="text-xs font-bold text-purple-700 uppercase block mb-2">Selecione para o PDF:</span>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {/* Grupo Original */}
+                            <div className="flex flex-col gap-1 border-r border-gray-100 pr-2">
+                                <span className="text-xs font-bold text-gray-400">Original</span>
+                                <div className="flex gap-3">
+                                    <label className="flex items-center gap-1 cursor-pointer hover:bg-gray-50 rounded">
+                                        <input 
+                                            type="checkbox" 
+                                            checked={currentSelection.original2D} 
+                                            onChange={() => toggleExportSelection(activeOption.optionNumber, 'original2D')}
+                                            className="w-3 h-3 accent-purple-600"
+                                        />
+                                        <span className="text-xs font-medium">2D</span>
+                                    </label>
+                                    <label className="flex items-center gap-1 cursor-pointer hover:bg-gray-50 rounded">
+                                        <input 
+                                            type="checkbox" 
+                                            checked={currentSelection.original3D} 
+                                            onChange={() => toggleExportSelection(activeOption.optionNumber, 'original3D')}
+                                            className="w-3 h-3 accent-purple-600"
+                                        />
+                                        <span className="text-xs font-medium">3D</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            {/* Grupos de Correção (Só exibe se houver laje) */}
+                            {hasSlabInfo && (
+                                <>
+                                    <div className="flex flex-col gap-1 border-r border-gray-100 pr-2">
+                                        <span className="text-xs font-bold text-gray-400">Solução Vão</span>
+                                        <div className="flex gap-3">
+                                            <label className="flex items-center gap-1 cursor-pointer hover:bg-gray-50 rounded">
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={currentSelection.fixOpening2D} 
+                                                    onChange={() => toggleExportSelection(activeOption.optionNumber, 'fixOpening2D')}
+                                                    className="w-3 h-3 accent-purple-600"
+                                                />
+                                                <span className="text-xs font-medium">2D</span>
+                                            </label>
+                                            <label className="flex items-center gap-1 cursor-pointer hover:bg-gray-50 rounded">
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={currentSelection.fixOpening3D} 
+                                                    onChange={() => toggleExportSelection(activeOption.optionNumber, 'fixOpening3D')}
+                                                    className="w-3 h-3 accent-purple-600"
+                                                />
+                                                <span className="text-xs font-medium">3D</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col gap-1">
+                                        <span className="text-xs font-bold text-gray-400">Solução Escada</span>
+                                        <div className="flex gap-3">
+                                            <label className="flex items-center gap-1 cursor-pointer hover:bg-gray-50 rounded">
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={currentSelection.fixStair2D} 
+                                                    onChange={() => toggleExportSelection(activeOption.optionNumber, 'fixStair2D')}
+                                                    className="w-3 h-3 accent-purple-600"
+                                                />
+                                                <span className="text-xs font-medium">2D</span>
+                                            </label>
+                                            <label className="flex items-center gap-1 cursor-pointer hover:bg-gray-50 rounded">
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={currentSelection.fixStair3D} 
+                                                    onChange={() => toggleExportSelection(activeOption.optionNumber, 'fixStair3D')}
+                                                    className="w-3 h-3 accent-purple-600"
+                                                />
+                                                <span className="text-xs font-medium">3D</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 text-sm text-gray-700 font-medium mb-4 pl-2">
+                        <p><strong className="text-gray-900">Total Peças:</strong> {activeOption.steps} un</p>
+                        <p><strong className="text-gray-900">Alt/Degrau:</strong> {activeOption.stepHeight.toFixed(2)} cm</p>
+                        <p><strong className="text-gray-900">Pisante:</strong> {activeOption.treadDepth.toFixed(2)} cm</p>
+                        <p><strong className="text-gray-900">Largura:</strong> {activeOption.stairWidth} cm</p>
+                        <p><strong className="text-gray-900">Comp. Total:</strong> {(activeOption.totalLength / 100).toFixed(2)} m</p>
                     </div>
 
                     <div className="mt-3 pt-3 text-xs text-gray-500 border-t border-gray-200 flex flex-col gap-2">
                         <div className="flex flex-col gap-1">
                             <div className="flex justify-between items-center">
                                 <span className="font-bold text-gray-900 uppercase">Valor da Estrutura:</span>
-                                <span className="text-base font-black text-gray-900">{formatCurrencyBRL(option.totalPrice)}</span>
-                            </div>
-                            
-                            <div className="flex flex-wrap gap-2 text-[10px]">
-                                <span className="bg-gray-200 px-2 py-1 rounded text-gray-700">
-                                    {option.structureSteps} Degraus ({formatCurrencyBRL(stairOnlyPrice)})
-                                </span>
-                                {option.landings.length > 0 && (
-                                    <span className="bg-orange-100 px-2 py-1 rounded text-orange-800 font-bold border border-orange-200">
-                                        + {option.landings.length} Patamar(es) ({formatCurrencyBRL(landingsTotalPrice)})
-                                    </span>
-                                )}
+                                <span className="text-base font-black text-gray-900">{formatCurrencyBRL(activeOption.totalPrice)}</span>
                             </div>
                         </div>
-
-                        <div className="flex justify-between pt-1">
-                            <span>Logística e Instalação:</span>
-                            <span className="font-bold text-gray-700">{formatCurrencyBRL(freightCost + tollCost + finalInstallationCost)}</span>
-                        </div>
-                        
-                        {extrasCost > 0 && (
-                            <div className="flex justify-between text-blue-700 font-bold">
-                                <span>Itens Extras:</span>
-                                <span>{formatCurrencyBRL(extrasCost)}</span>
-                            </div>
-                        )}
-
-                        {/* --- MEMÓRIA DE CÁLCULO (EXPANSÍVEL) --- */}
-                        <details className="mt-2 group">
-                            <summary className="cursor-pointer text-highlight font-bold text-[10px] uppercase hover:underline list-none flex items-center gap-1">
-                                <span className="bg-highlight text-white w-4 h-4 flex items-center justify-center rounded-full text-[8px]">+</span>
-                                Ver Memória de Cálculo (Entenda a conta)
-                            </summary>
-                            <div className="mt-2 p-3 bg-gray-200 rounded text-[11px] text-gray-700 space-y-2 font-mono border border-gray-300">
-                                <div>
-                                    <strong className="block text-gray-900 border-b border-gray-300 pb-1 mb-1">1. Altura do Degrau:</strong>
-                                    <p>Altura Total ({inputData?.totalHeight}cm) ÷ ({option.steps} Peças + 1) = <strong className="text-black">{option.stepHeight.toFixed(2)} cm</strong></p>
-                                    <p className="text-[9px] text-gray-500 italic">*Fórmula padrão: Altura dividida pelo número de espelhos (nº degraus + 1).</p>
-                                </div>
-                                
-                                <div>
-                                    <strong className="block text-gray-900 border-b border-gray-300 pb-1 mb-1">2. Comprimento Total:</strong>
-                                    <p>• Escada: {option.structureSteps} degraus x ({option.treadDepth.toFixed(2)}cm pisante + 1cm transpasse) = {stairOnlyLengthCm.toFixed(1)} cm</p>
-                                    <p>• Patamares: Soma dos comprimentos = {landingsTotalLength} cm</p>
-                                    <p className="mt-1 font-bold text-black border-t border-gray-300 pt-1">
-                                        Total: {stairOnlyLengthCm.toFixed(1)} + {landingsTotalLength} = {option.totalLength.toFixed(1)} cm ({(option.totalLength/100).toFixed(2)}m)
-                                    </p>
-                                </div>
-
-                                <div>
-                                    <strong className="block text-gray-900 border-b border-gray-300 pb-1 mb-1">3. Preço da Estrutura:</strong>
-                                    <p>• Escada: Base Tabela x {option.structureSteps} degraus = {formatCurrencyBRL(stairOnlyPrice)}</p>
-                                    <p>• Patamares: Soma dos preços manuais = {formatCurrencyBRL(landingsTotalPrice)}</p>
-                                    <p className="mt-1 font-bold text-black border-t border-gray-300 pt-1">
-                                        Total: {formatCurrencyBRL(option.totalPrice)}
-                                    </p>
-                                </div>
-                            </div>
-                        </details>
                     </div>
                 </div>
             )
@@ -389,7 +602,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
       
       <UserDataForm onSubmit={onGenerateProposal} />
 
-      {/* RENDERIZAÇÃO DO MODAL DE VISUALIZAÇÃO SE HOUVER OPÇÃO SELECIONADA */}
+      {/* RENDERIZAÇÃO DO MODAL DE VISUALIZAÇÃO */}
       {selectedVisualizerOption && (
           <StaircaseVisualizer 
              option={selectedVisualizerOption} 
@@ -397,7 +610,84 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
              slabOpening={inputData?.slabOpening}
              slabThickness={inputData?.slabThickness}
              onClose={() => setSelectedVisualizerOption(null)} 
+             onApplyCorrection={(t, l) => handleApplyCorrection(selectedVisualizerOption.optionNumber, t, l)}
+             forcedState={visualizerForcedState}
           />
+      )}
+
+      {/* CONTAINER OCULTO PARA EXPORTAÇÃO EM LOTE - CORRIGIDO POSIÇÃO E ESTILO */}
+      {isBatchExporting && (
+          <div 
+            ref={batchExportContainerRef} 
+            style={{ 
+                position: 'absolute', 
+                top: 0, 
+                left: '-5000px', // Fora da tela, mas renderizado
+                width: '1000px', 
+                opacity: 1, // Opacidade total para captura
+                zIndex: -100, 
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '20px',
+                backgroundColor: 'white'
+            }}
+          >
+              {options.map(o => {
+                  const sel = exportConfig[o.optionNumber];
+                  if (!sel) return null;
+                  const nodes = [];
+
+                  // 1. ORIGINAL
+                  if (sel.original2D) {
+                      nodes.push(
+                          <div key={`${o.optionNumber}-orig-2d`} data-option-number={o.optionNumber} data-variant="original" data-viewmode="2d">
+                              <StaircaseVisualizer option={o} totalHeight={inputData?.totalHeight || 300} slabOpening={inputData?.slabOpening} slabThickness={inputData?.slabThickness} printMode={true} initialViewMode="side" forcedState={{simulateSafe: false, correctionType: 'expand_opening'}} />
+                          </div>
+                      );
+                  }
+                  if (sel.original3D) {
+                      nodes.push(
+                          <div key={`${o.optionNumber}-orig-3d`} data-option-number={o.optionNumber} data-variant="original" data-viewmode="3d">
+                              <StaircaseVisualizer option={o} totalHeight={inputData?.totalHeight || 300} slabOpening={inputData?.slabOpening} slabThickness={inputData?.slabThickness} printMode={true} initialViewMode="3d" forcedState={{simulateSafe: false, correctionType: 'expand_opening'}} />
+                          </div>
+                      );
+                  }
+
+                  // 2. CORRIGIDO (VÃO)
+                  if (sel.fixOpening2D && hasSlabInfo) {
+                      nodes.push(
+                          <div key={`${o.optionNumber}-open-2d`} data-option-number={o.optionNumber} data-variant="fixOpening" data-viewmode="2d">
+                              <StaircaseVisualizer option={o} totalHeight={inputData?.totalHeight || 300} slabOpening={inputData?.slabOpening} slabThickness={inputData?.slabThickness} printMode={true} initialViewMode="side" forcedState={{simulateSafe: true, correctionType: 'expand_opening'}} />
+                          </div>
+                      );
+                  }
+                  if (sel.fixOpening3D && hasSlabInfo) {
+                      nodes.push(
+                          <div key={`${o.optionNumber}-open-3d`} data-option-number={o.optionNumber} data-variant="fixOpening" data-viewmode="3d">
+                              <StaircaseVisualizer option={o} totalHeight={inputData?.totalHeight || 300} slabOpening={inputData?.slabOpening} slabThickness={inputData?.slabThickness} printMode={true} initialViewMode="3d" forcedState={{simulateSafe: true, correctionType: 'expand_opening'}} />
+                          </div>
+                      );
+                  }
+
+                  // 3. CORRIGIDO (ESCADA)
+                  if (sel.fixStair2D && hasSlabInfo) {
+                      nodes.push(
+                          <div key={`${o.optionNumber}-shrink-2d`} data-option-number={o.optionNumber} data-variant="fixStair" data-viewmode="2d">
+                              <StaircaseVisualizer option={o} totalHeight={inputData?.totalHeight || 300} slabOpening={inputData?.slabOpening} slabThickness={inputData?.slabThickness} printMode={true} initialViewMode="side" forcedState={{simulateSafe: true, correctionType: 'shrink_stair'}} />
+                          </div>
+                      );
+                  }
+                  if (sel.fixStair3D && hasSlabInfo) {
+                      nodes.push(
+                          <div key={`${o.optionNumber}-shrink-3d`} data-option-number={o.optionNumber} data-variant="fixStair" data-viewmode="3d">
+                              <StaircaseVisualizer option={o} totalHeight={inputData?.totalHeight || 300} slabOpening={inputData?.slabOpening} slabThickness={inputData?.slabThickness} printMode={true} initialViewMode="3d" forcedState={{simulateSafe: true, correctionType: 'shrink_stair'}} />
+                          </div>
+                      );
+                  }
+
+                  return nodes;
+              })}
+          </div>
       )}
     </div>
   );

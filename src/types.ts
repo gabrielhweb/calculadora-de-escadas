@@ -11,6 +11,8 @@ export interface LandingInfo {
   length: number; // cm
   width: number; // cm
   price: number;
+  isLastStep?: boolean; // Indica se deve ser posicionado sempre no último degrau da opção
+  direction?: 'straight' | 'left' | 'right'; // Direção da curva
 }
 
 export interface CalculatorInput {
@@ -39,6 +41,7 @@ export interface ProposalOption {
   stairWidth: number; // in cm
   treadDepth: number; // in cm
   landings: LandingInfo[];
+  isModified?: boolean; // Flag para indicar se foi alterada manualmente
 }
 
 export interface UserData {
