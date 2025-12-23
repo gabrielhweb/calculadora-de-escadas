@@ -16,7 +16,10 @@ interface StaircaseVisualizerProps {
   forcedState?: {
       simulateSafe: boolean;
       correctionType: 'expand_opening' | 'shrink_stair';
-  }
+  };
+  // Novos props para o sistema de captura do PDF (Wizard)
+  captureRef?: React.RefObject<HTMLDivElement>;
+  hideUI?: boolean;
 }
 
 // Tipos para a Engine 3D Simples
@@ -33,12 +36,16 @@ interface Face {
 }
 
 const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({ 
-    option, totalHeight, slabOpening, slabThickness = 15, onClose, printMode = false, initialViewMode = 'side', onApplyCorrection, forcedState 
+    option, totalHeight, slabOpening, slabThickness = 15, onClose, printMode = false, initialViewMode = 'side', onApplyCorrection, forcedState,
+    captureRef, hideUI = false
 }) => {
   const [viewMode, setViewMode] = useState<'side' | '3d'>(initialViewMode);
   
   // --- CONFIGURAÇÃO DE SEGURANÇA ---
-  // Altura mínima livre (cabeçada) - Editável pelo usuário (Padrão 200cm conforme pedido)
+  // Altura mínima livre (cabeçada)
+  // headroomInput: Valor digitado no campo (temporário)
+  // targetHeadroom: Valor aplicado no cálculo (só muda no clique do botão)
+  const [headroomInput, setHeadroomInput] = useState(200);
   const [targetHeadroom, setTargetHeadroom] = useState(200); 
 
   // --- CONTROLES DE CÂMERA ---
@@ -63,14 +70,17 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
 
   const [isExporting, setIsExporting] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
-  const canvasRef = useRef<HTMLDivElement>(null);
+  const internalCanvasRef = useRef<HTMLDivElement>(null);
 
   // Ajuste inicial para modo de impressão 3D
   useEffect(() => {
+      // Se for modo de impressão/wizard e for 3D, ajusta zoom inicial
       if (printMode && initialViewMode === '3d') {
           setRotation({ x: -20, y: 45 });
-          setZoom(1.1);
+          setZoom(1.3); // Zoom um pouco maior para o Wizard
       }
+      // Força o modo de visão se mudar a prop (importante para o Wizard alternar entre 2D/3D)
+      setViewMode(initialViewMode || 'side');
   }, [printMode, initialViewMode]);
 
   // --- CONFIGURAÇÕES GEOMÉTRICAS GERAIS ---
@@ -86,7 +96,6 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
   const safeLandings = useMemo(() => option.landings || [], [option.landings]);
 
   // Função crítica: Calcula onde está a borda da laje baseada no comprimento ATUAL da escada.
-  // Se a escada diminui, a borda da laje "segue" a escada mantendo o tamanho do buraco fixo.
   const getSlabEdgeX = (currentTotalLength: number) => {
       if (!hasSlabInfo) return margin + currentTotalLength + 200; // Se não tem laje, joga longe
       return margin + currentTotalLength - (slabOpening || 0);
@@ -106,10 +115,9 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
           // 1. Onde está a borda da laje neste cenário?
           const currentSlabX = margin + totalLen - (slabOpening || 0);
           
-          // 2. Qual degrau está embaixo dessa coordenada X?
-          // Precisamos iterar para considerar patamares que têm comprimentos diferentes
           let surfaceYUnderSlab = floorY; // Começa no chão
           
+          // Itera sobre todos os degraus para ver qual está SOB a linha da laje
           for (let i = 1; i <= option.steps; i++) {
                let currentRunStart = 0;
                // Soma o comprimento de todos os degraus/patamares anteriores
@@ -123,19 +131,23 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
                const currentRunLength = isLanding ? isLanding.length : treadDepth;
                const stepEnd = stepStart + currentRunLength;
                
-               // Verifica se a linha da laje cai DENTRO deste degrau (inclusive início, exclusivo fim para precisão)
-               // Adicionamos uma pequena tolerância (0.1) para evitar erros de ponto flutuante na borda exata
-               if (currentSlabX >= stepStart - 0.1 && currentSlabX < stepEnd - 0.1) {
+               // Verifica se a linha da laje (currentSlabX) cai DENTRO deste degrau
+               // Adiciona tolerância de 0.5cm para evitar erros de arredondamento
+               if (currentSlabX >= stepStart - 0.5 && currentSlabX < stepEnd - 0.5) {
                    surfaceYUnderSlab = floorY - (i * option.stepHeight);
                    break;
                }
           }
           
           // Se a laje estiver DEPOIS de todos os degraus (no topo), a altura é a altura total da escada
-          if (currentSlabX >= margin + totalLen - 0.1) {
+          if (currentSlabX >= margin + totalLen - 0.5) {
               surfaceYUnderSlab = floorY - (option.steps * option.stepHeight);
           }
 
+          // No SVG, Y cresce para baixo. 
+          // slabBottomY é um valor PEQUENO (alto na tela).
+          // surfaceYUnderSlab é um valor GRANDE (baixo na tela).
+          // Distância = Chão (Maior Y) - Teto (Menor Y)
           const dist = surfaceYUnderSlab - slabBottomY;
           return { clearance: dist, slabX: currentSlabX, stepY: surfaceYUnderSlab };
       };
@@ -147,14 +159,13 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
 
       // 2. CORREÇÃO TIPO: AUMENTAR VÃO (Mantém escada, move laje)
       let safeXSlabForOpening = origCheck.slabX;
-      const requiredY = slabBottomY + targetHeadroom;
+      const requiredY = slabBottomY + targetHeadroom; // Y Máximo permitido para o degrau (no SVG Y, maximo = mais para baixo)
       
       // Procura o primeiro degrau que é "alto demais" (perigoso)
       for (let i = 0; i <= option.steps; i++) {
         const stepTopY = floorY - (i * option.stepHeight);
         
         // Se este degrau está fisicamente acima da linha de segurança (Y menor)
-        // Lembre-se: Y cresce para baixo. Se stepTopY < requiredY, o degrau está invadindo o espaço aéreo.
         if (stepTopY < requiredY) {
             // O vão precisa terminar ANTES deste degrau começar.
             let runBeforeStep = 0;
@@ -162,7 +173,7 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
                const isLanding = safeLandings.find(l=>l.step === j);
                runBeforeStep += isLanding ? isLanding.length : option.treadDepth;
             }
-            safeXSlabForOpening = margin + runBeforeStep - 0.5; // Recua um pouco antes do degrau
+            safeXSlabForOpening = margin + runBeforeStep - 1; // Recua 1cm antes do degrau
             break;
         }
         // Se chegamos ao fim e nenhum degrau é perigoso
@@ -179,9 +190,6 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
       let isSolutionFound = false;
 
       // ALGORITMO DE BUSCA:
-      // Reduz o pisante de 0.1 em 0.1cm.
-      // O objetivo é encontrar o MAIOR pisante (mais confortável) que satisfaça a condição (Clearance >= Target).
-      // Como começamos do maior (tread original) e descemos, o PRIMEIRO que encontrarmos válido é o ótimo.
       for (let t = option.treadDepth; t >= 18; t -= 0.1) {
           const tryLength = (stairsOnlySteps * t) + landingsLen;
           const check = calculateHeadroom(t, tryLength);
@@ -194,7 +202,6 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
               break; // PARE! Encontramos o melhor pisante possível que é seguro.
           }
           
-          // Mantém registro do "menos pior" caso não encontre nenhum seguro
           if (check.clearance > bestClearance) {
               bestClearance = check.clearance;
               bestSafeTread = t;
@@ -262,7 +269,7 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
           // No modo encolher escada, usamos os novos tamanhos
           drawTreadDepth = simulatedValues.tread;
           drawTotalLength = simulatedValues.length;
-          // E recalculamos a borda da laje baseada no novo comprimento (o buraco da laje é fixo, mas a escada encolheu, então a borda "recua" visualmente)
+          // E recalculamos a borda da laje baseada no novo comprimento
           drawSlabEdgeX = getSlabEdgeX(drawTotalLength);
       }
   }
@@ -401,16 +408,13 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
   };
 
   const renderSideView = () => {
-    // CORREÇÃO LINHA AZUL:
-    // A linha azul deve ser traçada da borda da laje (drawSlabEdgeX)
-    // para baixo até encontrar a estrutura (degrau) ou o chão.
+    // CORREÇÃO LINHA AZUL E VERIFICAÇÃO VISUAL
     const getHeadroomLine = () => {
         if (!hasSlabInfo) return null;
         const lineX = drawSlabEdgeX;
         const lineTopY = slabBottomY;
         let lineBottomY = floorY; // Começa no chão
         
-        // Verifica qual degrau está exatamente na coordenada X da borda da laje
         for (let i = 1; i <= option.steps; i++) {
             let currentRunStart = 0;
             for(let j=1; j<i; j++) {
@@ -422,15 +426,16 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
             const runLen = isLanding ? isLanding.length : drawTreadDepth;
             const stepEnd = stepStart + runLen;
             
-            // Verifica se a linha X da laje "cai" sobre este degrau
-            if (lineX >= stepStart - 0.1 && lineX < stepEnd - 0.1) {
+            // Verifica colisão horizontal com tolerância
+            if (lineX >= stepStart - 0.5 && lineX < stepEnd - 0.5) {
                 lineBottomY = floorY - (i * option.stepHeight);
                 break;
             }
         }
         
         const dist = lineBottomY - lineTopY;
-        if (dist < 0) return null; // Laje está dentro do degrau (colisão física total)
+        // Se a distância for negativa, significa que o degrau está DENTRO da laje (interferência física)
+        // Mas visualmente queremos mostrar a linha mesmo que pequena
         return { x: lineX, y1: lineTopY, y2: lineBottomY, dist };
     };
     const headroomLine = getHeadroomLine();
@@ -517,6 +522,7 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
 
             {hasSlabInfo && headroomLine && (
                 <g>
+                    {/* Linha Azul REAL (Calculada) */}
                     <line x1={headroomLine.x} y1={headroomLine.y1} x2={headroomLine.x} y2={headroomLine.y2} stroke="#2563eb" strokeWidth="3" markerStart="url(#arrowBlue)" markerEnd="url(#arrowBlue)"/>
                     <text x={headroomLine.x + 10} y={headroomLine.y1 + (headroomLine.dist/2)} fill="#2563eb" fontSize="20" fontWeight="bold">{headroomLine.dist.toFixed(0)}cm</text>
                 </g>
@@ -646,9 +652,16 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
     if (isExporting) return;
     setIsDragging(true);
     setDragStart({ x: e.clientX, y: e.clientY });
-    // Left click = Pan (default), Right click or Shift+Left = Rotate (if in 3D)
-    if (viewMode === '3d' && (e.button === 2 || e.shiftKey)) {
-        setDragType('rotate');
+    
+    // Melhoria de UX: No modo 3D, o clique esquerdo (padrão) deve ROTACIONAR, que é o mais comum.
+    // No modo 2D, o clique esquerdo faz PAN (arrasta).
+    if (viewMode === '3d') {
+        // Se for botão direito (2) ou Shift, faz PAN. Senão (esquerdo), faz ROTATE.
+        if (e.button === 2 || e.shiftKey) {
+            setDragType('pan');
+        } else {
+            setDragType('rotate');
+        }
     } else {
         setDragType('pan');
     }
@@ -674,7 +687,10 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
   };
 
   const handleWheel = (e: React.WheelEvent) => {
-      if (printMode) return;
+      // Se for printMode e NÃO estiver escondendo a UI (modo estático antigo), bloqueia.
+      // Mas se for printMode E hideUI (modo Wizard), PERMITE zoom.
+      if (printMode && !hideUI) return; 
+      
       e.stopPropagation();
       const scaleFactor = 1.1;
       if (e.deltaY < 0) {
@@ -685,7 +701,7 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
   };
 
   const executeExport = async (variantName: string, safeState: boolean, corrType: 'expand_opening' | 'shrink_stair', mode: 'side' | '3d') => {
-      if (!canvasRef.current) return;
+      if (!internalCanvasRef.current) return;
       
       setIsExporting(true);
       setShowExportMenu(false);
@@ -715,9 +731,9 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
       
       // Wait for render
       setTimeout(async () => {
-          if (canvasRef.current) {
+          if (internalCanvasRef.current) {
               try {
-                  const canvas = await html2canvas(canvasRef.current, {
+                  const canvas = await html2canvas(internalCanvasRef.current, {
                       scale: 2,
                       backgroundColor: '#ffffff'
                   });
@@ -758,9 +774,10 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
       }, 800);
   };
 
-  if (printMode) {
+  // Se for o modo de impressão ESTÁTICO (Batch export antigo, sem Wizard UI)
+  if (printMode && !hideUI) {
       return (
-        <div ref={canvasRef} className="bg-white p-4 inline-block">
+        <div ref={internalCanvasRef} className="bg-white p-4 inline-block">
              <div className="text-center font-bold text-xl mb-4 text-black">Opção {option.optionNumber}</div>
              <svg width={800} height={600} viewBox={`0 0 ${svgWidth} ${svgHeight}`}>
                 <defs>
@@ -779,6 +796,36 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
       );
   }
 
+  // Se for o modo WIZARD (Interativo e Limpo)
+  if (printMode && hideUI) {
+     return (
+        <div ref={captureRef} 
+             className="w-full h-full bg-white relative overflow-hidden cursor-move"
+             onMouseDown={startDrag} 
+             onMouseMove={doDrag} 
+             onMouseUp={stopDrag} 
+             onMouseLeave={stopDrag} 
+             onWheel={handleWheel}
+        >
+            <svg width="100%" height="100%" viewBox={`0 0 ${svgWidth} ${svgHeight}`}>
+                <defs>
+                    <pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse"><path d="M 100 0 L 0 0 0 100" fill="none" stroke="#e2e8f0" strokeWidth="2"/></pattern>
+                     <marker id="arrowGreen" markerWidth="4" markerHeight="4" refX="0" refY="2" orient="auto-start-reverse" markerUnits="strokeWidth"><path d="M0,0 L0,4 L6,2 z" fill="#16a34a" /></marker>
+                     <marker id="arrowOrange" markerWidth="4" markerHeight="4" refX="0" refY="2" orient="auto-start-reverse" markerUnits="strokeWidth"><path d="M0,0 L0,4 L6,2 z" fill="#f97316" /></marker>
+                     <marker id="arrowBlue" markerWidth="4" markerHeight="4" refX="0" refY="2" orient="auto-start-reverse" markerUnits="strokeWidth"><path d="M0,0 L0,4 L6,2 z" fill="#2563eb" /></marker>
+                     <marker id="arrowGray" markerWidth="4" markerHeight="4" refX="0" refY="2" orient="auto-start-reverse" markerUnits="strokeWidth"><path d="M0,0 L0,4 L6,2 z" fill="#666" /></marker>
+                     <marker id="arrowRed" markerWidth="4" markerHeight="4" refX="0" refY="2" orient="auto-start-reverse" markerUnits="strokeWidth"><path d="M0,0 L0,4 L6,2 z" fill="#dc2626" /></marker>
+                     <marker id="arrowPurple" markerWidth="4" markerHeight="4" refX="0" refY="2" orient="auto-start-reverse" markerUnits="strokeWidth"><path d="M0,0 L0,4 L6,2 z" fill="#7e22ce" /></marker>
+                </defs>
+                <g transform={`translate(${pan.x}, ${pan.y}) scale(${zoom}) translate(${svgWidth/2 - (margin + drawTotalLength)/2}, 50)`}>
+                    {viewMode === 'side' ? renderSideView() : renderInteractive3D()}
+                </g>
+            </svg>
+        </div>
+     );
+  }
+
+  // MODO NORMAL (MODAL COMPLETO COM BOTÕES)
   return (
     <div className="fixed inset-0 bg-gray-900 flex items-center justify-center z-50 overflow-hidden">
       <div className="w-full h-full flex flex-col relative bg-white">
@@ -798,7 +845,6 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
                  </button>
                  {showExportMenu && (
                      <div className="absolute top-full left-0 mt-2 w-80 bg-white rounded-lg shadow-2xl border border-gray-200 flex flex-col z-50 overflow-hidden animate-fade-in">
-                         {/* ... menu items ... */}
                          <div className="px-4 py-3 bg-gray-100 border-b font-bold text-gray-600 text-xs uppercase tracking-wider flex justify-between">
                             <span>Cenário</span>
                             <div className="flex gap-4 pr-2">
@@ -822,7 +868,7 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
         <button onClick={onClose} className="absolute top-4 right-4 z-10 bg-red-600 text-white w-12 h-12 rounded-full font-black text-xl shadow-lg hover:bg-red-700">✕</button>
 
         {/* CANVAS */}
-        <div ref={canvasRef} 
+        <div ref={internalCanvasRef} 
              className={`flex-1 w-full h-full cursor-move overflow-hidden relative ${isExporting ? 'bg-white' : 'bg-blueprint-grid'}`} 
              onMouseDown={startDrag} 
              onMouseMove={doDrag} 
@@ -863,7 +909,7 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
                                             ? (simulatedValues.safe 
                                                 ? `Corrigido: ${simulatedValues.clearance.toFixed(0)}cm Livre` 
                                                 : `Falha: ${simulatedValues.clearance.toFixed(0)}cm (Max possível)`)
-                                            : `Cabeçada: ${simulatedValues.clearance.toFixed(0)}cm`
+                                            : `Cabeçada Atual: ${simulatedValues.clearance.toFixed(0)}cm`
                                         }
                                     </div>
                                 </div>
@@ -886,11 +932,17 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
                             <label className="text-xs font-bold text-gray-400 uppercase">Altura Livre Mínima:</label>
                             <input 
                                 type="number" 
-                                value={targetHeadroom} 
-                                onChange={e => setTargetHeadroom(Number(e.target.value))} 
+                                value={headroomInput} 
+                                onChange={e => setHeadroomInput(parseInt(e.target.value) || 0)} 
                                 className="w-16 bg-gray-700 text-white font-bold text-center rounded border border-gray-600 focus:outline-none focus:border-blue-500"
                             />
                             <span className="text-xs font-bold text-gray-400">cm</span>
+                            <button 
+                                onClick={() => setTargetHeadroom(headroomInput)} 
+                                className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs font-bold ml-2 shadow-sm uppercase"
+                            >
+                                Definir
+                            </button>
                         </div>
 
                         {!simulatedValues.safe && !simulateSafe && (

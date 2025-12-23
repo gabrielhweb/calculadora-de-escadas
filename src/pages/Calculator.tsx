@@ -88,7 +88,10 @@ function Calculator() {
           }
       } else {
           // Comprimento da parte de degraus
-          const stairsLength = structureSteps * finalTreadDepth;
+          // MODIFICADO: Adiciona 1cm de folga por degrau (0.5cm frente + 0.5cm trás)
+          const gapPerStep = 1; 
+          const stairsLength = structureSteps * (finalTreadDepth + gapPerStep);
+
           // Comprimento total = Comprimento degraus + Comprimento de todos os patamares
           const landingsLength = adjustedLandings.reduce((acc, l) => acc + l.length, 0);
           totalLength = stairsLength + landingsLength;

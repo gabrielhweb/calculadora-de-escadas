@@ -82,6 +82,14 @@ interface ExportSelection {
     fixStair3D: boolean;
 }
 
+// Estrutura da Fila de Exportação
+interface ExportQueueItem {
+    option: ProposalOption;
+    variant: 'original' | 'fixOpening' | 'fixStair';
+    viewMode: '2d' | '3d';
+    title: string;
+}
+
 const defaultSelection: ExportSelection = {
     original2D: false, original3D: false,
     fixOpening2D: false, fixOpening3D: false,
@@ -116,18 +124,22 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
   const [manualTollCost, setManualTollCost] = useState('');
   const [isFreightIncluded, setIsFreightIncluded] = useState(true);
 
-  // Novo estado para o visualizador modal
+  // Novo estado para o visualizador modal (apenas visualização)
   const [selectedVisualizerOption, setSelectedVisualizerOption] = useState<ProposalOption | null>(null);
   const [visualizerForcedState, setVisualizerForcedState] = useState<{simulateSafe: boolean, correctionType: 'expand_opening' | 'shrink_stair'} | undefined>(undefined);
   
   // Armazena as opções corrigidas (alteradas pelo usuário via "Aplicar")
   const [overriddenOptions, setOverriddenOptions] = useState<{[key: number]: ProposalOption}>({});
   
-  // Controle de exportação em lote: chave é o numero da opção
+  // Controle de seleção de exportação
   const [exportConfig, setExportConfig] = useState<{[key: number]: ExportSelection}>({});
 
-  const [isBatchExporting, setIsBatchExporting] = useState(false);
-  const batchExportContainerRef = useRef<HTMLDivElement>(null);
+  // --- ESTADOS DO WIZARD DE EXPORTAÇÃO ---
+  const [isExportWizardOpen, setIsExportWizardOpen] = useState(false);
+  const [exportQueue, setExportQueue] = useState<ExportQueueItem[]>([]);
+  const [currentExportIndex, setCurrentExportIndex] = useState(0);
+  const [capturedImages, setCapturedImages] = useState<{imgData: string, title: string, width: number, height: number}[]>([]);
+  const captureRef = useRef<HTMLDivElement>(null); // Ref para o container do desenho atual no wizard
 
   const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>, setCep: (value: string) => void) => {
     let { value } = e.target;
@@ -163,7 +175,6 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
       setOverriddenOptions(prev => ({ ...prev, [optionNum]: newOption }));
   };
   
-  // Função para desfazer a alteração e voltar ao original
   const handleRevertCorrection = (optionNum: number) => {
       setOverriddenOptions(prev => {
           const newState = { ...prev };
@@ -245,82 +256,107 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
       return count;
   };
 
-  const handleBatchExport = async () => {
+  // --- LÓGICA DO WIZARD DE EXPORTAÇÃO ---
+
+  const startBatchExport = () => {
       if (countSelectedExports() === 0) return;
-      setIsBatchExporting(true);
-
-      setTimeout(async () => {
-          if (!batchExportContainerRef.current) {
-              console.error("Container de exportação não encontrado");
-              setIsBatchExporting(false);
-              return;
-          }
+      
+      const queue: ExportQueueItem[] = [];
+      
+      options.forEach(o => {
+          const sel = exportConfig[o.optionNumber] || defaultSelection;
           
-          const doc = new jsPDF('landscape', 'mm', 'a4');
-          const elements = batchExportContainerRef.current.children;
-          let pageCount = 0;
-
-          // Processamento sequencial
-          for (let i = 0; i < elements.length; i++) {
-              const element = elements[i] as HTMLElement;
-              const optionNumStr = element.getAttribute('data-option-number');
-              const variant = element.getAttribute('data-variant');
-              const viewMode = element.getAttribute('data-viewmode'); // 2D ou 3D
-              
-              if(!optionNumStr) continue;
-              const optionNum = parseInt(optionNumStr);
-              
-              let titleSuffix = "";
-              if (variant === 'original') titleSuffix = "(Original)";
-              if (variant === 'fixOpening') titleSuffix = "(Solução: Aumentar Vão)";
-              if (variant === 'fixStair') titleSuffix = "(Solução: Ajustar Escada)";
-
-              const viewTitle = viewMode === '3d' ? "Visualização 3D" : "Desenho Técnico 2D";
-
-              try {
-                  const canvas = await html2canvas(element, { 
-                      scale: 2, 
-                      backgroundColor: '#ffffff',
-                      logging: false,
-                      useCORS: true,
-                      allowTaint: true,
-                      width: element.offsetWidth, // Força captura da largura correta
-                      height: element.offsetHeight
-                  });
-                  const imgData = canvas.toDataURL('image/png');
-                  
-                  if (pageCount > 0) doc.addPage();
-                  
-                  const pdfWidth = doc.internal.pageSize.getWidth();
-                  const pdfHeight = doc.internal.pageSize.getHeight();
-                  const ratio = canvas.width / canvas.height;
-                  
-                  let w = pdfWidth - 20;
-                  let h = w / ratio;
-                  
-                  // Ajusta se passar da altura da página
-                  if (h > pdfHeight - 40) {
-                      h = pdfHeight - 40;
-                      w = h * ratio;
-                  }
-                  
-                  doc.setFontSize(16);
-                  doc.text(`${viewTitle} - Opção ${optionNum} ${titleSuffix}`, 10, 15);
-                  doc.addImage(imgData, 'PNG', 10, 25, w, h);
-                  pageCount++;
-                  
-              } catch (e) {
-                  console.error("Erro ao processar imagem para PDF", e);
-              }
-          }
+          if (sel.original2D) queue.push({ option: o, variant: 'original', viewMode: '2d', title: `Desenho 2D - Opção ${o.optionNumber} (Original)` });
+          if (sel.original3D) queue.push({ option: o, variant: 'original', viewMode: '3d', title: `Visualização 3D - Opção ${o.optionNumber} (Original)` });
           
-          if (pageCount > 0) {
-              doc.save('desenhos_selecionados.pdf');
+          if (sel.fixOpening2D) queue.push({ option: o, variant: 'fixOpening', viewMode: '2d', title: `Desenho 2D - Opção ${o.optionNumber} (Solução: Aumentar Vão)` });
+          if (sel.fixOpening3D) queue.push({ option: o, variant: 'fixOpening', viewMode: '3d', title: `Visualização 3D - Opção ${o.optionNumber} (Solução: Aumentar Vão)` });
+          
+          if (sel.fixStair2D) queue.push({ option: o, variant: 'fixStair', viewMode: '2d', title: `Desenho 2D - Opção ${o.optionNumber} (Solução: Ajustar Escada)` });
+          if (sel.fixStair3D) queue.push({ option: o, variant: 'fixStair', viewMode: '3d', title: `Visualização 3D - Opção ${o.optionNumber} (Solução: Ajustar Escada)` });
+      });
+
+      setExportQueue(queue);
+      setCurrentExportIndex(0);
+      setCapturedImages([]);
+      setIsExportWizardOpen(true);
+  };
+
+  const captureCurrentStepAndNext = async () => {
+      if (!captureRef.current) return;
+
+      try {
+          // Captura a imagem exatamente como o usuário a posicionou
+          const canvas = await html2canvas(captureRef.current, {
+              scale: 2,
+              backgroundColor: '#ffffff',
+              logging: false,
+              useCORS: true,
+              allowTaint: true
+          });
+          const imgData = canvas.toDataURL('image/png');
+          const currentItem = exportQueue[currentExportIndex];
+
+          setCapturedImages(prev => [...prev, {
+              imgData,
+              title: currentItem.title,
+              width: canvas.width,
+              height: canvas.height
+          }]);
+
+          if (currentExportIndex < exportQueue.length - 1) {
+              setCurrentExportIndex(prev => prev + 1);
           } else {
-              alert("Não foi possível gerar as imagens. Tente selecionar novamente.");
+              finishExport(canvas.width, canvas.height); // Passa dimensões aproximadas
           }
-          setIsBatchExporting(false);
-      }, 3000); // 3 segundos para garantir renderização completa (especialmente 3D)
+
+      } catch (e) {
+          console.error("Erro na captura:", e);
+          alert("Erro ao capturar imagem. Tente novamente.");
+      }
+  };
+
+  const finishExport = (lastW: number, lastH: number) => {
+      // Gera o PDF
+      // Como o state capturedImages pode não ter a última imagem ainda (devido ao async do setState),
+      // precisamos usar um callback ou reconstruir aqui. 
+      // OBS: setState update é assincrono. O melhor é reconstruir a lista final na hora.
+      
+      // FIX: Como html2canvas é async e setState tbm, melhor fazer a geração no próximo tick
+      // Mas para simplificar, vamos assumir que o array tem tudo MENOS o atual, então juntamos.
+      
+      // Porém, dentro do 'captureCurrentStepAndNext', já chamamos setCapturedImages.
+      // O 'finishExport' será chamado, mas o state 'capturedImages' ainda pode estar velho.
+      // Vamos usar setTimeout para garantir update.
+      
+      setTimeout(() => {
+        setCapturedImages(finalImages => {
+             const doc = new jsPDF('landscape', 'mm', 'a4');
+             const pdfWidth = doc.internal.pageSize.getWidth();
+             const pdfHeight = doc.internal.pageSize.getHeight();
+
+             finalImages.forEach((img, index) => {
+                 if (index > 0) doc.addPage();
+                 
+                 const ratio = img.width / img.height;
+                 let w = pdfWidth - 20;
+                 let h = w / ratio;
+                 
+                 if (h > pdfHeight - 40) {
+                     h = pdfHeight - 40;
+                     w = h * ratio;
+                 }
+
+                 doc.setFontSize(14);
+                 doc.text(img.title, 10, 15);
+                 doc.addImage(img.imgData, 'PNG', 10, 25, w, h);
+             });
+
+             doc.save('desenhos_selecionados.pdf');
+             setIsExportWizardOpen(false); // Fecha o Wizard
+             return finalImages;
+        });
+      }, 500);
   };
 
   const finalInstallationCost = isInstallationIncluded ? installationCost : 0;
@@ -328,19 +364,74 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
   
   const hasSlabInfo = inputData?.slabOpening && inputData.slabOpening > 0;
 
+  // Renderização do Passo Atual do Wizard
+  const renderWizardStep = () => {
+      if (!isExportWizardOpen || exportQueue.length === 0) return null;
+      
+      const item = exportQueue[currentExportIndex];
+      const forcedState = item.variant === 'original' ? { simulateSafe: false, correctionType: 'expand_opening' as const } :
+                          item.variant === 'fixOpening' ? { simulateSafe: true, correctionType: 'expand_opening' as const } :
+                          { simulateSafe: true, correctionType: 'shrink_stair' as const };
+      
+      return (
+          <div className="fixed inset-0 z-[100] bg-black bg-opacity-90 flex flex-col items-center justify-center p-4">
+              <div className="bg-white w-full max-w-5xl h-[80vh] rounded-lg overflow-hidden flex flex-col shadow-2xl">
+                  <div className="bg-blue-600 text-white p-4 flex justify-between items-center">
+                      <div>
+                          <h3 className="text-lg font-bold">Assistente de Exportação ({currentExportIndex + 1}/{exportQueue.length})</h3>
+                          <p className="text-sm opacity-90">{item.title}</p>
+                      </div>
+                      <div className="text-xs bg-blue-800 px-3 py-1 rounded">
+                          {item.viewMode === '3d' ? 'Gire e ajuste o Zoom para a foto!' : 'Confira o desenho técnico'}
+                      </div>
+                  </div>
+                  
+                  <div className="flex-1 bg-gray-100 p-4 relative overflow-hidden flex justify-center items-center">
+                      <div className="w-full h-full shadow-lg border border-gray-300 bg-white relative">
+                           {/* AQUI RENDERIZA O VISUALIZADOR INTERATIVO */}
+                           <StaircaseVisualizer 
+                                captureRef={captureRef}
+                                option={item.option}
+                                totalHeight={inputData?.totalHeight || 300}
+                                slabOpening={inputData?.slabOpening}
+                                slabThickness={inputData?.slabThickness}
+                                printMode={true} // Modo "print" para layout limpo
+                                hideUI={true}    // Esconde botões internos do componente
+                                initialViewMode={item.viewMode === '3d' ? '3d' : 'side'} // Força o modo correto
+                                forcedState={forcedState}
+                           />
+                      </div>
+                  </div>
+
+                  <div className="bg-gray-50 p-4 flex justify-between items-center border-t border-gray-200">
+                      <button onClick={() => setIsExportWizardOpen(false)} className="text-red-600 font-bold px-4">
+                          Cancelar
+                      </button>
+                      <button 
+                          onClick={captureCurrentStepAndNext}
+                          className="bg-green-600 text-white font-bold py-3 px-8 rounded shadow hover:bg-green-700 flex items-center gap-2 text-lg"
+                      >
+                          <span>📸</span>
+                          {currentExportIndex < exportQueue.length - 1 ? 'Capturar e Próximo' : 'Capturar e Gerar PDF'}
+                      </button>
+                  </div>
+              </div>
+          </div>
+      );
+  };
+
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+    <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200 relative">
       <div className="flex justify-between items-center mb-6 border-b-2 border-highlight pb-4">
           <h2 className="text-2xl font-black text-gray-900">Opções Calculadas</h2>
           
-          {/* Botão de Exportação em Lote */}
           <div className="flex gap-2">
               <button 
-                onClick={handleBatchExport}
-                disabled={countSelectedExports() === 0 || isBatchExporting}
+                onClick={startBatchExport}
+                disabled={countSelectedExports() === 0}
                 className={`text-sm font-bold px-4 py-2 rounded shadow transition-all flex items-center gap-2 ${countSelectedExports() > 0 ? 'bg-purple-600 text-white hover:bg-purple-700' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
               >
-                  {isBatchExporting ? 'Gerando...' : `📥 Baixar Desenhos Selecionados (${countSelectedExports()})`}
+                  {`📥 Baixar Desenhos Selecionados (${countSelectedExports()})`}
               </button>
           </div>
       </div>
@@ -348,10 +439,8 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
       <div className="space-y-4 mb-8">
         <p className="text-sm text-gray-500 font-medium">Selecione quais versões de desenho você deseja incluir no PDF:</p>
         {options.map((originalOption) => {
-            // Usa a versão modificada se houver, para exibir os dados "Atuais" no card
             const activeOption = overriddenOptions[originalOption.optionNumber] || originalOption;
             const currentSelection = exportConfig[activeOption.optionNumber] || { ...defaultSelection };
-
             const totalCost = activeOption.totalPrice + freightCost + tollCost + finalInstallationCost + extrasCost;
             
             return (
@@ -377,7 +466,6 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                         </span>
                     </div>
 
-                    {/* Feedback de Modificação e Reversão */}
                     {activeOption.isModified && (
                         <div className="mb-4 bg-yellow-50 p-3 rounded border border-yellow-200 flex justify-between items-center text-sm">
                             <div className="text-yellow-800">
@@ -392,11 +480,9 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                         </div>
                     )}
                     
-                    {/* ÁREA DE SELEÇÃO DE EXPORTAÇÃO */}
                     <div className="bg-white p-3 rounded border border-gray-200 mb-4">
                         <span className="text-xs font-bold text-purple-700 uppercase block mb-2">Selecione para o PDF:</span>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {/* Grupo Original */}
                             <div className="flex flex-col gap-1 border-r border-gray-100 pr-2">
                                 <span className="text-xs font-bold text-gray-400">Original</span>
                                 <div className="flex gap-3">
@@ -421,7 +507,6 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                                 </div>
                             </div>
                             
-                            {/* Grupos de Correção (Só exibe se houver laje) */}
                             {hasSlabInfo && (
                                 <>
                                     <div className="flex flex-col gap-1 border-r border-gray-100 pr-2">
@@ -602,7 +687,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
       
       <UserDataForm onSubmit={onGenerateProposal} />
 
-      {/* RENDERIZAÇÃO DO MODAL DE VISUALIZAÇÃO */}
+      {/* RENDERIZAÇÃO DO MODAL DE VISUALIZAÇÃO PADRÃO */}
       {selectedVisualizerOption && (
           <StaircaseVisualizer 
              option={selectedVisualizerOption} 
@@ -615,80 +700,8 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
           />
       )}
 
-      {/* CONTAINER OCULTO PARA EXPORTAÇÃO EM LOTE - CORRIGIDO POSIÇÃO E ESTILO */}
-      {isBatchExporting && (
-          <div 
-            ref={batchExportContainerRef} 
-            style={{ 
-                position: 'absolute', 
-                top: 0, 
-                left: '-5000px', // Fora da tela, mas renderizado
-                width: '1000px', 
-                opacity: 1, // Opacidade total para captura
-                zIndex: -100, 
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '20px',
-                backgroundColor: 'white'
-            }}
-          >
-              {options.map(o => {
-                  const sel = exportConfig[o.optionNumber];
-                  if (!sel) return null;
-                  const nodes = [];
-
-                  // 1. ORIGINAL
-                  if (sel.original2D) {
-                      nodes.push(
-                          <div key={`${o.optionNumber}-orig-2d`} data-option-number={o.optionNumber} data-variant="original" data-viewmode="2d">
-                              <StaircaseVisualizer option={o} totalHeight={inputData?.totalHeight || 300} slabOpening={inputData?.slabOpening} slabThickness={inputData?.slabThickness} printMode={true} initialViewMode="side" forcedState={{simulateSafe: false, correctionType: 'expand_opening'}} />
-                          </div>
-                      );
-                  }
-                  if (sel.original3D) {
-                      nodes.push(
-                          <div key={`${o.optionNumber}-orig-3d`} data-option-number={o.optionNumber} data-variant="original" data-viewmode="3d">
-                              <StaircaseVisualizer option={o} totalHeight={inputData?.totalHeight || 300} slabOpening={inputData?.slabOpening} slabThickness={inputData?.slabThickness} printMode={true} initialViewMode="3d" forcedState={{simulateSafe: false, correctionType: 'expand_opening'}} />
-                          </div>
-                      );
-                  }
-
-                  // 2. CORRIGIDO (VÃO)
-                  if (sel.fixOpening2D && hasSlabInfo) {
-                      nodes.push(
-                          <div key={`${o.optionNumber}-open-2d`} data-option-number={o.optionNumber} data-variant="fixOpening" data-viewmode="2d">
-                              <StaircaseVisualizer option={o} totalHeight={inputData?.totalHeight || 300} slabOpening={inputData?.slabOpening} slabThickness={inputData?.slabThickness} printMode={true} initialViewMode="side" forcedState={{simulateSafe: true, correctionType: 'expand_opening'}} />
-                          </div>
-                      );
-                  }
-                  if (sel.fixOpening3D && hasSlabInfo) {
-                      nodes.push(
-                          <div key={`${o.optionNumber}-open-3d`} data-option-number={o.optionNumber} data-variant="fixOpening" data-viewmode="3d">
-                              <StaircaseVisualizer option={o} totalHeight={inputData?.totalHeight || 300} slabOpening={inputData?.slabOpening} slabThickness={inputData?.slabThickness} printMode={true} initialViewMode="3d" forcedState={{simulateSafe: true, correctionType: 'expand_opening'}} />
-                          </div>
-                      );
-                  }
-
-                  // 3. CORRIGIDO (ESCADA)
-                  if (sel.fixStair2D && hasSlabInfo) {
-                      nodes.push(
-                          <div key={`${o.optionNumber}-shrink-2d`} data-option-number={o.optionNumber} data-variant="fixStair" data-viewmode="2d">
-                              <StaircaseVisualizer option={o} totalHeight={inputData?.totalHeight || 300} slabOpening={inputData?.slabOpening} slabThickness={inputData?.slabThickness} printMode={true} initialViewMode="side" forcedState={{simulateSafe: true, correctionType: 'shrink_stair'}} />
-                          </div>
-                      );
-                  }
-                  if (sel.fixStair3D && hasSlabInfo) {
-                      nodes.push(
-                          <div key={`${o.optionNumber}-shrink-3d`} data-option-number={o.optionNumber} data-variant="fixStair" data-viewmode="3d">
-                              <StaircaseVisualizer option={o} totalHeight={inputData?.totalHeight || 300} slabOpening={inputData?.slabOpening} slabThickness={inputData?.slabThickness} printMode={true} initialViewMode="3d" forcedState={{simulateSafe: true, correctionType: 'shrink_stair'}} />
-                          </div>
-                      );
-                  }
-
-                  return nodes;
-              })}
-          </div>
-      )}
+      {/* RENDERIZAÇÃO DO WIZARD DE EXPORTAÇÃO */}
+      {renderWizardStep()}
     </div>
   );
 };
