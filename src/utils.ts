@@ -1,3 +1,4 @@
+
 import { GoogleGenAI } from "@google/genai";
 
 const getBasePrice = (width: number): number => {
@@ -12,6 +13,7 @@ const getMultiplier = (depth: number): number => {
   if (depth <= 20) return 1.0;
   if (depth >= 21 && depth <= 25) return 1.05;
   if (depth >= 26 && depth <= 30) return 1.10;
+  if (depth > 30) return 1.20;
   return 1.0; // Default multiplier
 };
 
@@ -20,6 +22,16 @@ export const calculateTotalPrice = (width: number, depth: number, steps: number)
   const multiplier = getMultiplier(depth);
   if (steps <= 0) return 0;
   return basePrice * multiplier * steps;
+};
+
+/**
+ * Função necessária para o módulo de Patamar
+ */
+export const calculateLandingPrice = (width: number, length: number): number => {
+  if (length <= 0) return 0;
+  const basePrice = getBasePrice(width);
+  const sizeFactor = length / 25; 
+  return basePrice * sizeFactor * 1.3; 
 };
 
 export const calculateFreightCost = (distance: number, fuelPrice: number, consumption: number): number => {
@@ -46,7 +58,7 @@ export const getCurrentDateFormatted = (): string => {
   });
 };
 
-// --- GEMINI FUNCTION ---
+// --- GEMINI FUNCTION COM MAPS GROUNDING ---
 
 const getCurrentLocation = (): Promise<{ latitude: number; longitude: number } | null> => {
   return new Promise((resolve) => {
@@ -71,8 +83,8 @@ const getCurrentLocation = (): Promise<{ latitude: number; longitude: number } |
 export const getRouteInfoFromGemini = async (origin: string, destination: string): Promise<{ distance: number; tolls: number }> => {
   try {
     const apiKey = process.env.API_KEY;
-    if (!apiKey || apiKey.includes("SUA_CHAVE")) {
-        throw new Error('Chave de API inválida ou não configurada no arquivo .env');
+    if (!apiKey) {
+        throw new Error('Chave de API não configurada.');
     }
 
     const ai = new GoogleGenAI({ apiKey: apiKey });
@@ -93,10 +105,10 @@ export const getRouteInfoFromGemini = async (origin: string, destination: string
         };
     }
 
-    // Prompt ajustado para Rota Recomendada
     const prompt = `Calcule a rota de carro entre a origem "${origin}" e o destino "${destination}".
-    Use a rota padrão/recomendada pelo Google Maps (evite rotas excessivamente longas ou curtas demais).
-    Retorne APENAS um JSON com este formato exato:
+    Use a rota padrão/recomendada pelo Google Maps.
+    
+    IMPORTANTE: Retorne APENAS um objeto JSON válido, sem markdown e sem formatação extra, exatamente assim:
     {
       "distancia": (número em km, ex: 120.5),
       "pedagios": (custo total estimado em reais, ex: 45.20)
@@ -109,9 +121,13 @@ export const getRouteInfoFromGemini = async (origin: string, destination: string
     });
 
     const text = response.text || "{}";
-    let data;
+    let data = { distancia: 0, pedagios: 0 };
+    
     try {
+        // Tenta limpar o texto caso venha com markdown (```json ... ```)
         const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+        
+        // Tenta encontrar o JSON mesmo se houver texto em volta
         const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
         
         if (jsonMatch) {
@@ -120,7 +136,22 @@ export const getRouteInfoFromGemini = async (origin: string, destination: string
             data = JSON.parse(cleanText);
         }
     } catch (e) {
-        throw new Error("Não foi possível extrair os dados de rota.");
+        // Fallback: Se o JSON falhar, tenta extrair números via Regex
+        console.warn("Falha no parsing JSON, tentando regex manual", e);
+        
+        // Procura por "distancia": 123 ou "distancia": "123"
+        const distMatch = text.match(/distancia"?\s*:\s*"?([\d.]+)"?/);
+        // Procura por "pedagios": 123 ou "pedagios": "123"
+        const tollsMatch = text.match(/pedagios"?\s*:\s*"?([\d.]+)"?/);
+        
+        if (distMatch) data.distancia = parseFloat(distMatch[1]);
+        if (tollsMatch) data.pedagios = parseFloat(tollsMatch[1]);
+        
+        if (!distMatch && !tollsMatch) {
+            // Se tudo falhar, retorna 0 mas não quebra a app
+            console.error("Não foi possível extrair dados da resposta da IA:", text);
+            return { distance: 0, tolls: 0 };
+        }
     }
 
     const distance = Number(data.distancia) || 0;
@@ -129,12 +160,8 @@ export const getRouteInfoFromGemini = async (origin: string, destination: string
     return { distance, tolls };
 
   } catch (error) {
-    if (error instanceof Error) {
-        if (error.message.includes('API key')) {
-             throw new Error('Erro de Configuração: Chave de API inválida.');
-        }
-        throw new Error(`Erro ao calcular a rota: ${error.message}`);
-    }
-    throw new Error('Falha na comunicação com a IA.');
+    console.error('Erro Logística Gemini:', error);
+    // Retorna 0 em vez de erro para não travar a UI
+    return { distance: 0, tolls: 0 };
   }
 };

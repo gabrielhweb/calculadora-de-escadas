@@ -12,14 +12,14 @@ const Home: React.FC = () => {
             Para o Seu Projeto
           </h1>
           <p className="mt-4 max-w-2xl mx-auto text-xl text-gray-500 mb-10 font-light">
-            Qualidade, segurança e design em aço carbono. Calcule seu orçamento em segundos com nossa ferramenta exclusiva.
+            Ferramenta profissional para cálculo, precificação e geração de contratos de escadas em aço carbono.
           </p>
           <div className="flex justify-center gap-4">
             <Link 
               to="/calculadora" 
-              className="bg-highlight text-white font-bold py-4 px-8 rounded-lg text-lg hover:bg-yellow-600 transition-all shadow-lg transform hover:-translate-y-1"
+              className="bg-highlight text-white font-bold py-4 px-8 rounded-lg text-lg hover:bg-yellow-600 transition-all shadow-lg transform hover:-translate-y-1 uppercase tracking-wider"
             >
-              Fazer Orçamento Agora
+              Iniciar Novo Orçamento
             </Link>
           </div>
         </div>
@@ -29,8 +29,8 @@ const Home: React.FC = () => {
       <section className="py-16 bg-primary">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900">Por que escolher a Zilinski?</h2>
-            <p className="mt-4 text-gray-500">Compromisso com a excelência em cada degrau.</p>
+            <h2 className="text-3xl font-bold text-gray-900">Funcionalidades do Sistema</h2>
+            <p className="mt-4 text-gray-500">Otimize seu processo de vendas com nossas ferramentas.</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -38,12 +38,12 @@ const Home: React.FC = () => {
             <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-300">
               <div className="w-12 h-12 bg-highlight/10 rounded-full flex items-center justify-center mb-6 text-highlight">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Qualidade Garantida</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">PDF & Contratos</h3>
               <p className="text-gray-500">
-                Utilizamos aço carbono de alta resistência e corte a laser para garantir precisão milimétrica.
+                Gere propostas comerciais detalhadas e contratos de venda preenchidos automaticamente prontos para assinatura.
               </p>
             </div>
 
@@ -51,12 +51,13 @@ const Home: React.FC = () => {
             <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-300">
               <div className="w-12 h-12 bg-highlight/10 rounded-full flex items-center justify-center mb-6 text-highlight">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Rapidez na Entrega</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Logística Inteligente</h3>
               <p className="text-gray-500">
-                Processos otimizados e logística eficiente. Prazo médio de entrega de 20 dias úteis.
+                Cálculo automático de rotas, distâncias, pedágios e custo de combustível para entregas precisas.
               </p>
             </div>
 
@@ -64,12 +65,12 @@ const Home: React.FC = () => {
             <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-300">
               <div className="w-12 h-12 bg-highlight/10 rounded-full flex items-center justify-center mb-6 text-highlight">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h3m-3-10h.01M9 17h.01M12 17h.01M15 17h.01M9 14h.01M12 14h.01M15 14h.01M4 7h16a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V8a1 1 0 011-1z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Orçamento Instantâneo</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Configuração Total</h3>
               <p className="text-gray-500">
-                Calcule custos e gere propostas técnicas em PDF automaticamente.
+                Suporte completo para Patamares, itens extras, e substituição manual de preços e medidas quando necessário.
               </p>
             </div>
           </div>
@@ -79,10 +80,10 @@ const Home: React.FC = () => {
       {/* CTA Section */}
       <section className="py-20 bg-white border-t border-gray-100 text-center">
         <div className="max-w-4xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-gray-900 mb-6">Pronto para transformar seu ambiente?</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-6">Pronto para gerar um orçamento?</h2>
           <Link 
             to="/calculadora" 
-            className="inline-block bg-highlight text-white font-bold py-3 px-10 rounded-full text-lg hover:bg-yellow-600 transition-all shadow-lg"
+            className="inline-block bg-highlight text-white font-bold py-3 px-10 rounded-full text-lg hover:bg-yellow-600 transition-all shadow-lg uppercase"
           >
             Acessar Calculadora
           </Link>

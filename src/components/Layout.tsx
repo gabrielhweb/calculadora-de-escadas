@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 
@@ -67,6 +68,12 @@ const Layout: React.FC = () => {
                 className={`${isActive('/calculadora') ? 'text-highlight font-bold border-b-4 border-highlight' : 'text-gray-500 hover:text-black'} px-2 pt-1 text-sm uppercase tracking-wide transition-all duration-200 h-full flex items-center font-bold`}
               >
                 Calculadora
+              </Link>
+              <Link 
+                to="/contrato" 
+                className={`${isActive('/contrato') ? 'text-highlight font-bold border-b-4 border-highlight' : 'text-gray-500 hover:text-black'} px-2 pt-1 text-sm uppercase tracking-wide transition-all duration-200 h-full flex items-center font-bold`}
+              >
+                Contratos
               </Link>
             </div>
           </div>

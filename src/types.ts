@@ -6,11 +6,23 @@ export interface OptionalItem {
 }
 
 export interface LandingInfo {
-  active: boolean;
-  step: number;
+  id: string;
+  step: number; // Em qual degrau ele fica
   length: number; // cm
   width: number; // cm
   price: number;
+  isLastStep?: boolean; // Indica se deve ser posicionado sempre no último degrau da opção
+  direction?: 'straight' | 'left' | 'right'; // Direção da curva
+}
+
+export interface LogisticsInfo {
+  originCep: string;
+  destinationCep: string;
+  distance: number;
+  tolls: number;
+  fuelPrice: number;
+  consumption: number;
+  totalFreightCost: number;
 }
 
 export interface CalculatorInput {
@@ -22,22 +34,39 @@ export interface CalculatorInput {
   customStepPrice?: number; // Optional manual price per step
   customTotalLength?: number; // Optional manual total length
   optionalItems: OptionalItem[]; // Lista de itens extras
-  landing?: LandingInfo;
+  landings: LandingInfo[]; // Agora é uma lista de patamares
+  
+  // Novos campos de ambiente
+  slabThickness?: number; // Espessura da laje (cm)
+  slabOpening?: number; // Tamanho do vão livre (cm)
+  
+  // Logística Pré-calculada
+  logistics?: LogisticsInfo;
 }
 
 export interface ProposalOption {
   optionNumber: number;
-  steps: number;
+  steps: number; // Número TOTAL de subidas (degraus comuns + patamares)
+  structureSteps: number; // Apenas degraus comuns (steps - qtdPatamares)
   stepHeight: number; // in cm
   totalLength: number; // in cm
   totalPrice: number;
   stairWidth: number; // in cm
   treadDepth: number; // in cm
-  landing?: LandingInfo;
+  landings: LandingInfo[];
+  isModified?: boolean; // Flag para indicar se foi alterada manualmente
 }
 
 export interface UserData {
   name: string;
-  cpf: string;
-  address: string;
+  cpf: string; // Pode ser CPF ou CNPJ dependendo do contexto
+  rg?: string;
+  address: string; // String formatada completa para o PDF
+  // Campos estruturados
+  zip?: string;
+  street?: string;
+  number?: string;
+  neighborhood?: string;
+  city?: string;
+  state?: string;
 }
