@@ -20,6 +20,11 @@ interface ProposalOptionsProps {
   setInstallationCost: (cost: number) => void;
 }
 
+const BRAZIL_STATES = [
+    "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", 
+    "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"
+];
+
 // Funções de Máscara
 const maskCPF = (value: string) => {
   return value
@@ -156,18 +161,18 @@ const UserDataForm: React.FC<{ onSubmit: (data: UserData) => void; initialZip?: 
   };
   
   return (
-    <div className="mt-8 p-6 bg-white border border-gray-200 rounded-lg shadow-lg">
-       <h3 className="text-xl font-bold text-gray-900 mb-4 border-b-2 border-gray-100 pb-2 flex items-center gap-2">
+    <div className="mt-8 p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
+       <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 border-b-2 border-gray-100 dark:border-gray-700 pb-2 flex items-center gap-2">
          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-highlight" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
          </svg>
          Dados do Cliente
        </h3>
-       <p className="text-sm text-gray-500 mb-4">Preencha abaixo para gerar o PDF oficial.</p>
+       <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Preencha abaixo para gerar o PDF oficial.</p>
        
        <form onSubmit={handleSubmit} className="space-y-4">
          {/* SELETOR TIPO DE PESSOA */}
-         <div className="flex gap-4 mb-4 bg-gray-50 p-2 rounded border border-gray-100">
+         <div className="flex gap-4 mb-4 bg-gray-50 dark:bg-gray-700 p-2 rounded border border-gray-100 dark:border-gray-600">
              <label className="flex items-center gap-2 cursor-pointer">
                  <input 
                     type="radio" 
@@ -176,7 +181,7 @@ const UserDataForm: React.FC<{ onSubmit: (data: UserData) => void; initialZip?: 
                     onChange={() => handleTypeChange('pf')}
                     className="w-4 h-4 text-highlight"
                  />
-                 <span className="font-bold text-gray-700">Pessoa Física (CPF + RG)</span>
+                 <span className="font-bold text-gray-700 dark:text-gray-200">Pessoa Física (CPF + RG)</span>
              </label>
              <label className="flex items-center gap-2 cursor-pointer">
                  <input 
@@ -186,49 +191,49 @@ const UserDataForm: React.FC<{ onSubmit: (data: UserData) => void; initialZip?: 
                     onChange={() => handleTypeChange('pj')}
                     className="w-4 h-4 text-highlight"
                  />
-                 <span className="font-bold text-gray-700">Pessoa Jurídica (CNPJ)</span>
+                 <span className="font-bold text-gray-700 dark:text-gray-200">Pessoa Jurídica (CNPJ)</span>
              </label>
          </div>
 
          <div>
-            <label className="block text-sm font-bold text-gray-800 mb-1">{personType === 'pf' ? 'Nome Completo' : 'Razão Social'} *</label>
-            <input required type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-white text-black p-3 rounded-md border-2 border-gray-300 focus:outline-none focus:border-highlight font-medium"/>
+            <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">{personType === 'pf' ? 'Nome Completo' : 'Razão Social'} *</label>
+            <input required type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight font-medium"/>
          </div>
          
          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
              <div>
-                <label className="block text-sm font-bold text-gray-800 mb-1">{personType === 'pf' ? 'CPF' : 'CNPJ'} (Opcional)</label>
+                <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">{personType === 'pf' ? 'CPF' : 'CNPJ'} (Opcional)</label>
                 <input 
                     type="text" 
                     value={docMain} 
                     onChange={handleDocMainChange} 
                     placeholder={personType === 'pf' ? '000.000.000-00' : '00.000.000/0000-00'}
                     maxLength={personType === 'pf' ? 14 : 18}
-                    className="w-full bg-white text-black p-3 rounded-md border-2 border-gray-300 focus:outline-none focus:border-highlight font-medium"
+                    className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight font-medium"
                 />
              </div>
              
              {personType === 'pf' && (
                  <div>
-                    <label className="block text-sm font-bold text-gray-800 mb-1">RG (Opcional)</label>
+                    <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">RG (Opcional)</label>
                     <input 
                         type="text" 
                         value={docSecondary} 
                         onChange={handleDocSecondaryChange}
                         placeholder="00.000.000-0"
                         maxLength={12}
-                        className="w-full bg-white text-black p-3 rounded-md border-2 border-gray-300 focus:outline-none focus:border-highlight font-medium"
+                        className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight font-medium"
                     />
                  </div>
              )}
          </div>
 
-         <div className="border-t border-gray-100 pt-4 mt-4">
-            <h4 className="text-md font-bold text-gray-900 mb-3 flex items-center gap-2">📍 Endereço da Obra</h4>
+         <div className="border-t border-gray-100 dark:border-gray-700 pt-4 mt-4">
+            <h4 className="text-md font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">📍 Endereço da Obra</h4>
             
             <div className="grid grid-cols-3 gap-4 mb-3">
                 <div className="col-span-1">
-                    <label className="block text-sm font-bold text-gray-800 mb-1">CEP *</label>
+                    <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">CEP *</label>
                     <div className="relative">
                         <input 
                             required
@@ -238,41 +243,53 @@ const UserDataForm: React.FC<{ onSubmit: (data: UserData) => void; initialZip?: 
                             onBlur={handleZipBlur}
                             placeholder="00000-000"
                             maxLength={9}
-                            className="w-full bg-white text-black p-3 rounded-md border-2 border-gray-300 focus:outline-none focus:border-highlight font-medium"
+                            className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight font-medium"
                         />
                         {isLoadingCep && <span className="absolute right-3 top-3 text-xs text-gray-500">Bus...</span>}
                     </div>
                 </div>
                 <div className="col-span-2">
-                     <label className="block text-sm font-bold text-gray-800 mb-1">Rua / Logradouro *</label>
-                     <input required type="text" value={street} onChange={e => setStreet(e.target.value)} className="w-full bg-white text-black p-3 rounded-md border-2 border-gray-300 focus:outline-none focus:border-highlight font-medium"/>
+                     <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">Rua / Logradouro *</label>
+                     <input required type="text" value={street} onChange={e => setStreet(e.target.value)} className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight font-medium"/>
                 </div>
             </div>
 
             <div className="grid grid-cols-3 gap-4 mb-3">
                 <div className="col-span-1">
-                    <label className="block text-sm font-bold text-gray-800 mb-1">Número *</label>
-                    <input required type="text" value={number} onChange={e => setNumber(e.target.value)} className="w-full bg-white text-black p-3 rounded-md border-2 border-gray-300 focus:outline-none focus:border-highlight font-medium"/>
+                    <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">Número *</label>
+                    <input required type="text" value={number} onChange={e => setNumber(e.target.value)} className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight font-medium"/>
                 </div>
                 <div className="col-span-2">
-                     <label className="block text-sm font-bold text-gray-800 mb-1">Bairro *</label>
-                     <input required type="text" value={neighborhood} onChange={e => setNeighborhood(e.target.value)} className="w-full bg-white text-black p-3 rounded-md border-2 border-gray-300 focus:outline-none focus:border-highlight font-medium"/>
+                     <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">Bairro *</label>
+                     <input required type="text" value={neighborhood} onChange={e => setNeighborhood(e.target.value)} className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight font-medium"/>
                 </div>
             </div>
 
             <div className="grid grid-cols-4 gap-4">
                  <div className="col-span-3">
-                     <label className="block text-sm font-bold text-gray-800 mb-1">Cidade *</label>
-                     <input required type="text" value={city} onChange={e => setCity(e.target.value)} className="w-full bg-white text-black p-3 rounded-md border-2 border-gray-300 focus:outline-none focus:border-highlight font-medium"/>
+                     <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">Cidade *</label>
+                     <input required type="text" value={city} onChange={e => setCity(e.target.value)} className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight font-medium"/>
                  </div>
                  <div className="col-span-1">
-                     <label className="block text-sm font-bold text-gray-800 mb-1">UF *</label>
-                     <input required type="text" value={state} onChange={e => setState(e.target.value.toUpperCase())} maxLength={2} className="w-full bg-white text-black p-3 rounded-md border-2 border-gray-300 focus:outline-none focus:border-highlight font-medium text-center"/>
+                     <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">UF *</label>
+                     <div className="relative">
+                        <select
+                            required
+                            value={state}
+                            onChange={(e) => setState(e.target.value)}
+                            className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight font-medium appearance-none"
+                        >
+                            <option value="">--</option>
+                            {BRAZIL_STATES.map(uf => (
+                                <option key={uf} value={uf}>{uf}</option>
+                            ))}
+                        </select>
+                     </div>
                  </div>
             </div>
          </div>
          
-         {error && <p className="text-red-600 text-sm font-bold bg-red-50 p-2 rounded">{error}</p>}
+         {error && <p className="text-red-600 text-sm font-bold bg-red-50 dark:bg-red-900/30 p-2 rounded">{error}</p>}
          
          <button type="submit" className="w-full bg-highlight text-white font-black py-4 px-4 rounded-md hover:bg-yellow-600 transition-all shadow-md mt-4 flex items-center justify-center gap-2 text-lg uppercase tracking-wide">
            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -474,12 +491,23 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
         currentDistance = distance;
         currentTolls = autoTollCost;
     } else { // manual
-        currentDistance = parseFloat(manualDistance) || 0;
-        currentTolls = parseFloat(manualTollCost) || 0;
+        const d = parseFloat(manualDistance);
+        const t = parseFloat(manualTollCost);
+        currentDistance = isNaN(d) ? 0 : d;
+        currentTolls = isNaN(t) ? 0 : t;
     }
 
-    const fuelCost = calculateFreightCost(currentDistance, parseFloat(fuelPrice), parseFloat(consumption));
-    setFreightCost(fuelCost);
+    const fPrice = parseFloat(fuelPrice);
+    const cons = parseFloat(consumption);
+    
+    // Validate inputs for calc
+    if (isNaN(fPrice) || isNaN(cons) || cons === 0) {
+        setFreightCost(0);
+    } else {
+        const fuelCost = calculateFreightCost(currentDistance, fPrice, cons);
+        setFreightCost(fuelCost);
+    }
+    
     setTollCost(currentTolls);
 
 }, [freightMode, distance, autoTollCost, manualDistance, manualTollCost, fuelPrice, consumption, setFreightCost, setTollCost, isFreightIncluded]);
@@ -605,7 +633,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
       
       return (
           <div className="fixed inset-0 z-[100] bg-black bg-opacity-90 flex flex-col items-center justify-center p-4">
-              <div className="bg-white w-full max-w-5xl h-[80vh] rounded-lg overflow-hidden flex flex-col shadow-2xl">
+              <div className="bg-white dark:bg-gray-800 w-full max-w-5xl h-[80vh] rounded-lg overflow-hidden flex flex-col shadow-2xl">
                   <div className="bg-blue-600 text-white p-4 flex justify-between items-center">
                       <div>
                           <h3 className="text-lg font-bold">Assistente de Exportação ({currentExportIndex + 1}/{exportQueue.length})</h3>
@@ -616,8 +644,8 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                       </div>
                   </div>
                   
-                  <div className="flex-1 bg-gray-100 p-4 relative overflow-hidden flex justify-center items-center">
-                      <div className="w-full h-full shadow-lg border border-gray-300 bg-white relative">
+                  <div className="flex-1 bg-gray-100 dark:bg-gray-900 p-4 relative overflow-hidden flex justify-center items-center">
+                      <div className="w-full h-full shadow-lg border border-gray-300 dark:border-gray-700 bg-white relative">
                            {/* AQUI RENDERIZA O VISUALIZADOR INTERATIVO */}
                            <StaircaseVisualizer 
                                 captureRef={captureRef}
@@ -633,7 +661,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                       </div>
                   </div>
 
-                  <div className="bg-gray-50 p-4 flex justify-between items-center border-t border-gray-200">
+                  <div className="bg-gray-50 dark:bg-gray-800 p-4 flex justify-between items-center border-t border-gray-200 dark:border-gray-700">
                       <button onClick={() => setIsExportWizardOpen(false)} className="text-red-600 font-bold px-4">
                           Cancelar
                       </button>
@@ -651,9 +679,9 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200 relative">
+    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 relative">
       <div className="flex justify-between items-center mb-6 border-b-2 border-highlight pb-4">
-          <h2 className="text-2xl font-black text-gray-900">Opções Calculadas</h2>
+          <h2 className="text-2xl font-black text-gray-900 dark:text-white">Opções Calculadas</h2>
           
           <div className="flex gap-2">
               <button 
@@ -667,7 +695,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
       </div>
       
       <div className="space-y-4 mb-8">
-        <p className="text-sm text-gray-500 font-medium">Selecione quais versões de desenho você deseja incluir no PDF:</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Selecione quais versões de desenho você deseja incluir no PDF:</p>
         {options.map((originalOption) => {
             const activeOption = overriddenOptions[originalOption.optionNumber] || originalOption;
             const currentSelection = exportConfig[activeOption.optionNumber] || { ...defaultSelection };
@@ -676,11 +704,11 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
             return (
                 <div
                     key={activeOption.optionNumber}
-                    className={`p-5 rounded-lg border-2 shadow-sm transition-colors relative bg-gray-50 border-gray-200 hover:border-highlight`}
+                    className={`p-5 rounded-lg border-2 shadow-sm transition-colors relative bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600 hover:border-highlight`}
                 >
-                    <div className="flex justify-between items-start mb-3 border-b border-gray-200 pb-2">
+                    <div className="flex justify-between items-start mb-3 border-b border-gray-200 dark:border-gray-600 pb-2">
                         <div>
-                            <h3 className="text-lg font-black text-gray-900 uppercase flex items-center gap-2">
+                            <h3 className="text-lg font-black text-gray-900 dark:text-white uppercase flex items-center gap-2">
                                 Opção {activeOption.optionNumber}
                                 {activeOption.isModified && <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded border border-green-200">MODIFICADA</span>}
                             </h3>
@@ -691,14 +719,14 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                                 👁️ Abrir Visualizador 3D
                             </button>
                         </div>
-                        <span className="text-2xl font-black text-green-700">
+                        <span className="text-2xl font-black text-green-700 dark:text-green-400">
                             {formatCurrencyBRL(totalCost)}
                         </span>
                     </div>
 
                     {activeOption.isModified && (
-                        <div className="mb-4 bg-yellow-50 p-3 rounded border border-yellow-200 flex justify-between items-center text-sm">
-                            <div className="text-yellow-800">
+                        <div className="mb-4 bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded border border-yellow-200 dark:border-yellow-800 flex justify-between items-center text-sm">
+                            <div className="text-yellow-800 dark:text-yellow-400">
                                 <strong>Alteração Aplicada:</strong> Pisante de {originalOption.treadDepth}cm ➝ <span className="font-bold">{activeOption.treadDepth}cm</span>
                             </div>
                             <button 
@@ -710,78 +738,78 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                         </div>
                     )}
                     
-                    <div className="bg-white p-3 rounded border border-gray-200 mb-4">
-                        <span className="text-xs font-bold text-purple-700 uppercase block mb-2">Selecione para o PDF:</span>
+                    <div className="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-600 mb-4">
+                        <span className="text-xs font-bold text-purple-700 dark:text-purple-400 uppercase block mb-2">Selecione para o PDF:</span>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="flex flex-col gap-1 border-r border-gray-100 pr-2">
+                            <div className="flex flex-col gap-1 border-r border-gray-100 dark:border-gray-700 pr-2">
                                 <span className="text-xs font-bold text-gray-400">Original</span>
                                 <div className="flex gap-3">
-                                    <label className="flex items-center gap-1 cursor-pointer hover:bg-gray-50 rounded">
+                                    <label className="flex items-center gap-1 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 rounded">
                                         <input 
                                             type="checkbox" 
                                             checked={currentSelection.original2D} 
                                             onChange={() => toggleExportSelection(activeOption.optionNumber, 'original2D')}
                                             className="w-3 h-3 accent-purple-600"
                                         />
-                                        <span className="text-xs font-medium">2D</span>
+                                        <span className="text-xs font-medium text-gray-700 dark:text-gray-300">2D</span>
                                     </label>
-                                    <label className="flex items-center gap-1 cursor-pointer hover:bg-gray-50 rounded">
+                                    <label className="flex items-center gap-1 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 rounded">
                                         <input 
                                             type="checkbox" 
                                             checked={currentSelection.original3D} 
                                             onChange={() => toggleExportSelection(activeOption.optionNumber, 'original3D')}
                                             className="w-3 h-3 accent-purple-600"
                                         />
-                                        <span className="text-xs font-medium">3D</span>
+                                        <span className="text-xs font-medium text-gray-700 dark:text-gray-300">3D</span>
                                     </label>
                                 </div>
                             </div>
                             
                             {hasSlabInfo && (
                                 <>
-                                    <div className="flex flex-col gap-1 border-r border-gray-100 pr-2">
+                                    <div className="flex flex-col gap-1 border-r border-gray-100 dark:border-gray-700 pr-2">
                                         <span className="text-xs font-bold text-gray-400">Solução Vão</span>
                                         <div className="flex gap-3">
-                                            <label className="flex items-center gap-1 cursor-pointer hover:bg-gray-50 rounded">
+                                            <label className="flex items-center gap-1 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 rounded">
                                                 <input 
                                                     type="checkbox" 
                                                     checked={currentSelection.fixOpening2D} 
                                                     onChange={() => toggleExportSelection(activeOption.optionNumber, 'fixOpening2D')}
                                                     className="w-3 h-3 accent-purple-600"
                                                 />
-                                                <span className="text-xs font-medium">2D</span>
+                                                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">2D</span>
                                             </label>
-                                            <label className="flex items-center gap-1 cursor-pointer hover:bg-gray-50 rounded">
+                                            <label className="flex items-center gap-1 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 rounded">
                                                 <input 
                                                     type="checkbox" 
                                                     checked={currentSelection.fixOpening3D} 
                                                     onChange={() => toggleExportSelection(activeOption.optionNumber, 'fixOpening3D')}
                                                     className="w-3 h-3 accent-purple-600"
                                                 />
-                                                <span className="text-xs font-medium">3D</span>
+                                                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">3D</span>
                                             </label>
                                         </div>
                                     </div>
                                     <div className="flex flex-col gap-1">
                                         <span className="text-xs font-bold text-gray-400">Solução Escada</span>
                                         <div className="flex gap-3">
-                                            <label className="flex items-center gap-1 cursor-pointer hover:bg-gray-50 rounded">
+                                            <label className="flex items-center gap-1 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 rounded">
                                                 <input 
                                                     type="checkbox" 
                                                     checked={currentSelection.fixStair2D} 
                                                     onChange={() => toggleExportSelection(activeOption.optionNumber, 'fixStair2D')}
                                                     className="w-3 h-3 accent-purple-600"
                                                 />
-                                                <span className="text-xs font-medium">2D</span>
+                                                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">2D</span>
                                             </label>
-                                            <label className="flex items-center gap-1 cursor-pointer hover:bg-gray-50 rounded">
+                                            <label className="flex items-center gap-1 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 rounded">
                                                 <input 
                                                     type="checkbox" 
                                                     checked={currentSelection.fixStair3D} 
                                                     onChange={() => toggleExportSelection(activeOption.optionNumber, 'fixStair3D')}
                                                     className="w-3 h-3 accent-purple-600"
                                                 />
-                                                <span className="text-xs font-medium">3D</span>
+                                                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">3D</span>
                                             </label>
                                         </div>
                                     </div>
@@ -790,20 +818,32 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                         </div>
                     </div>
                     
-                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 text-sm text-gray-700 font-medium mb-4 pl-2">
-                        <p><strong className="text-gray-900">Total Peças:</strong> {activeOption.steps} un</p>
-                        <p><strong className="text-gray-900">Alt/Degrau:</strong> {activeOption.stepHeight.toFixed(2)} cm</p>
-                        <p><strong className="text-gray-900">Pisante:</strong> {activeOption.treadDepth.toFixed(2)} cm</p>
-                        <p><strong className="text-gray-900">Largura:</strong> {activeOption.stairWidth} cm</p>
-                        <p><strong className="text-gray-900">Comp. Total:</strong> {(activeOption.totalLength / 100).toFixed(2)} m</p>
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 text-sm text-gray-700 dark:text-gray-300 font-medium mb-4 pl-2">
+                        <p><strong className="text-gray-900 dark:text-white">Total Peças:</strong> {activeOption.steps} un</p>
+                        <p><strong className="text-gray-900 dark:text-white">Alt/Degrau:</strong> {activeOption.stepHeight.toFixed(2)} cm</p>
+                        <p><strong className="text-gray-900 dark:text-white">Pisante:</strong> {activeOption.treadDepth.toFixed(2)} cm</p>
+                        <p><strong className="text-gray-900 dark:text-white">Largura:</strong> {activeOption.stairWidth} cm</p>
+                        <p><strong className="text-gray-900 dark:text-white">Comp. Total:</strong> {(activeOption.totalLength / 100).toFixed(2)} m</p>
                     </div>
 
-                    <div className="mt-3 pt-3 text-xs text-gray-500 border-t border-gray-200 flex flex-col gap-2">
+                    <div className="mt-3 pt-3 text-xs text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-600 flex flex-col gap-2">
                         <div className="flex flex-col gap-1">
                             <div className="flex justify-between items-center">
-                                <span className="font-bold text-gray-900 uppercase">Valor da Estrutura:</span>
-                                <span className="text-base font-black text-gray-900">{formatCurrencyBRL(activeOption.totalPrice)}</span>
+                                <span className="font-bold text-gray-900 dark:text-white uppercase">Valor da Estrutura:</span>
+                                <span className="text-base font-black text-gray-900 dark:text-white">{formatCurrencyBRL(activeOption.totalPrice)}</span>
                             </div>
+                             {(freightCost + tollCost) > 0 && (
+                                <div className="flex justify-between items-center">
+                                    <span className="font-medium text-gray-600 dark:text-gray-400">Frete + Pedágio:</span>
+                                    <span className="font-bold text-gray-800 dark:text-gray-200">{formatCurrencyBRL(freightCost + tollCost)}</span>
+                                </div>
+                            )}
+                            {finalInstallationCost > 0 && (
+                                <div className="flex justify-between items-center">
+                                    <span className="font-medium text-gray-600 dark:text-gray-400">Instalação:</span>
+                                    <span className="font-bold text-gray-800 dark:text-gray-200">{formatCurrencyBRL(finalInstallationCost)}</span>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -811,32 +851,32 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
         })}
       </div>
 
-      <div className="pt-6 border-t-2 border-gray-100">
+      <div className="pt-6 border-t-2 border-gray-100 dark:border-gray-700">
         <div className="flex justify-between items-center mb-4">
-            <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 Configuração de Frete
             </h3>
             <label className="flex items-center cursor-pointer select-none">
-                <span className="mr-2 text-sm font-bold text-gray-600">Cobrar Frete?</span>
+                <span className="mr-2 text-sm font-bold text-gray-600 dark:text-gray-300">Cobrar Frete?</span>
                 <input type="checkbox" checked={isFreightIncluded} onChange={e => setIsFreightIncluded(e.target.checked)} className="h-5 w-5 text-highlight rounded focus:ring-highlight border-gray-300"/>
             </label>
         </div>
         
         {isFreightIncluded && (
-            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <div className="flex bg-gray-200 rounded-lg p-1 mb-4">
+            <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
+                <div className="flex bg-gray-200 dark:bg-gray-600 rounded-lg p-1 mb-4">
                     <button 
                         onClick={() => setFreightMode('auto')}
-                        className={`w-1/2 py-2 text-sm rounded-md font-bold transition ${freightMode === 'auto' ? 'bg-white text-highlight shadow-sm' : 'text-gray-600 hover:text-gray-800'}`}
+                        className={`w-1/2 py-2 text-sm rounded-md font-bold transition ${freightMode === 'auto' ? 'bg-white dark:bg-gray-800 text-highlight shadow-sm' : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white'}`}
                     >
                         Automático (IA)
                     </button>
                     <button 
                         onClick={() => setFreightMode('manual')}
-                        className={`w-1/2 py-2 text-sm rounded-md font-bold transition ${freightMode === 'manual' ? 'bg-white text-highlight shadow-sm' : 'text-gray-600 hover:text-gray-800'}`}
+                        className={`w-1/2 py-2 text-sm rounded-md font-bold transition ${freightMode === 'manual' ? 'bg-white dark:bg-gray-800 text-highlight shadow-sm' : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white'}`}
                     >
                         Manual
                     </button>
@@ -846,70 +886,70 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                 <>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <input type="text" value={originCep} onChange={e => handleCepChange(e, setOriginCep)} placeholder="CEP de Origem" className="w-full bg-white text-black p-3 rounded-md border-2 border-gray-300 font-medium" maxLength={9}/>
-                        <p className="text-xs text-gray-500 mt-1 italic">CEP de onde a escada vai sair.</p>
+                        <input type="text" value={originCep} onChange={e => handleCepChange(e, setOriginCep)} placeholder="CEP de Origem" className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-md border-2 border-gray-300 dark:border-gray-600 font-medium" maxLength={9}/>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 italic">CEP de onde a escada vai sair.</p>
                     </div>
                     <div>
-                        <input type="text" value={destinationCep} onChange={e => handleCepChange(e, setDestinationCep)} placeholder="CEP de Destino" className="w-full bg-white text-black p-3 rounded-md border-2 border-gray-300 font-medium" maxLength={9}/>
-                        <p className="text-xs text-gray-500 mt-1 italic">CEP da obra do cliente.</p>
+                        <input type="text" value={destinationCep} onChange={e => handleCepChange(e, setDestinationCep)} placeholder="CEP de Destino" className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-md border-2 border-gray-300 dark:border-gray-600 font-medium" maxLength={9}/>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 italic">CEP da obra do cliente.</p>
                     </div>
                     </div>
                     <button onClick={handleAutomaticDistance} disabled={isLoading} className="mt-4 w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-md hover:bg-blue-700 transition disabled:bg-gray-300 disabled:cursor-not-allowed shadow-sm">
                     {isLoading ? 'Calculando com IA...' : 'Calcular Rota com Google Maps'}
                     </button>
-                    {error && <p className="text-red-600 mt-2 text-sm font-bold bg-red-50 p-2 rounded">{error}</p>}
+                    {error && <p className="text-red-600 mt-2 text-sm font-bold bg-red-50 dark:bg-red-900/30 p-2 rounded">{error}</p>}
                 </>
                 ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <input type="number" value={manualDistance} onChange={e => setManualDistance(e.target.value)} placeholder="Distância (km - apenas ida)" className="w-full bg-white text-black p-3 rounded-md border-2 border-gray-300 font-medium" min="0" step="any"/>
-                        <p className="text-xs text-gray-500 mt-1 italic">Distância do Google Maps (só ida).</p>
+                        <input type="number" value={manualDistance} onChange={e => setManualDistance(e.target.value)} placeholder="Distância (km - apenas ida)" className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-md border-2 border-gray-300 dark:border-gray-600 font-medium" min="0" step="any"/>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 italic">Distância do Google Maps (só ida).</p>
                     </div>
                     <div>
-                        <input type="number" value={manualTollCost} onChange={e => setManualTollCost(e.target.value)} placeholder="Custo Pedágios (R$)" className="w-full bg-white text-black p-3 rounded-md border-2 border-gray-300 font-medium" min="0" step="0.01"/>
-                        <p className="text-xs text-gray-500 mt-1 italic">Valor total dos pedágios (ida e volta).</p>
+                        <input type="number" value={manualTollCost} onChange={e => setManualTollCost(e.target.value)} placeholder="Custo Pedágios (R$)" className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-md border-2 border-gray-300 dark:border-gray-600 font-medium" min="0" step="0.01"/>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 italic">Valor total dos pedágios (ida e volta).</p>
                     </div>
                 </div>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 pt-4 border-t border-gray-200">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
                     <div>
-                        <label className="block text-xs font-bold text-gray-500 mb-1">Preço Gasolina</label>
-                        <input type="number" value={fuelPrice} onChange={e => setFuelPrice(e.target.value)} placeholder="R$/L" className="w-full bg-white text-black p-3 rounded-md border-2 border-gray-300 font-medium" step="0.01" min="0"/>
+                        <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">Preço Gasolina</label>
+                        <input type="number" value={fuelPrice} onChange={e => setFuelPrice(e.target.value)} placeholder="R$/L" className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-md border-2 border-gray-300 dark:border-gray-600 font-medium" step="0.01" min="0"/>
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-gray-500 mb-1">Consumo do Veículo</label>
-                        <input type="number" value={consumption} onChange={e => setConsumption(e.target.value)} placeholder="km/L" className="w-full bg-white text-black p-3 rounded-md border-2 border-gray-300 font-medium" step="0.1" min="0"/>
+                        <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">Consumo do Veículo</label>
+                        <input type="number" value={consumption} onChange={e => setConsumption(e.target.value)} placeholder="km/L" className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-md border-2 border-gray-300 dark:border-gray-600 font-medium" step="0.1" min="0"/>
                     </div>
                 </div>
 
                 {/* VISUALIZAÇÃO DO CÁLCULO - MOSTRAR SEMPRE SE TIVER DISTÂNCIA OU SE ESTIVER EM MANUAL */}
-                <div className={`mt-4 p-4 bg-blue-50 rounded-md border border-blue-200 text-sm transition-all ${
+                <div className={`mt-4 p-4 bg-blue-50 dark:bg-blue-900/30 rounded-md border border-blue-200 dark:border-blue-800 text-sm transition-all ${
                     (distance > 0 || (freightMode === 'manual' && parseFloat(manualDistance) > 0)) ? 'opacity-100 block' : 'opacity-0 hidden'
                 }`}>
-                        <h4 className="font-bold text-blue-900 mb-2 border-b border-blue-200 pb-1">
+                        <h4 className="font-bold text-blue-900 dark:text-blue-300 mb-2 border-b border-blue-200 dark:border-blue-800 pb-1">
                             {freightMode === 'auto' ? 'Detalhamento (Rota Segura/Longa):' : 'Detalhamento do Frete:'}
                         </h4>
-                        <ul className="space-y-1 text-blue-800">
+                        <ul className="space-y-1 text-blue-800 dark:text-blue-200">
                             <li>📍 Distância Ida: <strong>{(freightMode === 'auto' ? distance : parseFloat(manualDistance)).toFixed(2)} km</strong></li>
                             <li>🔄 Distância Total (Ida x 2): <strong>{((freightMode === 'auto' ? distance : parseFloat(manualDistance)) * 2).toFixed(2)} km</strong></li>
                             <li>⛽ Custo Combustível: <strong>{formatCurrencyBRL(calculateFreightCost((freightMode === 'auto' ? distance : parseFloat(manualDistance)), parseFloat(fuelPrice), parseFloat(consumption)))}</strong> <span className="text-xs opacity-75">({((freightMode === 'auto' ? distance : parseFloat(manualDistance))*2).toFixed(1)}km / {consumption}km/l * R${fuelPrice})</span></li>
                             <li>🚧 Pedágios (Estimado): <strong>{formatCurrencyBRL(freightMode === 'auto' ? autoTollCost : (parseFloat(manualTollCost) || 0))}</strong></li>
-                            <li className="font-bold border-t border-blue-300 pt-2 mt-2 text-base text-blue-900">🚚 Total Logística: {formatCurrencyBRL(freightCost + tollCost)}</li>
+                            <li className="font-bold border-t border-blue-300 dark:border-blue-700 pt-2 mt-2 text-base text-blue-900 dark:text-blue-100">🚚 Total Logística: {formatCurrencyBRL(freightCost + tollCost)}</li>
                         </ul>
                 </div>
             </div>
         )}
       
-        <div className="mt-6 bg-gray-100 p-4 rounded-md border border-gray-200">
+        <div className="mt-6 bg-gray-100 dark:bg-gray-700 p-4 rounded-md border border-gray-200 dark:border-gray-600">
           <div className="flex items-center justify-between">
             <label htmlFor="installation" className="flex items-center cursor-pointer select-none">
               <input id="installation" type="checkbox" checked={isInstallationIncluded} onChange={e => setIsInstallationIncluded(e.target.checked)} className="h-5 w-5 text-highlight rounded focus:ring-highlight border-gray-300"/>
-              <span className="ml-2 text-gray-900 font-bold uppercase">Incluir Instalação?</span>
+              <span className="ml-2 text-gray-900 dark:text-white font-bold uppercase">Incluir Instalação?</span>
             </label>
             <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-gray-500">R$</span>
-                <input type="number" value={installationCost} onChange={e => setInstallationCost(parseFloat(e.target.value) || 0)} disabled={!isInstallationIncluded} className="w-24 bg-white text-black p-2 rounded-md border-2 border-gray-300 font-bold disabled:bg-gray-100 disabled:text-gray-400" step="10" min="0"/>
+                <span className="text-xs font-bold text-gray-500 dark:text-gray-400">R$</span>
+                <input type="number" value={installationCost} onChange={e => setInstallationCost(parseFloat(e.target.value) || 0)} disabled={!isInstallationIncluded} className="w-24 bg-white dark:bg-gray-800 text-black dark:text-white p-2 rounded-md border-2 border-gray-300 dark:border-gray-600 font-bold disabled:bg-gray-100 disabled:text-gray-400" step="10" min="0"/>
             </div>
           </div>
         </div>

@@ -1,11 +1,35 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 
 const Layout: React.FC = () => {
   const location = useLocation();
-
   const isActive = (path: string) => location.pathname === path;
+
+  // State initialization with localStorage check
+  const [isDark, setIsDark] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('theme') === 'dark' || 
+        (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    }
+    return false;
+  });
+
+  // Effect to apply class and save preference
+  useEffect(() => {
+    const root = window.document.documentElement;
+    if (isDark) {
+      root.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      root.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDark]);
+
+  const toggleTheme = () => {
+    setIsDark(!isDark);
+  };
 
   // =================================================================================
   // PERSONALIZAÇÃO DA LOGO DO SITE
@@ -17,64 +41,76 @@ const Layout: React.FC = () => {
   // =================================================================================
 
   return (
-    <div className="min-h-screen flex flex-col bg-primary text-gray-800 font-sans">
-      <nav className="bg-secondary shadow-md sticky top-0 z-50 border-b border-gray-200">
+    <div className="min-h-screen flex flex-col bg-primary dark:bg-gray-900 text-gray-800 dark:text-gray-100 font-sans transition-colors duration-200">
+      <nav className="bg-secondary dark:bg-gray-800 shadow-md sticky top-0 z-50 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-24 items-center">
             <div className="flex-shrink-0 flex items-center">
               <Link to="/" className="flex items-center gap-4 group">
                 
                 <div className="w-16 h-16 flex items-center justify-center transition-transform group-hover:scale-105">
-                    {/* Lógica da Imagem:
-                        1. Se tiver código colado em SITE_LOGO_CUSTOM, usa ele.
-                        2. Se não, tenta carregar 'logo.png' da pasta public.
-                        3. Se der erro, mostra o desenho da Águia (SVG).
-                    */}
                     <img 
                       src={SITE_LOGO_CUSTOM || "/logo.png"} 
                       alt="Zilinski" 
                       className="w-full h-full object-contain"
                       onError={(e) => {
-                        // Se a imagem falhar, esconde a tag img e mostra o SVG abaixo
                         e.currentTarget.style.display = 'none';
                         e.currentTarget.nextElementSibling?.classList.remove('hidden');
                       }}
                     />
                     
-                    {/* Fallback SVG (Águia Estilo Brasão) - Aparece se não tiver imagem */}
-                    <svg viewBox="0 0 100 100" className="w-full h-full text-black hidden" fill="currentColor">
-                       {/* Silhueta de Águia Heráldica Simplificada */}
+                    <svg viewBox="0 0 100 100" className="w-full h-full text-black dark:text-white hidden" fill="currentColor">
                        <path d="M50 20 C 55 15, 65 10, 75 15 C 80 18, 85 25, 80 35 C 90 30, 95 35, 90 45 C 95 45, 95 55, 85 60 C 80 62, 75 60, 70 55 L 75 80 L 55 75 L 50 90 L 45 75 L 25 80 L 30 55 C 25 60, 20 62, 15 60 C 5 55, 5 45, 10 45 C 5 35, 10 30, 20 35 C 15 25, 20 18, 25 15 C 35 10, 45 15, 50 20 Z" />
-                       {/* Letras Z D */}
                        <text x="20" y="95" fontFamily="Arial" fontWeight="900" fontSize="14" fill="currentColor">Z</text>
                        <text x="70" y="95" fontFamily="Arial" fontWeight="900" fontSize="14" fill="currentColor">D</text>
                     </svg>
                 </div>
                 <div className="flex flex-col">
-                    <span className="font-black text-3xl tracking-tighter text-gray-900 leading-none">Zilinski</span>
+                    <span className="font-black text-3xl tracking-tighter text-gray-900 dark:text-white leading-none">Zilinski</span>
                     <span className="text-xs text-highlight tracking-[0.3em] uppercase font-bold mt-1">Distribuidora</span>
                 </div>
               </Link>
             </div>
-            <div className="hidden md:flex space-x-8">
-              <Link 
-                to="/" 
-                className={`${isActive('/') ? 'text-highlight font-bold border-b-4 border-highlight' : 'text-gray-500 hover:text-black'} px-2 pt-1 text-sm uppercase tracking-wide transition-all duration-200 h-full flex items-center font-bold`}
+            <div className="flex items-center space-x-4 md:space-x-8">
+              <div className="hidden md:flex space-x-8 h-full">
+                <Link 
+                  to="/" 
+                  className={`${isActive('/') ? 'text-highlight font-bold border-b-4 border-highlight' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'} px-2 pt-1 text-sm uppercase tracking-wide transition-all duration-200 h-full flex items-center font-bold`}
+                >
+                  Início
+                </Link>
+                <Link 
+                  to="/calculadora" 
+                  className={`${isActive('/calculadora') ? 'text-highlight font-bold border-b-4 border-highlight' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'} px-2 pt-1 text-sm uppercase tracking-wide transition-all duration-200 h-full flex items-center font-bold`}
+                >
+                  Calculadora
+                </Link>
+                <Link 
+                  to="/contrato" 
+                  className={`${isActive('/contrato') ? 'text-highlight font-bold border-b-4 border-highlight' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'} px-2 pt-1 text-sm uppercase tracking-wide transition-all duration-200 h-full flex items-center font-bold`}
+                >
+                  Contratos
+                </Link>
+              </div>
+
+              {/* Theme Toggle Button */}
+              <button 
+                onClick={toggleTheme}
+                className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-yellow-400 transition-colors focus:outline-none focus:ring-2 focus:ring-highlight"
+                title={isDark ? "Mudar para modo claro" : "Mudar para modo escuro"}
               >
-                Início
-              </Link>
-              <Link 
-                to="/calculadora" 
-                className={`${isActive('/calculadora') ? 'text-highlight font-bold border-b-4 border-highlight' : 'text-gray-500 hover:text-black'} px-2 pt-1 text-sm uppercase tracking-wide transition-all duration-200 h-full flex items-center font-bold`}
-              >
-                Calculadora
-              </Link>
-              <Link 
-                to="/contrato" 
-                className={`${isActive('/contrato') ? 'text-highlight font-bold border-b-4 border-highlight' : 'text-gray-500 hover:text-black'} px-2 pt-1 text-sm uppercase tracking-wide transition-all duration-200 h-full flex items-center font-bold`}
-              >
-                Contratos
-              </Link>
+                {isDark ? (
+                  /* Sun Icon */
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                ) : (
+                  /* Moon Icon */
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                  </svg>
+                )}
+              </button>
             </div>
           </div>
         </div>
@@ -84,11 +120,11 @@ const Layout: React.FC = () => {
         <Outlet />
       </main>
 
-      <footer className="bg-white text-center py-8 border-t border-gray-200 mt-auto">
+      <footer className="bg-white dark:bg-gray-800 text-center py-8 border-t border-gray-200 dark:border-gray-700 mt-auto">
         <div className="max-w-7xl mx-auto px-4">
-            <h3 className="text-xl font-bold mb-2 text-gray-900">Zilinski Distribuidora</h3>
-            <p className="text-gray-500 text-sm mb-4">Av. Maria Luiza Americano 1954, São Paulo – SP</p>
-            <p className="text-gray-400 text-xs">
+            <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">Zilinski Distribuidora</h3>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">Av. Maria Luiza Americano 1954, São Paulo – SP</p>
+            <p className="text-gray-400 dark:text-gray-500 text-xs">
             &copy; {new Date().getFullYear()} Zilinski Distribuidora. Todos os direitos reservados.
             </p>
         </div>

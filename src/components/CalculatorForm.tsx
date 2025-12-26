@@ -41,10 +41,10 @@ const InputField: React.FC<{
 }> = ({ label, value, onChange, unit, type = "number", placeholder, helperText, isOptional, onUnitChange, currentUnit, className, tooltip, disabled }) => (
   <div className={className}>
     <div className="flex items-center mb-1">
-        <label className={`text-sm font-black mr-1 ${disabled ? 'text-gray-400' : 'text-gray-900'}`}>
+        <label className={`text-sm font-black mr-1 ${disabled ? 'text-gray-400' : 'text-gray-900 dark:text-gray-100'}`}>
             {label}
         </label>
-        {isOptional ? <span className="text-gray-400 font-normal text-xs mr-1">(Opcional)</span> : <span className="text-red-500 font-bold mr-1">*</span>}
+        {isOptional ? <span className="text-gray-400 dark:text-gray-500 font-normal text-xs mr-1">(Opcional)</span> : <span className="text-red-500 font-bold mr-1">*</span>}
         
         {tooltip && <TooltipIcon text={tooltip} />}
     </div>
@@ -54,7 +54,7 @@ const InputField: React.FC<{
         value={value}
         onChange={onChange}
         disabled={disabled}
-        className={`w-full p-3 rounded-l-md border-2 border-gray-300 focus:outline-none focus:border-highlight focus:ring-1 focus:ring-highlight transition font-bold text-lg ${disabled ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-black'}`}
+        className={`w-full p-3 rounded-l-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight focus:ring-1 focus:ring-highlight transition font-bold text-lg ${disabled ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed' : 'bg-white dark:bg-gray-800 text-black dark:text-white'}`}
         placeholder={placeholder || (isOptional ? "Automático" : label)}
         min="0"
         step="any"
@@ -63,16 +63,16 @@ const InputField: React.FC<{
           <select 
             value={currentUnit} 
             onChange={(e) => onUnitChange(e.target.value as 'cm'|'m')}
-            className="bg-gray-100 text-gray-800 p-3 rounded-r-md border-2 border-l-0 border-gray-300 font-bold focus:outline-none focus:border-highlight cursor-pointer"
+            className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white p-3 rounded-r-md border-2 border-l-0 border-gray-300 dark:border-gray-600 font-bold focus:outline-none focus:border-highlight cursor-pointer"
           >
               <option value="cm">cm</option>
               <option value="m">m</option>
           </select>
       ) : (
-        unit && <span className="bg-gray-100 text-gray-800 p-3 rounded-r-md border-2 border-l-0 border-gray-300 font-bold min-w-[3rem] text-center flex items-center justify-center">{unit}</span>
+        unit && <span className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white p-3 rounded-r-md border-2 border-l-0 border-gray-300 dark:border-gray-600 font-bold min-w-[3rem] text-center flex items-center justify-center">{unit}</span>
       )}
     </div>
-    {helperText && <p className="text-xs text-gray-500 mt-1 italic">{helperText}</p>}
+    {helperText && <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 italic">{helperText}</p>}
   </div>
 );
 
@@ -181,8 +181,8 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
   };
   
   return (
-    <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200 sticky top-24">
-      <h2 className="text-2xl font-black mb-6 text-gray-900 flex items-center border-b-2 border-highlight pb-4">
+    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 sticky top-24">
+      <h2 className="text-2xl font-black mb-6 text-gray-900 dark:text-white flex items-center border-b-2 border-highlight pb-4">
         <CalculatorIcon /> 
         Medidas
       </h2>
@@ -192,7 +192,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <div className="flex items-center mb-1">
-                    <label className="block text-sm font-black text-gray-900 mr-1">Altura Piso-Piso</label>
+                    <label className="block text-sm font-black text-gray-900 dark:text-gray-100 mr-1">Altura Piso-Piso</label>
                     <span className="text-red-500 font-bold mr-1">*</span>
                     <TooltipIcon text="Distância vertical exata do chão de baixo até o chão de cima (já considerando o piso acabado)." />
                 </div>
@@ -201,7 +201,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                     type="number"
                     value={totalHeight}
                     onChange={(e) => setTotalHeight(e.target.value)}
-                    className="w-full bg-white text-black p-3 rounded-l-md border-2 border-gray-300 focus:outline-none focus:border-highlight transition font-bold text-lg"
+                    className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-l-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight transition font-bold text-lg"
                     placeholder="300"
                     min="0"
                     step="any"
@@ -209,7 +209,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                     <select
                     value={heightUnit}
                     onChange={(e) => setHeightUnit(e.target.value as 'cm' | 'm')}
-                    className="bg-gray-100 text-gray-800 p-3 rounded-r-md border-2 border-l-0 border-gray-300 font-bold cursor-pointer outline-none"
+                    className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white p-3 rounded-r-md border-2 border-l-0 border-gray-300 dark:border-gray-600 font-bold cursor-pointer outline-none"
                     >
                     <option value="cm">cm</option>
                     <option value="m">m</option>
@@ -228,7 +228,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
         </div>
         
         {/* AMBIENTE (LAJE/VÃO) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-3 rounded border border-gray-100">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 dark:bg-gray-700/50 p-3 rounded border border-gray-100 dark:border-gray-700">
              <InputField 
                 label="Tamanho do Vão" 
                 value={slabOpening} 
@@ -277,7 +277,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
             />
         </div>
         
-        <div className="pt-4 border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="pt-4 border-t border-gray-100 dark:border-gray-700 grid grid-cols-1 md:grid-cols-2 gap-4">
              <InputField 
                 label="Amortecedores" 
                 value={dampers} 
@@ -309,25 +309,25 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
         />
 
         {/* --- SEÇÃO PATAMARES --- */}
-        <div className="pt-4 border-t border-gray-100 bg-orange-50 -mx-6 px-6 pb-4">
+        <div className="pt-4 border-t border-gray-100 dark:border-gray-700 bg-orange-50 dark:bg-orange-900/20 -mx-6 px-6 pb-4">
             <div className="flex items-center justify-between mb-4 mt-4">
-                <h3 className="text-sm font-black text-gray-900 uppercase flex items-center gap-2">
+                <h3 className="text-sm font-black text-gray-900 dark:text-gray-100 uppercase flex items-center gap-2">
                     <span className="bg-highlight text-white w-6 h-6 flex items-center justify-center rounded-full text-xs">P</span>
                     Patamares ({landings.length})
                     <TooltipIcon text="Plataformas de descanso ou curva. Cada patamar substitui 1 degrau na contagem total de peças." />
                 </h3>
-                <button type="button" onClick={handleAddLanding} className="text-xs bg-gray-800 text-white px-3 py-1 rounded font-bold hover:bg-black transition">
+                <button type="button" onClick={handleAddLanding} className="text-xs bg-gray-800 dark:bg-gray-700 text-white px-3 py-1 rounded font-bold hover:bg-black dark:hover:bg-gray-600 transition">
                     + Adicionar
                 </button>
             </div>
             
             {landings.length === 0 ? (
-                <p className="text-xs text-gray-500 italic mb-2">Nenhum patamar adicionado.</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 italic mb-2">Nenhum patamar adicionado.</p>
             ) : (
                 <div className="space-y-3">
-                    <p className="text-[10px] text-orange-800 font-bold mb-2">* Cada patamar substitui 1 degrau.</p>
+                    <p className="text-[10px] text-orange-800 dark:text-orange-300 font-bold mb-2">* Cada patamar substitui 1 degrau.</p>
                     {landings.map((landing, index) => (
-                        <div key={landing.id} className="bg-white p-3 rounded-lg border border-orange-200 shadow-sm relative">
+                        <div key={landing.id} className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-orange-200 dark:border-orange-800 shadow-sm relative">
                             <button 
                                 onClick={() => handleRemoveLanding(landing.id)}
                                 type="button"
@@ -340,7 +340,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                             <div className="grid grid-cols-2 gap-2 mt-2">
                                 <div className="mb-0 col-span-2">
                                     <div className="flex justify-between items-center mb-1">
-                                         <label className="text-sm font-black text-gray-900 mr-1">Qual Degrau?</label>
+                                         <label className="text-sm font-black text-gray-900 dark:text-gray-100 mr-1">Qual Degrau?</label>
                                          <label className="flex items-center gap-1 cursor-pointer">
                                              <input 
                                                 type="checkbox" 
@@ -356,31 +356,31 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                         value={landing.isLastStep ? "" : landing.step.toString()}
                                         disabled={landing.isLastStep}
                                         onChange={e => updateLanding(landing.id, 'step', e.target.value)}
-                                        className={`w-full p-2 rounded border-2 focus:outline-none transition font-bold ${landing.isLastStep ? 'bg-gray-200 border-gray-300 text-gray-400' : 'bg-white border-gray-300 focus:border-highlight text-black'}`}
+                                        className={`w-full p-2 rounded border-2 focus:outline-none transition font-bold ${landing.isLastStep ? 'bg-gray-200 dark:bg-gray-600 border-gray-300 dark:border-gray-500 text-gray-400 dark:text-gray-300' : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 focus:border-highlight text-black dark:text-white'}`}
                                         placeholder={landing.isLastStep ? "Auto (Topo)" : "Ex: 5"}
                                     />
                                 </div>
-                                <div className="col-span-2 mb-2 bg-gray-50 p-2 rounded border border-gray-100">
-                                    <label className="text-xs font-black text-gray-800 mb-1 block">Direção / Curva:</label>
+                                <div className="col-span-2 mb-2 bg-gray-50 dark:bg-gray-700/50 p-2 rounded border border-gray-100 dark:border-gray-700">
+                                    <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Direção / Curva:</label>
                                     <div className="flex gap-1">
                                         <button 
                                             type="button"
                                             onClick={() => updateLanding(landing.id, 'direction', 'left')}
-                                            className={`flex-1 py-1 rounded text-xs font-bold transition flex items-center justify-center gap-1 ${landing.direction === 'left' ? 'bg-blue-600 text-white shadow' : 'bg-white border text-gray-600 hover:bg-gray-100'}`}
+                                            className={`flex-1 py-1 rounded text-xs font-bold transition flex items-center justify-center gap-1 ${landing.direction === 'left' ? 'bg-blue-600 text-white shadow' : 'bg-white dark:bg-gray-600 border dark:border-gray-500 text-gray-600 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500'}`}
                                         >
                                             ⬅️ Esq
                                         </button>
                                         <button 
                                             type="button"
                                             onClick={() => updateLanding(landing.id, 'direction', 'straight')}
-                                            className={`flex-1 py-1 rounded text-xs font-bold transition flex items-center justify-center gap-1 ${(!landing.direction || landing.direction === 'straight') ? 'bg-blue-600 text-white shadow' : 'bg-white border text-gray-600 hover:bg-gray-100'}`}
+                                            className={`flex-1 py-1 rounded text-xs font-bold transition flex items-center justify-center gap-1 ${(!landing.direction || landing.direction === 'straight') ? 'bg-blue-600 text-white shadow' : 'bg-white dark:bg-gray-600 border dark:border-gray-500 text-gray-600 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500'}`}
                                         >
                                             ⬆️ Reto
                                         </button>
                                         <button 
                                             type="button"
                                             onClick={() => updateLanding(landing.id, 'direction', 'right')}
-                                            className={`flex-1 py-1 rounded text-xs font-bold transition flex items-center justify-center gap-1 ${landing.direction === 'right' ? 'bg-blue-600 text-white shadow' : 'bg-white border text-gray-600 hover:bg-gray-100'}`}
+                                            className={`flex-1 py-1 rounded text-xs font-bold transition flex items-center justify-center gap-1 ${landing.direction === 'right' ? 'bg-blue-600 text-white shadow' : 'bg-white dark:bg-gray-600 border dark:border-gray-500 text-gray-600 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500'}`}
                                         >
                                             Dir ➡️
                                         </button>
@@ -418,24 +418,24 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
         </div>
 
         {/* --- SEÇÃO EXTRAS --- */}
-        <div className="pt-4 border-t border-gray-100">
+        <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
           <div className="flex items-center mb-2">
-            <label className="block text-sm font-black text-gray-900 mr-2">Itens Extras</label>
+            <label className="block text-sm font-black text-gray-900 dark:text-gray-100 mr-2">Itens Extras</label>
             <TooltipIcon text="Adicione custos adicionais como corrimão extra, pintura especial, guarda-corpo, etc." />
           </div>
           <div className="flex gap-2 mb-2">
-            <input type="text" placeholder="Nome do item" value={newItemName} onChange={e => setNewItemName(e.target.value)} className="flex-1 p-2 border-2 border-gray-200 rounded font-medium focus:border-highlight outline-none"/>
-            <input type="number" placeholder="R$" value={newItemPrice} onChange={e => setNewItemPrice(e.target.value)} className="w-24 p-2 border-2 border-gray-200 rounded font-medium focus:border-highlight outline-none"/>
+            <input type="text" placeholder="Nome do item" value={newItemName} onChange={e => setNewItemName(e.target.value)} className="flex-1 p-2 border-2 border-gray-200 dark:border-gray-600 rounded font-medium focus:border-highlight outline-none bg-white dark:bg-gray-800 text-black dark:text-white"/>
+            <input type="number" placeholder="R$" value={newItemPrice} onChange={e => setNewItemPrice(e.target.value)} className="w-24 p-2 border-2 border-gray-200 dark:border-gray-600 rounded font-medium focus:border-highlight outline-none bg-white dark:bg-gray-800 text-black dark:text-white"/>
             <button type="button" onClick={handleAddItem} className="bg-green-600 text-white px-3 rounded font-bold hover:bg-green-700">+</button>
           </div>
           {optionalItems.length > 0 && (
              <div className="space-y-1">
                  {optionalItems.map(item => (
-                    <div key={item.id} className="flex justify-between items-center text-sm bg-gray-100 p-2 rounded border border-gray-200">
-                        <span className="font-medium text-gray-800">{item.name}</span>
+                    <div key={item.id} className="flex justify-between items-center text-sm bg-gray-100 dark:bg-gray-700 p-2 rounded border border-gray-200 dark:border-gray-600">
+                        <span className="font-medium text-gray-800 dark:text-gray-200">{item.name}</span>
                         <div className="flex items-center gap-2">
-                            <span className="font-bold text-green-700">R$ {item.price}</span>
-                            <button onClick={() => handleRemoveItem(item.id)} className="text-red-500 hover:text-red-700 font-bold px-1">x</button>
+                            <span className="font-bold text-green-700 dark:text-green-400">R$ {item.price}</span>
+                            <button onClick={() => handleRemoveItem(item.id)} className="text-red-500 hover:text-red-700 dark:hover:text-red-400 font-bold px-1">x</button>
                         </div>
                     </div>
                  ))}
@@ -443,7 +443,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
           )}
         </div>
 
-        {error && <p className="text-red-600 text-sm font-bold bg-red-50 p-2 rounded border border-red-100">{error}</p>}
+        {error && <p className="text-red-600 text-sm font-bold bg-red-50 dark:bg-red-900/30 p-2 rounded border border-red-100 dark:border-red-900">{error}</p>}
 
         <button type="submit" className="w-full bg-highlight text-white font-black py-4 px-4 rounded-md hover:bg-yellow-600 transition-all shadow-md flex items-center justify-center text-xl mt-6 uppercase tracking-wide">
           <CalculatorIcon />

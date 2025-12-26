@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { GoogleGenAI } from "@google/genai";
 import { generateContractPDF } from '../utils/contractGenerator.ts';
@@ -14,8 +14,21 @@ declare var process: {
   }
 };
 
+// Declaração global para SpeechRecognition (API do Navegador)
+declare global {
+  interface Window {
+    SpeechRecognition: any;
+    webkitSpeechRecognition: any;
+  }
+}
+
+const BRAZIL_STATES = [
+    "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", 
+    "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"
+];
+
 const SectionTitle = ({ title, icon }: { title: string; icon?: React.ReactNode }) => (
-    <h2 className="text-xl font-black text-gray-900 mb-4 border-b-2 border-highlight pb-2 flex items-center gap-2 uppercase">
+    <h2 className="text-xl font-black text-gray-900 dark:text-white mb-4 border-b-2 border-highlight pb-2 flex items-center gap-2 uppercase">
         {icon}
         {title}
     </h2>
@@ -23,7 +36,7 @@ const SectionTitle = ({ title, icon }: { title: string; icon?: React.ReactNode }
 
 const ContractInput = ({ label, value, onChange, type = "text", placeholder = "", className = "", disabled=false, maxLength, onBlur, isLoading }: any) => (
     <div className={className}>
-        <label className="block text-sm font-bold text-gray-700 mb-1">{label}</label>
+        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">{label}</label>
         <div className="relative">
             <input 
                 type={type} 
@@ -33,9 +46,9 @@ const ContractInput = ({ label, value, onChange, type = "text", placeholder = ""
                 disabled={disabled}
                 placeholder={placeholder}
                 maxLength={maxLength}
-                className={`w-full bg-white text-black p-3 rounded border border-gray-300 focus:outline-none focus:border-highlight focus:ring-1 focus:ring-highlight font-medium shadow-sm transition-all ${disabled ? 'bg-gray-100 text-gray-500' : ''}`}
+                className={`w-full bg-white dark:bg-gray-700 text-black dark:text-white p-3 rounded border border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight focus:ring-1 focus:ring-highlight font-medium shadow-sm transition-all ${disabled ? 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-500' : ''}`}
             />
-            {isLoading && <span className="absolute right-3 top-3 text-xs text-gray-500">Bus...</span>}
+            {isLoading && <span className="absolute right-3 top-3 text-xs text-gray-500 dark:text-gray-400">Bus...</span>}
         </div>
     </div>
 );
@@ -107,10 +120,19 @@ const Contract = () => {
     const [enableInterest, setEnableInterest] = useState(false);
     const [interestValue, setInterestValue] = useState(''); // Valor monetário (R$)
 
-    // --- IA JURÍDICA ---
+    // --- IA JURÍDICA & REFINAMENTO ---
     const [customClauses, setCustomClauses] = useState<string[]>([]);
     const [aiPrompt, setAiPrompt] = useState('');
     const [isGeneratingClause, setIsGeneratingClause] = useState(false);
+    
+    // Estados para Refinamento (Chatzinho)
+    const [refiningIndex, setRefiningIndex] = useState<number | null>(null);
+    const [refinementPrompt, setRefinementPrompt] = useState('');
+    const [isRefining, setIsRefining] = useState(false);
+
+    // Estados para Voz
+    const [isListening, setIsListening] = useState(false);
+    const recognitionRef = useRef<any>(null);
 
     useEffect(() => {
         const targetDate = addBusinessDays(new Date(), 20);
@@ -171,6 +193,45 @@ const Contract = () => {
         }
     }, [location.state]);
 
+    // --- RECONHECIMENTO DE VOZ ---
+    const toggleListening = (target: 'main' | 'refine') => {
+        if (isListening) {
+            if (recognitionRef.current) recognitionRef.current.stop();
+            setIsListening(false);
+            return;
+        }
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            alert("Seu navegador não suporta reconhecimento de voz.");
+            return;
+        }
+
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'pt-BR';
+        recognition.continuous = false;
+        recognition.interimResults = false;
+
+        recognition.onstart = () => setIsListening(true);
+        recognition.onend = () => setIsListening(false);
+        recognition.onerror = (event: any) => {
+            console.error("Erro no reconhecimento:", event.error);
+            setIsListening(false);
+        };
+
+        recognition.onresult = (event: any) => {
+            const transcript = event.results[0][0].transcript;
+            if (target === 'main') {
+                setAiPrompt(prev => prev ? `${prev} ${transcript}` : transcript);
+            } else {
+                setRefinementPrompt(prev => prev ? `${prev} ${transcript}` : transcript);
+            }
+        };
+
+        recognitionRef.current = recognition;
+        recognition.start();
+    };
+
     const handleZipBlur = async () => {
         const cleanZip = zip.replace(/\D/g, '');
         if (cleanZip.length === 8) {
@@ -199,28 +260,17 @@ const Contract = () => {
     const pixDiscountVal = totalGeralBase * (discountPercent / 100);
     const pixTotal = totalGeralBase - pixDiscountVal;
     
-    // FIX: Removed pixSignalVal and pixDeliveryVal unused variables to satisfy build
-    // const pixSignalVal = pixTotal * (signalPercent / 100);
-    // const pixDeliveryVal = pixTotal - pixSignalVal;
-
     // Cálculos Híbrido / Cartão
-    // 1. Define o valor que vai para o cartão (Base)
     const hybridEntryPix = totalGeralBase * (signalPercent / 100);
     const baseAmountForCard = paymentMethod === 'hybrid' 
         ? totalGeralBase - hybridEntryPix 
         : totalGeralBase;
 
-    // 2. Adiciona Juros (Dinheiro) se habilitado
     const interestMoney = enableInterest ? (parseFloat(interestValue) || 0) : 0;
     const totalFinanciadoReal = baseAmountForCard + interestMoney;
-    
-    // 3. Calcula Parcela
     const finalInstallmentVal = totalFinanciadoReal / (installments || 1);
-
-    // Total Final Geral (Para exibição apenas)
     const totalGeralFinal = (paymentMethod === 'hybrid' ? hybridEntryPix : 0) + totalFinanciadoReal;
 
-    // --- RESET AO MUDAR MÉTODO ---
     const handleMethodChange = (method: 'pix' | 'card' | 'hybrid') => {
         setPaymentMethod(method);
         setEnableInterest(false);
@@ -256,6 +306,45 @@ const Contract = () => {
             alert("Erro ao gerar cláusula com IA. Tente novamente.");
         } finally {
             setIsGeneratingClause(false);
+        }
+    };
+
+    // --- FUNÇÃO DE REFINAMENTO DE CLÁUSULA (CHATZINHO) ---
+    const handleRefineClause = async (index: number) => {
+        if (!refinementPrompt.trim()) return;
+        setIsRefining(true);
+        const originalClause = customClauses[index];
+
+        try {
+            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const prompt = `
+            Você é um assistente jurídico. O usuário quer alterar a seguinte cláusula de contrato existente:
+            "${originalClause}"
+            
+            O pedido de alteração do usuário é: "${refinementPrompt}"
+            
+            Reescreva a cláusula mantendo a linguagem formal jurídica, aplicando a alteração solicitada.
+            Retorne APENAS o novo texto da cláusula, sem introduções ou explicações.
+            `;
+
+            const response = await ai.models.generateContent({
+                model: "gemini-3-flash-preview",
+                contents: prompt,
+            });
+            const newText = response.text;
+
+            if (newText) {
+                const updatedClauses = [...customClauses];
+                updatedClauses[index] = newText.trim();
+                setCustomClauses(updatedClauses);
+                setRefiningIndex(null); // Fecha o chatzinho
+                setRefinementPrompt('');
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Erro ao refinar cláusula.");
+        } finally {
+            setIsRefining(false);
         }
     };
 
@@ -326,23 +415,23 @@ const Contract = () => {
     return (
         <div className="max-w-5xl mx-auto p-4 sm:p-6 md:p-12">
             <header className="mb-10 text-center">
-                <h1 className="text-3xl md:text-4xl font-black text-gray-900 mb-2">Emissão de Contrato</h1>
-                <p className="text-gray-500">Preencha os dados finais para gerar o PDF.</p>
+                <h1 className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white mb-2">Emissão de Contrato</h1>
+                <p className="text-gray-500 dark:text-gray-400">Preencha os dados finais para gerar o PDF.</p>
             </header>
 
-            <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
                 <div className="p-6 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-10">
                     <div className="space-y-6">
                         <SectionTitle title="1. Dados do Cliente" />
                         
                         <div className="flex gap-4 mb-2">
-                             <label className="flex items-center gap-2 cursor-pointer bg-gray-50 px-3 py-1 rounded border">
+                             <label className="flex items-center gap-2 cursor-pointer bg-gray-50 dark:bg-gray-700 px-3 py-1 rounded border dark:border-gray-600">
                                  <input type="radio" name="ptype" checked={personType === 'pf'} onChange={() => handlePersonTypeChange('pf')} className="accent-highlight"/>
-                                 <span className="text-sm font-bold">Pessoa Física</span>
+                                 <span className="text-sm font-bold text-gray-900 dark:text-white">Pessoa Física</span>
                              </label>
-                             <label className="flex items-center gap-2 cursor-pointer bg-gray-50 px-3 py-1 rounded border">
+                             <label className="flex items-center gap-2 cursor-pointer bg-gray-50 dark:bg-gray-700 px-3 py-1 rounded border dark:border-gray-600">
                                  <input type="radio" name="ptype" checked={personType === 'pj'} onChange={() => handlePersonTypeChange('pj')} className="accent-highlight"/>
-                                 <span className="text-sm font-bold">Pessoa Jurídica</span>
+                                 <span className="text-sm font-bold text-gray-900 dark:text-white">Pessoa Jurídica</span>
                              </label>
                         </div>
 
@@ -369,7 +458,7 @@ const Contract = () => {
                             )}
                         </div>
 
-                        <div className="border-t border-gray-100 pt-4">
+                        <div className="border-t border-gray-100 dark:border-gray-700 pt-4">
                             <div className="grid grid-cols-3 gap-3 mb-3">
                                 <div className="col-span-1">
                                     <ContractInput label="CEP *" value={zip} onChange={(e: any) => setZip(maskCEP(e.target.value))} onBlur={handleZipBlur} isLoading={isLoadingCep} maxLength={9}/>
@@ -391,7 +480,19 @@ const Contract = () => {
                                     <ContractInput label="Cidade *" value={city} onChange={(e: any) => setCity(e.target.value)} />
                                 </div>
                                 <div className="col-span-1">
-                                     <ContractInput label="UF *" value={state} onChange={(e: any) => setState(e.target.value.toUpperCase())} maxLength={2} className="text-center"/>
+                                     <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">UF *</label>
+                                     <div className="relative">
+                                        <select
+                                            value={state}
+                                            onChange={(e) => setState(e.target.value)}
+                                            className="w-full bg-white dark:bg-gray-700 text-black dark:text-white p-3 rounded border border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight focus:ring-1 focus:ring-highlight font-medium shadow-sm transition-all appearance-none"
+                                        >
+                                            <option value="">--</option>
+                                            {BRAZIL_STATES.map(uf => (
+                                                <option key={uf} value={uf}>{uf}</option>
+                                            ))}
+                                        </select>
+                                     </div>
                                 </div>
                             </div>
                         </div>
@@ -414,46 +515,47 @@ const Contract = () => {
                         <SectionTitle title="3. Valores & Entrega" />
                         <div className="grid grid-cols-2 gap-4">
                             <ContractInput label="Estrutura (R$)" value={structurePrice} onChange={(e: any) => setStructurePrice(e.target.value)} type="number" />
-                            <ContractInput label="Frete/Instal (R$)" value={(parseFloat(freightPrice)+parseFloat(installationPrice)).toString()} disabled={true} />
+                            <ContractInput label="Frete + Pedágio (R$)" value={freightPrice} onChange={(e: any) => setFreightPrice(e.target.value)} type="number" />
+                            <ContractInput label="Instalação (R$)" value={installationPrice} onChange={(e: any) => setInstallationPrice(e.target.value)} type="number" />
                         </div>
                         
-                        <div className="pt-4 border-t border-gray-100">
-                             <label className="block text-sm font-bold text-gray-700 mb-1">Data Limite de Entrega (Item 4)</label>
+                        <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
+                             <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Data Limite de Entrega (Item 4)</label>
                              <input 
                                 type="date" 
                                 value={deadlineDate} 
                                 onChange={(e) => setDeadlineDate(e.target.value)}
-                                className="w-full bg-white text-black p-3 rounded border border-gray-300 font-medium"
+                                className="w-full bg-white dark:bg-gray-700 text-black dark:text-white p-3 rounded border border-gray-300 dark:border-gray-600 font-medium"
                              />
-                             <p className="text-xs text-gray-500 mt-1">Calculado: 20 dias úteis (sem sáb/dom)</p>
+                             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Calculado: 20 dias úteis (sem sáb/dom)</p>
                         </div>
                     </div>
 
-                    <div className="space-y-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <div className="space-y-6 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
                         <SectionTitle title="4. Pagamento (Item 6)" />
                         
                         {/* 3 OPÇÕES DE BOTÃO */}
-                        <div className="flex gap-2 mb-4 bg-gray-200 p-1 rounded">
-                            <button onClick={() => handleMethodChange('pix')} className={`flex-1 py-2 rounded font-bold transition text-xs sm:text-sm ${paymentMethod === 'pix' ? 'bg-white shadow text-green-700' : 'text-gray-500 hover:bg-gray-300'}`}>Pix / À Vista</button>
-                            <button onClick={() => handleMethodChange('hybrid')} className={`flex-1 py-2 rounded font-bold transition text-xs sm:text-sm ${paymentMethod === 'hybrid' ? 'bg-white shadow text-purple-700' : 'text-gray-500 hover:bg-gray-300'}`}>Híbrido</button>
-                            <button onClick={() => handleMethodChange('card')} className={`flex-1 py-2 rounded font-bold transition text-xs sm:text-sm ${paymentMethod === 'card' ? 'bg-white shadow text-blue-700' : 'text-gray-500 hover:bg-gray-300'}`}>Cartão</button>
+                        <div className="flex gap-2 mb-4 bg-gray-200 dark:bg-gray-700 p-1 rounded">
+                            <button onClick={() => handleMethodChange('pix')} className={`flex-1 py-2 rounded font-bold transition text-xs sm:text-sm ${paymentMethod === 'pix' ? 'bg-white dark:bg-gray-800 shadow text-green-700 dark:text-green-400' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600'}`}>Pix / À Vista</button>
+                            <button onClick={() => handleMethodChange('hybrid')} className={`flex-1 py-2 rounded font-bold transition text-xs sm:text-sm ${paymentMethod === 'hybrid' ? 'bg-white dark:bg-gray-800 shadow text-purple-700 dark:text-purple-400' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600'}`}>Híbrido</button>
+                            <button onClick={() => handleMethodChange('card')} className={`flex-1 py-2 rounded font-bold transition text-xs sm:text-sm ${paymentMethod === 'card' ? 'bg-white dark:bg-gray-800 shadow text-blue-700 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600'}`}>Cartão</button>
                         </div>
 
                         {paymentMethod === 'pix' && (
                             <div className="space-y-4 animate-fade-in">
                                 <div className="flex items-center gap-4">
                                     <div className="flex-1">
-                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Desconto (%)</label>
-                                        <input type="number" value={discountPercent} onChange={e => setDiscountPercent(parseFloat(e.target.value)||0)} className="w-full p-2 border rounded font-bold text-center"/>
+                                        <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Desconto (%)</label>
+                                        <input type="number" value={discountPercent} onChange={e => setDiscountPercent(parseFloat(e.target.value)||0)} className="w-full p-2 border rounded font-bold text-center bg-white dark:bg-gray-700 text-black dark:text-white border-gray-300 dark:border-gray-600"/>
                                     </div>
                                     <div className="flex-1">
-                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Sinal (%)</label>
-                                        <input type="number" value={signalPercent} onChange={e => setSignalPercent(parseFloat(e.target.value)||0)} className="w-full p-2 border rounded font-bold text-center text-green-600"/>
+                                        <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Sinal (%)</label>
+                                        <input type="number" value={signalPercent} onChange={e => setSignalPercent(parseFloat(e.target.value)||0)} className="w-full p-2 border rounded font-bold text-center text-green-600 dark:text-green-400 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600"/>
                                     </div>
                                 </div>
-                                <div className="pt-2 text-sm text-gray-500 font-medium border-t border-gray-300">
+                                <div className="pt-2 text-sm text-gray-500 dark:text-gray-400 font-medium border-t border-gray-300 dark:border-gray-600">
                                     <p className="flex justify-between"><span>Valor Original:</span> <span className="line-through">{formatCurrencyBRL(totalGeralBase)}</span></p>
-                                    <p className="flex justify-between text-green-700 font-bold text-lg"><span>A Pagar:</span> <span>{formatCurrencyBRL(pixTotal)}</span></p>
+                                    <p className="flex justify-between text-green-700 dark:text-green-400 font-bold text-lg"><span>A Pagar:</span> <span>{formatCurrencyBRL(pixTotal)}</span></p>
                                     <p className="text-xs mt-1">* 50% de sinal na assinatura e 50% na entrega.</p>
                                 </div>
                             </div>
@@ -461,31 +563,31 @@ const Contract = () => {
 
                         {paymentMethod === 'hybrid' && (
                             <div className="space-y-4 animate-fade-in">
-                                <div className="bg-blue-100 p-3 rounded">
-                                    <label className="block text-xs font-bold text-blue-800 uppercase mb-1">Entrada no PIX ({signalPercent}%)</label>
+                                <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded">
+                                    <label className="block text-xs font-bold text-blue-800 dark:text-blue-300 uppercase mb-1">Entrada no PIX ({signalPercent}%)</label>
                                     <input type="range" min="10" max="80" step="5" value={signalPercent} onChange={e => setSignalPercent(parseFloat(e.target.value))} className="w-full accent-highlight mb-1"/>
-                                    <div className="text-right font-black text-blue-900">{formatCurrencyBRL(hybridEntryPix)}</div>
+                                    <div className="text-right font-black text-blue-900 dark:text-blue-300">{formatCurrencyBRL(hybridEntryPix)}</div>
                                 </div>
 
-                                <div className="bg-white p-3 rounded border border-gray-300">
+                                <div className="bg-white dark:bg-gray-700 p-3 rounded border border-gray-300 dark:border-gray-600">
                                     <div className="flex items-center justify-between mb-2">
-                                        <label className="text-xs font-bold text-gray-600 uppercase">Restante no Cartão</label>
+                                        <label className="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Restante no Cartão</label>
                                         <label className="flex items-center gap-1 cursor-pointer">
                                             <input type="checkbox" checked={enableInterest} onChange={e => setEnableInterest(e.target.checked)} className="w-4 h-4 rounded text-highlight"/>
                                             <span className="text-xs font-bold text-highlight">Somar Juros (R$)</span>
                                         </label>
                                     </div>
                                     {enableInterest && (
-                                        <input type="number" placeholder="Valor total dos juros (R$)" value={interestValue} onChange={e => setInterestValue(e.target.value)} className="w-full p-2 border border-orange-300 rounded mb-2 text-sm"/>
+                                        <input type="number" placeholder="Valor total dos juros (R$)" value={interestValue} onChange={e => setInterestValue(e.target.value)} className="w-full p-2 border border-orange-300 rounded mb-2 text-sm bg-white dark:bg-gray-600 text-black dark:text-white"/>
                                     )}
                                     <div className="flex gap-2 items-center">
                                         <div className="flex-1">
                                             <span className="text-xs text-gray-400 block">Parcelas</span>
-                                            <input type="number" value={installments} onChange={e => setInstallments(parseInt(e.target.value)||1)} className="w-full p-1 border rounded font-bold text-center"/>
+                                            <input type="number" value={installments} onChange={e => setInstallments(parseInt(e.target.value)||1)} className="w-full p-1 border rounded font-bold text-center bg-white dark:bg-gray-600 text-black dark:text-white dark:border-gray-500"/>
                                         </div>
                                         <div className="flex-1 text-right">
                                             <span className="text-xs text-gray-400 block">Valor da Parcela</span>
-                                            <span className="font-black text-lg text-gray-800">{formatCurrencyBRL(finalInstallmentVal)}</span>
+                                            <span className="font-black text-lg text-gray-800 dark:text-gray-200">{formatCurrencyBRL(finalInstallmentVal)}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -494,25 +596,25 @@ const Contract = () => {
 
                         {paymentMethod === 'card' && (
                             <div className="space-y-4 animate-fade-in">
-                                <div className="bg-white p-3 rounded border border-gray-300">
+                                <div className="bg-white dark:bg-gray-700 p-3 rounded border border-gray-300 dark:border-gray-600">
                                     <div className="flex items-center justify-between mb-2">
-                                        <label className="text-xs font-bold text-gray-600 uppercase">Valor Total Cartão</label>
+                                        <label className="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Valor Total Cartão</label>
                                         <label className="flex items-center gap-1 cursor-pointer">
                                             <input type="checkbox" checked={enableInterest} onChange={e => setEnableInterest(e.target.checked)} className="w-4 h-4 rounded text-highlight"/>
                                             <span className="text-xs font-bold text-highlight">Somar Juros (R$)</span>
                                         </label>
                                     </div>
                                     {enableInterest && (
-                                        <input type="number" placeholder="Valor total dos juros (R$)" value={interestValue} onChange={e => setInterestValue(e.target.value)} className="w-full p-2 border border-orange-300 rounded mb-2 text-sm"/>
+                                        <input type="number" placeholder="Valor total dos juros (R$)" value={interestValue} onChange={e => setInterestValue(e.target.value)} className="w-full p-2 border border-orange-300 rounded mb-2 text-sm bg-white dark:bg-gray-600 text-black dark:text-white"/>
                                     )}
                                     <div className="flex gap-2 items-center">
                                         <div className="flex-1">
                                             <span className="text-xs text-gray-400 block">Parcelas</span>
-                                            <input type="number" value={installments} onChange={e => setInstallments(parseInt(e.target.value)||1)} className="w-full p-1 border rounded font-bold text-center"/>
+                                            <input type="number" value={installments} onChange={e => setInstallments(parseInt(e.target.value)||1)} className="w-full p-1 border rounded font-bold text-center bg-white dark:bg-gray-600 text-black dark:text-white dark:border-gray-500"/>
                                         </div>
                                         <div className="flex-1 text-right">
                                             <span className="text-xs text-gray-400 block">Valor da Parcela</span>
-                                            <span className="font-black text-lg text-gray-800">{formatCurrencyBRL(finalInstallmentVal)}</span>
+                                            <span className="font-black text-lg text-gray-800 dark:text-gray-200">{formatCurrencyBRL(finalInstallmentVal)}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -532,19 +634,30 @@ const Contract = () => {
                 </div>
 
                 {/* Seção de IA para Cláusulas */}
-                <div className="bg-gray-50 border-t border-gray-200 p-6 md:p-8">
+                <div className="bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700 p-6 md:p-8">
                     <SectionTitle title="5. Cláusulas Adicionais (IA)" icon={<span>🤖</span>} />
-                    <p className="text-sm text-gray-500 mb-4">Adicione condições específicas usando Inteligência Artificial (ex: Garantia estendida, condições de acesso, etc).</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Adicione ou refine condições específicas usando Inteligência Artificial (ex: Garantia estendida, condições de acesso, etc).</p>
                     
                     <div className="flex gap-2 mb-4">
-                        <input 
-                            type="text" 
-                            value={aiPrompt} 
-                            onChange={(e) => setAiPrompt(e.target.value)} 
-                            placeholder="Ex: O cliente deve providenciar andaime..." 
-                            className="flex-1 p-3 border rounded border-gray-300 outline-none focus:border-highlight"
-                            onKeyDown={(e) => e.key === 'Enter' && handleGenerateClause()}
-                        />
+                        <div className="relative flex-1">
+                            <input 
+                                type="text" 
+                                value={aiPrompt} 
+                                onChange={(e) => setAiPrompt(e.target.value)} 
+                                placeholder="Digite ou use o microfone..." 
+                                className="w-full bg-white dark:bg-gray-700 text-black dark:text-white p-3 pr-10 border rounded border-gray-300 dark:border-gray-600 outline-none focus:border-highlight"
+                                onKeyDown={(e) => e.key === 'Enter' && handleGenerateClause()}
+                            />
+                            <button 
+                                onClick={() => toggleListening('main')}
+                                className={`absolute right-2 top-2 p-1.5 rounded-full transition-colors ${isListening ? 'bg-red-500 text-white animate-pulse' : 'text-gray-400 dark:text-gray-300 hover:text-gray-600 dark:hover:text-white'}`}
+                                title="Falar"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                                </svg>
+                            </button>
+                        </div>
                         <button 
                             onClick={handleGenerateClause} 
                             disabled={isGeneratingClause}
@@ -554,16 +667,60 @@ const Contract = () => {
                         </button>
                     </div>
 
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                         {customClauses.map((clause, idx) => (
-                            <div key={idx} className="bg-white p-4 rounded border border-gray-200 shadow-sm relative group">
-                                <p className="text-sm text-gray-700 italic">"{clause}"</p>
+                            <div key={idx} className="bg-white dark:bg-gray-800 p-4 rounded border border-gray-200 dark:border-gray-700 shadow-sm relative group transition-all">
+                                <p className="text-sm text-gray-700 dark:text-gray-300 italic pr-8">"{clause}"</p>
+                                
+                                <div className="flex justify-end gap-2 mt-2 pt-2 border-t border-gray-100 dark:border-gray-700 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button 
+                                        onClick={() => setRefiningIndex(refiningIndex === idx ? null : idx)}
+                                        className="text-xs bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 px-3 py-1 rounded font-bold hover:bg-purple-200 dark:hover:bg-purple-800 flex items-center gap-1"
+                                    >
+                                        ✨ Refinar com IA
+                                    </button>
+                                </div>
+
                                 <button 
                                     onClick={() => handleRemoveClause(idx)}
-                                    className="absolute top-2 right-2 text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity font-bold"
+                                    className="absolute top-2 right-2 text-red-300 hover:text-red-600 font-bold"
                                 >
                                     ✕
                                 </button>
+
+                                {/* CHATZINHO DE REFINAMENTO */}
+                                {refiningIndex === idx && (
+                                    <div className="mt-3 bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg border border-purple-100 dark:border-purple-800 animate-fade-in">
+                                        <p className="text-xs font-bold text-purple-800 dark:text-purple-300 mb-2">O que você deseja alterar nesta cláusula?</p>
+                                        <div className="flex gap-2">
+                                            <div className="relative flex-1">
+                                                <input 
+                                                    type="text" 
+                                                    value={refinementPrompt}
+                                                    onChange={(e) => setRefinementPrompt(e.target.value)}
+                                                    placeholder="Ex: Deixe mais formal, adicione multa..."
+                                                    className="w-full bg-white dark:bg-gray-700 text-black dark:text-white p-2 pr-8 text-sm border border-purple-200 dark:border-purple-800 rounded focus:outline-none focus:border-purple-400"
+                                                    onKeyDown={(e) => e.key === 'Enter' && handleRefineClause(idx)}
+                                                />
+                                                <button 
+                                                    onClick={() => toggleListening('refine')}
+                                                    className={`absolute right-1 top-1 p-1 rounded-full transition-colors ${isListening ? 'bg-red-500 text-white animate-pulse' : 'text-gray-400 dark:text-gray-300 hover:text-gray-600 dark:hover:text-white'}`}
+                                                >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                            <button 
+                                                onClick={() => handleRefineClause(idx)}
+                                                disabled={isRefining}
+                                                className="bg-purple-600 text-white px-3 py-1 rounded text-xs font-bold hover:bg-purple-700 disabled:opacity-50"
+                                            >
+                                                {isRefining ? '...' : 'Enviar'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         ))}
                         {customClauses.length === 0 && <p className="text-sm text-gray-400 italic">Nenhuma cláusula adicional.</p>}
