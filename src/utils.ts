@@ -62,7 +62,7 @@ export const getCurrentDateFormatted = (): string => {
   });
 };
 
-// --- GEMINI FUNCTION COM MAPS GROUNDING ---
+// --- GEMINI FUNCTION COM FALLBACK INTELIGENTE ---
 
 const getCurrentLocation = (): Promise<{ latitude: number; longitude: number } | null> => {
   return new Promise((resolve) => {
@@ -84,100 +84,95 @@ const getCurrentLocation = (): Promise<{ latitude: number; longitude: number } |
   });
 };
 
+// Função auxiliar para extrair números de qualquer resposta (Texto ou JSON)
+const extractNumbers = (text: string) => {
+    // Tenta capturar formatos variados de resposta via Regex
+    const distMatch = text.match(/dist[a-zâ-ã]*\s*[:=]?\s*([\d.,]+)\s*(km)?/i) || text.match(/([\d.,]+)\s*km/i);
+    const tollMatch = text.match(/ped[a-zâ-ã]*\s*[:=]?\s*(R\$)?\s*([\d.,]+)/i) || text.match(/pedagios?\s*[:=]?\s*([\d.,]+)/i);
+    
+    let d = 0, t = 0;
+    if (distMatch) d = parseFloat(distMatch[1].replace(',', '.'));
+    if (tollMatch) t = parseFloat(tollMatch[2]?.replace(',', '.') || tollMatch[1]?.replace(',', '.') || '0');
+    
+    // Se regex falhar, tenta parsear como JSON puro
+    if (d === 0) {
+         try {
+             const clean = text.replace(/```json/g, '').replace(/```/g, '').trim();
+             const jsonStr = clean.match(/\{[\s\S]*\}/)?.[0] || clean;
+             const json = JSON.parse(jsonStr);
+             d = Number(json.distancia || json.distance || 0);
+             t = Number(json.pedagios || json.tolls || json.cost || 0);
+         } catch(e) {}
+    }
+    return { distance: d, tolls: t };
+};
+
 export const getRouteInfoFromGemini = async (origin: string, destination: string): Promise<{ distance: number; tolls: number }> => {
-  // 1. Diagnóstico da Chave
   const apiKey = process.env.API_KEY;
-  
   if (!apiKey || apiKey.length < 10 || apiKey.includes('YOUR_API_KEY')) {
-      console.error("DIAGNÓSTICO: Chave ausente ou inválida. Valor atual:", apiKey);
-      throw new Error(`ERRO DE CONFIGURAÇÃO: A chave de API não foi detectada pelo sistema. (Status da Chave: ${apiKey ? 'Inválida/Curta' : 'Ausente'})`);
+      throw new Error(`ERRO DE CONFIGURAÇÃO: Chave de API inválida.`);
   }
 
+  const ai = new GoogleGenAI({ apiKey: apiKey });
+
+  // TENTATIVA 1: MODO FERRAMENTA (GOOGLE MAPS)
+  // Este modo é mais preciso, mas pode falhar se a chave não tiver permissão específica.
   try {
-    const ai = new GoogleGenAI({ apiKey: apiKey });
-    
-    // Tenta pegar localização para ajudar na precisão
-    const userLocation = await getCurrentLocation();
+      console.log("Tentativa 1: Google Maps Tool...");
+      const configWithMaps: any = { tools: [{ googleMaps: {} }] };
+      
+      // Tenta adicionar contexto de localização (opcional)
+      try {
+          const userLoc = await getCurrentLocation();
+          if (userLoc) {
+              configWithMaps.toolConfig = { retrievalConfig: { latLng: { latitude: userLoc.latitude, longitude: userLoc.longitude } } };
+          }
+      } catch(e) { console.warn("Localização ignorada", e); }
 
-    const config: any = {
-      tools: [{ googleMaps: {} }],
-    };
-    
-    if (userLocation) {
-        config.toolConfig = {
-            retrievalConfig: {
-                latLng: {
-                    latitude: userLocation.latitude,
-                    longitude: userLocation.longitude,
-                }
-            }
-        };
-    }
+      const promptMaps = `Use o Google Maps para calcular a rota de carro entre o CEP ${origin} e o CEP ${destination}.
+      Se encontrar, responda EXATAMENTE neste formato: "Distancia: X km, Pedagios: R$ Y".
+      Se não conseguir, responda apenas "ERRO".`;
 
-    // Prompt reforçado
-    const prompt = `Use a ferramenta Google Maps para calcular a rota de carro saindo do CEP "${origin}" para o CEP "${destination}" no Brasil.
-    
-    IMPORTANTE:
-    1. Calcule a distância real de condução (driving distance).
-    2. Estime o custo de pedágios.
-    3. Retorne APENAS um JSON.
-    
-    Formato JSON:
-    {
-      "distancia": 123.5,
-      "pedagios": 45.20
-    }`;
+      const result = await ai.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: promptMaps,
+          config: configWithMaps
+      });
+      
+      const text = result.text || "";
+      console.log("Resposta Maps:", text);
 
-    console.log("Iniciando requisição Gemini com Maps...");
-
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-      config: config,
-    });
-
-    console.log("Resposta bruta da IA:", response.text);
-
-    const text = response.text || "{}";
-    
-    // Verifica se a IA respondeu que não consegue usar o Maps
-    if (text.toLowerCase().includes("não consigo") || text.toLowerCase().includes("i cannot") || text.toLowerCase().includes("acesso ao mapa")) {
-        throw new Error(`A IA informou que não tem acesso ao Maps. Verifique se a API Key tem o 'Google Maps' ativado no Google AI Studio. Resposta: ${text.substring(0, 50)}...`);
-    }
-
-    let data = { distancia: 0, pedagios: 0 };
-    
-    // Parser JSON robusto
-    try {
-        const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
-        const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
-        
-        if (jsonMatch) {
-            data = JSON.parse(jsonMatch[0]);
-        } else {
-             data = JSON.parse(cleanText);
-        }
-    } catch (e) {
-        // Fallback Regex
-        const distMatch = text.match(/"?distancia"?\s*:\s*"?([\d.]+)"?/);
-        const tollsMatch = text.match(/"?pedagios"?\s*:\s*"?([\d.]+)"?/);
-        
-        if (distMatch) data.distancia = parseFloat(distMatch[1]);
-        if (tollsMatch) data.pedagios = parseFloat(tollsMatch[1]);
-    }
-
-    const distance = Number(data.distancia) || 0;
-    const tolls = Number(data.pedagios) || 0;
-    
-    if (distance === 0) {
-        throw new Error(`O Google Maps retornou 0km. (Resposta da IA: ${text.substring(0, 100)}...)`);
-    }
-
-    return { distance, tolls };
-
-  } catch (error: any) {
-    console.error('Erro Detalhado:', error);
-    // Repassa a mensagem exata para aparecer na tela vermelha do usuário
-    throw new Error(error.message || 'Erro desconhecido na API.');
+      if (!text.includes("ERRO") && text.length > 5) {
+          const data = extractNumbers(text);
+          if (data.distance > 0) return data;
+      }
+  } catch (e) {
+      console.warn("Falha na ferramenta Maps, indo para fallback...", e);
   }
+
+  // TENTATIVA 2: MODO ESTIMATIVA (FALLBACK)
+  // Se o Maps falhou (retornou 0 ou erro), pedimos para a IA ESTIMAR usando o conhecimento dela.
+  // Isso garante que o usuário sempre receba um valor.
+  try {
+      console.log("Tentativa 2: Estimativa...");
+      const promptEstimate = `Estime a distância rodoviária aproximada entre o CEP ${origin} e o CEP ${destination} no Brasil.
+      Responda APENAS com os números no formato JSON:
+      { "distancia": 100.5, "pedagios": 20.00 }`;
+
+      const result = await ai.models.generateContent({
+          model: "gemini-2.5-flash", // Sem ferramentas, apenas conhecimento textual
+          contents: promptEstimate
+      });
+      
+      const text = result.text || "";
+      console.log("Resposta Estimativa:", text);
+      
+      const data = extractNumbers(text);
+      if (data.distance > 0) return data;
+      
+  } catch (e) {
+      console.error("Erro fatal na estimativa:", e);
+  }
+
+  throw new Error("Não foi possível calcular a rota automaticamente. Por favor, insira a distância manualmente.");
 };
