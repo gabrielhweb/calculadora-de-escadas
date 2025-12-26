@@ -1,10 +1,12 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import CalculatorForm from '../components/CalculatorForm';
 import ProposalOptions from '../components/ProposalOptions';
 import ProposalDocument from '../components/ProposalDocument';
-import { CalculatorInput, ProposalOption, UserData } from '../types';
+import { CalculatorInput, ProposalOption, UserData, SavedQuote } from '../types';
 import { calculateTotalPrice } from '../utils';
+import { saveQuote } from '../services/storage';
 
 function Calculator() {
   const [inputData, setInputData] = useState<CalculatorInput | null>(null);
@@ -14,18 +16,41 @@ function Calculator() {
   const [tollCost, setTollCost] = useState(0);
   const [isInstallationIncluded, setIsInstallationIncluded] = useState(true);
   const [installationCost, setInstallationCost] = useState(290);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleCalculate = (data: CalculatorInput) => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Verifica se veio de uma restauração de orçamento
+  useEffect(() => {
+    if (location.state && location.state.restoreData) {
+        const saved: SavedQuote = location.state.restoreData;
+        setInputData(saved.inputData);
+        if (saved.userData) setUserData(saved.userData);
+        setFreightCost(saved.freightCost);
+        setTollCost(saved.tollCost);
+        setInstallationCost(saved.installationCost);
+        setIsInstallationIncluded(saved.isInstallationIncluded);
+        
+        // Recalcula opções
+        handleCalculate(saved.inputData, true); // true = silent (sem scroll se quisesse)
+        
+        // Limpa o state para não restaurar novamente num F5 indesejado
+        window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
+
+  const handleCalculate = (data: CalculatorInput, isRestoring = false) => {
     // 1. Aplica Valores Padrão se vierem vazios
     const effectiveWidth = data.stairWidth > 0 ? data.stairWidth : 70;
     const effectiveTread = data.treadDepth > 0 ? data.treadDepth : 24;
 
     const enrichedData = { ...data, stairWidth: effectiveWidth, treadDepth: effectiveTread };
     setInputData(enrichedData);
-    setUserData(null);
+    if (!isRestoring) setUserData(null);
 
-    // 2. Atualiza Logística se veio do formulário
-    if (data.logistics) {
+    // 2. Atualiza Logística se veio do formulário (apenas se não estiver restaurando, ou se quiser sobrescrever)
+    if (data.logistics && !isRestoring) {
         setFreightCost(data.logistics.totalFreightCost);
         setTollCost(data.logistics.tolls);
     }
@@ -115,16 +140,60 @@ function Calculator() {
   const handleGenerateProposal = (data: UserData) => setUserData(data);
   const finalInstallationCost = isInstallationIncluded ? installationCost : 0;
 
+  const handleSaveQuote = async () => {
+    if (!inputData) return;
+    
+    let clientName = userData?.name || "";
+    if (!clientName) {
+        const name = prompt("Digite um nome para identificar este orçamento:");
+        if (!name) return;
+        clientName = name;
+    }
+
+    setIsSaving(true);
+    await saveQuote({
+        clientName,
+        inputData,
+        userData: userData || undefined,
+        freightCost,
+        tollCost,
+        installationCost,
+        isInstallationIncluded
+    });
+    setIsSaving(false);
+
+    alert("Orçamento salvo! Disponível em 'Salvos' em todos os dispositivos.");
+  };
+
   return (
     <div className="p-4 sm:p-8 max-w-7xl mx-auto">
-      <header className="text-center mb-8">
-        <h1 className="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tight">Calculadora Oficial</h1>
+      <header className="text-center mb-8 flex justify-center relative">
+        <h1 className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Calculadora Oficial</h1>
       </header>
       <main className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <aside>
           <CalculatorForm onCalculate={handleCalculate} />
         </aside>
-        <section className="flex flex-col">
+        <section className="flex flex-col relative">
+          
+          {/* BOTÃO FLUTUANTE DE SALVAR */}
+          {inputData && options.length > 0 && (
+             <button 
+                onClick={handleSaveQuote}
+                disabled={isSaving}
+                className="absolute -top-12 right-0 bg-white dark:bg-gray-700 text-gray-700 dark:text-white px-4 py-2 rounded-lg shadow border border-gray-200 dark:border-gray-600 font-bold hover:bg-gray-50 dark:hover:bg-gray-600 flex items-center gap-2 text-sm z-10 disabled:opacity-50"
+             >
+                {isSaving ? (
+                    <span className="animate-spin h-5 w-5 border-2 border-highlight rounded-full border-t-transparent"></span>
+                ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-highlight" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                    </svg>
+                )}
+                {isSaving ? "Salvando..." : "Salvar Orçamento"}
+             </button>
+          )}
+
           {userData && inputData && options.length > 0 ? (
             <ProposalDocument
               options={options} userData={userData} inputData={inputData}
@@ -140,8 +209,9 @@ function Calculator() {
               installationCost={installationCost} setInstallationCost={setInstallationCost}
             />
           ) : (
-            <div className="bg-white p-6 rounded-lg text-center shadow-sm">
-                <h3 className="text-lg font-bold text-gray-700">Aguardando Medidas</h3>
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg text-center shadow-sm border border-gray-100 dark:border-gray-700">
+                <h3 className="text-lg font-bold text-gray-700 dark:text-gray-300">Aguardando Medidas</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">Preencha o formulário ao lado para ver as opções.</p>
             </div>
           )}
         </section>

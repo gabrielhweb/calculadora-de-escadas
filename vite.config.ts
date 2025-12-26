@@ -4,17 +4,18 @@ import react from '@vitejs/plugin-react'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
-  // Carrega variáveis do arquivo .env (local)
-  const env = loadEnv(mode, process.cwd(), '');
+  const env = loadEnv(mode, (process as any).cwd(), '');
   
-  // Tenta pegar do .env OU do ambiente do sistema (Vercel)
   const apiKey = env.API_KEY || process.env.API_KEY;
+  const supabaseUrl = env.SUPABASE_URL || process.env.SUPABASE_URL;
+  const supabaseKey = env.SUPABASE_KEY || process.env.SUPABASE_KEY;
 
   return {
     plugins: [react()],
     define: {
-      // Injeta o valor da chave diretamente no código durante o build
       'process.env.API_KEY': JSON.stringify(apiKey),
+      'process.env.SUPABASE_URL': JSON.stringify(supabaseUrl),
+      'process.env.SUPABASE_KEY': JSON.stringify(supabaseKey),
     },
   }
 })

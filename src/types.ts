@@ -70,3 +70,15 @@ export interface UserData {
   city?: string;
   state?: string;
 }
+
+export interface SavedQuote {
+    id: string;
+    createdAt: string;
+    clientName: string;
+    inputData: CalculatorInput;
+    userData?: UserData;
+    freightCost: number;
+    tollCost: number;
+    installationCost: number;
+    isInstallationIncluded: boolean;
+}
