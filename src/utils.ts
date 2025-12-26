@@ -89,12 +89,14 @@ const getCurrentLocation = (): Promise<{ latitude: number; longitude: number } |
 };
 
 export const getRouteInfoFromGemini = async (origin: string, destination: string): Promise<{ distance: number; tolls: number }> => {
-  try {
-    const apiKey = process.env.API_KEY;
-    if (!apiKey) {
-        throw new Error('Chave de API não configurada.');
-    }
+  // Verificação explícita da chave
+  const apiKey = process.env.API_KEY;
+  if (!apiKey || apiKey.includes('YOUR_API_KEY')) {
+      console.error("ERRO CRÍTICO: API_KEY não encontrada ou inválida.", apiKey);
+      throw new Error('Configuração de API pendente no servidor (Vercel).');
+  }
 
+  try {
     const ai = new GoogleGenAI({ apiKey: apiKey });
     const userLocation = await getCurrentLocation();
 
@@ -156,20 +158,24 @@ export const getRouteInfoFromGemini = async (origin: string, destination: string
         if (tollsMatch) data.pedagios = parseFloat(tollsMatch[1]);
         
         if (!distMatch && !tollsMatch) {
-            // Se tudo falhar, retorna 0 mas não quebra a app
             console.error("Não foi possível extrair dados da resposta da IA:", text);
-            return { distance: 0, tolls: 0 };
+            // Se falhou em extrair, lança erro para a UI mostrar
+            throw new Error("A IA não retornou dados legíveis. Tente novamente.");
         }
     }
 
     const distance = Number(data.distancia) || 0;
     const tolls = Number(data.pedagios) || 0;
     
+    if (distance === 0) {
+        throw new Error("O Google Maps não encontrou rota entre estes CEPs.");
+    }
+
     return { distance, tolls };
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Erro Logística Gemini:', error);
-    // Retorna 0 em vez de erro para não travar a UI
-    return { distance: 0, tolls: 0 };
+    // Repassa o erro exato para aparecer na tela vermelha
+    throw new Error(error.message || 'Erro ao conectar com Google Gemini.');
   }
 };
