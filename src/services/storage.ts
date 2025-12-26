@@ -78,8 +78,6 @@ export const getQuotes = async (): Promise<SavedQuote[]> => {
 };
 
 export const deleteQuote = async (id: string): Promise<void> => {
-    let deletedFromCloud = false;
-
     if (supabase) {
         try {
             const { error } = await supabase
@@ -87,8 +85,7 @@ export const deleteQuote = async (id: string): Promise<void> => {
                 .delete()
                 .eq('id', id);
             
-            if (!error) deletedFromCloud = true;
-            else console.error(error);
+            if (error) console.error(error);
         } catch (e) {
             console.error(e);
         }

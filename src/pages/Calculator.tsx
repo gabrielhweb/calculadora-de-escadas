@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import CalculatorForm from '../components/CalculatorForm';
 import ProposalOptions from '../components/ProposalOptions';
 import ProposalDocument from '../components/ProposalDocument';
@@ -19,7 +19,6 @@ function Calculator() {
   const [isSaving, setIsSaving] = useState(false);
 
   const location = useLocation();
-  const navigate = useNavigate();
 
   // Verifica se veio de uma restauração de orçamento
   useEffect(() => {
