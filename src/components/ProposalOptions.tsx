@@ -334,7 +334,8 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
   const [isExportWizardOpen, setIsExportWizardOpen] = useState(false);
   const [exportQueue, setExportQueue] = useState<ExportQueueItem[]>([]);
   const [currentExportIndex, setCurrentExportIndex] = useState(0);
-  const [capturedImages, setCapturedImages] = useState<{imgData: string, title: string, width: number, height: number}[]>([]);
+  // FIX: removed unused capturedImages state variable from destructuring
+  const [, setCapturedImages] = useState<{imgData: string, title: string, width: number, height: number}[]>([]);
   const captureRef = useRef<HTMLDivElement>(null); // Ref para o container do desenho atual no wizard
 
   // --- EFEITO PARA CARREGAR DADOS INICIAIS ---
@@ -528,7 +529,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
           if (currentExportIndex < exportQueue.length - 1) {
               setCurrentExportIndex(prev => prev + 1);
           } else {
-              finishExport(canvas.width, canvas.height); // Passa dimensões aproximadas
+              finishExport(); // FIX: removed unused args
           }
 
       } catch (e) {
@@ -537,7 +538,8 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
       }
   };
 
-  const finishExport = (lastW: number, lastH: number) => {
+  // FIX: Removed unused parameters lastW and lastH
+  const finishExport = () => {
       setTimeout(() => {
         setCapturedImages(finalImages => {
              const doc = new jsPDF('landscape', 'mm', 'a4');

@@ -6,6 +6,14 @@ import { generateContractPDF } from '../utils/contractGenerator.ts';
 import { LandingInfo } from '../types';
 import { formatCurrencyBRL } from '../utils';
 
+// Fix for TS2580
+declare var process: {
+  env: {
+    API_KEY: string;
+    [key: string]: string | undefined;
+  }
+};
+
 const SectionTitle = ({ title, icon }: { title: string; icon?: React.ReactNode }) => (
     <h2 className="text-xl font-black text-gray-900 mb-4 border-b-2 border-highlight pb-2 flex items-center gap-2 uppercase">
         {icon}
@@ -190,8 +198,10 @@ const Contract = () => {
     // Cálculos Pix
     const pixDiscountVal = totalGeralBase * (discountPercent / 100);
     const pixTotal = totalGeralBase - pixDiscountVal;
-    const pixSignalVal = pixTotal * (signalPercent / 100);
-    const pixDeliveryVal = pixTotal - pixSignalVal;
+    
+    // FIX: Removed pixSignalVal and pixDeliveryVal unused variables to satisfy build
+    // const pixSignalVal = pixTotal * (signalPercent / 100);
+    // const pixDeliveryVal = pixTotal - pixSignalVal;
 
     // Cálculos Híbrido / Cartão
     // 1. Define o valor que vai para o cartão (Base)
@@ -298,7 +308,7 @@ const Contract = () => {
             deadlineDate, 
             paymentMethod,
             paymentDetails: {
-                discountPercent, signalPercent, installments, installmentValue: finalInstallmentVal, totalContrato: totalGeralFinal
+                discountPercent, signalPercent, installments, installmentValue: finalInstallmentVal
             },
             additionalClauses: customClauses // Passa as cláusulas para o gerador
         });

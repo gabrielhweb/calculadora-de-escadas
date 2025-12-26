@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { CalculatorInput, OptionalItem, LandingInfo, LogisticsInfo } from '../types';
+import { CalculatorInput, OptionalItem, LandingInfo } from '../types';
 
 interface CalculatorFormProps {
   onCalculate: (data: CalculatorInput) => void;

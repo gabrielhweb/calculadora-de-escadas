@@ -393,7 +393,7 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
           const cx = 0; const cy = totalHeight/2; const cz = 0;
           let x = center.x - cx; let y = center.y - cy; let z = center.z - cz;
           const radY = (rotation.y * Math.PI) / 180;
-          const x1 = x * Math.cos(radY) - z * Math.sin(radY);
+          // FIX: removed unused x1 variable
           const z1 = x * Math.sin(radY) + z * Math.cos(radY);
           const radX = (rotation.x * Math.PI) / 180;
           const z2 = y * Math.sin(radX) + z1 * Math.cos(radX);

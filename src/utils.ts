@@ -1,6 +1,14 @@
 
 import { GoogleGenAI } from "@google/genai";
 
+// Fix for TS2580: Cannot find name 'process'
+declare var process: {
+  env: {
+    API_KEY: string;
+    [key: string]: string | undefined;
+  }
+};
+
 const getBasePrice = (width: number): number => {
   if (width >= 40 && width <= 50) return 410;
   if (width >= 51 && width <= 70) return 425;
