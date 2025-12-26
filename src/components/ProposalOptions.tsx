@@ -55,7 +55,7 @@ const maskCEP = (value: string) => {
     .replace(/(-\d{3})\d+?$/, '$1');
 };
 
-const UserDataForm: React.FC<{ onSubmit: (data: UserData) => void }> = ({ onSubmit }) => {
+const UserDataForm: React.FC<{ onSubmit: (data: UserData) => void; initialZip?: string }> = ({ onSubmit, initialZip }) => {
   const [personType, setPersonType] = useState<'pf' | 'pj'>('pf');
   const [name, setName] = useState('');
   const [docMain, setDocMain] = useState(''); // CPF ou CNPJ
@@ -92,8 +92,9 @@ const UserDataForm: React.FC<{ onSubmit: (data: UserData) => void }> = ({ onSubm
       setDocSecondary(maskRG(e.target.value));
   };
 
-  const handleZipBlur = async () => {
-      const cleanZip = zip.replace(/\D/g, '');
+  // Função centralizada de busca de endereço
+  const fetchAddressByCep = async (cepValue: string) => {
+      const cleanZip = cepValue.replace(/\D/g, '');
       if (cleanZip.length === 8) {
           setIsLoadingCep(true);
           try {
@@ -104,7 +105,8 @@ const UserDataForm: React.FC<{ onSubmit: (data: UserData) => void }> = ({ onSubm
                   setNeighborhood(data.bairro);
                   setCity(data.localidade);
                   setState(data.uf);
-                  // Foca no número automaticamente (opcional, via ref, mas vamos deixar simples)
+                  // Limpa erro anterior se houver
+                  setError('');
               }
           } catch (e) {
               console.error("Erro ao buscar CEP", e);
@@ -112,6 +114,23 @@ const UserDataForm: React.FC<{ onSubmit: (data: UserData) => void }> = ({ onSubm
               setIsLoadingCep(false);
           }
       }
+  };
+
+  // Sincroniza com o CEP vindo de fora (Configuração de Frete)
+  useEffect(() => {
+      if (initialZip) {
+          const masked = maskCEP(initialZip);
+          setZip(masked);
+          
+          // Se for um CEP válido, busca o endereço automaticamente
+          if (masked.replace(/\D/g, '').length === 8) {
+              fetchAddressByCep(masked);
+          }
+      }
+  }, [initialZip]);
+
+  const handleZipBlur = () => {
+      fetchAddressByCep(zip);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -896,7 +915,8 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
         </div>
       </div>
       
-      <UserDataForm onSubmit={onGenerateProposal} />
+      {/* Agora passamos o CEP de destino (digitado na área de frete) para o formulário do cliente */}
+      <UserDataForm onSubmit={onGenerateProposal} initialZip={destinationCep} />
 
       {/* RENDERIZAÇÃO DO MODAL DE VISUALIZAÇÃO PADRÃO */}
       {selectedVisualizerOption && (
