@@ -100,7 +100,8 @@ function Calculator() {
               finalTreadDepth = stairsLen / structureSteps;
           }
       } else {
-          const gapPerStep = 1; 
+          // *** ALTERAÇÃO: GAP AGORA É 0.5cm ***
+          const gapPerStep = 0.5; 
           const stairsLength = structureSteps * (finalTreadDepth + gapPerStep);
           const landingsLength = adjustedLandings.reduce((acc, l) => acc + l.length, 0);
           totalLength = stairsLength + landingsLength;
@@ -136,7 +137,13 @@ function Calculator() {
     setOptions(newOptions);
   };
 
-  const handleGenerateProposal = (data: UserData) => setUserData(data);
+  const handleGenerateProposal = (data: UserData, modifiedOptions?: ProposalOption[]) => {
+      if (modifiedOptions) {
+          setOptions(modifiedOptions);
+      }
+      setUserData(data);
+  };
+
   const finalInstallationCost = isInstallationIncluded ? installationCost : 0;
 
   const handleSaveQuote = async () => {

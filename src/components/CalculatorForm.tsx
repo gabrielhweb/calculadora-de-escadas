@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { CalculatorInput, OptionalItem, LandingInfo } from '../types';
+import { CalculatorInput, OptionalItem, LandingInfo, LogisticsInfo } from '../types';
 
 interface CalculatorFormProps {
   onCalculate: (data: CalculatorInput) => void;
@@ -156,19 +156,23 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
     const openingInCm = convertToCm(slabOpening, openingUnit);
     const slabThickInCm = parseFloat(slabThickness) || 0;
 
+    // Lógica para Amortecedores: Permite 0 explicitamente.
+    // Se o campo for string vazia ou NaN, usa 4. Se for 0, usa 0.
+    const dampersInt = parseInt(dampers, 10);
+    const finalDampers = isNaN(dampersInt) ? 4 : dampersInt;
+
     const formData: CalculatorInput = {
       totalHeight: heightInCm || 0,
       desiredSteps: parseInt(desiredSteps, 10) || 0,
       stairWidth: widthInCm,
       treadDepth: depthInCm,
-      dampers: parseInt(dampers, 10) || 4,
+      dampers: finalDampers,
       customStepPrice: customStepPrice ? parseFloat(customStepPrice) : undefined,
       customTotalLength: lengthInCm || undefined,
       optionalItems: optionalItems,
       landings: landings,
       slabThickness: slabThickInCm,
       slabOpening: openingInCm || undefined,
-      // Logística removida desta etapa
     };
 
     if (formData.totalHeight <= 0 || formData.desiredSteps <= 0) {
@@ -283,7 +287,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                 value={dampers} 
                 onChange={e => setDampers(e.target.value)} 
                 unit="un"
-                helperText="Padrão: 4"
+                helperText="Aceita 0"
                 tooltip="Borrachas instaladas entre a estrutura da escada e a parede para reduzir vibração e ruído."
             />
             <InputField 

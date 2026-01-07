@@ -1,11 +1,10 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { GoogleGenAI } from "@google/genai";
 import { generateContractPDF } from '../utils/contractGenerator.ts';
-import { LandingInfo, QuoteStatus, SavedQuote } from '../types';
+import { LandingInfo } from '../types';
 import { formatCurrencyBRL } from '../utils';
-import { saveQuote } from '../services/storage';
 
 // Fix for TS2580
 declare var process: {
@@ -75,13 +74,7 @@ const addBusinessDays = (startDate: Date, days: number) => {
 
 const Contract = () => {
     const location = useLocation();
-    const navigate = useNavigate();
     
-    // Estado para controle do ID original (se viemos de uma edição)
-    const [originalId, setOriginalId] = useState<string | undefined>(undefined);
-    // Dados originais completos para remontagem
-    const [originalRestoreData, setOriginalRestoreData] = useState<any>(null);
-
     // Dados do Cliente
     const [clientName, setClientName] = useState('');
     const [clientDoc, setClientDoc] = useState(''); // CPF ou CNPJ
@@ -141,9 +134,6 @@ const Contract = () => {
     const [isListening, setIsListening] = useState(false);
     const recognitionRef = useRef<any>(null);
 
-    // Estado de Salvamento
-    const [isSaving, setIsSaving] = useState(false);
-
     useEffect(() => {
         const targetDate = addBusinessDays(new Date(), 20);
         const year = targetDate.getFullYear();
@@ -154,17 +144,8 @@ const Contract = () => {
         if (location.state) {
             const { 
                 userData, selectedOption, inputData, 
-                freightCost, tollCost, installationCost, extrasCost,
-                // Se viemos de uma restauração, pode ter o restoreData original
-                restoreData 
+                freightCost, tollCost, installationCost, extrasCost 
             } = location.state;
-
-            // Salva referência dos dados brutos para poder salvar no storage depois
-            setOriginalRestoreData(location.state);
-            
-            if (restoreData && restoreData.id) {
-                setOriginalId(restoreData.id);
-            }
 
             if (userData) {
                 setClientName(userData.name || '');
@@ -422,57 +403,6 @@ const Contract = () => {
         });
     };
 
-    // --- LÓGICA DE SALVAMENTO FINAL ---
-    const handleFinalizeContract = async (targetStatus: QuoteStatus) => {
-        if (!clientName) {
-            alert("Preencha o nome do cliente.");
-            return;
-        }
-
-        setIsSaving(true);
-
-        const fullAddress = `${street}, ${number} - ${neighborhood}, ${city} - ${state}, ${zip}`;
-        
-        // Reconstrói os dados para salvar
-        const quoteToSave = {
-            id: originalId, // Se undefined, cria novo
-            clientName,
-            userData: { 
-                name: clientName, cpf: clientDoc, rg: clientRG, address: fullAddress, 
-                zip, street, number, neighborhood, city, state 
-            },
-            // Se tivermos os dados brutos originais, usamos eles para não perder detalhes da calculadora
-            // Se não, improvisamos com os dados editados no form
-            inputData: originalRestoreData?.inputData || {
-                totalHeight: parseFloat(totalHeight),
-                desiredSteps: parseFloat(totalSteps),
-                stairWidth: parseFloat(width),
-                treadDepth: parseFloat(treadDepth),
-                dampers: parseFloat(dampers),
-                optionalItems: [],
-                landings: landings
-            },
-            freightCost: parseFloat(freightPrice),
-            tollCost: 0,
-            installationCost: parseFloat(installationPrice),
-            isInstallationIncluded: parseFloat(installationPrice) > 0,
-            status: targetStatus,
-            // Adiciona as cláusulas como anotação se quiser persistir
-            notes: customClauses.length > 0 ? `Cláusulas Extras: \n${customClauses.join('\n')}` : undefined
-        };
-
-        try {
-            const newId = await saveQuote(quoteToSave);
-            // Redireciona para o detalhe da obra para anexar vídeos
-            navigate(`/obra/${newId}`);
-        } catch (e) {
-            console.error(e);
-            alert("Erro ao salvar.");
-        } finally {
-            setIsSaving(false);
-        }
-    };
-
     const handleDocChange = (e: any) => {
         const val = e.target.value;
         if (personType === 'pf') setClientDoc(maskCPF(val));
@@ -483,7 +413,7 @@ const Contract = () => {
     const handlePersonTypeChange = (type: 'pf' | 'pj') => { setPersonType(type); setClientDoc(''); setClientRG(''); };
 
     return (
-        <div className="max-w-5xl mx-auto p-4 sm:p-6 md:p-12 pb-32">
+        <div className="max-w-5xl mx-auto p-4 sm:p-6 md:p-12">
             <header className="mb-10 text-center">
                 <h1 className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white mb-2">Emissão de Contrato</h1>
                 <p className="text-gray-500 dark:text-gray-400">Preencha os dados finais para gerar o PDF.</p>
@@ -697,8 +627,8 @@ const Contract = () => {
                             <div className="mt-2 text-xs text-gray-400">Inclui: Estrutura + Frete + Instalação + Extras {enableInterest ? '+ Juros' : ''}</div>
                         </div>
 
-                        <button onClick={handleGeneratePDF} className="w-full bg-white border-2 border-highlight text-highlight font-black py-4 rounded-lg shadow-sm hover:bg-yellow-50 transition-all text-lg mt-4 uppercase tracking-wide flex justify-center items-center gap-2">
-                             <span>📄</span> Baixar PDF (Rascunho)
+                        <button onClick={handleGeneratePDF} className="w-full bg-highlight text-white font-black py-4 rounded-lg shadow-lg hover:bg-yellow-600 transition-all text-xl mt-4 uppercase tracking-wide flex justify-center items-center gap-2">
+                             <span>📄</span> Gerar e Baixar Contrato
                         </button>
                     </div>
                 </div>
@@ -794,36 +724,6 @@ const Contract = () => {
                             </div>
                         ))}
                         {customClauses.length === 0 && <p className="text-sm text-gray-400 italic">Nenhuma cláusula adicional.</p>}
-                    </div>
-                </div>
-
-                {/* --- ÁREA DE FINALIZAÇÃO --- */}
-                <div className="bg-blue-600 text-white p-6 md:p-8">
-                    <h2 className="text-2xl font-black uppercase mb-4 flex items-center gap-2">
-                        🚀 Finalizar Processo
-                    </h2>
-                    <p className="mb-6 opacity-90">
-                        Após conferir todos os dados acima e gerar o PDF, escolha uma ação para atualizar o status no sistema:
-                    </p>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <button 
-                            onClick={() => handleFinalizeContract('negotiation')}
-                            disabled={isSaving}
-                            className="bg-white text-blue-800 font-bold py-4 rounded shadow hover:bg-blue-50 transition flex flex-col items-center justify-center disabled:opacity-50"
-                        >
-                            <span className="uppercase text-lg">Salvar como Negociação</span>
-                            <span className="text-xs font-normal opacity-70">Apenas salva, não envia para produção.</span>
-                        </button>
-                        
-                        <button 
-                            onClick={() => handleFinalizeContract('production')}
-                            disabled={isSaving}
-                            className="bg-yellow-500 text-white font-black py-4 rounded shadow-lg hover:bg-yellow-600 transition flex flex-col items-center justify-center disabled:opacity-50 border-2 border-yellow-400"
-                        >
-                            <span className="uppercase text-lg flex items-center gap-2">🔥 Enviar para Serralheiro</span>
-                            <span className="text-xs font-normal opacity-90">Muda status para "Produção" e avisa a equipe.</span>
-                        </button>
                     </div>
                 </div>
             </div>

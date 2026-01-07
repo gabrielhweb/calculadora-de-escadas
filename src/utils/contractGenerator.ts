@@ -145,7 +145,8 @@ export const generateContractPDF = (data: ContractData) => {
   if (data.freightCost + data.tollCost > 0) {
       addText(`-Frete ${formatCurrencyBRL(data.freightCost + data.tollCost)}`, 11, false, 'left');
   } else {
-      addText(`-Frete R$ 0,00 (Retira ou Incluso)`, 11, false, 'left');
+      // TEXTO CORRIGIDO AQUI
+      addText(`-Frete: POR CONTA DO COMPRADOR`, 11, true, 'left');
   }
 
   if (data.installationCost > 0) {

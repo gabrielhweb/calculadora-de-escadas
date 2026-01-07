@@ -191,7 +191,8 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
 
       // ALGORITMO DE BUSCA:
       for (let t = option.treadDepth; t >= 18; t -= 0.1) {
-          const tryLength = (stairsOnlySteps * t) + landingsLen;
+          // *** ALTERAÇÃO: Considerando GAP DE 0.5cm no cálculo ***
+          const tryLength = (stairsOnlySteps * (t + 0.5)) + landingsLen;
           const check = calculateHeadroom(t, tryLength);
 
           if (check.clearance >= targetHeadroom) {
@@ -906,7 +907,7 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
                                 type="number" 
                                 value={headroomInput} 
                                 onChange={e => setHeadroomInput(parseInt(e.target.value) || 0)} 
-                                className="w-16 bg-gray-700 text-white font-bold text-center rounded border border-gray-600 focus:outline-none focus:border-blue-500"
+                                className="w-16 bg-gray-700 text-white font-bold text-center rounded border border-gray-600 focus:outline-none focus:border-highlight"
                             />
                             <span className="text-xs font-bold text-gray-400">cm</span>
                             <button 

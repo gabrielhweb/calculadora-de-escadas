@@ -8,17 +8,11 @@ import { SavedQuote } from '../types';
 const SavedQuotes: React.FC = () => {
     const [quotes, setQuotes] = useState<SavedQuote[]>([]);
     const [loading, setLoading] = useState(true);
-    const [connectionType, setConnectionType] = useState<'cloud' | 'local'>('local');
+    // Removed connectionType state since we are hiding the UI indicator
     const navigate = useNavigate();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
-        // Verifica se o Supabase está ativo
-        if (supabase) {
-            setConnectionType('cloud');
-        } else {
-            setConnectionType('local');
-        }
         loadQuotes();
     }, []);
 
@@ -38,7 +32,7 @@ const SavedQuotes: React.FC = () => {
     };
 
     const handleRestore = (quote: SavedQuote) => {
-        navigate('/calculadora', { state: { restoreData: quote } });
+        navigate('/', { state: { restoreData: quote } });
     };
 
     // --- EXPORTAR ---
@@ -110,26 +104,13 @@ const SavedQuotes: React.FC = () => {
                         <p className="text-gray-500 dark:text-gray-400 text-sm">
                             {loading ? "Carregando..." : `${quotes.length} orçamentos encontrados.`}
                         </p>
-                        
-                        {/* Indicador de Status */}
-                        {connectionType === 'cloud' ? (
-                            <span className="inline-flex items-center gap-1 bg-green-100 text-green-800 text-xs font-bold px-2 py-0.5 rounded-full border border-green-200">
-                                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                                Nuvem (Online)
-                            </span>
-                        ) : (
-                            <span className="inline-flex items-center gap-1 bg-gray-100 text-gray-600 text-xs font-bold px-2 py-0.5 rounded-full border border-gray-300" title="Os dados estão salvos apenas neste navegador. Use Exportar para fazer backup.">
-                                <span className="w-2 h-2 bg-gray-400 rounded-full"></span>
-                                Memória Local
-                            </span>
-                        )}
                     </div>
                 </div>
                 
                 <div className="flex gap-2 flex-wrap justify-end">
                     <input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".json" style={{ display: 'none' }} />
 
-                    <button onClick={handleImportClick} className="bg-white dark:bg-gray-700 text-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 font-bold py-2 px-4 rounded hover:bg-gray-50 transition flex items-center gap-2 text-sm shadow-sm" title="Importar Backup">
+                    <button onClick={handleImportClick} className="bg-white dark:bg-gray-700 text-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 font-bold py-2 px-4 rounded hover:bg-gray-50 dark:hover:bg-gray-600 transition flex items-center gap-2 text-sm shadow-sm" title="Importar Backup">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
                         Importar
                     </button>
@@ -139,7 +120,7 @@ const SavedQuotes: React.FC = () => {
                          Exportar
                     </button>
 
-                    <button onClick={() => navigate('/calculadora')} className="bg-highlight text-white font-bold py-2 px-6 rounded hover:bg-yellow-600 transition shadow-md">
+                    <button onClick={() => navigate('/')} className="bg-highlight text-white font-bold py-2 px-6 rounded hover:bg-yellow-600 transition shadow-md">
                         + Novo
                     </button>
                 </div>
@@ -152,11 +133,9 @@ const SavedQuotes: React.FC = () => {
             ) : quotes.length === 0 ? (
                 <div className="text-center py-20 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
                     <p className="text-gray-400 text-lg font-medium">Nenhum orçamento salvo encontrado.</p>
-                    {connectionType === 'local' && (
-                        <p className="text-xs text-gray-400 mt-2 max-w-md mx-auto">
-                            Dica: Você está usando a memória local. Se trocou de dispositivo, use o botão "Importar" para carregar seus orçamentos antigos.
-                        </p>
-                    )}
+                    <p className="text-xs text-gray-400 mt-2 max-w-md mx-auto">
+                        Seus orçamentos ficam salvos neste dispositivo. Use "Exportar" para fazer backup se for trocar de computador.
+                    </p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

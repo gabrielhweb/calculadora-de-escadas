@@ -9,7 +9,7 @@ import html2canvas from 'html2canvas';
 interface ProposalOptionsProps {
   options: ProposalOption[];
   inputData?: CalculatorInput;
-  onGenerateProposal: (userData: UserData) => void;
+  onGenerateProposal: (userData: UserData, modifiedOptions?: ProposalOption[]) => void;
   freightCost: number;
   setFreightCost: (cost: number) => void;
   tollCost: number;
@@ -434,6 +434,11 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
       });
   };
 
+  // Helper para obter a lista final de opções (Original + Modificadas)
+  const getEffectiveOptions = () => {
+      return options.map(o => overriddenOptions[o.optionNumber] || o);
+  };
+
   const toggleExportSelection = (optionNum: number, type: keyof ExportSelection) => {
       setExportConfig(prev => {
           const current = prev[optionNum] || { ...defaultSelection };
@@ -531,8 +536,9 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
       if (countSelectedExports() === 0) return;
       
       const queue: ExportQueueItem[] = [];
+      const effectiveOptions = getEffectiveOptions();
       
-      options.forEach(o => {
+      effectiveOptions.forEach(o => {
           const sel = exportConfig[o.optionNumber] || defaultSelection;
           
           if (sel.original2D) queue.push({ option: o, variant: 'original', viewMode: '2d', title: `Desenho 2D - Opção ${o.optionNumber} (Original)` });
@@ -865,7 +871,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
             </label>
         </div>
         
-        {isFreightIncluded && (
+        {isFreightIncluded ? (
             <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
                 <div className="flex bg-gray-200 dark:bg-gray-600 rounded-lg p-1 mb-4">
                     <button 
@@ -939,6 +945,16 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                         </ul>
                 </div>
             </div>
+        ) : (
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg border border-yellow-200 dark:border-yellow-700 flex items-start gap-3">
+                <span className="text-2xl">⚠️</span>
+                <div>
+                    <h4 className="font-bold text-yellow-800 dark:text-yellow-300">Frete por conta do cliente</h4>
+                    <p className="text-sm text-yellow-700 dark:text-yellow-400 mt-1">
+                        Ao gerar o contrato e o orçamento, será especificado que a responsabilidade do transporte e retirada é inteiramente do comprador.
+                    </p>
+                </div>
+            </div>
         )}
       
         <div className="mt-6 bg-gray-100 dark:bg-gray-700 p-4 rounded-md border border-gray-200 dark:border-gray-600">
@@ -956,7 +972,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
       </div>
       
       {/* Agora passamos o CEP de destino (digitado na área de frete) para o formulário do cliente */}
-      <UserDataForm onSubmit={onGenerateProposal} initialZip={destinationCep} />
+      <UserDataForm onSubmit={(data) => onGenerateProposal(data, getEffectiveOptions())} initialZip={destinationCep} />
 
       {/* RENDERIZAÇÃO DO MODAL DE VISUALIZAÇÃO PADRÃO */}
       {selectedVisualizerOption && (
