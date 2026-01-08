@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { CalculatorInput, OptionalItem, LandingInfo, LogisticsInfo } from '../types';
+import { CalculatorInput, OptionalItem, LandingInfo } from '../types';
 
 interface CalculatorFormProps {
   onCalculate: (data: CalculatorInput) => void;
@@ -120,7 +120,10 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
         width: 70,
         price: 1030,
         isLastStep: false,
-        direction: 'straight'
+        isFlushWithSlab: false,
+        direction: 'straight',
+        hasSideGuardrail: false,
+        hasFrontGuardrail: false
     };
     setLandings([...landings, newLanding]);
   };
@@ -129,12 +132,10 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
       setLandings(landings.filter(l => l.id !== id));
   };
 
-  const updateLanding = (id: string, field: keyof LandingInfo, value: any) => {
-      setLandings(landings.map(l => {
+  const updateLanding = (id: string, updates: Partial<LandingInfo>) => {
+      setLandings(prev => prev.map(l => {
           if (l.id === id) {
-              if (field === 'isLastStep') return { ...l, isLastStep: value };
-              if (field === 'direction') return { ...l, direction: value };
-              return { ...l, [field]: parseFloat(value) || 0 };
+              return { ...l, ...updates };
           }
           return l;
       }));
@@ -156,8 +157,6 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
     const openingInCm = convertToCm(slabOpening, openingUnit);
     const slabThickInCm = parseFloat(slabThickness) || 0;
 
-    // Lógica para Amortecedores: Permite 0 explicitamente.
-    // Se o campo for string vazia ou NaN, usa 4. Se for 0, usa 0.
     const dampersInt = parseInt(dampers, 10);
     const finalDampers = isNaN(dampersInt) ? 4 : dampersInt;
 
@@ -344,46 +343,98 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                             <div className="grid grid-cols-2 gap-2 mt-2">
                                 <div className="mb-0 col-span-2">
                                     <div className="flex justify-between items-center mb-1">
-                                         <label className="text-sm font-black text-gray-900 dark:text-gray-100 mr-1">Qual Degrau?</label>
-                                         <label className="flex items-center gap-1 cursor-pointer">
+                                         <label className="text-sm font-black text-gray-900 dark:text-gray-100 mr-1">Posição</label>
+                                    </div>
+                                    <div className="flex gap-4 items-center bg-gray-100 dark:bg-gray-700 p-2 rounded mb-2">
+                                        <label className="flex items-center gap-1 cursor-pointer select-none">
                                              <input 
                                                 type="checkbox" 
-                                                checked={landing.isLastStep} 
-                                                onChange={(e) => updateLanding(landing.id, 'isLastStep', e.target.checked)} 
+                                                checked={!!landing.isLastStep} 
+                                                onChange={(e) => {
+                                                    updateLanding(landing.id, {
+                                                        isLastStep: e.target.checked,
+                                                        // Se desmarcar último, talvez desmarcar rente também? Depende da lógica.
+                                                        // Mantemos simples: se desmarcar último, rente vira false pois rente EXIGE último.
+                                                        isFlushWithSlab: e.target.checked ? landing.isFlushWithSlab : false
+                                                    });
+                                                }} 
                                                 className="w-4 h-4 accent-highlight"
                                              />
-                                             <span className="text-xs font-bold text-highlight uppercase">Último?</span>
-                                         </label>
+                                             <span className="text-xs font-bold text-gray-700 dark:text-gray-200 uppercase">Último?</span>
+                                        </label>
+                                        
+                                        <label className="flex items-center gap-1 cursor-pointer select-none">
+                                             <input 
+                                                type="checkbox" 
+                                                checked={!!landing.isFlushWithSlab} 
+                                                onChange={(e) => {
+                                                    const isChecked = e.target.checked;
+                                                    // Rente à laje FORÇA ser último degrau
+                                                    updateLanding(landing.id, {
+                                                        isFlushWithSlab: isChecked,
+                                                        isLastStep: isChecked ? true : landing.isLastStep 
+                                                    });
+                                                }} 
+                                                className="w-4 h-4 accent-highlight"
+                                             />
+                                             <span className="text-xs font-bold text-gray-700 dark:text-gray-200 uppercase">Rente à Laje?</span>
+                                        </label>
                                     </div>
+
                                     <input
                                         type="number"
                                         value={landing.isLastStep ? "" : landing.step.toString()}
                                         disabled={landing.isLastStep}
-                                        onChange={e => updateLanding(landing.id, 'step', e.target.value)}
+                                        onChange={e => updateLanding(landing.id, { step: parseFloat(e.target.value) })}
                                         className={`w-full p-2 rounded border-2 focus:outline-none transition font-bold ${landing.isLastStep ? 'bg-gray-200 dark:bg-gray-600 border-gray-300 dark:border-gray-500 text-gray-400 dark:text-gray-300' : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 focus:border-highlight text-black dark:text-white'}`}
-                                        placeholder={landing.isLastStep ? "Auto (Topo)" : "Ex: 5"}
+                                        placeholder={landing.isLastStep ? "Automático (Topo)" : "Nº do Degrau (Ex: 5)"}
                                     />
                                 </div>
+
+                                <div className="col-span-2 bg-gray-50 dark:bg-gray-700/50 p-2 rounded border border-gray-100 dark:border-gray-700">
+                                    <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Barras de Proteção:</label>
+                                    <div className="flex gap-4">
+                                        <label className="flex items-center gap-1 cursor-pointer">
+                                            <input 
+                                                type="checkbox" 
+                                                checked={landing.hasSideGuardrail} 
+                                                onChange={(e) => updateLanding(landing.id, { hasSideGuardrail: e.target.checked })} 
+                                                className="w-4 h-4 accent-blue-600"
+                                            />
+                                            <span className="text-xs font-medium text-gray-600 dark:text-gray-300">Lateral</span>
+                                        </label>
+                                        <label className="flex items-center gap-1 cursor-pointer">
+                                            <input 
+                                                type="checkbox" 
+                                                checked={landing.hasFrontGuardrail} 
+                                                onChange={(e) => updateLanding(landing.id, { hasFrontGuardrail: e.target.checked })} 
+                                                className="w-4 h-4 accent-blue-600"
+                                            />
+                                            <span className="text-xs font-medium text-gray-600 dark:text-gray-300">Frontal</span>
+                                        </label>
+                                    </div>
+                                </div>
+
                                 <div className="col-span-2 mb-2 bg-gray-50 dark:bg-gray-700/50 p-2 rounded border border-gray-100 dark:border-gray-700">
                                     <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Direção / Curva:</label>
                                     <div className="flex gap-1">
                                         <button 
                                             type="button"
-                                            onClick={() => updateLanding(landing.id, 'direction', 'left')}
+                                            onClick={() => updateLanding(landing.id, { direction: 'left' })}
                                             className={`flex-1 py-1 rounded text-xs font-bold transition flex items-center justify-center gap-1 ${landing.direction === 'left' ? 'bg-blue-600 text-white shadow' : 'bg-white dark:bg-gray-600 border dark:border-gray-500 text-gray-600 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500'}`}
                                         >
                                             ⬅️ Esq
                                         </button>
                                         <button 
                                             type="button"
-                                            onClick={() => updateLanding(landing.id, 'direction', 'straight')}
+                                            onClick={() => updateLanding(landing.id, { direction: 'straight' })}
                                             className={`flex-1 py-1 rounded text-xs font-bold transition flex items-center justify-center gap-1 ${(!landing.direction || landing.direction === 'straight') ? 'bg-blue-600 text-white shadow' : 'bg-white dark:bg-gray-600 border dark:border-gray-500 text-gray-600 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500'}`}
                                         >
                                             ⬆️ Reto
                                         </button>
                                         <button 
                                             type="button"
-                                            onClick={() => updateLanding(landing.id, 'direction', 'right')}
+                                            onClick={() => updateLanding(landing.id, { direction: 'right' })}
                                             className={`flex-1 py-1 rounded text-xs font-bold transition flex items-center justify-center gap-1 ${landing.direction === 'right' ? 'bg-blue-600 text-white shadow' : 'bg-white dark:bg-gray-600 border dark:border-gray-500 text-gray-600 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500'}`}
                                         >
                                             Dir ➡️
@@ -393,7 +444,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                 <InputField 
                                     label="Preço (R$)" 
                                     value={landing.price.toString()} 
-                                    onChange={e => updateLanding(landing.id, 'price', e.target.value)} 
+                                    onChange={e => updateLanding(landing.id, { price: parseFloat(e.target.value) })} 
                                     unit="R$" 
                                     className="mb-0"
                                     tooltip="Custo unitário deste patamar."
@@ -401,7 +452,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                 <InputField 
                                     label="Comp. (cm)" 
                                     value={landing.length.toString()} 
-                                    onChange={e => updateLanding(landing.id, 'length', e.target.value)} 
+                                    onChange={e => updateLanding(landing.id, { length: parseFloat(e.target.value) })} 
                                     unit="cm" 
                                     className="mb-0"
                                     tooltip="Comprimento do patamar no sentido da subida."
@@ -409,7 +460,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                 <InputField 
                                     label="Larg. (cm)" 
                                     value={landing.width.toString()} 
-                                    onChange={e => updateLanding(landing.id, 'width', e.target.value)} 
+                                    onChange={e => updateLanding(landing.id, { width: parseFloat(e.target.value) })} 
                                     unit="cm" 
                                     className="mb-0"
                                     tooltip="Largura lateral do patamar."

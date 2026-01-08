@@ -31,26 +31,20 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
     let currentY = 20;
 
     // --- LOGO ---
-    // Só tenta adicionar se tiver um código colado na variável acima
     if (LOGO_BASE64 && LOGO_BASE64.length > 100) {
         try { 
-            // Remove cabeçalho se o usuário colou com ele (ex: data:image/png;base64,...)
             const cleanBase64 = LOGO_BASE64.includes('base64,') 
                 ? LOGO_BASE64.split('base64,')[1] 
                 : LOGO_BASE64;
-
-            // Adiciona imagem (JPEG é mais compatível que PNG no jsPDF antigo)
             doc.addImage(cleanBase64, 'JPEG', (pageWidth / 2) - 15, currentY, 30, 30); 
             currentY += 35;
         } catch (e) {
-            console.error("Erro ao gerar imagem no PDF. Verifique o código Base64.", e);
-            // Fallback: Escreve o nome se a imagem falhar
+            console.error("Erro ao gerar imagem no PDF.", e);
             doc.setFontSize(10);
             doc.text('ZILINSKI', (pageWidth / 2), currentY + 15, { align: 'center' });
             currentY += 25;
         }
     } else {
-        // Espaço reservado se não tiver logo
         currentY += 10;
     }
 
@@ -74,7 +68,7 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
 
     // --- OPÇÕES ---
     options.forEach((opt) => {
-        // Verifica se cabe na página, senão cria nova
+        // Verifica se cabe na página
         if (currentY > 240) { doc.addPage(); currentY = 20; }
 
         // Título da Opção
@@ -86,10 +80,9 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
         doc.setFontSize(11);
         doc.setFont('helvetica', 'normal');
         
-        // Descrição Principal (IDÊNTICO AO MODELO)
+        // Descrição Geral
         const alturaM = (inputData.totalHeight / 100).toFixed(2).replace('.', ',');
         const compM = (opt.totalLength / 100).toFixed(2).replace('.', ',');
-        // Corrimão fixo em 70cm conforme texto do modelo
         const widthCm = opt.stairWidth;
         
         const text1 = `Escada articulada lateral em aço carbono com corte à laser, com medidas de: ${alturaM}m de altura, ${compM}m de comprimento, ${widthCm}cm de largura e com corrimão de 70cm.`;
@@ -97,7 +90,7 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
         doc.text(splitText1, pageMargin, currentY);
         currentY += (splitText1.length * 5) + 2;
 
-        // Detalhes dos Degraus (IDÊNTICO AO MODELO)
+        // Detalhes dos Degraus
         const stepH = opt.stepHeight.toFixed(2).replace('.', ',');
         const tread = opt.treadDepth.toFixed(2).replace('.', ',');
         
@@ -106,61 +99,59 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
         doc.text(splitText2, pageMargin, currentY);
         currentY += (splitText2.length * 5) + 3;
 
-        // VALOR ESTRUTURA (Apenas escada)
+        // --- LISTA DE PREÇOS (Estilo Pré-Orçamento Detalhado) ---
+        
+        // 1. Valor da Escada (Apenas degraus)
         const landingsPrice = opt.landings.reduce((acc, l) => acc + l.price, 0);
         const structureOnly = opt.totalPrice - landingsPrice;
         
+        doc.setFont('helvetica', 'bold');
         doc.text(`-Valor Escada (${opt.structureSteps} degraus): ${formatCurrencyBRL(structureOnly)}`, pageMargin, currentY);
+        doc.setFont('helvetica', 'normal');
         currentY += 6;
-
-        // PATAMARES (DETALHADO)
+        
+        // 2. Patamares (Um por linha, com detalhes)
         if (opt.landings.length > 0) {
-            opt.landings.forEach((landing, idx) => {
+            opt.landings.forEach((landing) => {
                 const lM = (landing.length / 100).toFixed(2).replace('.', ',');
                 const wM = (landing.width / 100).toFixed(2).replace('.', ',');
                 
-                let label = opt.landings.length > 1 ? `Patamar ${idx + 1}` : `Patamar`;
+                let guardText = "";
+                if (landing.hasSideGuardrail && landing.hasFrontGuardrail) guardText = " c/ Guarda Corpo Lateral e Frontal";
+                else if (landing.hasSideGuardrail) guardText = " c/ Guarda Corpo Lateral";
+                else if (landing.hasFrontGuardrail) guardText = " c/ Guarda Corpo Frontal";
+
+                let flushText = landing.isFlushWithSlab ? " (RENTE À LAJE)" : "";
+
+                const line = `- PATAMAR ${lM}m x ${wM}m${guardText}${flushText}: ${formatCurrencyBRL(landing.price)}`;
                 
-                // Adiciona direção se não for reto
-                if (landing.direction === 'left') label += ` (Curva p/ Esquerda)`;
-                else if (landing.direction === 'right') label += ` (Curva p/ Direita)`;
-                else label += ` (Reto)`;
-
-                // Texto detalhando medida e preço individual
-                doc.text(`-${label} em chapa xadrez 3mm (${lM}m x ${wM}m): ${formatCurrencyBRL(landing.price)}`, pageMargin, currentY);
-                currentY += 6;
+                const splitLine = doc.splitTextToSize(line, pageWidth - (pageMargin * 2));
+                doc.text(splitLine, pageMargin, currentY);
+                currentY += (splitLine.length * 5) + 1;
             });
-
-            // Se houver mais de um patamar, mostra o total deles
-            if (opt.landings.length > 1) {
-                 doc.setFont('helvetica', 'bold');
-                 doc.text(`-Total Patamares: ${formatCurrencyBRL(landingsPrice)}`, pageMargin, currentY);
-                 doc.setFont('helvetica', 'normal');
-                 currentY += 6;
-            }
         }
 
-        // FRETE (Lógica Atualizada)
+        // 3. Frete
         if (freightCost + tollCost > 0) {
             doc.text(`- Frete ${formatCurrencyBRL(freightCost + tollCost)}`, pageMargin, currentY);
-            currentY += 6;
         } else {
-            // AVISO EXPLÍCITO QUANDO NÃO HÁ CUSTO (REMVIDO "RETIRADA NA FÁBRICA")
+            doc.setTextColor(220, 38, 38);
             doc.setFont('helvetica', 'bold');
-            doc.text(`- Frete: POR CONTA DO CLIENTE`, pageMargin, currentY);
+            doc.text(`- Frete: NÃO INCLUSO`, pageMargin, currentY);
+            doc.setTextColor(0, 0, 0);
             doc.setFont('helvetica', 'normal');
-            currentY += 6;
-        }
-
-        // INSTALAÇÃO (FORMATO DO MODELO)
-        if (installationCost > 0) {
-             doc.text(`-Instalação ${formatCurrencyBRL(installationCost)} (Valor para local de fácil acesso)`, pageMargin, currentY);
-        } else {
-             doc.text(`-SEM INSTALAÇÃO (Responsabilidade do Cliente)`, pageMargin, currentY);
         }
         currentY += 6;
 
-        // EXTRAS
+        // 4. Instalação
+        if (installationCost > 0) {
+             doc.text(`-Instalação ${formatCurrencyBRL(installationCost)} (Valor para local de fácil acesso)`, pageMargin, currentY);
+        } else {
+             doc.text(`-Instalação: Por conta do cliente`, pageMargin, currentY);
+        }
+        currentY += 6;
+
+        // 5. Extras
         if (inputData.optionalItems.length > 0) {
             inputData.optionalItems.forEach(item => {
                 doc.text(`- ${item.name}: ${formatCurrencyBRL(item.price)}`, pageMargin, currentY);
@@ -168,56 +159,48 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
             });
         }
 
-        // TOTAL GERAL DA OPÇÃO
+        // 6. TOTAL
         const totalGeral = opt.totalPrice + freightCost + tollCost + installationCost + extrasCost;
+        doc.setFont('helvetica', 'bold');
         doc.text(`Total ${formatCurrencyBRL(totalGeral)}`, pageMargin, currentY);
+        doc.setFont('helvetica', 'normal');
         
         currentY += 15; // Espaço entre opções
     });
 
-    // --- RODAPÉ / INFORMAÇÕES FINAIS ---
-    // Verifica se cabe o rodapé, senão nova página
+    // --- RODAPÉ ---
     if (currentY > 200) { doc.addPage(); currentY = 20; }
 
     doc.setFontSize(11);
-    
-    // Acabamento
     doc.setFont('helvetica', 'bold');
     doc.text('-Acabamento: fundo prime', pageMargin, currentY);
     currentY += 6;
 
-    // Capacidades
     doc.text('-Capacidade máxima por degrau: 180k', pageMargin, currentY);
     currentY += 6;
     doc.text('-Capacidade máxima da escada: 360k', pageMargin, currentY);
     currentY += 10;
 
-    // Pagamento
     doc.text('Formas de pagamento:', pageMargin, currentY);
     currentY += 6;
     
-    // Linha À vista
     doc.setFont('helvetica', 'bold');
     doc.text('À vista: 5% de desconto, sendo 50% sinal restante e restante no dia da entrega', pageMargin, currentY);
     currentY += 6;
 
-    // Linha À prazo (Atualizada para especificar Cartão)
     doc.text('À prazo em até 12x via Link de Pagamento no Cartão de Crédito (juros conforme quantidade de vezes', pageMargin, currentY);
     currentY += 5;
     doc.text('e operadora)', pageMargin, currentY);
     currentY += 8;
 
-    // Observação (Prumo)
     const obsText = 'OBSERVAÇÃO: o prumo da parede é essencial que esteja correta pois pode atrapalhar a instalação e o bom funcionamento da escada.';
     const splitObs = doc.splitTextToSize(obsText, pageWidth - (pageMargin * 2));
     doc.text(splitObs, pageMargin, currentY);
     currentY += (splitObs.length * 5) + 8;
 
-    // Prazo
     doc.text('Prazo de entrega: 20 dias úteis após pagamento do sinal.', pageMargin, currentY);
     currentY += 8;
 
-    // PIX (IDÊNTICO AO MODELO)
     doc.text('Transferência via pix chave Cnpj: 28.869.537/0001-01 P G Zilinski ME', pageMargin, currentY);
 
     return doc;
@@ -231,7 +214,7 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
             doc.save(`orcamento_${userData.name.toLowerCase().replace(/\s/g, '_')}.pdf`);
         } catch (error) {
             console.error("Erro fatal ao salvar PDF", error);
-            alert("Ocorreu um erro ao gerar o PDF. Se a imagem estiver muito pesada, tente uma menor.");
+            alert("Ocorreu um erro ao gerar o PDF.");
         } finally {
             setIsGenerating(false);
         }

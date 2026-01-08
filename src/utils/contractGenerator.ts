@@ -41,14 +41,10 @@ export const generateContractPDF = (data: ContractData) => {
   // --- CABEÇALHO COM LOGO ---
   if (LOGO_BASE64 && LOGO_BASE64.length > 100) {
     try { 
-        // Remove cabeçalho se o usuário colou com ele (ex: data:image/png;base64,...)
         const cleanBase64 = LOGO_BASE64.includes('base64,') ? LOGO_BASE64.split('base64,')[1] : LOGO_BASE64;
-        
-        // Desenha a imagem centralizada
         doc.addImage(cleanBase64, 'JPEG', (pageWidth / 2) - 15, currentY, 30, 30);
-        currentY += 35; // Empurra o texto para baixo
+        currentY += 35;
     } catch (e) {
-        // Se der erro na imagem, escreve o nome como fallback
         console.error("Erro ao carregar imagem no contrato:", e);
         doc.setFontSize(18);
         doc.setFont('helvetica', 'bold');
@@ -56,23 +52,20 @@ export const generateContractPDF = (data: ContractData) => {
         currentY += 25;
     }
   } else {
-      // Fallback se não tiver imagem configurada
       doc.setFontSize(20);
-      doc.setTextColor(245, 158, 11); // Cor Laranja (Highlight)
+      doc.setTextColor(245, 158, 11);
       doc.setFont('helvetica', 'bold');
       doc.text("ZILINSKI", (pageWidth / 2), currentY + 10, { align: 'center'});
-      doc.setTextColor(0, 0, 0); // Reseta cor para preto
+      doc.setTextColor(0, 0, 0);
       currentY += 20;
   }
 
-  // Helper para adicionar texto com quebra de linha inteligente
   const addText = (text: string, fontSize: number = 11, isBold: boolean = false, align: 'left' | 'center' | 'justify' = 'justify') => {
     doc.setFontSize(fontSize);
     doc.setFont('helvetica', isBold ? 'bold' : 'normal');
     
     const lines = doc.splitTextToSize(text, maxLineWidth);
     
-    // Verifica se vai estourar a página
     if (currentY + (lines.length * 5) > pageHeight - margin) { 
         doc.addPage(); 
         currentY = 20; 
@@ -104,8 +97,8 @@ export const generateContractPDF = (data: ContractData) => {
   addText('Vendedor(a): Zilinski Distribuidora, pessoa jurídica de direito privado, inscrita no CNPJ sob o nº28.869.537/0001-01, com sede na Av. Maria Luiza Americano 1954, bairro Cidade lider, na cidade de Sâo Paulo/SP, CEP 08275-000, neste ato devidamente constituída por seu representante legal Paulo Gatto ZIlinski.', 11, false, 'justify');
   currentY += 2;
 
-  // Comprador (Lógica Dinâmica CPF/CNPJ/RG)
-  const isPJ = data.userData.cpf.length > 15; // Assume CNPJ pela mascara
+  // Comprador
+  const isPJ = data.userData.cpf.length > 15;
   let buyerText = "";
   
   if (isPJ) {
@@ -139,14 +132,34 @@ export const generateContractPDF = (data: ContractData) => {
   let stepsText = `-Com ${data.selectedOption.structureSteps} degraus articulados com dimensões de ${stepH}cm de altura e pisante de ${tread}cm com ${data.inputData.dampers} amortecedores de alívio.`;
   addText(stepsText, 11, false, 'left');
 
-  const structureTotal = data.selectedOption.totalPrice + data.extrasCost;
-  addText(`-Valor Escada: ${formatCurrencyBRL(structureTotal)}`, 11, false, 'left');
+  // Detalhe Estrutura
+  const landingsPrice = data.selectedOption.landings.reduce((acc, l) => acc + l.price, 0);
+  const structureOnly = data.selectedOption.totalPrice - landingsPrice;
+  addText(`-Valor Escada: ${formatCurrencyBRL(structureOnly)}`, 11, false, 'left');
   
+  // Detalhe Patamares
+  if (data.selectedOption.landings.length > 0) {
+      data.selectedOption.landings.forEach((landing) => {
+          const lM = (landing.length / 100).toFixed(2);
+          const wM = (landing.width / 100).toFixed(2);
+          
+          let guardText = "";
+          if (landing.hasSideGuardrail && landing.hasFrontGuardrail) guardText = " COM GUARDA CORPO LATERAL E FRONTAL";
+          else if (landing.hasSideGuardrail) guardText = " COM GUARDA CORPO LATERAL";
+          else if (landing.hasFrontGuardrail) guardText = " COM GUARDA CORPO FRONTAL";
+
+          let flushText = landing.isFlushWithSlab ? " (RENTE À LAJE)" : "";
+
+          addText(`- PATAMAR ${lM}M X ${wM}M${guardText}${flushText}: ${formatCurrencyBRL(landing.price)}`, 11, false, 'left');
+      });
+  }
+
   if (data.freightCost + data.tollCost > 0) {
       addText(`-Frete ${formatCurrencyBRL(data.freightCost + data.tollCost)}`, 11, false, 'left');
   } else {
-      // TEXTO CORRIGIDO AQUI
-      addText(`-Frete: POR CONTA DO COMPRADOR`, 11, true, 'left');
+      doc.setTextColor(220, 38, 38);
+      addText(`-Frete: NÃO INCLUSO (RETIRADA POR CONTA DO COMPRADOR)`, 11, true, 'left');
+      doc.setTextColor(0, 0, 0);
   }
 
   if (data.installationCost > 0) {
@@ -155,8 +168,8 @@ export const generateContractPDF = (data: ContractData) => {
       addText(`-Instalação: Por conta do comprador`, 11, false, 'left');
   }
 
-  // Total Geral Base
-  const totalGeral = structureTotal + data.freightCost + data.tollCost + data.installationCost;
+  // Total Geral
+  const totalGeral = data.selectedOption.totalPrice + data.extrasCost + data.freightCost + data.tollCost + data.installationCost;
   addText(`Total ${formatCurrencyBRL(totalGeral)}`, 11, false, 'left');
 
   addText('-Acabamento: fundo prime', 11, true, 'left');
@@ -193,44 +206,35 @@ export const generateContractPDF = (data: ContractData) => {
   addText('5.2 Esta cláusula será nula apenas por mal uso do item 1.1', 11, false, 'justify');
   currentY += 5;
 
-  // --- 6. VALOR E FORMA DE PAGAMENTO (DINÂMICO) ---
+  // --- 6. VALOR E FORMA DE PAGAMENTO ---
   addText('6. Do valor e forma de pagamento.', 11, true, 'left');
   addText('6.1 O valor pago referente à presente transação, poderá ser pago da(s) seguinte(s) maneira(s):', 11, false, 'justify');
   
   if (data.paymentMethod === 'pix') {
-      // --- MODO PIX (À VISTA) ---
       const discount = data.paymentDetails.discountPercent || 0;
       const discountVal = totalGeral * (discount / 100);
       const totalComDesconto = totalGeral - discountVal;
-      
       const signalP = data.paymentDetails.signalPercent || 50;
       const valorSinal = totalComDesconto * (signalP / 100);
       const valorEntrega = totalComDesconto - valorSinal;
       
       addText(`Total ${formatCurrencyBRL(totalGeral)} - ${discount}% desconto = ${formatCurrencyBRL(totalComDesconto)}`, 11, false, 'left');
       addText(`Sendo pago ${formatCurrencyBRL(valorSinal)} via pix de sinal e ${formatCurrencyBRL(valorEntrega)} no dia entrega e instalação`, 11, false, 'left');
-  
   } else if (data.paymentMethod === 'hybrid') {
-      // --- MODO HÍBRIDO (PIX + CARTÃO) ---
-      const signalP = data.paymentDetails.signalPercent || 20; // % de Entrada em Pix
+      const signalP = data.paymentDetails.signalPercent || 20; 
       const valorEntradaPix = totalGeral * (signalP / 100);
-      const restanteBase = totalGeral - valorEntradaPix; // O que sobrou pra passar no cartão
-      
-      // Dados do Cartão
+      const restanteBase = totalGeral - valorEntradaPix; 
       const installments = data.paymentDetails.installments || 1;
       const installmentValue = data.paymentDetails.installmentValue || (restanteBase / installments);
-      const totalNoCartao = installmentValue * installments; // Valor final no cartão com juros
+      const totalNoCartao = installmentValue * installments; 
       
       addText(`Total R$ ${formatCurrencyBRL(totalGeral)}`, 11, false, 'left');
       addText(`Sendo pago ${formatCurrencyBRL(valorEntradaPix)} via pix de entrada.`, 11, false, 'left');
       addText(`E o restante de ${formatCurrencyBRL(restanteBase)} mais juros da operadora financeira totalizando ${formatCurrencyBRL(totalNoCartao)} via Link de Pagamento (Cartão de Crédito) em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}`, 11, false, 'justify');
-
   } else {
-      // --- MODO CARTÃO (INTEGRAL) ---
       const installments = data.paymentDetails.installments || 1;
       const installmentValue = data.paymentDetails.installmentValue || (totalGeral / installments);
       const totalCartao = installmentValue * installments;
-      
       addText(`Total ${formatCurrencyBRL(totalGeral)} base + juros da operadora.`, 11, false, 'left');
       addText(`Sendo pago ${formatCurrencyBRL(totalCartao)} via Link de Pagamento (Cartão de Crédito) em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}`, 11, false, 'left');
   }
@@ -238,11 +242,10 @@ export const generateContractPDF = (data: ContractData) => {
   addText('.', 11, false, 'left');
   currentY += 10;
 
-  // --- 7. CLÁUSULAS ADICIONAIS (GERADAS PELA IA) ---
+  // --- 7. CLÁUSULAS ADICIONAIS ---
   if (data.additionalClauses && data.additionalClauses.length > 0) {
       addText('7. Cláusulas Adicionais.', 11, true, 'left');
       data.additionalClauses.forEach((clause, index) => {
-          // Se a clausula da IA não vier numerada, a gente tenta numerar ou apenas adiciona
           const clauseText = clause.match(/^\d/) ? clause : `7.${index + 1} ${clause}`;
           addText(clauseText, 11, false, 'justify');
       });
@@ -252,7 +255,6 @@ export const generateContractPDF = (data: ContractData) => {
   currentY += 20;
 
   // --- ASSINATURAS ---
-  // Linha Vendedor
   if (currentY + 60 > pageHeight - margin) { doc.addPage(); currentY = 40; }
   
   doc.line(margin, currentY, pageWidth - margin, currentY);
@@ -268,7 +270,6 @@ export const generateContractPDF = (data: ContractData) => {
   
   currentY += 25;
 
-  // Linha Comprador
   doc.line(margin, currentY, pageWidth - margin, currentY);
   currentY += 5;
   doc.setFont('helvetica', 'bold');

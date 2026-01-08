@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { ProposalOption, UserData, CalculatorInput } from '../types';
-import { formatCurrencyBRL, calculateFreightCost, getRouteInfoFromGemini, calculateTotalPrice } from '../utils';
+import { formatCurrencyBRL, calculateFreightCost, getRouteInfoFromGemini, calculateTotalPrice, getBasePrice, getMultiplier } from '../utils';
 import StaircaseVisualizer from './StaircaseVisualizer';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -707,6 +707,15 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
             const currentSelection = exportConfig[activeOption.optionNumber] || { ...defaultSelection };
             const totalCost = activeOption.totalPrice + freightCost + tollCost + finalInstallationCost + extrasCost;
             
+            // Cálculos para o detalhamento
+            const landingsPrice = activeOption.landings.reduce((acc, l) => acc + l.price, 0);
+            const structureOnly = activeOption.totalPrice - landingsPrice;
+            const unitPrice = activeOption.structureSteps > 0 ? structureOnly / activeOption.structureSteps : 0;
+            
+            // Dados explicativos
+            const basePrice = getBasePrice(activeOption.stairWidth);
+            const multiplier = getMultiplier(activeOption.treadDepth);
+
             return (
                 <div
                     key={activeOption.optionNumber}
@@ -838,6 +847,28 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                                 <span className="font-bold text-gray-900 dark:text-white uppercase">Valor da Estrutura:</span>
                                 <span className="text-base font-black text-gray-900 dark:text-white">{formatCurrencyBRL(activeOption.totalPrice)}</span>
                             </div>
+                            
+                            {/* DETALHAMENTO DA CONTA (NOVO) */}
+                            <div className="bg-white dark:bg-gray-800 p-2 rounded border border-gray-100 dark:border-gray-600 mb-1">
+                                <h4 className="font-bold text-gray-800 dark:text-white border-b border-gray-200 dark:border-gray-700 mb-1 pb-1">Memória de Cálculo:</h4>
+                                
+                                <div className="flex justify-between text-[10px] text-gray-500 dark:text-gray-400 mb-1">
+                                    <span>Base (Larg. {activeOption.stairWidth}cm): {formatCurrencyBRL(basePrice)} + Fator Pisante ({activeOption.treadDepth.toFixed(0)}cm): {((multiplier - 1) * 100).toFixed(0)}%</span>
+                                </div>
+
+                                <div className="flex justify-between text-[10px] text-gray-600 dark:text-gray-300">
+                                    <span>• {activeOption.structureSteps} Degraus x {formatCurrencyBRL(unitPrice)}:</span>
+                                    <span>{formatCurrencyBRL(structureOnly)}</span>
+                                </div>
+                                
+                                {activeOption.landings.length > 0 && (
+                                    <div className="flex justify-between text-[10px] text-gray-600 dark:text-gray-300 mt-1 pt-1 border-t border-gray-100 dark:border-gray-700">
+                                        <span>• {activeOption.landings.length} Patamares (Soma Individual):</span>
+                                        <span>{formatCurrencyBRL(landingsPrice)}</span>
+                                    </div>
+                                )}
+                            </div>
+
                              {(freightCost + tollCost) > 0 && (
                                 <div className="flex justify-between items-center">
                                     <span className="font-medium text-gray-600 dark:text-gray-400">Frete + Pedágio:</span>
@@ -946,12 +977,12 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                 </div>
             </div>
         ) : (
-            <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg border border-yellow-200 dark:border-yellow-700 flex items-start gap-3">
-                <span className="text-2xl">⚠️</span>
+            <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border border-red-200 dark:border-red-700 flex items-start gap-3">
+                <span className="text-2xl">🚨</span>
                 <div>
-                    <h4 className="font-bold text-yellow-800 dark:text-yellow-300">Frete por conta do cliente</h4>
-                    <p className="text-sm text-yellow-700 dark:text-yellow-400 mt-1">
-                        Ao gerar o contrato e o orçamento, será especificado que a responsabilidade do transporte e retirada é inteiramente do comprador.
+                    <h4 className="font-bold text-red-800 dark:text-red-300 uppercase">Frete Não Incluso</h4>
+                    <p className="text-sm text-red-700 dark:text-red-200 mt-1">
+                        <strong>Atenção:</strong> O frete não será cobrado. No <u>Orçamento</u> e no <u>Contrato</u> constará explicitamente que a <strong>retirada é por conta do comprador</strong>.
                     </p>
                 </div>
             </div>

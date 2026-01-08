@@ -12,7 +12,10 @@ export interface LandingInfo {
   width: number; // cm
   price: number;
   isLastStep?: boolean; // Indica se deve ser posicionado sempre no último degrau da opção
+  isFlushWithSlab?: boolean; // NOVO: Rente à laje
   direction?: 'straight' | 'left' | 'right'; // Direção da curva
+  hasSideGuardrail?: boolean; // NOVO: Barra Lateral
+  hasFrontGuardrail?: boolean; // NOVO: Barra Frontal
 }
 
 export interface LogisticsInfo {
@@ -71,18 +74,6 @@ export interface UserData {
   state?: string;
 }
 
-// --- TIPOS NOVOS PARA O SISTEMA DE GESTÃO ---
-
-export type QuoteStatus = 'draft' | 'negotiation' | 'production' | 'installed' | 'archived';
-
-export interface ProjectFile {
-    id: string;
-    name: string;
-    url: string;
-    type: 'image' | 'video' | 'document' | 'youtube';
-    uploadedAt: string;
-}
-
 export interface SavedQuote {
     id: string;
     createdAt: string;
@@ -93,18 +84,4 @@ export interface SavedQuote {
     tollCost: number;
     installationCost: number;
     isInstallationIncluded: boolean;
-    
-    // Novos campos para gestão (CRM)
-    status: QuoteStatus;
-    attachments: ProjectFile[];
-    notes?: string; // Diário de obra ou observações internas
-    deliveryDate?: string; // Previsão de entrega
-}
-
-// --- GESTÃO DE USUÁRIOS E PERMISSÕES ---
-export interface LocalUser {
-    id: string;
-    username: string;
-    role: 'admin' | 'worker';
-    permissions: string[]; // Lista de rotas permitidas ex: ['/calculadora', '/dashboard']
 }

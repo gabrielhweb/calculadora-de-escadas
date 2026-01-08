@@ -9,7 +9,7 @@ declare var process: {
   }
 };
 
-const getBasePrice = (width: number): number => {
+export const getBasePrice = (width: number): number => {
   if (width >= 40 && width <= 50) return 410;
   if (width >= 51 && width <= 70) return 425;
   if (width >= 71 && width <= 80) return 440;
@@ -17,7 +17,7 @@ const getBasePrice = (width: number): number => {
   return 425; 
 };
 
-const getMultiplier = (depth: number): number => {
+export const getMultiplier = (depth: number): number => {
   if (depth <= 20) return 1.0;
   if (depth >= 21 && depth <= 25) return 1.05;
   if (depth >= 26 && depth <= 30) return 1.10;
