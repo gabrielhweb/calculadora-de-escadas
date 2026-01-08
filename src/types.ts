@@ -91,7 +91,9 @@ export interface LocalUser {
   id: string;
   email: string;
   name: string;
-  role: 'admin' | 'seller';
+  username: string; // Adicionado para corrigir erro no Dashboard
+  role: 'admin' | 'seller' | 'worker'; // Adicionado 'worker'
+  permissions?: string[]; // Adicionado para controle de acesso
 }
 
 export interface SavedQuote {
