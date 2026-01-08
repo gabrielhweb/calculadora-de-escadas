@@ -2,7 +2,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getQuotes, deleteQuote } from '../services/storage';
-import { supabase } from '../services/supabaseClient';
 import { SavedQuote } from '../types';
 
 const SavedQuotes: React.FC = () => {
@@ -159,6 +158,11 @@ const SavedQuotes: React.FC = () => {
                                 <span className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 text-xs font-bold px-2 py-1 rounded uppercase">
                                     {new Date(quote.createdAt).toLocaleDateString()}
                                 </span>
+                                {quote.status && (
+                                    <span className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs font-bold px-2 py-1 rounded uppercase">
+                                        {quote.status}
+                                    </span>
+                                )}
                             </div>
 
                             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1 truncate" title={quote.clientName}>

@@ -74,6 +74,26 @@ export interface UserData {
   state?: string;
 }
 
+// --- TIPOS ADICIONADOS PARA CORRIGIR O BUILD ---
+
+export type QuoteStatus = 'draft' | 'negotiation' | 'production' | 'installed' | 'archived';
+
+export interface ProjectFile {
+  id: string;
+  name: string;
+  url: string;
+  type: string;
+  size?: number;
+  uploadedAt: string;
+}
+
+export interface LocalUser {
+  id: string;
+  email: string;
+  name: string;
+  role: 'admin' | 'seller';
+}
+
 export interface SavedQuote {
     id: string;
     createdAt: string;
@@ -84,4 +104,8 @@ export interface SavedQuote {
     tollCost: number;
     installationCost: number;
     isInstallationIncluded: boolean;
+    
+    // Novos campos opcionais para compatibilidade
+    status?: QuoteStatus;
+    attachments?: ProjectFile[];
 }
