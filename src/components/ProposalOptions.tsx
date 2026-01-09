@@ -708,13 +708,13 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
             const totalCost = activeOption.totalPrice + freightCost + tollCost + finalInstallationCost + extrasCost;
             
             // Cálculos para o detalhamento
-            const landingsPrice = activeOption.landings.reduce((acc, l) => acc + l.price, 0);
-            const structureOnly = activeOption.totalPrice - landingsPrice;
-            const unitPrice = activeOption.structureSteps > 0 ? structureOnly / activeOption.structureSteps : 0;
-            
-            // Dados explicativos
             const basePrice = getBasePrice(activeOption.stairWidth);
             const multiplier = getMultiplier(activeOption.treadDepth);
+            const calculatedUnitPrice = basePrice * multiplier;
+            
+            const landingsPrice = activeOption.landings.reduce((acc, l) => acc + l.price, 0);
+            const structureStepsPrice = calculatedUnitPrice * activeOption.structureSteps;
+            const hasCustomPrice = inputData?.customStepPrice && inputData.customStepPrice > 0;
 
             return (
                 <div
@@ -848,29 +848,56 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                                 <span className="text-base font-black text-gray-900 dark:text-white">{formatCurrencyBRL(activeOption.totalPrice)}</span>
                             </div>
                             
-                            {/* DETALHAMENTO DA CONTA (NOVO) */}
-                            <div className="bg-white dark:bg-gray-800 p-2 rounded border border-gray-100 dark:border-gray-600 mb-1">
-                                <h4 className="font-bold text-gray-800 dark:text-white border-b border-gray-200 dark:border-gray-700 mb-1 pb-1">Memória de Cálculo:</h4>
-                                
-                                <div className="flex justify-between text-[10px] text-gray-500 dark:text-gray-400 mb-1">
-                                    <span>Base (Larg. {activeOption.stairWidth}cm): {formatCurrencyBRL(basePrice)} + Fator Pisante ({activeOption.treadDepth.toFixed(0)}cm): {((multiplier - 1) * 100).toFixed(0)}%</span>
+                            {/* DETALHAMENTO DA CONTA (ATUALIZADO E MELHORADO) */}
+                            <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg border border-gray-200 dark:border-gray-600 text-xs space-y-1 mt-2">
+                                <div className="font-bold text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-600 pb-1 mb-1">
+                                    Detalhamento Estrutura:
                                 </div>
+                                
+                                {!hasCustomPrice ? (
+                                    <>
+                                        <div className="flex justify-between">
+                                            <span>Base (Larg. {activeOption.stairWidth}cm):</span>
+                                            <span>{formatCurrencyBRL(basePrice)}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span>Mult. Pisante ({activeOption.treadDepth.toFixed(1)}cm):</span>
+                                            <span>x {multiplier.toFixed(2)}</span>
+                                        </div>
+                                        <div className="flex justify-between font-bold text-gray-600 dark:text-gray-400">
+                                            <span>= Preço Unitário:</span>
+                                            <span>{formatCurrencyBRL(calculatedUnitPrice)}</span>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="flex justify-between font-bold text-blue-600 dark:text-blue-400">
+                                        <span>Preço Manual Definido:</span>
+                                        <span>{formatCurrencyBRL(inputData.customStepPrice!)}</span>
+                                    </div>
+                                )}
 
-                                <div className="flex justify-between text-[10px] text-gray-600 dark:text-gray-300">
-                                    <span>• {activeOption.structureSteps} Degraus x {formatCurrencyBRL(unitPrice)}:</span>
-                                    <span>{formatCurrencyBRL(structureOnly)}</span>
+                                <div className="border-t border-gray-200 dark:border-gray-600 my-1 pt-1"></div>
+
+                                <div className="flex justify-between">
+                                    <span>(+) {activeOption.structureSteps} Degraus:</span>
+                                    <span>{formatCurrencyBRL(hasCustomPrice ? (inputData!.customStepPrice! * activeOption.structureSteps) : structureStepsPrice)}</span>
                                 </div>
                                 
                                 {activeOption.landings.length > 0 && (
-                                    <div className="flex justify-between text-[10px] text-gray-600 dark:text-gray-300 mt-1 pt-1 border-t border-gray-100 dark:border-gray-700">
-                                        <span>• {activeOption.landings.length} Patamares (Soma Individual):</span>
+                                     <div className="flex justify-between">
+                                        <span>(+) {activeOption.landings.length} Patamares:</span>
                                         <span>{formatCurrencyBRL(landingsPrice)}</span>
                                     </div>
                                 )}
+                                
+                                <div className="flex justify-between font-black text-gray-900 dark:text-white border-t border-gray-300 dark:border-gray-500 pt-1 mt-1">
+                                    <span>Total Estrutura:</span>
+                                    <span>{formatCurrencyBRL(activeOption.totalPrice)}</span>
+                                </div>
                             </div>
 
                              {(freightCost + tollCost) > 0 && (
-                                <div className="flex justify-between items-center">
+                                <div className="flex justify-between items-center mt-2">
                                     <span className="font-medium text-gray-600 dark:text-gray-400">Frete + Pedágio:</span>
                                     <span className="font-bold text-gray-800 dark:text-gray-200">{formatCurrencyBRL(freightCost + tollCost)}</span>
                                 </div>

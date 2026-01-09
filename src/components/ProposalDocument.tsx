@@ -101,35 +101,40 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
 
         // --- LISTA DE PREÇOS (Estilo Pré-Orçamento Detalhado) ---
         
-        // 1. Valor da Escada (Apenas degraus)
         const landingsPrice = opt.landings.reduce((acc, l) => acc + l.price, 0);
         const structureOnly = opt.totalPrice - landingsPrice;
+        const unitPrice = opt.structureSteps > 0 ? structureOnly / opt.structureSteps : 0;
         
-        doc.setFont('helvetica', 'bold');
-        doc.text(`-Valor Escada (${opt.structureSteps} degraus): ${formatCurrencyBRL(structureOnly)}`, pageMargin, currentY);
+        // 1. Degraus
         doc.setFont('helvetica', 'normal');
-        currentY += 6;
+        doc.text(`-Estrutura Metálica:`, pageMargin, currentY);
+        currentY += 5;
         
-        // 2. Patamares (Um por linha, com detalhes)
+        doc.text(`  • ${opt.structureSteps} Degraus (unitário ${formatCurrencyBRL(unitPrice)}): ${formatCurrencyBRL(structureOnly)}`, pageMargin, currentY);
+        currentY += 5;
+        
+        // 2. Patamares
         if (opt.landings.length > 0) {
             opt.landings.forEach((landing) => {
                 const lM = (landing.length / 100).toFixed(2).replace('.', ',');
                 const wM = (landing.width / 100).toFixed(2).replace('.', ',');
                 
                 let guardText = "";
-                if (landing.hasSideGuardrail && landing.hasFrontGuardrail) guardText = " c/ Guarda Corpo Lateral e Frontal";
-                else if (landing.hasSideGuardrail) guardText = " c/ Guarda Corpo Lateral";
-                else if (landing.hasFrontGuardrail) guardText = " c/ Guarda Corpo Frontal";
+                if (landing.hasSideGuardrail && landing.hasFrontGuardrail) guardText = " c/ GC Lat+Front";
+                else if (landing.hasSideGuardrail) guardText = " c/ GC Lat";
+                else if (landing.hasFrontGuardrail) guardText = " c/ GC Front";
 
-                let flushText = landing.isFlushWithSlab ? " (RENTE À LAJE)" : "";
+                let flushText = landing.isFlushWithSlab ? " (Rente)" : "";
 
-                const line = `- PATAMAR ${lM}m x ${wM}m${guardText}${flushText}: ${formatCurrencyBRL(landing.price)}`;
+                const line = `  • Patamar ${lM}m x ${wM}m${guardText}${flushText}: ${formatCurrencyBRL(landing.price)}`;
                 
                 const splitLine = doc.splitTextToSize(line, pageWidth - (pageMargin * 2));
                 doc.text(splitLine, pageMargin, currentY);
                 currentY += (splitLine.length * 5) + 1;
             });
         }
+
+        currentY += 1; // Pequeno espaço antes dos outros itens
 
         // 3. Frete
         if (freightCost + tollCost > 0) {

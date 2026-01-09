@@ -154,6 +154,14 @@ export const generateContractPDF = (data: ContractData) => {
       });
   }
 
+  // --- SOLICITAÇÃO AUDIO 2 & 3: ITENS EXTRAS / ADICIONAIS ---
+  if (data.inputData.optionalItems && data.inputData.optionalItems.length > 0) {
+      addText(`- ITENS ADICIONAIS:`, 11, true, 'left');
+      data.inputData.optionalItems.forEach(item => {
+          addText(`  • ${item.name.toUpperCase()}: ${formatCurrencyBRL(item.price)}`, 11, false, 'left');
+      });
+  }
+
   if (data.freightCost + data.tollCost > 0) {
       addText(`-Frete ${formatCurrencyBRL(data.freightCost + data.tollCost)}`, 11, false, 'left');
   } else {

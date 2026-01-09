@@ -93,11 +93,15 @@ function Calculator() {
       
       if (data.customTotalLength && data.customTotalLength > 0) {
           totalLength = data.customTotalLength;
-          finalTreadDepth = (totalLength / totalUnits); 
+          // finalTreadDepth = (totalLength / totalUnits); <-- Lógica antiga simples
+          
           const landingsLen = adjustedLandings.reduce((acc, l) => acc + l.length, 0);
           const stairsLen = totalLength - landingsLen;
+          
           if (structureSteps > 0) {
-              finalTreadDepth = stairsLen / structureSteps;
+              // SOLICITAÇÃO AUDIO 1: Descontar 1cm automaticamente da pisada útil quando houver limitador
+              // A estrutura ocupa o espaço total, mas a pisada útil visualizada é menor.
+              finalTreadDepth = (stairsLen / structureSteps) - 1;
           }
       } else {
           // *** ALTERAÇÃO: GAP AGORA É 0.5cm ***
