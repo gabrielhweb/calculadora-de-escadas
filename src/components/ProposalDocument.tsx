@@ -3,7 +3,7 @@ import React, { useCallback, useState } from 'react';
 import jsPDF from 'jspdf';
 import { useNavigate } from 'react-router-dom';
 import { ProposalOption, UserData, CalculatorInput } from '../types';
-import { formatCurrencyBRL } from '../utils';
+import { formatCurrencyBRL, getBasePrice, getMultiplier } from '../utils';
 
 interface ProposalDocumentProps {
   options: ProposalOption[];
@@ -105,16 +105,35 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
         const structureOnly = opt.totalPrice - landingsPrice;
         const unitPrice = opt.structureSteps > 0 ? structureOnly / opt.structureSteps : 0;
         
-        // 1. Degraus
+        // --- DETALHAMENTO DE CÁLCULO DE ESTRUTURA ---
+        const basePrice = getBasePrice(opt.stairWidth);
+        const multiplier = getMultiplier(opt.treadDepth);
+        const hasCustomPrice = inputData.customStepPrice && inputData.customStepPrice > 0;
+
         doc.setFont('helvetica', 'normal');
         doc.text(`-Estrutura Metálica:`, pageMargin, currentY);
         currentY += 5;
         
+        // Detalhe do cálculo unitário (se não for preço manual)
+        if (!hasCustomPrice && opt.structureSteps > 0) {
+             doc.setFontSize(9);
+             doc.setTextColor(100, 100, 100);
+             const calcText = `  (Base Larg.${opt.stairWidth}cm [${formatCurrencyBRL(basePrice)}] x Mult. Pisada ${opt.treadDepth.toFixed(1)}cm [${multiplier.toFixed(2)}] = ${formatCurrencyBRL(basePrice * multiplier)}/un)`;
+             doc.text(calcText, pageMargin, currentY);
+             doc.setTextColor(0, 0, 0);
+             doc.setFontSize(11);
+             currentY += 5;
+        }
+
         doc.text(`  • ${opt.structureSteps} Degraus (unitário ${formatCurrencyBRL(unitPrice)}): ${formatCurrencyBRL(structureOnly)}`, pageMargin, currentY);
         currentY += 5;
         
         // 2. Patamares
         if (opt.landings.length > 0) {
+            // Soma total dos patamares
+            doc.text(`  • Soma de ${opt.landings.length} Patamares: ${formatCurrencyBRL(landingsPrice)}`, pageMargin, currentY);
+            currentY += 5;
+
             opt.landings.forEach((landing) => {
                 const lM = (landing.length / 100).toFixed(2).replace('.', ',');
                 const wM = (landing.width / 100).toFixed(2).replace('.', ',');
@@ -126,7 +145,7 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
 
                 let flushText = landing.isFlushWithSlab ? " (Rente)" : "";
 
-                const line = `  • Patamar ${lM}m x ${wM}m${guardText}${flushText}: ${formatCurrencyBRL(landing.price)}`;
+                const line = `    - Patamar ${lM}m x ${wM}m${guardText}${flushText}: ${formatCurrencyBRL(landing.price)}`;
                 
                 const splitLine = doc.splitTextToSize(line, pageWidth - (pageMargin * 2));
                 doc.text(splitLine, pageMargin, currentY);

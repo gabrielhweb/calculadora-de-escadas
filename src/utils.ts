@@ -84,26 +84,33 @@ const getCurrentLocation = (): Promise<{ latitude: number; longitude: number } |
   });
 };
 
-// Função auxiliar para extrair números de qualquer resposta (Texto ou JSON)
+// Função auxiliar aprimorada para extrair números de resposta (JSON ou Texto)
 const extractNumbers = (text: string) => {
-    // Tenta capturar formatos variados de resposta via Regex
+    let d = 0, t = 0;
+
+    // 1. Tenta encontrar e parsear um bloco JSON explícito primeiro
+    try {
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+            const jsonStr = jsonMatch[0];
+            const json = JSON.parse(jsonStr);
+            // Aceita variações de chaves
+            d = Number(json.distancia || json.distance || json.km || 0);
+            t = Number(json.pedagios || json.tolls || json.pedagio || json.cost || 0);
+            
+            if (!isNaN(d) && d > 0) return { distance: d, tolls: t };
+        }
+    } catch (e) {
+        // Falha silenciosa no JSON, tenta regex
+    }
+
+    // 2. Fallback via Regex se o JSON falhar ou não existir
     const distMatch = text.match(/dist[a-zâ-ã]*\s*[:=]?\s*([\d.,]+)\s*(km)?/i) || text.match(/([\d.,]+)\s*km/i);
     const tollMatch = text.match(/ped[a-zâ-ã]*\s*[:=]?\s*(R\$)?\s*([\d.,]+)/i) || text.match(/pedagios?\s*[:=]?\s*([\d.,]+)/i);
     
-    let d = 0, t = 0;
     if (distMatch) d = parseFloat(distMatch[1].replace(',', '.'));
     if (tollMatch) t = parseFloat(tollMatch[2]?.replace(',', '.') || tollMatch[1]?.replace(',', '.') || '0');
     
-    // Se regex falhar, tenta parsear como JSON puro
-    if (d === 0) {
-         try {
-             const clean = text.replace(/```json/g, '').replace(/```/g, '').trim();
-             const jsonStr = clean.match(/\{[\s\S]*\}/)?.[0] || clean;
-             const json = JSON.parse(jsonStr);
-             d = Number(json.distancia || json.distance || 0);
-             t = Number(json.pedagios || json.tolls || json.cost || 0);
-         } catch(e) {}
-    }
     return { distance: d, tolls: t };
 };
 
@@ -115,13 +122,11 @@ export const getRouteInfoFromGemini = async (origin: string, destination: string
 
   const ai = new GoogleGenAI({ apiKey: apiKey });
 
-  // TENTATIVA 1: MODO FERRAMENTA (GOOGLE MAPS)
-  // Este modo é mais preciso, mas pode falhar se a chave não tiver permissão específica.
+  // TENTATIVA 1: FERRAMENTA GOOGLE MAPS (Dados Reais + Lógica Waze)
   try {
-      console.log("Tentativa 1: Google Maps Tool...");
+      console.log("Tentativa 1: Buscando rota precisa (Base Google Maps/Waze)...");
       const configWithMaps: any = { tools: [{ googleMaps: {} }] };
       
-      // Tenta adicionar contexto de localização (opcional)
       try {
           const userLoc = await getCurrentLocation();
           if (userLoc) {
@@ -129,9 +134,16 @@ export const getRouteInfoFromGemini = async (origin: string, destination: string
           }
       } catch(e) { console.warn("Localização ignorada", e); }
 
-      const promptMaps = `Use o Google Maps para calcular a rota de carro entre o CEP ${origin} e o CEP ${destination}.
-      Se encontrar, responda EXATAMENTE neste formato: "Distancia: X km, Pedagios: R$ Y".
-      Se não conseguir, responda apenas "ERRO".`;
+      // Prompt instruindo a usar a lógica de "melhor rota" similar ao Waze
+      const promptMaps = `Atue como um sistema de GPS inteligente (estilo Waze).
+      Calcule a rota de carro mais rápida entre a origem "${origin}" e o destino "${destination}" no Brasil.
+      
+      Preciso de dois dados exatos:
+      1. A distância em quilômetros (apenas ida).
+      2. O valor total estimado dos pedágios (apenas ida).
+
+      Responda ESTRITAMENTE com um objeto JSON neste formato:
+      { "distancia": 123.5, "pedagios": 45.90 }`;
 
       const result = await ai.models.generateContent({
           model: "gemini-2.5-flash",
@@ -140,27 +152,27 @@ export const getRouteInfoFromGemini = async (origin: string, destination: string
       });
       
       const text = result.text || "";
-      console.log("Resposta Maps:", text);
+      console.log("Resposta GPS:", text);
 
-      if (!text.includes("ERRO") && text.length > 5) {
+      if (!text.includes("ERRO")) {
           const data = extractNumbers(text);
           if (data.distance > 0) return data;
       }
   } catch (e) {
-      console.warn("Falha na ferramenta Maps, indo para fallback...", e);
+      console.warn("Falha na ferramenta Maps, tentando estimativa logística...", e);
   }
 
-  // TENTATIVA 2: MODO ESTIMATIVA (FALLBACK)
-  // Se o Maps falhou (retornou 0 ou erro), pedimos para a IA ESTIMAR usando o conhecimento dela.
-  // Isso garante que o usuário sempre receba um valor.
+  // TENTATIVA 2: ESTIMATIVA LOGÍSTICA (Fallback)
   try {
-      console.log("Tentativa 2: Estimativa...");
-      const promptEstimate = `Estime a distância rodoviária aproximada entre o CEP ${origin} e o CEP ${destination} no Brasil.
-      Responda APENAS com os números no formato JSON:
-      { "distancia": 100.5, "pedagios": 20.00 }`;
+      console.log("Tentativa 2: Estimativa baseada em conhecimento...");
+      const promptEstimate = `Como especialista em logística brasileira, estime a distância rodoviária e o custo aproximado de pedágios entre CEP ${origin} e CEP ${destination}.
+      Considere as principais rodovias.
+      
+      Retorne JSON:
+      { "distancia": 00.0, "pedagios": 00.00 }`;
 
       const result = await ai.models.generateContent({
-          model: "gemini-2.5-flash", // Sem ferramentas, apenas conhecimento textual
+          model: "gemini-2.5-flash", 
           contents: promptEstimate
       });
       
@@ -174,5 +186,5 @@ export const getRouteInfoFromGemini = async (origin: string, destination: string
       console.error("Erro fatal na estimativa:", e);
   }
 
-  throw new Error("Não foi possível calcular a rota automaticamente. Por favor, insira a distância manualmente.");
+  throw new Error("Não foi possível traçar a rota automaticamente. Por favor, insira a distância manualmente.");
 };

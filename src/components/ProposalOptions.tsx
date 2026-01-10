@@ -857,7 +857,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                                 {!hasCustomPrice ? (
                                     <>
                                         <div className="flex justify-between">
-                                            <span>Base (Larg. {activeOption.stairWidth}cm):</span>
+                                            <span>Preço Base (Larg. {activeOption.stairWidth}cm):</span>
                                             <span>{formatCurrencyBRL(basePrice)}</span>
                                         </div>
                                         <div className="flex justify-between">
