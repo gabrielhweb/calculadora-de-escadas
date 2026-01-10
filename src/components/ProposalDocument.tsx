@@ -102,7 +102,7 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
         estimatedHeight += 10; // Espaço
 
         // Altura das Imagens
-        let imagesForOption = [];
+        let imagesForOption: { title: string; imgData: string }[] = [];
         if (userData.drawingImages) {
              imagesForOption = userData.drawingImages.filter(img => img.title.includes(`Opção ${opt.optionNumber}`));
         }
