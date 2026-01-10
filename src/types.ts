@@ -72,6 +72,9 @@ export interface UserData {
   neighborhood?: string;
   city?: string;
   state?: string;
+  
+  // NOVO: Array de strings Base64 das imagens capturadas (Desenhos 2D/3D)
+  drawingImages?: { title: string; imgData: string }[];
 }
 
 // --- TIPOS ADICIONADOS PARA CORRIGIR O BUILD ---

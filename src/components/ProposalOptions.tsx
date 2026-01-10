@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { ProposalOption, UserData, CalculatorInput } from '../types';
 import { formatCurrencyBRL, calculateFreightCost, getRouteInfoFromGemini, calculateTotalPrice, getBasePrice, getMultiplier } from '../utils';
@@ -60,11 +59,12 @@ const maskCEP = (value: string) => {
     .replace(/(-\d{3})\d+?$/, '$1');
 };
 
-const UserDataForm: React.FC<{ onSubmit: (data: UserData) => void; initialZip?: string }> = ({ onSubmit, initialZip }) => {
+const UserDataForm: React.FC<{ onSubmit: (data: UserData, includeDrawings: boolean) => void; initialZip?: string }> = ({ onSubmit, initialZip }) => {
   const [personType, setPersonType] = useState<'pf' | 'pj'>('pf');
   const [name, setName] = useState('');
   const [docMain, setDocMain] = useState(''); // CPF ou CNPJ
   const [docSecondary, setDocSecondary] = useState(''); // RG (apenas PF)
+  const [includeDrawings, setIncludeDrawings] = useState(true); // Default true conforme sugestão
   
   // Campos de Endereço Estruturado
   const [zip, setZip] = useState('');
@@ -140,12 +140,17 @@ const UserDataForm: React.FC<{ onSubmit: (data: UserData) => void; initialZip?: 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // docMain (CPF/CNPJ) removido da validação obrigatória
-    if (name && street && number && city && state) {
+    // Apenas o Nome é obrigatório agora para gerar o orçamento básico
+    if (name) {
       setError('');
       
-      // Monta string completa para compatibilidade com o PDF Generator atual
-      const fullAddress = `${street}, ${number} - ${neighborhood}, ${city} - ${state}, ${zip}`;
+      // Monta string completa para compatibilidade com o PDF Generator atual, se houver dados
+      let fullAddress = '';
+      if (street) {
+          fullAddress = `${street}, ${number} - ${neighborhood}, ${city} - ${state}, ${zip}`;
+      } else {
+          fullAddress = 'Endereço não informado';
+      }
 
       onSubmit({ 
           name, 
@@ -154,9 +159,9 @@ const UserDataForm: React.FC<{ onSubmit: (data: UserData) => void; initialZip?: 
           address: fullAddress,
           // Salva campos estruturados
           zip, street, number, neighborhood, city, state
-      });
+      }, includeDrawings);
     } else {
-        setError('Por favor, preencha todos os campos obrigatórios (Nome e Endereço).');
+        setError('Por favor, preencha o Nome do Cliente.');
     }
   };
   
@@ -229,14 +234,16 @@ const UserDataForm: React.FC<{ onSubmit: (data: UserData) => void; initialZip?: 
          </div>
 
          <div className="border-t border-gray-100 dark:border-gray-700 pt-4 mt-4">
-            <h4 className="text-md font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">📍 Endereço da Obra</h4>
+            <h4 className="text-md font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                📍 Endereço da Obra 
+                <span className="text-xs font-normal text-gray-500 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded ml-2">(Opcional para Orçamento)</span>
+            </h4>
             
             <div className="grid grid-cols-3 gap-4 mb-3">
                 <div className="col-span-1">
-                    <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">CEP *</label>
+                    <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">CEP</label>
                     <div className="relative">
                         <input 
-                            required
                             type="text" 
                             value={zip} 
                             onChange={e => setZip(maskCEP(e.target.value))} 
@@ -249,32 +256,31 @@ const UserDataForm: React.FC<{ onSubmit: (data: UserData) => void; initialZip?: 
                     </div>
                 </div>
                 <div className="col-span-2">
-                     <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">Rua / Logradouro *</label>
-                     <input required type="text" value={street} onChange={e => setStreet(e.target.value)} className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight font-medium"/>
+                     <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">Rua / Logradouro</label>
+                     <input type="text" value={street} onChange={e => setStreet(e.target.value)} className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight font-medium"/>
                 </div>
             </div>
 
             <div className="grid grid-cols-3 gap-4 mb-3">
                 <div className="col-span-1">
-                    <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">Número *</label>
-                    <input required type="text" value={number} onChange={e => setNumber(e.target.value)} className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight font-medium"/>
+                    <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">Número</label>
+                    <input type="text" value={number} onChange={e => setNumber(e.target.value)} className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight font-medium"/>
                 </div>
                 <div className="col-span-2">
-                     <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">Bairro *</label>
-                     <input required type="text" value={neighborhood} onChange={e => setNeighborhood(e.target.value)} className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight font-medium"/>
+                     <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">Bairro</label>
+                     <input type="text" value={neighborhood} onChange={e => setNeighborhood(e.target.value)} className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight font-medium"/>
                 </div>
             </div>
 
             <div className="grid grid-cols-4 gap-4">
                  <div className="col-span-3">
-                     <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">Cidade *</label>
-                     <input required type="text" value={city} onChange={e => setCity(e.target.value)} className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight font-medium"/>
+                     <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">Cidade</label>
+                     <input type="text" value={city} onChange={e => setCity(e.target.value)} className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight font-medium"/>
                  </div>
                  <div className="col-span-1">
-                     <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">UF *</label>
+                     <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">UF</label>
                      <div className="relative">
                         <select
-                            required
                             value={state}
                             onChange={(e) => setState(e.target.value)}
                             className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight font-medium appearance-none"
@@ -287,6 +293,23 @@ const UserDataForm: React.FC<{ onSubmit: (data: UserData) => void; initialZip?: 
                      </div>
                  </div>
             </div>
+         </div>
+         
+         <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg border border-blue-200 dark:border-blue-800 mt-4">
+             <label className="flex items-center gap-3 cursor-pointer">
+                 <div className="relative flex items-center">
+                    <input 
+                        type="checkbox" 
+                        checked={includeDrawings} 
+                        onChange={e => setIncludeDrawings(e.target.checked)} 
+                        className="w-5 h-5 accent-blue-600 rounded"
+                    />
+                 </div>
+                 <div className="flex flex-col">
+                     <span className="font-bold text-blue-900 dark:text-blue-200 text-sm uppercase">Quer anexar os desenhos selecionados?</span>
+                     <span className="text-xs text-blue-700 dark:text-blue-400">Serão incluídos no PDF apenas os desenhos que você marcou nas opções acima (2D, 3D, Correções).</span>
+                 </div>
+             </label>
          </div>
          
          {error && <p className="text-red-600 text-sm font-bold bg-red-50 dark:bg-red-900/30 p-2 rounded">{error}</p>}
@@ -373,6 +396,10 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
   // FIX: removed unused capturedImages state variable from destructuring
   const [, setCapturedImages] = useState<{imgData: string, title: string, width: number, height: number}[]>([]);
   const captureRef = useRef<HTMLDivElement>(null); // Ref para o container do desenho atual no wizard
+
+  // Estado temporário para quando o usuário clica em "Gerar Proposta" com desenhos
+  const [tempProposalData, setTempProposalData] = useState<UserData | null>(null);
+  const [exportMode, setExportMode] = useState<'download' | 'attach'>('download');
 
   // --- EFEITO PARA CARREGAR DADOS INICIAIS ---
   useEffect(() => {
@@ -541,8 +568,8 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
       effectiveOptions.forEach(o => {
           const sel = exportConfig[o.optionNumber] || defaultSelection;
           
-          if (sel.original2D) queue.push({ option: o, variant: 'original', viewMode: '2d', title: `Desenho 2D - Opção ${o.optionNumber} (Original)` });
-          if (sel.original3D) queue.push({ option: o, variant: 'original', viewMode: '3d', title: `Visualização 3D - Opção ${o.optionNumber} (Original)` });
+          if (sel.original2D) queue.push({ option: o, variant: 'original', viewMode: '2d', title: `Desenho 2D - Opção ${o.optionNumber}` });
+          if (sel.original3D) queue.push({ option: o, variant: 'original', viewMode: '3d', title: `Visualização 3D - Opção ${o.optionNumber}` });
           
           if (sel.fixOpening2D) queue.push({ option: o, variant: 'fixOpening', viewMode: '2d', title: `Desenho 2D - Opção ${o.optionNumber} (Solução: Aumentar Vão)` });
           if (sel.fixOpening3D) queue.push({ option: o, variant: 'fixOpening', viewMode: '3d', title: `Visualização 3D - Opção ${o.optionNumber} (Solução: Aumentar Vão)` });
@@ -554,6 +581,40 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
       setExportQueue(queue);
       setCurrentExportIndex(0);
       setCapturedImages([]);
+      setExportMode('download'); // Modo normal
+      setIsExportWizardOpen(true);
+  };
+
+  // Nova função para captura automática ao gerar proposta
+  const startProposalCapture = (userData: UserData) => {
+      const queue: ExportQueueItem[] = [];
+      const effectiveOptions = getEffectiveOptions();
+
+      // Itera pelas opções e respeita a seleção feita pelo usuário no 'exportConfig'
+      effectiveOptions.forEach(o => {
+          const sel = exportConfig[o.optionNumber] || defaultSelection;
+          
+          if (sel.original2D) queue.push({ option: o, variant: 'original', viewMode: '2d', title: `Desenho 2D - Opção ${o.optionNumber}` });
+          if (sel.original3D) queue.push({ option: o, variant: 'original', viewMode: '3d', title: `Visualização 3D - Opção ${o.optionNumber}` });
+          
+          if (sel.fixOpening2D) queue.push({ option: o, variant: 'fixOpening', viewMode: '2d', title: `Desenho 2D - Opção ${o.optionNumber} (Solução: Aumentar Vão)` });
+          if (sel.fixOpening3D) queue.push({ option: o, variant: 'fixOpening', viewMode: '3d', title: `Visualização 3D - Opção ${o.optionNumber} (Solução: Aumentar Vão)` });
+          
+          if (sel.fixStair2D) queue.push({ option: o, variant: 'fixStair', viewMode: '2d', title: `Desenho 2D - Opção ${o.optionNumber} (Solução: Ajustar Escada)` });
+          if (sel.fixStair3D) queue.push({ option: o, variant: 'fixStair', viewMode: '3d', title: `Visualização 3D - Opção ${o.optionNumber} (Solução: Ajustar Escada)` });
+      });
+
+      if (queue.length === 0) {
+          alert("Você marcou para incluir desenhos, mas não selecionou nenhum nas opções acima (checkbox 2D/3D). O PDF será gerado sem desenhos anexos.");
+          onGenerateProposal(userData, getEffectiveOptions());
+          return;
+      }
+
+      setTempProposalData(userData);
+      setExportQueue(queue);
+      setCurrentExportIndex(0);
+      setCapturedImages([]);
+      setExportMode('attach'); // Modo anexo
       setIsExportWizardOpen(true);
   };
 
@@ -595,6 +656,19 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
   const finishExport = () => {
       setTimeout(() => {
         setCapturedImages(finalImages => {
+             // LÓGICA DE DECISÃO: DOWNLOAD PDF OU ANEXAR PROPOSTA
+             if (exportMode === 'attach' && tempProposalData) {
+                 const userDataWithImages = {
+                     ...tempProposalData,
+                     drawingImages: finalImages.map(img => ({ title: img.title, imgData: img.imgData }))
+                 };
+                 onGenerateProposal(userDataWithImages, getEffectiveOptions());
+                 setIsExportWizardOpen(false);
+                 setTempProposalData(null);
+                 return finalImages;
+             }
+
+             // MODO DOWNLOAD (Mantido)
              const doc = new jsPDF('landscape', 'mm', 'a4');
              const pdfWidth = doc.internal.pageSize.getWidth();
              const pdfHeight = doc.internal.pageSize.getHeight();
@@ -642,7 +716,10 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
               <div className="bg-white dark:bg-gray-800 w-full max-w-5xl h-[80vh] rounded-lg overflow-hidden flex flex-col shadow-2xl">
                   <div className="bg-blue-600 text-white p-4 flex justify-between items-center">
                       <div>
-                          <h3 className="text-lg font-bold">Assistente de Exportação ({currentExportIndex + 1}/{exportQueue.length})</h3>
+                          <h3 className="text-lg font-bold">
+                              {exportMode === 'attach' ? 'Gerando Desenhos para Orçamento' : 'Assistente de Exportação'} 
+                              ({currentExportIndex + 1}/{exportQueue.length})
+                          </h3>
                           <p className="text-sm opacity-90">{item.title}</p>
                       </div>
                       <div className="text-xs bg-blue-800 px-3 py-1 rounded">
@@ -676,12 +753,20 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                           className="bg-green-600 text-white font-bold py-3 px-8 rounded shadow hover:bg-green-700 flex items-center gap-2 text-lg"
                       >
                           <span>📸</span>
-                          {currentExportIndex < exportQueue.length - 1 ? 'Capturar e Próximo' : 'Capturar e Gerar PDF'}
+                          {currentExportIndex < exportQueue.length - 1 ? 'Capturar e Próximo' : (exportMode === 'attach' ? 'Finalizar e Gerar Orçamento' : 'Capturar e Gerar PDF')}
                       </button>
                   </div>
               </div>
           </div>
       );
+  };
+
+  const handleProposalSubmit = (data: UserData, includeDrawings: boolean) => {
+      if (includeDrawings) {
+          startProposalCapture(data);
+      } else {
+          onGenerateProposal(data, getEffectiveOptions());
+      }
   };
 
   return (
@@ -1030,7 +1115,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
       </div>
       
       {/* Agora passamos o CEP de destino (digitado na área de frete) para o formulário do cliente */}
-      <UserDataForm onSubmit={(data) => onGenerateProposal(data, getEffectiveOptions())} initialZip={destinationCep} />
+      <UserDataForm onSubmit={handleProposalSubmit} initialZip={destinationCep} />
 
       {/* RENDERIZAÇÃO DO MODAL DE VISUALIZAÇÃO PADRÃO */}
       {selectedVisualizerOption && (
