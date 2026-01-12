@@ -3,7 +3,7 @@ import React, { useCallback, useState } from 'react';
 import jsPDF from 'jspdf';
 import { useNavigate } from 'react-router-dom';
 import { ProposalOption, UserData, CalculatorInput } from '../types';
-import { formatCurrencyBRL, getBasePrice, getMultiplier } from '../utils';
+import { formatCurrencyBRL } from '../utils';
 
 interface ProposalDocumentProps {
   options: ProposalOption[];
@@ -101,8 +101,8 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
         estimatedHeight += 6; // Total
         estimatedHeight += 10; // Espaço
 
-        // Altura das Imagens
-        let imagesForOption = [];
+        // Altura das Imagens - CORREÇÃO DE TIPO AQUI
+        let imagesForOption: { title: string; imgData: string; width?: number; height?: number }[] = [];
         if (userData.drawingImages) {
              imagesForOption = userData.drawingImages.filter(img => img.title.includes(`Opção ${opt.optionNumber}`));
         }
