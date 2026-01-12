@@ -74,7 +74,8 @@ export interface UserData {
   state?: string;
   
   // NOVO: Array de strings Base64 das imagens capturadas (Desenhos 2D/3D)
-  drawingImages?: { title: string; imgData: string }[];
+  // Atualizado para incluir dimensões para manter aspect ratio
+  drawingImages?: { title: string; imgData: string; width?: number; height?: number }[];
 }
 
 // --- TIPOS ADICIONADOS PARA CORRIGIR O BUILD ---

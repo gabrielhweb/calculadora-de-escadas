@@ -102,18 +102,27 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
         estimatedHeight += 10; // Espaço
 
         // Altura das Imagens
-        let imagesForOption: { title: string; imgData: string }[] = [];
+        let imagesForOption = [];
         if (userData.drawingImages) {
              imagesForOption = userData.drawingImages.filter(img => img.title.includes(`Opção ${opt.optionNumber}`));
         }
         
-        // Definição de tamanho da imagem no PDF
-        const imgDisplayWidth = 140; // Largura menor para ficar mais "clean" (14cm)
-        const imgDisplayHeight = 90; // Altura aproximada
+        // CÁLCULO DINÂMICO DE ALTURA DAS IMAGENS
+        // Define uma largura fixa desejada (ex: 150mm) e calcula a altura proporcional
+        const fixedDisplayWidth = 150; 
         
-        if (imagesForOption.length > 0) {
-            estimatedHeight += (imagesForOption.length * (imgDisplayHeight + 10));
-        }
+        // Calcula a altura total necessária para as imagens desta opção
+        let imagesTotalHeight = 0;
+        imagesForOption.forEach(img => {
+            let h = 100; // fallback default
+            if (img.width && img.height) {
+                const ratio = img.height / img.width;
+                h = fixedDisplayWidth * ratio;
+            }
+            imagesTotalHeight += (h + 10); // +10 de margem
+        });
+        
+        estimatedHeight += imagesTotalHeight;
 
         // --- VERIFICAÇÃO DE QUEBRA DE PÁGINA INTELIGENTE ---
         const pageLimit = pageHeight - pageMargin;
@@ -213,14 +222,19 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
         currentY += 10; 
 
         // --- INSERÇÃO DE IMAGENS DA OPÇÃO ---
-        // As imagens agora são centralizadas e têm um tamanho um pouco menor para não ocupar a largura total,
-        // o que ajuda a manter a harmonia visual.
         imagesForOption.forEach(img => {
+            // Calcula altura exata para manter proporção
+            let currentImgHeight = 100; // Fallback
+            if (img.width && img.height) {
+                const ratio = img.height / img.width;
+                currentImgHeight = fixedDisplayWidth * ratio;
+            }
+
             // Centraliza a imagem
-            const xPos = (pageWidth - imgDisplayWidth) / 2;
+            const xPos = (pageWidth - fixedDisplayWidth) / 2;
 
             // Verifica se cabe na página, senão quebra (backup check)
-            if (currentY + imgDisplayHeight + 20 > pageLimit) {
+            if (currentY + currentImgHeight + 20 > pageLimit) {
                 doc.addPage();
                 currentY = 20;
             }
@@ -236,8 +250,8 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
             
             // Desenha Imagem
             try {
-                doc.addImage(img.imgData, 'PNG', xPos, currentY, imgDisplayWidth, imgDisplayHeight);
-                currentY += imgDisplayHeight + 10;
+                doc.addImage(img.imgData, 'PNG', xPos, currentY, fixedDisplayWidth, currentImgHeight);
+                currentY += currentImgHeight + 10;
             } catch (e) {
                 console.error("Erro ao adicionar imagem ao PDF", e);
             }

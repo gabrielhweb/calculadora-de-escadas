@@ -660,7 +660,12 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
              if (exportMode === 'attach' && tempProposalData) {
                  const userDataWithImages = {
                      ...tempProposalData,
-                     drawingImages: finalImages.map(img => ({ title: img.title, imgData: img.imgData }))
+                     drawingImages: finalImages.map(img => ({ 
+                        title: img.title, 
+                        imgData: img.imgData,
+                        width: img.width,
+                        height: img.height
+                    }))
                  };
                  onGenerateProposal(userDataWithImages, getEffectiveOptions());
                  setIsExportWizardOpen(false);
