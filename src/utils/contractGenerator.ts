@@ -118,7 +118,7 @@ export const generateContractPDF = (data: ContractData) => {
   currentY += 5;
 
   // --- 1. DO OBJETO CONTRATUAL ---
-  addText('1.Do objeto contratual.', 11, true, 'left');
+  addText('1. Do objeto contratual.', 11, true, 'left');
 
   const alturaM = (data.inputData.totalHeight / 100).toFixed(2);
   const compM = (data.selectedOption.totalLength / 100).toFixed(2);
@@ -154,12 +154,15 @@ export const generateContractPDF = (data: ContractData) => {
       });
   }
 
-  // --- SOLICITAÇÃO AUDIO 2 & 3: ITENS EXTRAS / ADICIONAIS ---
+  // --- 1.1 ITENS ADICIONAIS (COMO TÓPICO SEPARADO) ---
   if (data.inputData.optionalItems && data.inputData.optionalItems.length > 0) {
-      addText(`- ITENS ADICIONAIS:`, 11, true, 'left');
+      currentY += 2;
+      // REMOVIDO "1.1" do texto abaixo, mantendo apenas o título
+      addText('Dos Itens Adicionais inclusos:', 11, true, 'left');
       data.inputData.optionalItems.forEach(item => {
-          addText(`  • ${item.name.toUpperCase()}: ${formatCurrencyBRL(item.price)}`, 11, false, 'left');
+          addText(`   • ${item.name.toUpperCase()} ........................... ${formatCurrencyBRL(item.price)}`, 11, false, 'left');
       });
+      currentY += 2;
   }
 
   if (data.freightCost + data.tollCost > 0) {
@@ -187,7 +190,7 @@ export const generateContractPDF = (data: ContractData) => {
   currentY += 5;
 
   // --- 2 a 5 (Cláusulas Padrão) ---
-  addText('2.Das obrigações do(a) vendedor(a).', 11, true, 'left');
+  addText('2. Das obrigações do(a) vendedor(a).', 11, true, 'left');
   addText('2.1 O(a) vendedor(a) declara ser o fabricante do objeto descrito no item 1.1.', 11, false, 'justify');
   addText('2.2 Entregar o objeto de venda descrito no item 1.1 no prazo estabelecido na transportadora acordada pelas partes. .', 11, false, 'justify');
   addText('2.2.1 O objeto deverá ser entregue conforme as características descritas e apresentadas no item 1.1 deste instrumento.', 11, false, 'justify');

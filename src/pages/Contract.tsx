@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { GoogleGenAI } from "@google/genai";
 import { generateContractPDF } from '../utils/contractGenerator.ts';
-import { LandingInfo } from '../types';
+import { LandingInfo, OptionalItem } from '../types';
 import { formatCurrencyBRL } from '../utils';
 
 // Fix for TS2580
@@ -75,6 +75,8 @@ const addBusinessDays = (startDate: Date, days: number) => {
 const Contract = () => {
     const location = useLocation();
     
+    const STANDARD_INSTALLATION = 290;
+    
     // Dados do Cliente
     const [clientName, setClientName] = useState('');
     const [clientDoc, setClientDoc] = useState(''); // CPF ou CNPJ
@@ -100,6 +102,7 @@ const Contract = () => {
     const [totalLength, setTotalLength] = useState('300');
     const [dampers, setDampers] = useState('4');
     const [landings, setLandings] = useState<LandingInfo[]>([]);
+    const [optionalItems, setOptionalItems] = useState<OptionalItem[]>([]);
 
     // Dados Financeiros
     const [structurePrice, setStructurePrice] = useState('0');
@@ -183,6 +186,11 @@ const Contract = () => {
                     setLandings(selectedOption.landings);
                 } else {
                     setLandings([]);
+                }
+                
+                // --- CORREÇÃO: Carrega itens adicionais do inputData ---
+                if (inputData.optionalItems && inputData.optionalItems.length > 0) {
+                    setOptionalItems(inputData.optionalItems);
                 }
 
                 setStructurePrice(selectedOption.totalPrice.toFixed(2));
@@ -278,6 +286,13 @@ const Contract = () => {
         if (method === 'pix') setSignalPercent(50);
         if (method === 'hybrid') setSignalPercent(20);
         if (method === 'card') setSignalPercent(0);
+    };
+
+    // Permite alterar o nome de um item adicional individualmente
+    const updateOptionalItemName = (index: number, newName: string) => {
+        const updated = [...optionalItems];
+        updated[index] = { ...updated[index], name: newName };
+        setOptionalItems(updated);
     };
 
     // --- FUNÇÃO DE GERAÇÃO DE CLÁUSULA COM IA ---
@@ -387,7 +402,7 @@ const Contract = () => {
                 stairWidth: parseFloat(width) || 0,
                 treadDepth: parseFloat(treadDepth) || 0,
                 dampers: parseFloat(dampers) || 4,
-                optionalItems: [],
+                optionalItems: optionalItems, // --- CORREÇÃO: Passa os itens editados do estado local ---
                 landings: landings
             },
             freightCost: parseFloat(freightPrice) || 0,
@@ -509,6 +524,29 @@ const Contract = () => {
                             <ContractInput label="Pisante" value={treadDepth} onChange={(e: any) => setTreadDepth(e.target.value)} type="number" />
                             <ContractInput label="Comp." value={totalLength} onChange={(e: any) => setTotalLength(e.target.value)} type="number" />
                         </div>
+                        
+                        {/* LISTA DE ITENS ADICIONAIS EDITÁVEL */}
+                        {optionalItems.length > 0 && (
+                            <div className="col-span-full mt-4 bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded border border-yellow-200 dark:border-yellow-700">
+                                <h3 className="text-xs font-bold text-yellow-800 dark:text-yellow-300 uppercase mb-2">Itens Adicionais (Editável para Impressão):</h3>
+                                <div className="space-y-2">
+                                    {optionalItems.map((item, index) => (
+                                        <div key={item.id} className="flex gap-2 items-center">
+                                            <input 
+                                                type="text" 
+                                                value={item.name} 
+                                                onChange={(e) => updateOptionalItemName(index, e.target.value)}
+                                                className="flex-1 bg-white dark:bg-gray-700 p-2 text-sm border border-yellow-300 dark:border-yellow-600 rounded focus:border-highlight focus:outline-none text-black dark:text-white"
+                                            />
+                                            <span className="font-bold text-gray-700 dark:text-gray-300 text-sm whitespace-nowrap">
+                                                {formatCurrencyBRL(item.price)}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                                <p className="text-[10px] text-gray-500 mt-1 italic">* Edite os nomes acima como deseja que apareçam no PDF (ex: Adicionar detalhes do material).</p>
+                            </div>
+                        )}
                     </div>
 
                     <div className="space-y-6">
@@ -516,7 +554,44 @@ const Contract = () => {
                         <div className="grid grid-cols-2 gap-4">
                             <ContractInput label="Estrutura (R$)" value={structurePrice} onChange={(e: any) => setStructurePrice(e.target.value)} type="number" />
                             <ContractInput label="Frete + Pedágio (R$)" value={freightPrice} onChange={(e: any) => setFreightPrice(e.target.value)} type="number" />
-                            <ContractInput label="Instalação (R$)" value={installationPrice} onChange={(e: any) => setInstallationPrice(e.target.value)} type="number" />
+                            
+                            {/* Instalação Customizada */}
+                            <div className="col-span-2 sm:col-span-1 sm:col-start-1 sm:row-start-2">
+                                <div className="flex justify-between items-end mb-1">
+                                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300">Instalação (R$)</label>
+                                    {parseFloat(installationPrice) !== STANDARD_INSTALLATION && (
+                                         <button
+                                            type="button"
+                                            onClick={() => setInstallationPrice(STANDARD_INSTALLATION.toFixed(2))}
+                                            className="text-xs text-blue-600 dark:text-blue-400 underline hover:text-blue-800"
+                                        >
+                                            Usar Padrão (R$ {STANDARD_INSTALLATION})
+                                        </button>
+                                    )}
+                                </div>
+                                <div className="relative">
+                                    <input
+                                        type="number"
+                                        value={installationPrice}
+                                        onChange={(e) => setInstallationPrice(e.target.value)}
+                                        className={`w-full p-3 rounded border focus:outline-none focus:border-highlight focus:ring-1 focus:ring-highlight font-medium shadow-sm transition-all ${
+                                            parseFloat(installationPrice) === STANDARD_INSTALLATION
+                                                ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-800 dark:text-green-100'
+                                                : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-black dark:text-white'
+                                        }`}
+                                    />
+                                     {parseFloat(installationPrice) === STANDARD_INSTALLATION && (
+                                        <span className="absolute right-3 top-3 text-xs font-bold text-green-600 dark:text-green-400 pointer-events-none">
+                                            PADRÃO
+                                        </span>
+                                    )}
+                                </div>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                    {parseFloat(installationPrice) === STANDARD_INSTALLATION
+                                        ? "Valor fixo para locais de fácil acesso."
+                                        : "Valor personalizado (manual)."}
+                                </p>
+                            </div>
                         </div>
                         
                         <div className="pt-4 border-t border-gray-100 dark:border-gray-700">

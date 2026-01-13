@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { ProposalOption, UserData, CalculatorInput } from '../types';
 import { formatCurrencyBRL, calculateFreightCost, getRouteInfoFromGemini, calculateTotalPrice, getBasePrice, getMultiplier } from '../utils';
@@ -374,9 +375,10 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   
-  const [freightMode, setFreightMode] = useState<'auto' | 'manual'>('auto');
+  const [freightMode, setFreightMode] = useState<'auto' | 'manual' | 'fixed'>('auto');
   const [manualDistance, setManualDistance] = useState('');
   const [manualTollCost, setManualTollCost] = useState('');
+  const [fixedFreightValue, setFixedFreightValue] = useState('');
   const [isFreightIncluded, setIsFreightIncluded] = useState(true);
 
   // Novo estado para o visualizador modal (apenas visualização)
@@ -516,6 +518,13 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
         return;
     }
 
+    if (freightMode === 'fixed') {
+        const fixedVal = parseFloat(fixedFreightValue);
+        setFreightCost(isNaN(fixedVal) ? 0 : fixedVal);
+        setTollCost(0);
+        return;
+    }
+
     let currentDistance = 0;
     let currentTolls = 0;
 
@@ -542,7 +551,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
     
     setTollCost(currentTolls);
 
-}, [freightMode, distance, autoTollCost, manualDistance, manualTollCost, fuelPrice, consumption, setFreightCost, setTollCost, isFreightIncluded]);
+}, [freightMode, distance, autoTollCost, manualDistance, manualTollCost, fuelPrice, consumption, fixedFreightValue, setFreightCost, setTollCost, isFreightIncluded]);
 
   const countSelectedExports = () => {
       let count = 0;
@@ -979,10 +988,28 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                                         <span>{formatCurrencyBRL(landingsPrice)}</span>
                                     </div>
                                 )}
+
+                                {/* --- EXIBIÇÃO DETALHADA DOS ITENS ADICIONAIS DENTRO DO QUADRO --- */}
+                                {inputData?.optionalItems && inputData.optionalItems.length > 0 && (
+                                    <>
+                                        <div className="border-t border-gray-200 dark:border-gray-600 my-1 pt-1"></div>
+                                        <div className="font-bold text-blue-600 dark:text-blue-400 mb-1">Itens Adicionais:</div>
+                                        {inputData.optionalItems.map((item, idx) => (
+                                            <div key={idx} className="flex justify-between text-blue-500 dark:text-blue-300 pl-2">
+                                                <span>+ {item.name}</span>
+                                                <span>{formatCurrencyBRL(item.price)}</span>
+                                            </div>
+                                        ))}
+                                        <div className="flex justify-between font-bold text-blue-700 dark:text-blue-200 border-t border-blue-200 dark:border-blue-800 mt-1 pt-1">
+                                            <span>Total Extras:</span>
+                                            <span>{formatCurrencyBRL(extrasCost)}</span>
+                                        </div>
+                                    </>
+                                )}
                                 
-                                <div className="flex justify-between font-black text-gray-900 dark:text-white border-t border-gray-300 dark:border-gray-500 pt-1 mt-1">
-                                    <span>Total Estrutura:</span>
-                                    <span>{formatCurrencyBRL(activeOption.totalPrice)}</span>
+                                <div className="flex justify-between font-black text-gray-900 dark:text-white border-t-2 border-gray-300 dark:border-gray-500 pt-2 mt-2 text-sm">
+                                    <span>Total Estrutura + Extras:</span>
+                                    <span>{formatCurrencyBRL(activeOption.totalPrice + extrasCost)}</span>
                                 </div>
                             </div>
 
@@ -1021,18 +1048,24 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
         
         {isFreightIncluded ? (
             <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
-                <div className="flex bg-gray-200 dark:bg-gray-600 rounded-lg p-1 mb-4">
+                <div className="grid grid-cols-3 bg-gray-200 dark:bg-gray-600 rounded-lg p-1 mb-4 gap-1">
                     <button 
                         onClick={() => setFreightMode('auto')}
-                        className={`w-1/2 py-2 text-sm rounded-md font-bold transition ${freightMode === 'auto' ? 'bg-white dark:bg-gray-800 text-highlight shadow-sm' : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white'}`}
+                        className={`py-2 text-sm rounded-md font-bold transition ${freightMode === 'auto' ? 'bg-white dark:bg-gray-800 text-highlight shadow-sm' : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white'}`}
                     >
                         Automático (IA)
                     </button>
                     <button 
                         onClick={() => setFreightMode('manual')}
-                        className={`w-1/2 py-2 text-sm rounded-md font-bold transition ${freightMode === 'manual' ? 'bg-white dark:bg-gray-800 text-highlight shadow-sm' : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white'}`}
+                        className={`py-2 text-sm rounded-md font-bold transition ${freightMode === 'manual' ? 'bg-white dark:bg-gray-800 text-highlight shadow-sm' : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white'}`}
                     >
                         Manual
+                    </button>
+                    <button 
+                        onClick={() => setFreightMode('fixed')}
+                        className={`py-2 text-sm rounded-md font-bold transition ${freightMode === 'fixed' ? 'bg-white dark:bg-gray-800 text-highlight shadow-sm' : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white'}`}
+                    >
+                        Valor Fixo
                     </button>
                 </div>
 
@@ -1053,7 +1086,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                     </button>
                     {error && <p className="text-red-600 mt-2 text-sm font-bold bg-red-50 dark:bg-red-900/30 p-2 rounded">{error}</p>}
                 </>
-                ) : (
+                ) : freightMode === 'manual' ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <input type="number" value={manualDistance} onChange={e => setManualDistance(e.target.value)} placeholder="Distância (km - apenas ida)" className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-md border-2 border-gray-300 dark:border-gray-600 font-medium" min="0" step="any"/>
@@ -1064,33 +1097,59 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 italic">Valor total dos pedágios (ida e volta).</p>
                     </div>
                 </div>
-                )}
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
-                    <div>
-                        <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">Preço Gasolina</label>
-                        <input type="number" value={fuelPrice} onChange={e => setFuelPrice(e.target.value)} placeholder="R$/L" className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-md border-2 border-gray-300 dark:border-gray-600 font-medium" step="0.01" min="0"/>
-                    </div>
-                    <div>
-                        <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">Consumo do Veículo</label>
-                        <input type="number" value={consumption} onChange={e => setConsumption(e.target.value)} placeholder="km/L" className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-md border-2 border-gray-300 dark:border-gray-600 font-medium" step="0.1" min="0"/>
+                ) : (
+                <div className="grid grid-cols-1">
+                     <div>
+                        <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">Valor Final do Frete (R$)</label>
+                        <input 
+                            type="number" 
+                            value={fixedFreightValue} 
+                            onChange={e => setFixedFreightValue(e.target.value)} 
+                            placeholder="0,00" 
+                            className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-md border-2 border-gray-300 dark:border-gray-600 font-medium text-lg" 
+                            min="0" 
+                            step="0.01"
+                        />
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 italic">Valor único que será cobrado no orçamento (substitui cálculos automáticos).</p>
                     </div>
                 </div>
+                )}
+
+                {freightMode !== 'fixed' && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">Preço Gasolina</label>
+                            <input type="number" value={fuelPrice} onChange={e => setFuelPrice(e.target.value)} placeholder="R$/L" className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-md border-2 border-gray-300 dark:border-gray-600 font-medium" step="0.01" min="0"/>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">Consumo do Veículo</label>
+                            <input type="number" value={consumption} onChange={e => setConsumption(e.target.value)} placeholder="km/L" className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-md border-2 border-gray-300 dark:border-gray-600 font-medium" step="0.1" min="0"/>
+                        </div>
+                    </div>
+                )}
 
                 {/* VISUALIZAÇÃO DO CÁLCULO - MOSTRAR SEMPRE SE TIVER DISTÂNCIA OU SE ESTIVER EM MANUAL */}
                 <div className={`mt-4 p-4 bg-blue-50 dark:bg-blue-900/30 rounded-md border border-blue-200 dark:border-blue-800 text-sm transition-all ${
-                    (distance > 0 || (freightMode === 'manual' && parseFloat(manualDistance) > 0)) ? 'opacity-100 block' : 'opacity-0 hidden'
+                    (freightMode === 'fixed' || distance > 0 || (freightMode === 'manual' && parseFloat(manualDistance) > 0)) ? 'opacity-100 block' : 'opacity-0 hidden'
                 }`}>
                         <h4 className="font-bold text-blue-900 dark:text-blue-300 mb-2 border-b border-blue-200 dark:border-blue-800 pb-1">
-                            {freightMode === 'auto' ? 'Detalhamento (Rota Segura/Longa):' : 'Detalhamento do Frete:'}
+                            {freightMode === 'fixed' ? 'Resumo do Frete:' : (freightMode === 'auto' ? 'Detalhamento (Rota Segura/Longa):' : 'Detalhamento do Frete:')}
                         </h4>
-                        <ul className="space-y-1 text-blue-800 dark:text-blue-200">
-                            <li>📍 Distância Ida: <strong>{(freightMode === 'auto' ? distance : parseFloat(manualDistance)).toFixed(2)} km</strong></li>
-                            <li>🔄 Distância Total (Ida x 2): <strong>{((freightMode === 'auto' ? distance : parseFloat(manualDistance)) * 2).toFixed(2)} km</strong></li>
-                            <li>⛽ Custo Combustível: <strong>{formatCurrencyBRL(calculateFreightCost((freightMode === 'auto' ? distance : parseFloat(manualDistance)), parseFloat(fuelPrice), parseFloat(consumption)))}</strong> <span className="text-xs opacity-75">({((freightMode === 'auto' ? distance : parseFloat(manualDistance))*2).toFixed(1)}km / {consumption}km/l * R${fuelPrice})</span></li>
-                            <li>🚧 Pedágios (Estimado): <strong>{formatCurrencyBRL(freightMode === 'auto' ? autoTollCost : (parseFloat(manualTollCost) || 0))}</strong></li>
-                            <li className="font-bold border-t border-blue-300 dark:border-blue-700 pt-2 mt-2 text-base text-blue-900 dark:text-blue-100">🚚 Total Logística: {formatCurrencyBRL(freightCost + tollCost)}</li>
-                        </ul>
+                        
+                        {freightMode === 'fixed' ? (
+                             <ul className="space-y-1 text-blue-800 dark:text-blue-200">
+                                <li>📦 Tipo: <strong>Valor Definido Manualmente</strong></li>
+                                <li className="font-bold border-t border-blue-300 dark:border-blue-700 pt-2 mt-2 text-base text-blue-900 dark:text-blue-100">🚚 Total a Cobrar: {formatCurrencyBRL(freightCost)}</li>
+                             </ul>
+                        ) : (
+                             <ul className="space-y-1 text-blue-800 dark:text-blue-200">
+                                <li>📍 Distância Ida: <strong>{(freightMode === 'auto' ? distance : parseFloat(manualDistance)).toFixed(2)} km</strong></li>
+                                <li>🔄 Distância Total (Ida x 2): <strong>{((freightMode === 'auto' ? distance : parseFloat(manualDistance)) * 2).toFixed(2)} km</strong></li>
+                                <li>⛽ Custo Combustível: <strong>{formatCurrencyBRL(calculateFreightCost((freightMode === 'auto' ? distance : parseFloat(manualDistance)), parseFloat(fuelPrice), parseFloat(consumption)))}</strong> <span className="text-xs opacity-75">({((freightMode === 'auto' ? distance : parseFloat(manualDistance))*2).toFixed(1)}km / {consumption}km/l * R${fuelPrice})</span></li>
+                                <li>🚧 Pedágios (Estimado): <strong>{formatCurrencyBRL(freightMode === 'auto' ? autoTollCost : (parseFloat(manualTollCost) || 0))}</strong></li>
+                                <li className="font-bold border-t border-blue-300 dark:border-blue-700 pt-2 mt-2 text-base text-blue-900 dark:text-blue-100">🚚 Total Logística: {formatCurrencyBRL(freightCost + tollCost)}</li>
+                            </ul>
+                        )}
                 </div>
             </div>
         ) : (
