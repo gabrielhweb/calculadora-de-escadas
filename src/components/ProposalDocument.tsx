@@ -18,7 +18,7 @@ interface ProposalDocumentProps {
 // --- INSTRUÇÕES ---
 // 1. Gere o código da imagem em https://www.base64-image.de/
 // 2. Cole o código GIGANTE dentro das aspas abaixo.
-const LOGO_BASE64 = "" as string; 
+const LOGO_BASE64 = "data:image/jpeg;base64,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" as string; 
 
 const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, inputData, freightCost, tollCost, installationCost, onBack }) => {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -27,30 +27,25 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
   const createPdfDoc = useCallback(() => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
+    const pageHeight = doc.internal.pageSize.height;
     const pageMargin = 20; 
     let currentY = 20;
 
     // --- LOGO ---
-    // Só tenta adicionar se tiver um código colado na variável acima
     if (LOGO_BASE64 && LOGO_BASE64.length > 100) {
         try { 
-            // Remove cabeçalho se o usuário colou com ele (ex: data:image/png;base64,...)
             const cleanBase64 = LOGO_BASE64.includes('base64,') 
                 ? LOGO_BASE64.split('base64,')[1] 
                 : LOGO_BASE64;
-
-            // Adiciona imagem (JPEG é mais compatível que PNG no jsPDF antigo)
             doc.addImage(cleanBase64, 'JPEG', (pageWidth / 2) - 15, currentY, 30, 30); 
             currentY += 35;
         } catch (e) {
-            console.error("Erro ao gerar imagem no PDF. Verifique o código Base64.", e);
-            // Fallback: Escreve o nome se a imagem falhar
+            console.error("Erro ao gerar imagem no PDF.", e);
             doc.setFontSize(10);
             doc.text('ZILINSKI', (pageWidth / 2), currentY + 15, { align: 'center' });
             currentY += 25;
         }
     } else {
-        // Espaço reservado se não tiver logo
         currentY += 10;
     }
 
@@ -62,7 +57,7 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
 
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
-    doc.text('Av. Maria Luiza Americano 1954, São Paulo –SP Tel.:019 992237714', pageWidth / 2, currentY, { align: 'center' });
+    doc.text('Av. Maria Luiza Americano 1954, São Paulo – São Paulo. Telefone: 019 992237714', pageWidth / 2, currentY, { align: 'center' });
     currentY += 15;
 
     doc.setFontSize(14);
@@ -74,8 +69,92 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
 
     // --- OPÇÕES ---
     options.forEach((opt) => {
-        // Verifica se cabe na página, senão cria nova
-        if (currentY > 240) { doc.addPage(); currentY = 20; }
+        // --- PRÉ-CÁLCULO DE ESPAÇO PARA O CONJUNTO (TEXTO + IMAGENS) ---
+        // Se a combinação de texto e imagens for exceder a página atual, quebramos ANTES de começar a escrever a opção.
+        
+        let estimatedHeight = 0;
+        estimatedHeight += 10; // Título Opção X
+        
+        // Simula linhas de texto
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'normal');
+        
+        const alturaM = (inputData.totalHeight / 100).toFixed(2).replace('.', ',');
+        const compM = (opt.totalLength / 100).toFixed(2).replace('.', ',');
+        const widthCm = opt.stairWidth;
+        
+        // --- ALTERAÇÃO DE TEXTO PARA RODINHAS & CORRIMÃO ---
+        let baseDescription = `Escada articulada lateral em aço carbono`;
+        let handrailText = "e com corrimão de 70cm";
+
+        if (inputData.hasWheels) {
+            baseDescription = `Escada articulada com rodinhas em aço carbono`;
+            // Lógica do Corrimão Articulado
+            if (inputData.handrailSide) {
+                const sideText = inputData.handrailSide === 'left' ? 'no lado esquerdo' : 
+                                 inputData.handrailSide === 'right' ? 'no lado direito' : 
+                                 'em ambos os lados';
+                handrailText = `e com corrimão articulado ${sideText}`;
+            }
+        }
+
+        const text1 = `${baseDescription} com corte à laser, com medidas de: ${alturaM}m de altura, ${compM}m de comprimento, ${widthCm}cm de largura ${handrailText}.`;
+        const lines1 = doc.splitTextToSize(text1, pageWidth - (pageMargin * 2));
+        estimatedHeight += (lines1.length * 5) + 2;
+
+        const stepH = opt.stepHeight.toFixed(2).replace('.', ',');
+        const tread = opt.treadDepth.toFixed(2).replace('.', ',');
+        
+        // --- ALTERAÇÃO DE TEXTO AMORTECEDORES ---
+        let dampersText = ` com ${inputData.dampers} amortecedores de alívio.`;
+        if (inputData.hasWheels) {
+            dampersText = `.`; // Remove menção aos amortecedores
+        }
+
+        const text2 = `-Com ${opt.structureSteps} degraus articulados com dimensões de ${stepH}cm de altura e pisante de ${tread}cm${dampersText}`;
+        const lines2 = doc.splitTextToSize(text2, pageWidth - (pageMargin * 2));
+        estimatedHeight += (lines2.length * 5) + 3;
+
+        // Lista de Preços (Estimativa)
+        estimatedHeight += 6; // Valor Escada
+        if (opt.landings.length > 0) estimatedHeight += (opt.landings.length * 6); // Patamares (LINHA DE SOMA REMOVIDA)
+        estimatedHeight += 6; // Frete
+        estimatedHeight += 6; // Instalação
+        if (inputData.optionalItems.length > 0) estimatedHeight += (inputData.optionalItems.length * 6); // Extras
+        estimatedHeight += 6; // Total
+        estimatedHeight += 10; // Espaço
+
+        // Altura das Imagens - CORREÇÃO DE TIPO AQUI
+        let imagesForOption: { title: string; imgData: string; width?: number; height?: number }[] = [];
+        if (userData.drawingImages) {
+             imagesForOption = userData.drawingImages.filter(img => img.title.includes(`Opção ${opt.optionNumber}`));
+        }
+        
+        // CÁLCULO DINÂMICO DE ALTURA DAS IMAGENS
+        // Define uma largura fixa desejada (ex: 150mm) e calcula a altura proporcional
+        const fixedDisplayWidth = 150; 
+        
+        // Calcula a altura total necessária para as imagens desta opção
+        let imagesTotalHeight = 0;
+        imagesForOption.forEach(img => {
+            let h = 100; // fallback default
+            if (img.width && img.height) {
+                const ratio = img.height / img.width;
+                h = fixedDisplayWidth * ratio;
+            }
+            imagesTotalHeight += (h + 10); // +10 de margem
+        });
+        
+        estimatedHeight += imagesTotalHeight;
+
+        // --- VERIFICAÇÃO DE QUEBRA DE PÁGINA INTELIGENTE ---
+        const pageLimit = pageHeight - pageMargin;
+        if (currentY + estimatedHeight > pageLimit) {
+             doc.addPage();
+             currentY = 20;
+        }
+
+        // --- RENDERIZAÇÃO REAL ---
 
         // Título da Opção
         doc.setFontSize(12);
@@ -86,81 +165,72 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
         doc.setFontSize(11);
         doc.setFont('helvetica', 'normal');
         
-        // Descrição Principal (IDÊNTICO AO MODELO)
-        const alturaM = (inputData.totalHeight / 100).toFixed(2).replace('.', ',');
-        const compM = (opt.totalLength / 100).toFixed(2).replace('.', ',');
-        // Corrimão fixo em 70cm conforme texto do modelo
-        const widthCm = opt.stairWidth;
-        
-        const text1 = `Escada articulada lateral em aço carbono com corte à laser, com medidas de: ${alturaM}m de altura, ${compM}m de comprimento, ${widthCm}cm de largura e com corrimão de 70cm.`;
-        const splitText1 = doc.splitTextToSize(text1, pageWidth - (pageMargin * 2));
-        doc.text(splitText1, pageMargin, currentY);
-        currentY += (splitText1.length * 5) + 2;
+        // Descrição Geral
+        doc.text(lines1, pageMargin, currentY);
+        currentY += (lines1.length * 5) + 2;
 
-        // Detalhes dos Degraus (IDÊNTICO AO MODELO)
-        const stepH = opt.stepHeight.toFixed(2).replace('.', ',');
-        const tread = opt.treadDepth.toFixed(2).replace('.', ',');
-        
-        const text2 = `-Com ${opt.structureSteps} degraus articulados com dimensões de ${stepH}cm de altura e pisante de ${tread}cm com ${inputData.dampers} amortecedores de alívio.`;
-        const splitText2 = doc.splitTextToSize(text2, pageWidth - (pageMargin * 2));
-        doc.text(splitText2, pageMargin, currentY);
-        currentY += (splitText2.length * 5) + 3;
+        // Detalhes dos Degraus
+        doc.text(lines2, pageMargin, currentY);
+        currentY += (lines2.length * 5) + 3;
 
-        // VALOR ESTRUTURA (Apenas escada)
+        // --- LISTA DE PREÇOS (Estilo Pré-Orçamento Detalhado) ---
+        
         const landingsPrice = opt.landings.reduce((acc, l) => acc + l.price, 0);
         const structureOnly = opt.totalPrice - landingsPrice;
         
+        doc.setFont('helvetica', 'normal');
         doc.text(`-Valor Escada (${opt.structureSteps} degraus): ${formatCurrencyBRL(structureOnly)}`, pageMargin, currentY);
         currentY += 6;
-
-        // PATAMARES (DETALHADO)
+        
+        // 2. Patamares
         if (opt.landings.length > 0) {
-            opt.landings.forEach((landing, idx) => {
+            // A LINHA DE SOMA FOI REMOVIDA AQUI CONFORME SOLICITADO
+            // doc.text(`  • Soma de ${opt.landings.length} Patamares: ${formatCurrencyBRL(landingsPrice)}`, pageMargin, currentY);
+            // currentY += 5;
+
+            opt.landings.forEach((landing) => {
                 const lM = (landing.length / 100).toFixed(2).replace('.', ',');
                 const wM = (landing.width / 100).toFixed(2).replace('.', ',');
                 
-                let label = opt.landings.length > 1 ? `Patamar ${idx + 1}` : `Patamar`;
+                // --- CORREÇÃO ABREVIAÇÕES (SEM ABREVIAÇÕES) ---
+                let guardText = "";
+                if (landing.hasSideGuardrail && landing.hasFrontGuardrail) guardText = " com Guarda-Corpo Lateral e Frontal";
+                else if (landing.hasSideGuardrail) guardText = " com Guarda-Corpo Lateral";
+                else if (landing.hasFrontGuardrail) guardText = " com Guarda-Corpo Frontal";
+
+                let flushText = landing.isFlushWithSlab ? " (Rente)" : "";
+
+                const line = `    - Patamar ${lM}m x ${wM}m${guardText}${flushText}: ${formatCurrencyBRL(landing.price)}`;
                 
-                // Adiciona direção se não for reto
-                if (landing.direction === 'left') label += ` (Curva p/ Esquerda)`;
-                else if (landing.direction === 'right') label += ` (Curva p/ Direita)`;
-                else label += ` (Reto)`;
-
-                // Texto detalhando medida e preço individual
-                doc.text(`-${label} em chapa xadrez 3mm (${lM}m x ${wM}m): ${formatCurrencyBRL(landing.price)}`, pageMargin, currentY);
-                currentY += 6;
+                const splitLine = doc.splitTextToSize(line, pageWidth - (pageMargin * 2));
+                doc.text(splitLine, pageMargin, currentY);
+                currentY += (splitLine.length * 5) + 1;
             });
-
-            // Se houver mais de um patamar, mostra o total deles
-            if (opt.landings.length > 1) {
-                 doc.setFont('helvetica', 'bold');
-                 doc.text(`-Total Patamares: ${formatCurrencyBRL(landingsPrice)}`, pageMargin, currentY);
-                 doc.setFont('helvetica', 'normal');
-                 currentY += 6;
-            }
         }
 
-        // FRETE (Lógica Atualizada)
+        currentY += 1;
+
+        // 3. Frete (CORREÇÃO DE TEXTO E COR)
         if (freightCost + tollCost > 0) {
             doc.text(`- Frete ${formatCurrencyBRL(freightCost + tollCost)}`, pageMargin, currentY);
-            currentY += 6;
         } else {
-            // AVISO EXPLÍCITO QUANDO NÃO HÁ CUSTO (REMVIDO "RETIRADA NA FÁBRICA")
+            // Removido cor vermelha e parênteses conforme solicitado
+            doc.setTextColor(0, 0, 0); 
             doc.setFont('helvetica', 'bold');
-            doc.text(`- Frete: POR CONTA DO CLIENTE`, pageMargin, currentY);
+            doc.text(`- Frete: Por conta do cliente`, pageMargin, currentY);
             doc.setFont('helvetica', 'normal');
-            currentY += 6;
-        }
-
-        // INSTALAÇÃO (FORMATO DO MODELO)
-        if (installationCost > 0) {
-             doc.text(`-Instalação ${formatCurrencyBRL(installationCost)} (Valor para local de fácil acesso)`, pageMargin, currentY);
-        } else {
-             doc.text(`-SEM INSTALAÇÃO (Responsabilidade do Cliente)`, pageMargin, currentY);
         }
         currentY += 6;
 
-        // EXTRAS
+        // 4. Instalação
+        if (installationCost > 0) {
+             doc.text(`-Instalação ${formatCurrencyBRL(installationCost)} (Valor para local de fácil acesso)`, pageMargin, currentY);
+        } else {
+             doc.text(`-Instalação: Por conta do cliente`, pageMargin, currentY);
+        }
+        currentY += 6;
+
+        // 5. Extras
         if (inputData.optionalItems.length > 0) {
             inputData.optionalItems.forEach(item => {
                 doc.text(`- ${item.name}: ${formatCurrencyBRL(item.price)}`, pageMargin, currentY);
@@ -168,56 +238,86 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
             });
         }
 
-        // TOTAL GERAL DA OPÇÃO
+        // 6. TOTAL
         const totalGeral = opt.totalPrice + freightCost + tollCost + installationCost + extrasCost;
+        doc.setFont('helvetica', 'bold');
         doc.text(`Total ${formatCurrencyBRL(totalGeral)}`, pageMargin, currentY);
+        doc.setFont('helvetica', 'normal');
         
-        currentY += 15; // Espaço entre opções
+        currentY += 10; 
+
+        // --- INSERÇÃO DE IMAGENS DA OPÇÃO ---
+        imagesForOption.forEach(img => {
+            // Calcula altura exata para manter proporção
+            let currentImgHeight = 100; // Fallback
+            if (img.width && img.height) {
+                const ratio = img.height / img.width;
+                currentImgHeight = fixedDisplayWidth * ratio;
+            }
+
+            // Centraliza a imagem
+            const xPos = (pageWidth - fixedDisplayWidth) / 2;
+
+            // Verifica se cabe na página, senão quebra (backup check)
+            if (currentY + currentImgHeight + 20 > pageLimit) {
+                doc.addPage();
+                currentY = 20;
+            }
+
+            // Título da Imagem (Pequeno e discreto acima)
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(100, 100, 100);
+            const titleWidth = doc.getTextWidth(img.title);
+            doc.text(img.title, (pageWidth - titleWidth) / 2, currentY);
+            currentY += 4;
+            doc.setTextColor(0, 0, 0);
+            
+            // Desenha Imagem
+            try {
+                doc.addImage(img.imgData, 'PNG', xPos, currentY, fixedDisplayWidth, currentImgHeight);
+                currentY += currentImgHeight + 10;
+            } catch (e) {
+                console.error("Erro ao adicionar imagem ao PDF", e);
+            }
+        });
+
+        currentY += 10; // Espaço final entre opções
     });
 
-    // --- RODAPÉ / INFORMAÇÕES FINAIS ---
-    // Verifica se cabe o rodapé, senão nova página
+    // --- RODAPÉ ---
     if (currentY > 200) { doc.addPage(); currentY = 20; }
 
     doc.setFontSize(11);
-    
-    // Acabamento
     doc.setFont('helvetica', 'bold');
     doc.text('-Acabamento: fundo prime', pageMargin, currentY);
     currentY += 6;
 
-    // Capacidades
     doc.text('-Capacidade máxima por degrau: 180k', pageMargin, currentY);
     currentY += 6;
     doc.text('-Capacidade máxima da escada: 360k', pageMargin, currentY);
     currentY += 10;
 
-    // Pagamento
     doc.text('Formas de pagamento:', pageMargin, currentY);
     currentY += 6;
     
-    // Linha À vista
     doc.setFont('helvetica', 'bold');
     doc.text('À vista: 5% de desconto, sendo 50% sinal restante e restante no dia da entrega', pageMargin, currentY);
     currentY += 6;
 
-    // Linha À prazo (Atualizada para especificar Cartão)
     doc.text('À prazo em até 12x via Link de Pagamento no Cartão de Crédito (juros conforme quantidade de vezes', pageMargin, currentY);
     currentY += 5;
     doc.text('e operadora)', pageMargin, currentY);
     currentY += 8;
 
-    // Observação (Prumo)
     const obsText = 'OBSERVAÇÃO: o prumo da parede é essencial que esteja correta pois pode atrapalhar a instalação e o bom funcionamento da escada.';
     const splitObs = doc.splitTextToSize(obsText, pageWidth - (pageMargin * 2));
     doc.text(splitObs, pageMargin, currentY);
     currentY += (splitObs.length * 5) + 8;
 
-    // Prazo
     doc.text('Prazo de entrega: 20 dias úteis após pagamento do sinal.', pageMargin, currentY);
     currentY += 8;
 
-    // PIX (IDÊNTICO AO MODELO)
     doc.text('Transferência via pix chave Cnpj: 28.869.537/0001-01 P G Zilinski ME', pageMargin, currentY);
 
     return doc;
@@ -231,7 +331,7 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
             doc.save(`orcamento_${userData.name.toLowerCase().replace(/\s/g, '_')}.pdf`);
         } catch (error) {
             console.error("Erro fatal ao salvar PDF", error);
-            alert("Ocorreu um erro ao gerar o PDF. Se a imagem estiver muito pesada, tente uma menor.");
+            alert("Ocorreu um erro ao gerar o PDF.");
         } finally {
             setIsGenerating(false);
         }

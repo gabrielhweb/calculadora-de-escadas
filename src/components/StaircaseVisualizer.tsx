@@ -42,15 +42,13 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
   const [viewMode, setViewMode] = useState<'side' | '3d'>(initialViewMode);
   
   // --- CONFIGURAÇÃO DE SEGURANÇA ---
-  // headroomInput: Valor digitado no campo (temporário)
-  // targetHeadroom: Valor aplicado no cálculo (só muda no clique do botão)
   const [headroomInput, setHeadroomInput] = useState(200);
   const [targetHeadroom, setTargetHeadroom] = useState(200); 
 
   // --- CONTROLES DE CÂMERA ---
   const [zoom, setZoom] = useState(printMode ? 1 : 1.1); 
   const [pan, setPan] = useState({ x: 0, y: 0 });
-  const [rotation, setRotation] = useState({ x: -20, y: 45 }); // x: Pitch (vertical), y: Yaw (horizontal)
+  const [rotation, setRotation] = useState({ x: -20, y: 45 });
 
   const [isDragging, setIsDragging] = useState(false);
   const [dragType, setDragType] = useState<'rotate' | 'pan'>('pan');
@@ -71,7 +69,6 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
   const [showExportMenu, setShowExportMenu] = useState(false);
   const internalCanvasRef = useRef<HTMLDivElement>(null);
 
-  // Ajuste inicial para modo de impressão 3D e Forced State
   useEffect(() => {
       if (printMode && initialViewMode === '3d') {
           setRotation({ x: -20, y: 45 });
@@ -93,7 +90,7 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
   const floorY = svgHeight - 150; 
   const ceilingY = floorY - totalHeight; 
   const slabBottomY = ceilingY + (slabThickness || 0);
-  const ceilingHeight = totalHeight - (slabThickness || 0); // Pé direito
+  const ceilingHeight = totalHeight - (slabThickness || 0); 
 
   const hasSlabInfo = slabOpening !== undefined && slabOpening > 0 && !isNaN(slabOpening);
   
@@ -101,7 +98,7 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
 
   // Função crítica: Calcula onde está a borda da laje baseada no comprimento ATUAL da escada.
   const getSlabEdgeX = (currentTotalLength: number) => {
-      if (!hasSlabInfo) return margin + currentTotalLength + 200; // Se não tem laje, joga longe
+      if (!hasSlabInfo) return margin + currentTotalLength + 200; 
       return margin + currentTotalLength - (slabOpening || 0);
   };
 
@@ -116,71 +113,55 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
 
       // --- ALGORITMO DE VERIFICAÇÃO DE COLISÃO ---
       const calculateHeadroom = (treadDepth: number, totalLen: number) => {
-          // 1. Onde está a borda da laje neste cenário?
           const currentSlabX = margin + totalLen - (slabOpening || 0);
+          let surfaceYUnderSlab = floorY; 
           
-          let surfaceYUnderSlab = floorY; // Começa no chão
-          
-          // Itera sobre todos os degraus para ver qual está SOB a linha da laje
           for (let i = 1; i <= option.steps; i++) {
                let currentRunStart = 0;
-               // Soma o comprimento de todos os degraus/patamares anteriores
                for(let j=1; j<i; j++) {
                    const isLanding = safeLandings.find(l=>l.step === j);
                    currentRunStart += isLanding ? isLanding.length : treadDepth;
                }
-               
                const stepStart = margin + currentRunStart;
                const isLanding = safeLandings.find(l=>l.step === i);
                const currentRunLength = isLanding ? isLanding.length : treadDepth;
                const stepEnd = stepStart + currentRunLength;
                
-               // Verifica se a linha da laje (currentSlabX) cai DENTRO deste degrau
-               // Adiciona tolerância de 0.5cm para evitar erros de arredondamento
                if (currentSlabX >= stepStart - 0.5 && currentSlabX < stepEnd - 0.5) {
                    surfaceYUnderSlab = floorY - (i * option.stepHeight);
                    break;
                }
           }
           
-          // Se a laje estiver DEPOIS de todos os degraus (no topo), a altura é a altura total da escada
           if (currentSlabX >= margin + totalLen - 0.5) {
               surfaceYUnderSlab = floorY - (option.steps * option.stepHeight);
           }
 
-          // Distância = Chão (Maior Y) - Teto (Menor Y)
           const dist = surfaceYUnderSlab - slabBottomY;
           return { clearance: dist, slabX: currentSlabX, stepY: surfaceYUnderSlab };
       };
 
-      // 1. CALCULA SEGURANÇA ORIGINAL
       const origCheck = calculateHeadroom(option.treadDepth, option.totalLength);
       result.originalSafety = { safe: origCheck.clearance >= targetHeadroom, clearance: origCheck.clearance };
-      result.corrections.safeSlabX = origCheck.slabX; // Valor inicial padrão
+      result.corrections.safeSlabX = origCheck.slabX; 
 
-      // 2. CORREÇÃO TIPO: AUMENTAR VÃO (Mantém escada, move laje)
       let safeXSlabForOpening = origCheck.slabX;
       const requiredY = slabBottomY + targetHeadroom; 
       
-      // Procura o primeiro degrau que é "alto demais" (perigoso)
       for (let i = 0; i <= option.steps; i++) {
         const stepTopY = floorY - (i * option.stepHeight);
-        
-        // Se este degrau está fisicamente acima da linha de segurança (Y menor)
         if (stepTopY < requiredY) {
-            // O vão precisa terminar ANTES deste degrau começar.
             let runBeforeStep = 0;
             for(let j=1; j<i; j++) { 
                const isLanding = safeLandings.find(l=>l.step === j);
                runBeforeStep += isLanding ? isLanding.length : option.treadDepth;
             }
-            safeXSlabForOpening = margin + runBeforeStep - 1; // Recua 1cm antes do degrau
+            safeXSlabForOpening = margin + runBeforeStep - 1; 
             break;
         }
         if (i === option.steps) safeXSlabForOpening = Math.max(origCheck.slabX, margin + option.totalLength);
       }
       
-      // 3. CORREÇÃO TIPO: AJUSTAR ESCADA (Encolher para caber no vão existente)
       const stairsOnlySteps = option.structureSteps;
       const landingsLen = safeLandings.reduce((acc,l) => acc+l.length, 0);
       
@@ -189,9 +170,7 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
       let bestClearance = -999;
       let isSolutionFound = false;
 
-      // ALGORITMO DE BUSCA:
       for (let t = option.treadDepth; t >= 18; t -= 0.1) {
-          // *** ALTERAÇÃO: Considerando GAP DE 0.5cm no cálculo ***
           const tryLength = (stairsOnlySteps * (t + 0.5)) + landingsLen;
           const check = calculateHeadroom(t, tryLength);
 
@@ -211,7 +190,7 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
       }
       
       result.corrections = { 
-          safeSlabX: safeXSlabForOpening, // Usado apenas no modo "Expand Opening"
+          safeSlabX: safeXSlabForOpening, 
           safeLength: bestSafeLength, 
           safeTread: bestSafeTread, 
           clearanceAtSafe: isSolutionFound ? Math.max(bestClearance, targetHeadroom) : bestClearance, 
@@ -274,6 +253,11 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
   const drawOpeningVal = drawStairEndX - drawSlabEdgeX;
   const svgWidth = Math.max(margin + option.totalLength, drawStairEndX, drawSlabEdgeX) + (margin * 5);
 
+  // Calcula comprimentos separados para cota (Último Patamar)
+  const topLanding = safeLandings.find(l => l.step === option.steps); // Verifica se o último degrau é patamar
+  const landingLength = topLanding ? topLanding.length : 0;
+  const stairRunLength = drawTotalLength - landingLength;
+
   // --- LÓGICA 3D INTERATIVA ---
   const projectPoint = (p: Point3D): Point2D => {
       const cx = drawTotalLength / 2;
@@ -297,13 +281,14 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
       const beamW = 10; 
       const treadColorTop = '#a0a0a0'; 
       const treadColorSide = '#666'; 
-      const landingColor = '#c0c0c0';
+      const landingColor = '#94a3b8';
       const beamColor = '#222'; 
       const beamStroke = '#000';
       
       let currentPos = { x: 0, y: totalHeight, z: 0 };
       let currentAngle = 0; 
       
+      // LAJE (Parte Esquerda - Antes do Vão)
       if (hasSlabInfo) {
           const slabLimitX = drawSlabEdgeX - margin;
           const slabYCeil = 0;
@@ -327,9 +312,34 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
           faces.push({ points: [s2, s3, s3_b, s2_b], fill: '#94a3b8', stroke: '#64748b', zIndex: -998, id: 'slab-cut' });
       }
 
+      // LAJE DE CONTINUAÇÃO (Parte Direita - Após a Escada)
+      // Renderiza sempre, para mostrar que o piso continua
+      const slabContStartX = drawTotalLength; // Começa onde a escada termina
+      const slabContEndX = 2000; // Vai até longe
+      const slabYCeil = 0;
+      const slabYFloor = -(slabThickness || 15);
+      const slabZStart = -1000; 
+      const slabZEnd = 1000;
+
+      const sc1 = { x: slabContStartX, y: slabYFloor, z: slabZStart }; 
+      const sc2 = { x: slabContEndX,   y: slabYFloor, z: slabZStart }; 
+      const sc3 = { x: slabContEndX,   y: slabYFloor, z: slabZEnd };   
+      const sc4 = { x: slabContStartX, y: slabYFloor, z: slabZEnd };   
+      const sc1_b = { x: slabContStartX, y: slabYCeil, z: slabZStart };
+      const sc2_b = { x: slabContEndX,   y: slabYCeil, z: slabZStart };
+      const sc3_b = { x: slabContEndX,   y: slabYCeil, z: slabZEnd };
+      const sc4_b = { x: slabContStartX, y: slabYCeil, z: slabZEnd };
+
+      faces.push({ points: [sc1, sc2, sc3, sc4], fill: '#e2e8f0', stroke: '#cbd5e1', zIndex: -1000, id: 'slab-cont-floor' });
+      faces.push({ points: [sc1_b, sc4_b, sc3_b, sc2_b], fill: '#cbd5e1', stroke: '#94a3b8', zIndex: -999, id: 'slab-cont-ceil', opacity: 1 });
+      // Face frontal do corte (onde a escada chega)
+      faces.push({ points: [sc1, sc4, sc4_b, sc1_b], fill: '#94a3b8', stroke: '#64748b', zIndex: -998, id: 'slab-cont-face' });
+
+
       for (let i = 1; i <= option.steps; i++) {
           const landing = safeLandings.find(l => l.step === i);
           const run = landing ? landing.length : drawTreadDepth; 
+          const isFixedLanding = landing && landing.type === 'fixed';
           
           const rad = (currentAngle * Math.PI) / 180;
           const fwdX = Math.cos(rad) * run;
@@ -340,6 +350,7 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
           const yBottom = currentPos.y;
           const yTop = currentPos.y - stepH;
 
+          // Pontos do Degrau/Patamar
           const p0 = { x: currentPos.x, y: yTop, z: currentPos.z };
           const p1 = { x: currentPos.x + rightX, y: yTop, z: currentPos.z + rightZ };
           const p2 = { x: currentPos.x + rightX + fwdX, y: yTop, z: currentPos.z + rightZ + fwdZ };
@@ -354,23 +365,28 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
           faces.push({ points: [p1, p2, p2_b, p1_b], fill: treadColorSide, stroke: '#333', zIndex: 0, id: `s${i}-right` });
           faces.push({ points: [p0, p3, p3_b, p0_b], fill: treadColorSide, stroke: '#333', zIndex: 0, id: `s${i}-left` });
 
-          const centerRatio = 0.5;
-          const beamCenterX = currentPos.x + (rightX * centerRatio);
-          const beamCenterZ = currentPos.z + (rightZ * centerRatio);
-          const beamHalfW_X = (rightX / width) * (beamW/2);
-          const beamHalfW_Z = (rightZ / width) * (beamW/2);
-          const vb0 = { x: beamCenterX - beamHalfW_X, y: yTop + treadH, z: beamCenterZ - beamHalfW_Z };
-          const vb1 = { x: beamCenterX + beamHalfW_X, y: yTop + treadH, z: beamCenterZ + beamHalfW_Z };
-          const vb2 = { x: vb1.x + fwdX, y: yTop + treadH, z: vb1.z + fwdZ };
-          const vb3 = { x: vb0.x + fwdX, y: yTop + treadH, z: vb0.z + fwdZ };
-          const vb0_d = { x: vb0.x, y: yBottom, z: vb0.z };
-          const vb1_d = { x: vb1.x, y: yBottom, z: vb1.z };
-          const vb2_d = { x: vb2.x, y: yBottom, z: vb2.z };
-          const vb3_d = { x: vb3.x, y: yBottom, z: vb3.z };
+          // Lógica da Viga Central / Suporte
+          if (!isFixedLanding) {
+              // Viga Articulada (Zig-Zag) - Só desenha se NÃO for patamar fixo
+              const centerRatio = 0.5;
+              const beamCenterX = currentPos.x + (rightX * centerRatio);
+              const beamCenterZ = currentPos.z + (rightZ * centerRatio);
+              const beamHalfW_X = (rightX / width) * (beamW/2);
+              const beamHalfW_Z = (rightZ / width) * (beamW/2);
+              const vb0 = { x: beamCenterX - beamHalfW_X, y: yTop + treadH, z: beamCenterZ - beamHalfW_Z };
+              const vb1 = { x: beamCenterX + beamHalfW_X, y: yTop + treadH, z: beamCenterZ + beamHalfW_Z };
+              const vb2 = { x: vb1.x + fwdX, y: yTop + treadH, z: vb1.z + fwdZ };
+              const vb3 = { x: vb0.x + fwdX, y: yTop + treadH, z: vb0.z + fwdZ };
+              const vb0_d = { x: vb0.x, y: yBottom, z: vb0.z };
+              const vb1_d = { x: vb1.x, y: yBottom, z: vb1.z };
+              const vb2_d = { x: vb2.x, y: yBottom, z: vb2.z };
+              const vb3_d = { x: vb3.x, y: yBottom, z: vb3.z };
 
-          faces.push({ points: [vb2, vb3, vb3_d, vb2_d], fill: beamColor, stroke: beamStroke, zIndex: -1, id: `b${i}-front` });
-          faces.push({ points: [vb1, vb2, vb2_d, vb1_d], fill: beamColor, stroke: beamStroke, zIndex: -1, id: `b${i}-right` });
-          faces.push({ points: [vb0, vb3, vb3_d, vb0_d], fill: beamColor, stroke: beamStroke, zIndex: -1, id: `b${i}-left` });
+              faces.push({ points: [vb2, vb3, vb3_d, vb2_d], fill: beamColor, stroke: beamStroke, zIndex: -1, id: `b${i}-front` });
+              faces.push({ points: [vb1, vb2, vb2_d, vb1_d], fill: beamColor, stroke: beamStroke, zIndex: -1, id: `b${i}-right` });
+              faces.push({ points: [vb0, vb3, vb3_d, vb0_d], fill: beamColor, stroke: beamStroke, zIndex: -1, id: `b${i}-left` });
+          }
+          // Se for Fixo, não desenha nada embaixo (fica "flutuando" ou preso na parede invisível)
           
           currentPos.y -= stepH;
           if (landing) {
@@ -394,7 +410,6 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
           const cx = 0; const cy = totalHeight/2; const cz = 0;
           let x = center.x - cx; let y = center.y - cy; let z = center.z - cz;
           const radY = (rotation.y * Math.PI) / 180;
-          // FIX: removed unused x1 variable
           const z1 = x * Math.sin(radY) + z * Math.cos(radY);
           const radX = (rotation.x * Math.PI) / 180;
           const z2 = y * Math.sin(radX) + z1 * Math.cos(radX);
@@ -409,7 +424,7 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
         if (!hasSlabInfo) return null;
         const lineX = drawSlabEdgeX;
         const lineTopY = slabBottomY;
-        let lineBottomY = floorY; // Começa no chão
+        let lineBottomY = floorY; 
         
         for (let i = 1; i <= option.steps; i++) {
             let currentRunStart = 0;
@@ -422,7 +437,6 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
             const runLen = isLanding ? isLanding.length : drawTreadDepth;
             const stepEnd = stepStart + runLen;
             
-            // Verifica colisão horizontal com tolerância
             if (lineX >= stepStart - 0.5 && lineX < stepEnd - 0.5) {
                 lineBottomY = floorY - (i * option.stepHeight);
                 break;
@@ -435,18 +449,44 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
     const headroomLine = getHeadroomLine();
 
     const stepsPoints = [{x: margin, y: floorY}];
+    const landingDraws: any[] = []; 
+
     let currentX = margin;
     let currentY = floorY;
     let firstStepCoords = {x: 0, y: 0};
 
+    // Identifica se o último degrau é Rente à Laje (Flush)
+    const isLastFlush = topLanding && topLanding.isFlushWithSlab;
+
     for (let i = 1; i <= option.steps; i++) {
         currentY -= option.stepHeight;
-        stepsPoints.push({x: currentX, y: currentY});
-        if (i === 1) firstStepCoords = {x: currentX, y: currentY};
+        
+        // --- CORREÇÃO VISUAL PARA RENTE À LAJE (FLUSH) ---
+        let visualY = currentY;
+        if (i === option.steps && isLastFlush) {
+            visualY = ceilingY;
+        }
+
+        stepsPoints.push({x: currentX, y: visualY});
+        if (i === 1) firstStepCoords = {x: currentX, y: visualY};
+        
         const landing = safeLandings.find(l => l.step === i);
         const run = landing ? landing.length : drawTreadDepth;
+        
+        if (landing) {
+            landingDraws.push(
+                <g key={`landing-${i}`}>
+                    <rect x={currentX} y={visualY} width={run} height={10} fill="#cbd5e1" stroke="none" opacity="0.5"/>
+                    <text x={currentX + run/2} y={visualY - 15} textAnchor="middle" fontSize="12" fontWeight="bold" fill="#475569">
+                        PATAMAR {landing.type === 'fixed' ? '(FIXO)' : ''}
+                    </text>
+                    {/* Pilar removido conforme solicitado */}
+                </g>
+            );
+        }
+
         currentX += run;
-        stepsPoints.push({x: currentX, y: currentY});
+        stepsPoints.push({x: currentX, y: visualY});
     }
     stepsPoints.push({x: currentX, y: floorY});
     let d = `M ${stepsPoints[0].x} ${stepsPoints[0].y}`;
@@ -456,18 +496,52 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
         <g>
             <rect x={margin} y={ceilingY} width={drawTotalLength} height={totalHeight} fill="#f1f5f9" stroke="none" />
             <text x={margin + 10} y={floorY - 20} fill="#cbd5e1" fontSize="40" fontWeight="bold" opacity="0.5">PAREDE (Ref. 2D)</text>
+            
+            {/* LINHA DE CHÃO */}
             <line x1={-1000} y1={floorY} x2={svgWidth + 1000} y2={floorY} stroke="#333" strokeWidth="4" />
-            {hasSlabInfo ? (
+            
+            {/* LINHA DE LAJE CONTÍNUA (VISUALIZAÇÃO DE NÍVEL SUPERIOR - AGORA SÓLIDA) */}
+            <line x1={-1000} y1={ceilingY} x2={svgWidth + 1000} y2={ceilingY} stroke="#94a3b8" strokeWidth="2" opacity="0.7" />
+            <text x={margin + drawTotalLength + 50} y={ceilingY - 10} fill="#94a3b8" fontSize="14" fontStyle="italic">Nível Piso Superior</text>
+
+            {/* REPRESENTAÇÃO DA LAJE FÍSICA SE HOUVER (Lado Esquerdo do Vão) */}
+            {hasSlabInfo && (
                  <g>
                     <rect x={-1000} y={ceilingY} width={1000 + drawSlabEdgeX} height={slabThickness} fill={simulateSafe && correctionType === 'expand_opening' ? '#86efac' : '#cbd5e1'} stroke="none" opacity="0.8"/>
                     <line x1={-1000} y1={slabBottomY} x2={drawSlabEdgeX} y2={slabBottomY} stroke="#333" strokeWidth="3" />
                     <line x1={drawSlabEdgeX} y1={ceilingY - 50} x2={drawSlabEdgeX} y2={slabBottomY} stroke="#333" strokeWidth="3"/>
                  </g>
-            ) : (
-                <line x1={-1000} y1={ceilingY} x2={svgWidth + 1000} y2={ceilingY} stroke="#94a3b8" strokeDasharray="10" strokeWidth="1" />
             )}
+
+            {/* LAJE DE CONTINUAÇÃO (Lado Direito - Pós Escada) */}
+            {/* Desenha sempre para mostrar o nível de chegada */}
+            <g>
+                <rect x={drawStairEndX} y={ceilingY} width={svgWidth} height={slabThickness} fill="#cbd5e1" stroke="none" opacity="0.8"/>
+                <line x1={drawStairEndX} y1={ceilingY} x2={svgWidth + 1000} y2={ceilingY} stroke="#333" strokeWidth="3" />
+                <line x1={drawStairEndX} y1={slabBottomY} x2={svgWidth + 1000} y2={slabBottomY} stroke="#333" strokeWidth="3" />
+                <line x1={drawStairEndX} y1={ceilingY} x2={drawStairEndX} y2={slabBottomY} stroke="#333" strokeWidth="3" />
+            </g>
+            
+            {landingDraws}
+
             <path d={d} fill="none" stroke={simulateSafe && correctionType === 'shrink_stair' ? '#16a34a' : 'black'} strokeWidth="2" strokeLinejoin="round" />
             
+            {/* INDICADOR DE FIXAÇÃO NO TOPO */}
+            <g>
+                <circle cx={drawStairEndX} cy={ceilingY + (isLastFlush ? 0 : option.stepHeight)} r="5" fill={isLastFlush ? "transparent" : "red"} />
+                {isLastFlush ? (
+                    <g>
+                        <line x1={drawStairEndX} y1={ceilingY} x2={drawStairEndX + 40} y2={ceilingY - 30} stroke="#2563eb" strokeWidth="2"/>
+                        <text x={drawStairEndX + 45} y={ceilingY - 35} fill="#2563eb" fontSize="14" fontWeight="bold">Patamar Rente à Laje</text>
+                    </g>
+                ) : (
+                    <g>
+                        <line x1={drawStairEndX} y1={ceilingY + option.stepHeight} x2={drawStairEndX + 40} y2={ceilingY + option.stepHeight + 30} stroke="#dc2626" strokeWidth="2"/>
+                        <text x={drawStairEndX + 45} y={ceilingY + option.stepHeight + 35} fill="#dc2626" fontSize="14" fontWeight="bold">Último Degrau (Abaixo da Laje)</text>
+                    </g>
+                )}
+            </g>
+
             {/* Cota Altura Total (H) */}
             <g>
                 <line x1={margin - 60} y1={floorY} x2={margin - 60} y2={floorY - totalHeight} stroke="#000" strokeWidth="3" markerEnd="url(#arrowGray)" markerStart="url(#arrowGray)" />
@@ -490,33 +564,40 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
                 </g>
             )}
             
-            {/* Cota Degrau (Pisante) */}
+            {/* Cota Degrau e Altura */}
             {firstStepCoords.x > 0 && (
                 <g>
-                    <line x1={firstStepCoords.x} y1={firstStepCoords.y - 20} x2={firstStepCoords.x + drawTreadDepth} y2={firstStepCoords.y - 20} stroke="#333" strokeWidth="1" markerEnd="url(#arrowGray)" markerStart="url(#arrowGray)"/>
-                    <text x={firstStepCoords.x + (drawTreadDepth/2)} y={firstStepCoords.y - 30} fontSize="14" fill="#333" fontWeight="bold" textAnchor="middle">p={drawTreadDepth.toFixed(1)}</text>
+                    <text x={firstStepCoords.x + (drawTreadDepth/2)} y={firstStepCoords.y - 10} fontSize="14" fill="#333" fontWeight="bold" textAnchor="middle">p={drawTreadDepth.toFixed(1)}</text>
+                    <text x={firstStepCoords.x - 25} y={firstStepCoords.y + (option.stepHeight/2)} fontSize="14" fill="#333" fontWeight="bold" textAnchor="middle">h={option.stepHeight.toFixed(1)}</text>
                 </g>
             )}
 
-            {/* Cota Altura Degrau (Espelho) */}
-            {firstStepCoords.x > 0 && (
-                <g>
-                    <line x1={firstStepCoords.x - 15} y1={firstStepCoords.y} x2={firstStepCoords.x - 15} y2={firstStepCoords.y + option.stepHeight} stroke="#333" strokeWidth="1" markerEnd="url(#arrowGray)" markerStart="url(#arrowGray)"/>
-                    <text x={firstStepCoords.x - 35} y={firstStepCoords.y + (option.stepHeight/2)} fontSize="14" fill="#333" fontWeight="bold" textAnchor="middle">h={option.stepHeight.toFixed(1)}</text>
-                </g>
-            )}
-
-            {/* Cota Comprimento Total */}
+            {/* COTAS DE COMPRIMENTO (DIVIDIDAS SE TIVER PATAMAR) */}
             <g>
-                <line x1={margin} y1={floorY + 50} x2={drawStairEndX} y2={floorY + 50} stroke="#333" strokeWidth="3" markerEnd="url(#arrowGray)" markerStart="url(#arrowGray)" />
-                <line x1={margin} y1={floorY + 20} x2={margin} y2={floorY + 60} stroke="#333" strokeWidth="1" strokeDasharray="4" />
-                <line x1={drawStairEndX} y1={floorY + 20} x2={drawStairEndX} y2={floorY + 60} stroke="#333" strokeWidth="1" strokeDasharray="4" />
-                <text x={(margin + drawStairEndX)/2} y={floorY + 45} fill="#333" fontSize="20" fontWeight="bold" textAnchor="middle">Comp. Total: {(drawTotalLength/100).toFixed(2)}m</text>
+                {/* Cota Total Sempre Visível */}
+                <line x1={margin} y1={floorY + 80} x2={drawStairEndX} y2={floorY + 80} stroke="#333" strokeWidth="3" markerEnd="url(#arrowGray)" markerStart="url(#arrowGray)" />
+                <text x={(margin + drawStairEndX)/2} y={floorY + 75} fill="#333" fontSize="20" fontWeight="bold" textAnchor="middle">Comp. Total: {(drawTotalLength/100).toFixed(2)}m</text>
+                
+                {/* Se tiver patamar no topo, quebra a cota */}
+                {topLanding ? (
+                    <g>
+                        {/* Escada (Antes "Lance") */}
+                        <line x1={margin} y1={floorY + 40} x2={margin + stairRunLength} y2={floorY + 40} stroke="#666" strokeWidth="2" markerEnd="url(#arrowGray)" markerStart="url(#arrowGray)" />
+                        <line x1={margin + stairRunLength} y1={floorY + 20} x2={margin + stairRunLength} y2={floorY + 50} stroke="#666" strokeWidth="1" strokeDasharray="4"/>
+                        <text x={margin + stairRunLength/2} y={floorY + 35} fill="#666" fontSize="16" fontStyle="italic" textAnchor="middle">Escada: {(stairRunLength/100).toFixed(2)}m</text>
+
+                        {/* Patamar */}
+                        <line x1={margin + stairRunLength} y1={floorY + 40} x2={drawStairEndX} y2={floorY + 40} stroke="#666" strokeWidth="2" markerEnd="url(#arrowGray)" markerStart="url(#arrowGray)" />
+                        <text x={margin + stairRunLength + landingLength/2} y={floorY + 35} fill="#666" fontSize="16" fontStyle="italic" textAnchor="middle">Patamar: {(landingLength/100).toFixed(2)}m</text>
+                    </g>
+                ) : null}
+
+                <line x1={margin} y1={floorY + 20} x2={margin} y2={floorY + 90} stroke="#333" strokeWidth="1" strokeDasharray="4" />
+                <line x1={drawStairEndX} y1={floorY + 20} x2={drawStairEndX} y2={floorY + 90} stroke="#333" strokeWidth="1" strokeDasharray="4" />
             </g>
 
             {hasSlabInfo && headroomLine && (
                 <g>
-                    {/* Linha Azul REAL (Calculada) */}
                     <line x1={headroomLine.x} y1={headroomLine.y1} x2={headroomLine.x} y2={headroomLine.y2} stroke="#2563eb" strokeWidth="3" markerStart="url(#arrowBlue)" markerEnd="url(#arrowBlue)"/>
                     <text x={headroomLine.x + 10} y={headroomLine.y1 + (headroomLine.dist/2)} fill="#2563eb" fontSize="20" fontWeight="bold">{headroomLine.dist.toFixed(0)}cm</text>
                 </g>
@@ -526,88 +607,37 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
   };
 
   const render3DDimensions = () => {
-    const heightStartX = -30;
-    const pHeightStart = projectPoint({ x: heightStartX, y: totalHeight, z: 0 });
-    const pHeightEnd = projectPoint({ x: heightStartX, y: 0, z: 0 });
     const lenZ = 40;
     const lenY = totalHeight + 20;
     const pLenStart = projectPoint({ x: 0, y: lenY, z: lenZ });
     const pLenEnd = projectPoint({ x: drawTotalLength, y: lenY, z: lenZ });
-    const baseStepX = 0; 
-    const baseStepY = totalHeight;
-    const baseStepZ = 0; 
-    const pBaseCorner = projectPoint({ x: baseStepX, y: baseStepY, z: baseStepZ + 10 }); 
-    const pStepTop = projectPoint({ x: baseStepX, y: baseStepY - option.stepHeight, z: baseStepZ + 10 }); 
-    const pStepFront = projectPoint({ x: baseStepX + drawTreadDepth, y: baseStepY - option.stepHeight, z: baseStepZ + 10 }); 
+    
+    // Pontos para cota dividida (Lance vs Patamar)
+    const pSplit = projectPoint({ x: stairRunLength, y: lenY, z: lenZ });
 
-    let slabText = null;
-    let slabLine = null;
-    if (hasSlabInfo) {
-        const slabEdge3D = drawSlabEdgeX - margin;
-        const stairEnd3D = drawTotalLength;
-        const gapSize = stairEnd3D - slabEdge3D; 
-        const pGapStart = projectPoint({ x: slabEdge3D, y: -20, z: -50 });
-        const pGapEnd = projectPoint({ x: stairEnd3D, y: -20, z: -50 });
-        const pGapText = { x: (pGapStart.x + pGapEnd.x)/2, y: (pGapStart.y + pGapEnd.y)/2 };
-
-        slabLine = (
-             <line x1={pGapStart.x} y1={pGapStart.y} x2={pGapEnd.x} y2={pGapEnd.y} stroke="#dc2626" strokeWidth="2" markerEnd="url(#arrowRed)" markerStart="url(#arrowRed)" />
-        );
-
-        slabText = (
-            <g>
-                <text x={pGapText.x} y={pGapText.y - 10} textAnchor="middle" fontSize="16" fontWeight="bold" fill="#dc2626" stroke="white" strokeWidth="3" paintOrder="stroke">
-                   Vão: {gapSize.toFixed(0)}cm
-                </text>
-                <text x={pGapText.x} y={pGapText.y - 10} textAnchor="middle" fontSize="16" fontWeight="bold" fill="#dc2626">
-                   Vão: {gapSize.toFixed(0)}cm
-                </text>
-            </g>
-        );
-    }
+    const pHeightStart = projectPoint({ x: -30, y: totalHeight, z: 0 });
+    const pHeightEnd = projectPoint({ x: -30, y: 0, z: 0 });
 
     return (
         <g style={{ pointerEvents: 'none' }}>
+            {/* Altura */}
             <line x1={pHeightStart.x} y1={pHeightStart.y} x2={pHeightEnd.x} y2={pHeightEnd.y} stroke="#7e22ce" strokeWidth="2" markerEnd="url(#arrowPurple)" markerStart="url(#arrowPurple)" />
-            <line x1={projectPoint({x:0, y:totalHeight, z:0}).x} y1={projectPoint({x:0, y:totalHeight, z:0}).y} x2={pHeightStart.x} y2={pHeightStart.y} stroke="#7e22ce" strokeWidth="1" strokeDasharray="4"/>
-            <line x1={projectPoint({x:0, y:0, z:0}).x} y1={projectPoint({x:0, y:0, z:0}).y} x2={pHeightEnd.x} y2={pHeightEnd.y} stroke="#7e22ce" strokeWidth="1" strokeDasharray="4"/>
-            <g>
-                <text x={(pHeightStart.x + pHeightEnd.x)/2 - 15} y={(pHeightStart.y + pHeightEnd.y)/2} textAnchor="end" fontSize="16" fontWeight="bold" fill="#7e22ce" stroke="white" strokeWidth="3" paintOrder="stroke">
-                    H={(totalHeight/100).toFixed(2)}m
-                </text>
-                <text x={(pHeightStart.x + pHeightEnd.x)/2 - 15} y={(pHeightStart.y + pHeightEnd.y)/2} textAnchor="end" fontSize="16" fontWeight="bold" fill="#7e22ce">
-                    H={(totalHeight/100).toFixed(2)}m
-                </text>
-            </g>
+            <text x={(pHeightStart.x + pHeightEnd.x)/2 - 15} y={(pHeightStart.y + pHeightEnd.y)/2} textAnchor="end" fontSize="16" fontWeight="bold" fill="#7e22ce" stroke="white" strokeWidth="3" paintOrder="stroke">H={(totalHeight/100).toFixed(2)}m</text>
+            <text x={(pHeightStart.x + pHeightEnd.x)/2 - 15} y={(pHeightStart.y + pHeightEnd.y)/2} textAnchor="end" fontSize="16" fontWeight="bold" fill="#7e22ce">H={(totalHeight/100).toFixed(2)}m</text>
+
+            {/* Comprimento Total */}
             <line x1={pLenStart.x} y1={pLenStart.y} x2={pLenEnd.x} y2={pLenEnd.y} stroke="#333" strokeWidth="2" markerEnd="url(#arrowGray)" markerStart="url(#arrowGray)" />
-            <line x1={projectPoint({x:0, y:totalHeight, z:lenZ}).x} y1={projectPoint({x:0, y:totalHeight, z:lenZ}).y} x2={pLenStart.x} y2={pLenStart.y} stroke="#333" strokeWidth="1" strokeDasharray="4"/>
-            <line x1={projectPoint({x:drawTotalLength, y:totalHeight, z:lenZ}).x} y1={projectPoint({x:drawTotalLength, y:totalHeight, z:lenZ}).y} x2={pLenEnd.x} y2={pLenEnd.y} stroke="#333" strokeWidth="1" strokeDasharray="4"/>
-            <g>
-                 <text x={(pLenStart.x + pLenEnd.x)/2} y={pLenStart.y + 20} textAnchor="middle" fontSize="16" fontWeight="bold" fill="#333" stroke="white" strokeWidth="3" paintOrder="stroke">
-                    Comp. Total: {(drawTotalLength/100).toFixed(2)}m
-                </text>
-                <text x={(pLenStart.x + pLenEnd.x)/2} y={pLenStart.y + 20} textAnchor="middle" fontSize="16" fontWeight="bold" fill="#333">
-                    Comp. Total: {(drawTotalLength/100).toFixed(2)}m
-                </text>
-            </g>
-            <g>
-                 <line x1={pBaseCorner.x} y1={pBaseCorner.y} x2={pStepTop.x} y2={pStepTop.y} stroke="#333" strokeWidth="2" markerEnd="url(#arrowGray)" markerStart="url(#arrowGray)" />
-                 <text x={pBaseCorner.x - 10} y={(pBaseCorner.y + pStepTop.y)/2} textAnchor="end" fontSize="14" fontWeight="bold" fill="#333" stroke="white" strokeWidth="3" paintOrder="stroke">
-                    h={option.stepHeight.toFixed(1)}
-                </text>
-                <text x={pBaseCorner.x - 10} y={(pBaseCorner.y + pStepTop.y)/2} textAnchor="end" fontSize="14" fontWeight="bold" fill="#333">
-                    h={option.stepHeight.toFixed(1)}
-                </text>
-                <line x1={pStepTop.x} y1={pStepTop.y} x2={pStepFront.x} y2={pStepFront.y} stroke="#333" strokeWidth="2" markerEnd="url(#arrowGray)" markerStart="url(#arrowGray)" />
-                <text x={(pStepTop.x + pStepFront.x)/2} y={pStepTop.y - 10} textAnchor="middle" fontSize="14" fontWeight="bold" fill="#333" stroke="white" strokeWidth="3" paintOrder="stroke">
-                    p={drawTreadDepth.toFixed(1)}
-                </text>
-                <text x={(pStepTop.x + pStepFront.x)/2} y={pStepTop.y - 10} textAnchor="middle" fontSize="14" fontWeight="bold" fill="#333">
-                    p={drawTreadDepth.toFixed(1)}
-                </text>
-            </g>
-            {slabLine}
-            {slabText}
+            <text x={(pLenStart.x + pLenEnd.x)/2} y={pLenStart.y + 20} textAnchor="middle" fontSize="16" fontWeight="bold" fill="#333" stroke="white" strokeWidth="3" paintOrder="stroke">Total: {(drawTotalLength/100).toFixed(2)}m</text>
+            <text x={(pLenStart.x + pLenEnd.x)/2} y={pLenStart.y + 20} textAnchor="middle" fontSize="16" fontWeight="bold" fill="#333">Total: {(drawTotalLength/100).toFixed(2)}m</text>
+
+            {/* Cota do Lance (se tiver patamar no topo) */}
+            {topLanding && (
+                <g>
+                    <line x1={pLenStart.x} y1={pLenStart.y - 30} x2={pSplit.x} y2={pSplit.y - 30} stroke="#666" strokeWidth="2" markerEnd="url(#arrowGray)" markerStart="url(#arrowGray)" />
+                    <text x={(pLenStart.x + pSplit.x)/2} y={pLenStart.y - 40} textAnchor="middle" fontSize="14" fill="#666" stroke="white" strokeWidth="3" paintOrder="stroke">Escada: {(stairRunLength/100).toFixed(2)}m</text>
+                    <text x={(pLenStart.x + pSplit.x)/2} y={pLenStart.y - 40} textAnchor="middle" fontSize="14" fill="#666">Escada: {(stairRunLength/100).toFixed(2)}m</text>
+                </g>
+            )}
         </g>
     );
   };

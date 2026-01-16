@@ -11,8 +11,12 @@ export interface LandingInfo {
   length: number; // cm
   width: number; // cm
   price: number;
+  type?: 'fixed' | 'articulated'; // NOVO: Tipo de fixação
   isLastStep?: boolean; // Indica se deve ser posicionado sempre no último degrau da opção
+  isFlushWithSlab?: boolean; // Rente à laje
   direction?: 'straight' | 'left' | 'right'; // Direção da curva
+  hasSideGuardrail?: boolean; // Barra Lateral
+  hasFrontGuardrail?: boolean; // Barra Frontal
 }
 
 export interface LogisticsInfo {
@@ -31,6 +35,8 @@ export interface CalculatorInput {
   stairWidth: number; // in cm
   treadDepth: number; // in cm
   dampers: number; // Quantidade de amortecedores
+  hasWheels?: boolean; // Opção com Rodinhas
+  handrailSide?: 'left' | 'right' | 'both'; // Lado do corrimão (apenas se hasWheels=true)
   customStepPrice?: number; // Optional manual price per step
   customTotalLength?: number; // Optional manual total length
   optionalItems: OptionalItem[]; // Lista de itens extras
@@ -69,18 +75,33 @@ export interface UserData {
   neighborhood?: string;
   city?: string;
   state?: string;
+  
+  // Array de strings Base64 das imagens capturadas (Desenhos 2D/3D)
+  drawingImages?: { title: string; imgData: string; width?: number; height?: number }[];
 }
 
-// --- TIPOS NOVOS PARA O SISTEMA DE GESTÃO ---
+// --- TIPOS ADICIONADOS PARA CORRIGIR O BUILD ---
 
 export type QuoteStatus = 'draft' | 'negotiation' | 'production' | 'installed' | 'archived';
 
 export interface ProjectFile {
-    id: string;
-    name: string;
-    url: string;
-    type: 'image' | 'video' | 'document' | 'youtube';
-    uploadedAt: string;
+  id: string;
+  name: string;
+  url: string;
+  type: string;
+  size?: number;
+  uploadedAt: string;
+}
+
+export interface LocalUser {
+  id: string;
+  username: string; // Adicionado para corrigir erro no Dashboard
+  role: 'admin' | 'seller' | 'worker'; // Adicionado 'worker'
+  permissions?: string[]; // Adicionado para controle de acesso
+  
+  // Tornados opcionais para evitar erro no Dashboard onde não são passados
+  email?: string;
+  name?: string;
 }
 
 export interface SavedQuote {
@@ -94,17 +115,7 @@ export interface SavedQuote {
     installationCost: number;
     isInstallationIncluded: boolean;
     
-    // Novos campos para gestão (CRM)
-    status: QuoteStatus;
-    attachments: ProjectFile[];
-    notes?: string; // Diário de obra ou observações internas
-    deliveryDate?: string; // Previsão de entrega
-}
-
-// --- GESTÃO DE USUÁRIOS E PERMISSÕES ---
-export interface LocalUser {
-    id: string;
-    username: string;
-    role: 'admin' | 'worker';
-    permissions: string[]; // Lista de rotas permitidas ex: ['/calculadora', '/dashboard']
+    // Novos campos opcionais para compatibilidade
+    status?: QuoteStatus;
+    attachments?: ProjectFile[];
 }
