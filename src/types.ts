@@ -13,17 +13,10 @@ export interface LandingInfo {
   price: number;
   type?: 'fixed' | 'articulated'; // NOVO: Tipo de fixação
   isLastStep?: boolean; // Indica se deve ser posicionado sempre no último degrau da opção
-<<<<<<< HEAD
-  isFlushWithSlab?: boolean; // NOVO: Rente à laje
-  direction?: 'straight' | 'left' | 'right'; // Direção da curva
-  hasSideGuardrail?: boolean; // NOVO: Barra Lateral
-  hasFrontGuardrail?: boolean; // NOVO: Barra Frontal
-=======
   isFlushWithSlab?: boolean; // Rente à laje
   direction?: 'straight' | 'left' | 'right'; // Direção da curva
   hasSideGuardrail?: boolean; // Barra Lateral
   hasFrontGuardrail?: boolean; // Barra Frontal
->>>>>>> 3e818bea7652efae6cbb2621b8e59f6f2a3be64b
 }
 
 export interface LogisticsInfo {
@@ -83,16 +76,9 @@ export interface UserData {
   city?: string;
   state?: string;
   
-<<<<<<< HEAD
-  // NOVO: Array de strings Base64 das imagens capturadas (Desenhos 2D/3D)
-  // Atualizado para incluir dimensões para manter aspect ratio
-=======
   // Array de strings Base64 das imagens capturadas (Desenhos 2D/3D)
->>>>>>> 3e818bea7652efae6cbb2621b8e59f6f2a3be64b
   drawingImages?: { title: string; imgData: string; width?: number; height?: number }[];
 }
-
-// --- TIPOS ADICIONADOS PARA CORRIGIR O BUILD ---
 
 export type QuoteStatus = 'draft' | 'negotiation' | 'production' | 'installed' | 'archived';
 
@@ -107,11 +93,9 @@ export interface ProjectFile {
 
 export interface LocalUser {
   id: string;
-  username: string; // Adicionado para corrigir erro no Dashboard
-  role: 'admin' | 'seller' | 'worker'; // Adicionado 'worker'
-  permissions?: string[]; // Adicionado para controle de acesso
-  
-  // Tornados opcionais para evitar erro no Dashboard onde não são passados
+  username: string;
+  role: 'admin' | 'seller' | 'worker';
+  permissions?: string[];
   email?: string;
   name?: string;
 }
@@ -126,8 +110,6 @@ export interface SavedQuote {
     tollCost: number;
     installationCost: number;
     isInstallationIncluded: boolean;
-    
-    // Novos campos opcionais para compatibilidade
     status?: QuoteStatus;
     attachments?: ProjectFile[];
 }
