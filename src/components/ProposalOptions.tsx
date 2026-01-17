@@ -65,7 +65,11 @@ const UserDataForm: React.FC<{ onSubmit: (data: UserData, includeDrawings: boole
   const [name, setName] = useState('');
   const [docMain, setDocMain] = useState(''); // CPF ou CNPJ
   const [docSecondary, setDocSecondary] = useState(''); // RG (apenas PF)
+<<<<<<< HEAD
   const [includeDrawings, setIncludeDrawings] = useState(true); // Default true conforme sugestão
+=======
+  const [includeDrawings, setIncludeDrawings] = useState(false);
+>>>>>>> 3e818bea7652efae6cbb2621b8e59f6f2a3be64b
   
   // Campos de Endereço Estruturado
   const [zip, setZip] = useState('');
@@ -296,6 +300,7 @@ const UserDataForm: React.FC<{ onSubmit: (data: UserData, includeDrawings: boole
             </div>
          </div>
          
+<<<<<<< HEAD
          <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg border border-blue-200 dark:border-blue-800 mt-4">
              <label className="flex items-center gap-3 cursor-pointer">
                  <div className="relative flex items-center">
@@ -310,6 +315,19 @@ const UserDataForm: React.FC<{ onSubmit: (data: UserData, includeDrawings: boole
                      <span className="font-bold text-blue-900 dark:text-blue-200 text-sm uppercase">Quer anexar os desenhos selecionados?</span>
                      <span className="text-xs text-blue-700 dark:text-blue-400">Serão incluídos no PDF apenas os desenhos que você marcou nas opções acima (2D, 3D, Correções).</span>
                  </div>
+=======
+         <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg border border-blue-200 dark:border-blue-800 mt-4 flex items-center gap-3">
+             <input 
+                type="checkbox" 
+                id="includeDrawings"
+                checked={includeDrawings} 
+                onChange={e => setIncludeDrawings(e.target.checked)} 
+                className="w-6 h-6 bg-blue-600 border-gray-300 rounded focus:ring-blue-500"
+             />
+             <label htmlFor="includeDrawings" className="font-bold text-blue-900 dark:text-blue-200 text-sm uppercase cursor-pointer select-none flex flex-col">
+                <span>QUER ANEXAR OS DESENHOS SELECIONADOS?</span>
+                <span className="text-[10px] font-normal text-blue-700 dark:text-blue-300">Serão incluídos no PDF apenas os desenhos que você marcou nas opções acima (2D, 3D, Correções).</span>
+>>>>>>> 3e818bea7652efae6cbb2621b8e59f6f2a3be64b
              </label>
          </div>
          
@@ -319,7 +337,7 @@ const UserDataForm: React.FC<{ onSubmit: (data: UserData, includeDrawings: boole
            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
            </svg>
-           Gerar Proposta PDF
+           GERAR PROPOSTA PDF
          </button>
        </form>
     </div>
@@ -399,7 +417,11 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
   const [, setCapturedImages] = useState<{imgData: string, title: string, width: number, height: number}[]>([]);
   const captureRef = useRef<HTMLDivElement>(null); // Ref para o container do desenho atual no wizard
 
+<<<<<<< HEAD
   // Estado temporário para quando o usuário clica em "Gerar Proposta" com desenhos
+=======
+  // --- ESTADO PARA ANEXAR AO ORÇAMENTO ---
+>>>>>>> 3e818bea7652efae6cbb2621b8e59f6f2a3be64b
   const [tempProposalData, setTempProposalData] = useState<UserData | null>(null);
   const [exportMode, setExportMode] = useState<'download' | 'attach'>('download');
 
@@ -665,6 +687,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
   const finishExport = () => {
       setTimeout(() => {
         setCapturedImages(finalImages => {
+<<<<<<< HEAD
              // LÓGICA DE DECISÃO: DOWNLOAD PDF OU ANEXAR PROPOSTA
              if (exportMode === 'attach' && tempProposalData) {
                  const userDataWithImages = {
@@ -686,25 +709,39 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
              const doc = new jsPDF('landscape', 'mm', 'a4');
              const pdfWidth = doc.internal.pageSize.getWidth();
              const pdfHeight = doc.internal.pageSize.getHeight();
+=======
+             if (exportMode === 'download') {
+                 const doc = new jsPDF('landscape', 'mm', 'a4');
+                 const pdfWidth = doc.internal.pageSize.getWidth();
+                 const pdfHeight = doc.internal.pageSize.getHeight();
+>>>>>>> 3e818bea7652efae6cbb2621b8e59f6f2a3be64b
 
-             finalImages.forEach((img, index) => {
-                 if (index > 0) doc.addPage();
-                 
-                 const ratio = img.width / img.height;
-                 let w = pdfWidth - 20;
-                 let h = w / ratio;
-                 
-                 if (h > pdfHeight - 40) {
-                     h = pdfHeight - 40;
-                     w = h * ratio;
-                 }
+                 finalImages.forEach((img, index) => {
+                     if (index > 0) doc.addPage();
+                     
+                     const ratio = img.width / img.height;
+                     let w = pdfWidth - 20;
+                     let h = w / ratio;
+                     
+                     if (h > pdfHeight - 40) {
+                         h = pdfHeight - 40;
+                         w = h * ratio;
+                     }
 
-                 doc.setFontSize(14);
-                 doc.text(img.title, 10, 15);
-                 doc.addImage(img.imgData, 'PNG', 10, 25, w, h);
-             });
+                     doc.setFontSize(14);
+                     doc.text(img.title, 10, 15);
+                     doc.addImage(img.imgData, 'PNG', 10, 25, w, h);
+                 });
 
-             doc.save('desenhos_selecionados.pdf');
+                 doc.save('desenhos_selecionados.pdf');
+             } else if (exportMode === 'attach' && tempProposalData) {
+                 // Modo Anexar: Não salva PDF, mas passa para a proposta
+                 onGenerateProposal({
+                     ...tempProposalData,
+                     drawingImages: finalImages
+                 }, getEffectiveOptions());
+             }
+             
              setIsExportWizardOpen(false); // Fecha o Wizard
              return finalImages;
         });
@@ -767,7 +804,11 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                           className="bg-green-600 text-white font-bold py-3 px-8 rounded shadow hover:bg-green-700 flex items-center gap-2 text-lg"
                       >
                           <span>📸</span>
+<<<<<<< HEAD
                           {currentExportIndex < exportQueue.length - 1 ? 'Capturar e Próximo' : (exportMode === 'attach' ? 'Finalizar e Gerar Orçamento' : 'Capturar e Gerar PDF')}
+=======
+                          {currentExportIndex < exportQueue.length - 1 ? 'Capturar e Próximo' : (exportMode === 'attach' ? 'Capturar e Gerar Orçamento' : 'Capturar e Baixar PDF')}
+>>>>>>> 3e818bea7652efae6cbb2621b8e59f6f2a3be64b
                       </button>
                   </div>
               </div>
@@ -786,11 +827,11 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
   return (
     <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 relative">
       <div className="flex justify-between items-center mb-6 border-b-2 border-highlight pb-4">
-          <h2 className="text-2xl font-black text-gray-900 dark:text-white">Opções Calculadas</h2>
+          <h2 className="text-2xl font-black text-gray-900 dark:text-white uppercase">Opções Calculadas</h2>
           
           <div className="flex gap-2">
               <button 
-                onClick={startBatchExport}
+                onClick={() => { setExportMode('download'); startBatchExport(); }}
                 disabled={countSelectedExports() === 0}
                 className={`text-sm font-bold px-4 py-2 rounded shadow transition-all flex items-center gap-2 ${countSelectedExports() > 0 ? 'bg-purple-600 text-white hover:bg-purple-700' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
               >
@@ -934,10 +975,10 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                     
                     <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 text-sm text-gray-700 dark:text-gray-300 font-medium mb-4 pl-2">
                         <p><strong className="text-gray-900 dark:text-white">Total Peças:</strong> {activeOption.steps} un</p>
-                        <p><strong className="text-gray-900 dark:text-white">Alt/Degrau:</strong> {activeOption.stepHeight.toFixed(2)} cm</p>
+                        <p><strong className="text-gray-900 dark:text-white">Altura Degrau:</strong> {activeOption.stepHeight.toFixed(2)} cm</p>
                         <p><strong className="text-gray-900 dark:text-white">Pisante:</strong> {activeOption.treadDepth.toFixed(2)} cm</p>
                         <p><strong className="text-gray-900 dark:text-white">Largura:</strong> {activeOption.stairWidth} cm</p>
-                        <p><strong className="text-gray-900 dark:text-white">Comp. Total:</strong> {(activeOption.totalLength / 100).toFixed(2)} m</p>
+                        <p><strong className="text-gray-900 dark:text-white">Comprimento Total:</strong> {(activeOption.totalLength / 100).toFixed(2)} m</p>
                     </div>
 
                     <div className="mt-3 pt-3 text-xs text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-600 flex flex-col gap-2">
@@ -1179,7 +1220,19 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
       </div>
       
       {/* Agora passamos o CEP de destino (digitado na área de frete) para o formulário do cliente */}
+<<<<<<< HEAD
       <UserDataForm onSubmit={handleProposalSubmit} initialZip={destinationCep} />
+=======
+      <UserDataForm onSubmit={(data, incDrawings) => {
+          if (incDrawings) {
+              setTempProposalData(data);
+              setExportMode('attach');
+              startBatchExport(); // Abre o wizard para selecionar as imagens
+          } else {
+              onGenerateProposal(data, getEffectiveOptions());
+          }
+      }} initialZip={destinationCep} />
+>>>>>>> 3e818bea7652efae6cbb2621b8e59f6f2a3be64b
 
       {/* RENDERIZAÇÃO DO MODAL DE VISUALIZAÇÃO PADRÃO */}
       {selectedVisualizerOption && (

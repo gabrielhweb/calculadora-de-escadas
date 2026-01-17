@@ -11,11 +11,19 @@ export interface LandingInfo {
   length: number; // cm
   width: number; // cm
   price: number;
+  type?: 'fixed' | 'articulated'; // NOVO: Tipo de fixação
   isLastStep?: boolean; // Indica se deve ser posicionado sempre no último degrau da opção
+<<<<<<< HEAD
   isFlushWithSlab?: boolean; // NOVO: Rente à laje
   direction?: 'straight' | 'left' | 'right'; // Direção da curva
   hasSideGuardrail?: boolean; // NOVO: Barra Lateral
   hasFrontGuardrail?: boolean; // NOVO: Barra Frontal
+=======
+  isFlushWithSlab?: boolean; // Rente à laje
+  direction?: 'straight' | 'left' | 'right'; // Direção da curva
+  hasSideGuardrail?: boolean; // Barra Lateral
+  hasFrontGuardrail?: boolean; // Barra Frontal
+>>>>>>> 3e818bea7652efae6cbb2621b8e59f6f2a3be64b
 }
 
 export interface LogisticsInfo {
@@ -34,6 +42,8 @@ export interface CalculatorInput {
   stairWidth: number; // in cm
   treadDepth: number; // in cm
   dampers: number; // Quantidade de amortecedores
+  hasWheels?: boolean; // Opção com Rodinhas
+  handrailSide?: 'left' | 'right' | 'both'; // Lado do corrimão (apenas se hasWheels=true)
   customStepPrice?: number; // Optional manual price per step
   customTotalLength?: number; // Optional manual total length
   optionalItems: OptionalItem[]; // Lista de itens extras
@@ -73,8 +83,12 @@ export interface UserData {
   city?: string;
   state?: string;
   
+<<<<<<< HEAD
   // NOVO: Array de strings Base64 das imagens capturadas (Desenhos 2D/3D)
   // Atualizado para incluir dimensões para manter aspect ratio
+=======
+  // Array de strings Base64 das imagens capturadas (Desenhos 2D/3D)
+>>>>>>> 3e818bea7652efae6cbb2621b8e59f6f2a3be64b
   drawingImages?: { title: string; imgData: string; width?: number; height?: number }[];
 }
 

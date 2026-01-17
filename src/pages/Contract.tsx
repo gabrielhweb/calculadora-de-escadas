@@ -205,6 +205,10 @@ const Contract = () => {
                 setStructurePrice(selectedOption.totalPrice.toFixed(2));
                 setFreightPrice(((freightCost || 0) + (tollCost || 0)).toFixed(2));
                 setInstallationPrice((installationCost || 0).toFixed(2));
+<<<<<<< HEAD
+=======
+                // setExtrasPrice é tratado pelo useEffect agora
+>>>>>>> 3e818bea7652efae6cbb2621b8e59f6f2a3be64b
             }
         }
     }, [location.state]);
@@ -550,6 +554,62 @@ const Contract = () => {
                             <ContractInput label="Total Peças" value={totalSteps} onChange={(e: any) => setTotalSteps(e.target.value)} type="number" />
                             <ContractInput label="Pisante" value={treadDepth} onChange={(e: any) => setTreadDepth(e.target.value)} type="number" />
                             <ContractInput label="Comprimento" value={totalLength} onChange={(e: any) => setTotalLength(e.target.value)} type="number" />
+                        </div>
+                        
+                        {/* LISTA DE ITENS ADICIONAIS EDITÁVEL E COM ADIÇÃO */}
+                        <div className="col-span-full mt-4 bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded border border-yellow-200 dark:border-yellow-700">
+                            <h3 className="text-xs font-bold text-yellow-800 dark:text-yellow-300 uppercase mb-3 border-b border-yellow-200 dark:border-yellow-800 pb-1">
+                                Itens Adicionais (Editável para Impressão)
+                            </h3>
+                            
+                            <div className="space-y-2 mb-3">
+                                {optionalItems.map((item, index) => (
+                                    <div key={item.id} className="flex gap-2 items-center">
+                                        <input 
+                                            type="text" 
+                                            value={item.name} 
+                                            onChange={(e) => updateOptionalItemName(index, e.target.value)}
+                                            className="flex-1 bg-white dark:bg-gray-700 p-2 text-sm border border-yellow-300 dark:border-yellow-600 rounded focus:border-highlight focus:outline-none text-black dark:text-white"
+                                        />
+                                        <span className="font-bold text-gray-700 dark:text-gray-300 text-sm whitespace-nowrap min-w-[80px] text-right">
+                                            {formatCurrencyBRL(item.price)}
+                                        </span>
+                                        <button 
+                                            onClick={() => handleRemoveItem(index)}
+                                            className="text-red-500 hover:text-red-700 font-bold px-2"
+                                            title="Remover Item"
+                                        >
+                                            ✕
+                                        </button>
+                                    </div>
+                                ))}
+                                {optionalItems.length === 0 && <p className="text-sm text-gray-400 italic">Nenhum item adicional.</p>}
+                            </div>
+
+                            <div className="flex gap-2 items-center border-t border-yellow-200 dark:border-yellow-800 pt-3">
+                                <input 
+                                    type="text" 
+                                    placeholder="Novo Item (ex: Guarda-Corpo)" 
+                                    value={newItemName}
+                                    onChange={(e) => setNewItemName(e.target.value)}
+                                    className="flex-1 bg-white dark:bg-gray-700 p-2 text-sm border border-yellow-300 dark:border-yellow-600 rounded focus:border-highlight outline-none text-black dark:text-white"
+                                />
+                                <input 
+                                    type="number" 
+                                    placeholder="Valor R$" 
+                                    value={newItemPrice}
+                                    onChange={(e) => setNewItemPrice(e.target.value)}
+                                    className="w-24 bg-white dark:bg-gray-700 p-2 text-sm border border-yellow-300 dark:border-yellow-600 rounded focus:border-highlight outline-none text-black dark:text-white"
+                                />
+                                <button 
+                                    onClick={handleAddItem}
+                                    className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold px-3 py-2 rounded text-sm"
+                                >
+                                    + Adicionar
+                                </button>
+                            </div>
+                            
+                            <p className="text-[10px] text-gray-500 mt-2 italic">* Edite os nomes acima como deseja que apareçam no PDF (ex: Adicionar detalhes do material).</p>
                         </div>
                         
                         {/* LISTA DE ITENS ADICIONAIS EDITÁVEL E COM ADIÇÃO */}

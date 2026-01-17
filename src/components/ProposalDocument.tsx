@@ -18,7 +18,11 @@ interface ProposalDocumentProps {
 // --- INSTRUÇÕES ---
 // 1. Gere o código da imagem em https://www.base64-image.de/
 // 2. Cole o código GIGANTE dentro das aspas abaixo.
+<<<<<<< HEAD
 const LOGO_BASE64 = "data:image/jpeg;base64,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" as string; 
+=======
+const LOGO_BASE64 = "data:image/jpeg;base64,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" as string; 
+>>>>>>> 3e818bea7652efae6cbb2621b8e59f6f2a3be64b
 
 const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, inputData, freightCost, tollCost, installationCost, onBack }) => {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -57,7 +61,7 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
 
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
-    doc.text('Av. Maria Luiza Americano 1954, São Paulo –SP Tel.:019 992237714', pageWidth / 2, currentY, { align: 'center' });
+    doc.text('Av. Maria Luiza Americano 1954, São Paulo – São Paulo. Telefone: 019 992237714', pageWidth / 2, currentY, { align: 'center' });
     currentY += 15;
 
     doc.setFontSize(14);
@@ -70,6 +74,7 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
     // --- OPÇÕES ---
     options.forEach((opt) => {
         // --- PRÉ-CÁLCULO DE ESPAÇO PARA O CONJUNTO (TEXTO + IMAGENS) ---
+<<<<<<< HEAD
         let estimatedHeight = 0;
         estimatedHeight += 10; 
         
@@ -98,17 +103,60 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
         const compM = (opt.totalLength / 100).toFixed(2).replace('.', ',');
         const widthCm = opt.stairWidth;
         const text1 = `${descriptionTitle} com corte à laser, com medidas de: ${alturaM} metros de altura, ${compM} metros de comprimento, ${widthCm} centímetros de largura ${handrailDesc}.`;
+=======
+        // Se a combinação de texto e imagens for exceder a página atual, quebramos ANTES de começar a escrever a opção.
+        
+        let estimatedHeight = 0;
+        estimatedHeight += 10; // Título Opção X
+        
+        // Simula linhas de texto
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'normal');
+        
+        const alturaM = (inputData.totalHeight / 100).toFixed(2).replace('.', ',');
+        const compM = (opt.totalLength / 100).toFixed(2).replace('.', ',');
+        const widthCm = opt.stairWidth;
+        
+        // --- ALTERAÇÃO DE TEXTO PARA RODINHAS & CORRIMÃO ---
+        let baseDescription = `Escada articulada lateral em aço carbono`;
+        let handrailText = "e com corrimão de 70cm";
+
+        if (inputData.hasWheels) {
+            baseDescription = `Escada articulada com rodinhas em aço carbono`;
+            // Lógica do Corrimão Articulado
+            if (inputData.handrailSide) {
+                const sideText = inputData.handrailSide === 'left' ? 'no lado esquerdo' : 
+                                 inputData.handrailSide === 'right' ? 'no lado direito' : 
+                                 'em ambos os lados';
+                handrailText = `e com corrimão articulado ${sideText}`;
+            }
+        }
+
+        const text1 = `${baseDescription} com corte à laser, com medidas de: ${alturaM}m de altura, ${compM}m de comprimento, ${widthCm}cm de largura ${handrailText}.`;
+>>>>>>> 3e818bea7652efae6cbb2621b8e59f6f2a3be64b
         const lines1 = doc.splitTextToSize(text1, pageWidth - (pageMargin * 2));
         estimatedHeight += (lines1.length * 5) + 2;
 
         const stepH = opt.stepHeight.toFixed(2).replace('.', ',');
         const tread = opt.treadDepth.toFixed(2).replace('.', ',');
+<<<<<<< HEAD
         const text2 = `-Com ${opt.structureSteps} degraus articulados com dimensões de ${stepH} centímetros de altura e pisante de ${tread} centímetros${damperDesc}.`;
+=======
+        
+        // --- ALTERAÇÃO DE TEXTO AMORTECEDORES ---
+        let dampersText = ` com ${inputData.dampers} amortecedores de alívio.`;
+        if (inputData.hasWheels) {
+            dampersText = `.`; // Remove menção aos amortecedores
+        }
+
+        const text2 = `-Com ${opt.structureSteps} degraus articulados com dimensões de ${stepH}cm de altura e pisante de ${tread}cm${dampersText}`;
+>>>>>>> 3e818bea7652efae6cbb2621b8e59f6f2a3be64b
         const lines2 = doc.splitTextToSize(text2, pageWidth - (pageMargin * 2));
         estimatedHeight += (lines2.length * 5) + 3;
 
         // Lista de Preços (Estimativa)
         estimatedHeight += 6; // Valor Escada
+<<<<<<< HEAD
         if (opt.landings.length > 0) estimatedHeight += 5 + (opt.landings.length * 6); 
         estimatedHeight += 6; // Frete
         estimatedHeight += 6; // Instalação
@@ -117,13 +165,31 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
         estimatedHeight += 10; // Espaço
 
         // Altura das Imagens
+=======
+        if (opt.landings.length > 0) estimatedHeight += (opt.landings.length * 6); // Patamares (LINHA DE SOMA REMOVIDA)
+        estimatedHeight += 6; // Frete
+        estimatedHeight += 6; // Instalação
+        if (inputData.optionalItems.length > 0) estimatedHeight += (inputData.optionalItems.length * 6); // Extras
+        estimatedHeight += 6; // Total
+        estimatedHeight += 10; // Espaço
+
+        // Altura das Imagens - CORREÇÃO DE TIPO AQUI
+>>>>>>> 3e818bea7652efae6cbb2621b8e59f6f2a3be64b
         let imagesForOption: { title: string; imgData: string; width?: number; height?: number }[] = [];
         if (userData.drawingImages) {
              imagesForOption = userData.drawingImages.filter(img => img.title.includes(`Opção ${opt.optionNumber}`));
         }
         
+<<<<<<< HEAD
         const fixedDisplayWidth = 150; 
         
+=======
+        // CÁLCULO DINÂMICO DE ALTURA DAS IMAGENS
+        // Define uma largura fixa desejada (ex: 150mm) e calcula a altura proporcional
+        const fixedDisplayWidth = 150; 
+        
+        // Calcula a altura total necessária para as imagens desta opção
+>>>>>>> 3e818bea7652efae6cbb2621b8e59f6f2a3be64b
         let imagesTotalHeight = 0;
         imagesForOption.forEach(img => {
             let h = 100; // fallback default
@@ -131,7 +197,11 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
                 const ratio = img.height / img.width;
                 h = fixedDisplayWidth * ratio;
             }
+<<<<<<< HEAD
             imagesTotalHeight += (h + 10); 
+=======
+            imagesTotalHeight += (h + 10); // +10 de margem
+>>>>>>> 3e818bea7652efae6cbb2621b8e59f6f2a3be64b
         });
         
         estimatedHeight += imagesTotalHeight;
@@ -173,16 +243,26 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
         
         // 2. Patamares
         if (opt.landings.length > 0) {
+<<<<<<< HEAD
             // Se tiver mais de um patamar, mostra a soma. Se for só um, não repete o valor somado.
             if (opt.landings.length > 1) {
                 doc.text(`  • Soma de ${opt.landings.length} Patamares: ${formatCurrencyBRL(landingsPrice)}`, pageMargin, currentY);
                 currentY += 5;
             }
+=======
+            // A LINHA DE SOMA FOI REMOVIDA AQUI CONFORME SOLICITADO
+            // doc.text(`  • Soma de ${opt.landings.length} Patamares: ${formatCurrencyBRL(landingsPrice)}`, pageMargin, currentY);
+            // currentY += 5;
+>>>>>>> 3e818bea7652efae6cbb2621b8e59f6f2a3be64b
 
             opt.landings.forEach((landing) => {
                 const lM = (landing.length / 100).toFixed(2).replace('.', ',');
                 const wM = (landing.width / 100).toFixed(2).replace('.', ',');
                 
+<<<<<<< HEAD
+=======
+                // --- CORREÇÃO ABREVIAÇÕES (SEM ABREVIAÇÕES) ---
+>>>>>>> 3e818bea7652efae6cbb2621b8e59f6f2a3be64b
                 let guardText = "";
                 if (landing.hasSideGuardrail && landing.hasFrontGuardrail) guardText = " com Guarda-Corpo Lateral e Frontal";
                 else if (landing.hasSideGuardrail) guardText = " com Guarda-Corpo Lateral";
@@ -190,7 +270,11 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
 
                 let flushText = landing.isFlushWithSlab ? " (Rente)" : "";
 
+<<<<<<< HEAD
                 const line = `    - Patamar de ${lM}m de comprimento por ${wM}m de largura${guardText}${flushText}: ${formatCurrencyBRL(landing.price)}`;
+=======
+                const line = `    - Patamar ${lM}m x ${wM}m${guardText}${flushText}: ${formatCurrencyBRL(landing.price)}`;
+>>>>>>> 3e818bea7652efae6cbb2621b8e59f6f2a3be64b
                 
                 const splitLine = doc.splitTextToSize(line, pageWidth - (pageMargin * 2));
                 doc.text(splitLine, pageMargin, currentY);
@@ -200,6 +284,7 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
 
         currentY += 1;
 
+<<<<<<< HEAD
         // 3. Frete
         if (freightCost + tollCost > 0) {
             doc.text(`- Frete: ${formatCurrencyBRL(freightCost + tollCost)}`, pageMargin, currentY);
@@ -208,13 +293,27 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
             doc.setFont('helvetica', 'bold');
             doc.text(`- Frete: POR CONTA DO CLIENTE (Retirada na Fábrica)`, pageMargin, currentY);
             doc.setTextColor(0, 0, 0);
+=======
+        // 3. Frete (CORREÇÃO DE TEXTO E COR)
+        if (freightCost + tollCost > 0) {
+            doc.text(`- Frete ${formatCurrencyBRL(freightCost + tollCost)}`, pageMargin, currentY);
+        } else {
+            // Removido cor vermelha e parênteses conforme solicitado
+            doc.setTextColor(0, 0, 0); 
+            doc.setFont('helvetica', 'bold');
+            doc.text(`- Frete: Por conta do cliente`, pageMargin, currentY);
+>>>>>>> 3e818bea7652efae6cbb2621b8e59f6f2a3be64b
             doc.setFont('helvetica', 'normal');
         }
         currentY += 6;
 
         // 4. Instalação
         if (installationCost > 0) {
+<<<<<<< HEAD
              doc.text(`-Instalação: ${formatCurrencyBRL(installationCost)} (Valor para local de fácil acesso)`, pageMargin, currentY);
+=======
+             doc.text(`-Instalação ${formatCurrencyBRL(installationCost)} (Valor para local de fácil acesso)`, pageMargin, currentY);
+>>>>>>> 3e818bea7652efae6cbb2621b8e59f6f2a3be64b
         } else {
              doc.text(`-Instalação: Por conta do cliente`, pageMargin, currentY);
         }
@@ -231,7 +330,11 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
         // 6. TOTAL
         const totalGeral = opt.totalPrice + freightCost + tollCost + installationCost + extrasCost;
         doc.setFont('helvetica', 'bold');
+<<<<<<< HEAD
         doc.text(`Total: ${formatCurrencyBRL(totalGeral)}`, pageMargin, currentY);
+=======
+        doc.text(`Total ${formatCurrencyBRL(totalGeral)}`, pageMargin, currentY);
+>>>>>>> 3e818bea7652efae6cbb2621b8e59f6f2a3be64b
         doc.setFont('helvetica', 'normal');
         
         currentY += 10; 
@@ -283,7 +386,11 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
     doc.text('-Acabamento: fundo prime', pageMargin, currentY);
     currentY += 6;
 
+<<<<<<< HEAD
     doc.text('-Capacidade máxima por degrau: 180 quilos', pageMargin, currentY);
+=======
+    doc.text('-Capacidade máxima por degrau: 180k', pageMargin, currentY);
+>>>>>>> 3e818bea7652efae6cbb2621b8e59f6f2a3be64b
     currentY += 6;
     doc.text('-Capacidade máxima da escada: 360 quilos', pageMargin, currentY);
     currentY += 10;
