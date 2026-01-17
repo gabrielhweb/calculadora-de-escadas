@@ -64,12 +64,13 @@ const InputField: React.FC<{
             value={currentUnit} 
             onChange={(e) => onUnitChange(e.target.value as 'cm'|'m')}
             className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white p-3 rounded-r-md border-2 border-l-0 border-gray-300 dark:border-gray-600 font-bold focus:outline-none focus:border-highlight cursor-pointer"
+            disabled={disabled}
           >
               <option value="cm">cm</option>
               <option value="m">m</option>
           </select>
       ) : (
-        unit && <span className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white p-3 rounded-r-md border-2 border-l-0 border-gray-300 dark:border-gray-600 font-bold min-w-[3rem] text-center flex items-center justify-center">{unit}</span>
+        unit && <span className={`bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white p-3 rounded-r-md border-2 border-l-0 border-gray-300 dark:border-gray-600 font-bold min-w-[3rem] text-center flex items-center justify-center ${disabled ? 'text-gray-400' : ''}`}>{unit}</span>
       )}
     </div>
     {helperText && <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 italic">{helperText}</p>}
@@ -85,7 +86,11 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
   const [widthUnit, setWidthUnit] = useState<'cm' | 'm'>('cm');
   const [treadDepth, setTreadDepth] = useState<string>('20');
   const [depthUnit, setDepthUnit] = useState<'cm' | 'm'>('cm');
+  
   const [dampers, setDampers] = useState<string>('4');
+  const [hasWheels, setHasWheels] = useState(false);
+  const [handrailSide, setHandrailSide] = useState<'left' | 'right' | 'both'>('both'); 
+  
   const [slabThickness, setSlabThickness] = useState<string>('15');
   const [slabOpening, setSlabOpening] = useState<string>('');
   const [openingUnit, setOpeningUnit] = useState<'cm' | 'm'>('cm');
@@ -119,6 +124,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
         length: 80,
         width: 70,
         price: 1030,
+        type: 'articulated', // Padrão
         isLastStep: false,
         isFlushWithSlab: false,
         direction: 'straight',
@@ -147,6 +153,16 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
       return unit === 'm' ? num * 100 : num;
   };
 
+  const handleToggleWheels = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const isChecked = e.target.checked;
+      setHasWheels(isChecked);
+      if (isChecked) {
+          setDampers('0');
+      } else {
+          setDampers('4'); // Valor padrão ao desmarcar
+      }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -158,7 +174,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
     const slabThickInCm = parseFloat(slabThickness) || 0;
 
     const dampersInt = parseInt(dampers, 10);
-    const finalDampers = isNaN(dampersInt) ? 4 : dampersInt;
+    const finalDampers = isNaN(dampersInt) ? 0 : dampersInt;
 
     const formData: CalculatorInput = {
       totalHeight: heightInCm || 0,
@@ -166,6 +182,8 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
       stairWidth: widthInCm,
       treadDepth: depthInCm,
       dampers: finalDampers,
+      hasWheels: hasWheels,
+      handrailSide: hasWheels ? handrailSide : undefined, 
       customStepPrice: customStepPrice ? parseFloat(customStepPrice) : undefined,
       customTotalLength: lengthInCm || undefined,
       optionalItems: optionalItems,
@@ -281,13 +299,46 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
         </div>
         
         <div className="pt-4 border-t border-gray-100 dark:border-gray-700 grid grid-cols-1 md:grid-cols-2 gap-4">
+             {/* Opção Com Rodinhas */}
+             <div className="flex flex-col gap-2">
+                 <label className="flex items-center gap-2 cursor-pointer bg-gray-50 dark:bg-gray-700 p-2 rounded border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition h-14">
+                     <input 
+                        type="checkbox" 
+                        checked={hasWheels} 
+                        onChange={handleToggleWheels}
+                        className="w-5 h-5 accent-highlight"
+                     />
+                     <div className="flex flex-col">
+                        <span className="font-bold text-gray-900 dark:text-white">Com Rodinhas?</span>
+                        <span className="text-[10px] text-gray-500 dark:text-gray-400">Zera amortecedores</span>
+                     </div>
+                 </label>
+
+                 {/* Sub-opção: Lado do Corrimão (Só aparece se hasWheels) */}
+                 {hasWheels && (
+                     <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded border border-blue-100 dark:border-blue-800">
+                         <label className="block text-xs font-bold text-blue-900 dark:text-blue-200 mb-1">Posição Corrimão:</label>
+                         <select 
+                            value={handrailSide} 
+                            onChange={(e) => setHandrailSide(e.target.value as 'left'|'right'|'both')}
+                            className="w-full text-xs font-bold p-1 rounded bg-white dark:bg-gray-700 text-black dark:text-white border border-blue-200 dark:border-blue-700"
+                         >
+                             <option value="left">Só Esquerdo</option>
+                             <option value="right">Só Direito</option>
+                             <option value="both">Nos Dois Lados</option>
+                         </select>
+                     </div>
+                 )}
+             </div>
+
              <InputField 
                 label="Amortecedores" 
                 value={dampers} 
                 onChange={e => setDampers(e.target.value)} 
                 unit="un"
-                helperText="Aceita 0"
-                tooltip="Borrachas instaladas entre a estrutura da escada e a parede para reduzir vibração e ruído."
+                helperText={hasWheels ? "Desativado (Rodinhas)" : "Aceita 0"}
+                tooltip="Borrachas instaladas entre a estrutura da escada e a parede. Se 'Com Rodinhas' estiver ativo, deve ser 0."
+                disabled={hasWheels}
             />
             <InputField 
                 label="Preço/Degrau" 
@@ -297,6 +348,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                 isOptional={true}
                 helperText="Manual (Substitui tabela)"
                 tooltip="Define um preço fixo por degrau, ignorando a tabela de preços automática baseada na largura."
+                className="col-span-1 md:col-span-2"
             />
         </div>
         
@@ -353,8 +405,6 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                                 onChange={(e) => {
                                                     updateLanding(landing.id, {
                                                         isLastStep: e.target.checked,
-                                                        // Se desmarcar último, talvez desmarcar rente também? Depende da lógica.
-                                                        // Mantemos simples: se desmarcar último, rente vira false pois rente EXIGE último.
                                                         isFlushWithSlab: e.target.checked ? landing.isFlushWithSlab : false
                                                     });
                                                 }} 
@@ -369,7 +419,6 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                                 checked={!!landing.isFlushWithSlab} 
                                                 onChange={(e) => {
                                                     const isChecked = e.target.checked;
-                                                    // Rente à laje FORÇA ser último degrau
                                                     updateLanding(landing.id, {
                                                         isFlushWithSlab: isChecked,
                                                         isLastStep: isChecked ? true : landing.isLastStep 
@@ -389,6 +438,26 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                         className={`w-full p-2 rounded border-2 focus:outline-none transition font-bold ${landing.isLastStep ? 'bg-gray-200 dark:bg-gray-600 border-gray-300 dark:border-gray-500 text-gray-400 dark:text-gray-300' : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 focus:border-highlight text-black dark:text-white'}`}
                                         placeholder={landing.isLastStep ? "Automático (Topo)" : "Nº do Degrau (Ex: 5)"}
                                     />
+                                </div>
+
+                                <div className="col-span-2">
+                                    <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Tipo de Fixação:</label>
+                                    <div className="flex bg-gray-100 dark:bg-gray-700 p-1 rounded">
+                                        <button 
+                                            type="button" 
+                                            onClick={() => updateLanding(landing.id, { type: 'articulated' })}
+                                            className={`flex-1 py-1 text-xs font-bold rounded ${(!landing.type || landing.type === 'articulated') ? 'bg-white dark:bg-gray-600 shadow text-highlight' : 'text-gray-500'}`}
+                                        >
+                                            Articulado
+                                        </button>
+                                        <button 
+                                            type="button" 
+                                            onClick={() => updateLanding(landing.id, { type: 'fixed' })}
+                                            className={`flex-1 py-1 text-xs font-bold rounded ${landing.type === 'fixed' ? 'bg-white dark:bg-gray-600 shadow text-blue-600' : 'text-gray-500'}`}
+                                        >
+                                            Fixo
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <div className="col-span-2 bg-gray-50 dark:bg-gray-700/50 p-2 rounded border border-gray-100 dark:border-gray-700">
