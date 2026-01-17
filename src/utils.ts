@@ -1,13 +1,8 @@
 
+
 import { GoogleGenAI } from "@google/genai";
 
-// Declaração para TypeScript entender o process.env injetado pelo Vite
-declare var process: {
-  env: {
-    API_KEY: string;
-    [key: string]: string | undefined;
-  }
-};
+// Declaration removed to avoid conflict with global types in vite-env.d.ts
 
 export const getBasePrice = (width: number): number => {
   if (width >= 40 && width <= 50) return 410;
