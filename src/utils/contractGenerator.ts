@@ -127,13 +127,22 @@ export const generateContractPDF = (data: ContractData) => {
   const stepH = data.selectedOption.stepHeight.toFixed(2);
   const tread = data.selectedOption.treadDepth.toFixed(2);
   
-  // Direção e Fixação da Escada
-  const fixationText = data.inputData.stairDirection === 'mirrored' 
-      ? "Fixação do Lado ESQUERDO" 
-      : "Fixação do Lado DIREITO";
+  // LÓGICA DE FIXAÇÃO ATUALIZADA (Igual ao PDF da Proposta)
+  let fixationText = "";
+  if (data.inputData.stairGeometry === 'hide') {
+      fixationText = ""; 
+  } else if (data.inputData.stairGeometry && data.inputData.stairGeometry.includes('Fixação')) {
+      fixationText = data.inputData.stairGeometry; 
+  } else {
+      fixationText = data.inputData.stairDirection === 'mirrored' 
+          ? "Fixação do Lado ESQUERDO" 
+          : "Fixação do Lado DIREITO";
+  }
 
-  // Geometria / Fixação (Novo Campo)
-  const geometryText = data.inputData.stairGeometry ? `, modelo ${data.inputData.stairGeometry}` : "";
+  // Geometria (L / U)
+  const geometryText = (data.inputData.stairGeometry && !data.inputData.stairGeometry.includes('Fixação') && data.inputData.stairGeometry !== 'hide')
+    ? `, modelo ${data.inputData.stairGeometry}` 
+    : "";
 
   // --- LÓGICA DE RODINHAS ---
   let baseDescription = `Escada articulada lateral em aço carbono`;
@@ -153,8 +162,12 @@ export const generateContractPDF = (data: ContractData) => {
       handrailText = `e com corrimão articulado ${sideText}`;
   }
 
-  // Objeto incluindo a direção e geometria
-  let objText = `${baseDescription} com corte à laser, ${fixationText}${geometryText}, com medidas de: ${alturaM}m de altura, ${compM}m de comprimento, ${widthM}m de largura ${handrailText}.`;
+  // Constrói objeto com formatação correta de vírgulas
+  let objText = `${baseDescription} com corte à laser`;
+  if (fixationText) objText += `, ${fixationText}`;
+  if (geometryText) objText += `${geometryText}`;
+  objText += `, com medidas de: ${alturaM}m de altura, ${compM}m de comprimento, ${widthM}m de largura ${handrailText}.`;
+  
   addText(objText, 11, false, 'left');
   
   let stepsText = `-Com ${data.selectedOption.structureSteps} degraus articulados com dimensões de ${stepH}cm de altura e pisante de ${tread}cm${dampersText}`;

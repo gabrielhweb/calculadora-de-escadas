@@ -85,7 +85,12 @@ function Calculator() {
           return l;
       });
 
-      const numRisers = totalUnits + 1;
+      // CORREÇÃO: Cálculo correto de Espelhos (Risers)
+      // Se tiver patamar rente à laje (no topo), ele já é o nível final, então NumEspelhos = NumPeças.
+      // Se não tiver (ou for abaixo), precisa de mais 1 espelho para chegar na laje.
+      const hasFlushTopLanding = adjustedLandings.some(l => l.isLastStep && l.isFlushWithSlab);
+      const numRisers = hasFlushTopLanding ? totalUnits : totalUnits + 1;
+      
       const calculatedStepHeight = data.totalHeight / numRisers;
       
       let totalLength = 0;

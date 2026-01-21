@@ -85,13 +85,24 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
         let handrailDesc = "e com corrimão de 70 centímetros";
         let damperDesc = ` com ${inputData.dampers} amortecedores de alívio`;
 
-        // Direção e Fixação da Escada
-        const fixationText = inputData.stairDirection === 'mirrored' 
-            ? "Fixação do Lado ESQUERDO" 
-            : "Fixação do Lado DIREITO";
-            
-        // Geometria / Fixação (Novo Campo)
-        const geometryText = inputData.stairGeometry ? `, modelo ${inputData.stairGeometry}` : "";
+        // LÓGICA DE FIXAÇÃO ATUALIZADA (Baseada em stairGeometry que agora contém Fixação explícita)
+        let fixationText = "";
+        
+        if (inputData.stairGeometry === 'hide') {
+            fixationText = ""; // Ocultar explicitamente
+        } else if (inputData.stairGeometry && inputData.stairGeometry.includes('Fixação')) {
+            fixationText = inputData.stairGeometry; // Usa o texto exato (Frontal, Lateral Esquerda, etc)
+        } else {
+            // Fallback padrão se não for 'hide' nem fixação específica
+            fixationText = inputData.stairDirection === 'mirrored' 
+                ? "Fixação do Lado ESQUERDO" 
+                : "Fixação do Lado DIREITO";
+        }
+
+        // LÓGICA GEOMETRIA (L / U)
+        const geometryText = (inputData.stairGeometry && !inputData.stairGeometry.includes('Fixação') && inputData.stairGeometry !== 'hide') 
+            ? `, modelo ${inputData.stairGeometry}` 
+            : "";
 
         if (inputData.hasWheels) {
             descriptionTitle = "Escada articulada com rodinhas em aço carbono";
@@ -110,8 +121,12 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
         const compM = (opt.totalLength / 100).toFixed(2).replace('.', ',');
         const widthCm = opt.stairWidth;
         
-        // Texto 1 Incluindo Direção e Geometria
-        const text1 = `${descriptionTitle} com corte à laser, ${fixationText}${geometryText}, com medidas de: ${alturaM} metros de altura, ${compM} metros de comprimento, ${widthCm} centímetros de largura ${handrailDesc}.`;
+        // Constrói o texto garantindo pontuação correta se fixationText for vazio
+        let text1 = `${descriptionTitle} com corte à laser`;
+        if (fixationText) text1 += `, ${fixationText}`;
+        if (geometryText) text1 += `${geometryText}`;
+        text1 += `, com medidas de: ${alturaM} metros de altura, ${compM} metros de comprimento, ${widthCm} centímetros de largura ${handrailDesc}.`;
+
         const lines1 = doc.splitTextToSize(text1, pageWidth - (pageMargin * 2));
         
         const stepH = opt.stepHeight.toFixed(2).replace('.', ',');

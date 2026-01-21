@@ -379,9 +379,11 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                         onChange={(e) => setStairGeometry(e.target.value)}
                         className="w-full bg-white dark:bg-gray-700 p-2 rounded border border-gray-300 dark:border-gray-600 text-sm font-bold text-gray-900 dark:text-white"
                      >
-                         <option value="">Não Especificar (Padrão)</option>
-                         <option value="Reta (Parede à Esquerda)">Reta (Fixação Parede Esquerda)</option>
-                         <option value="Reta (Parede à Direita)">Reta (Fixação Parede Direita)</option>
+                         <option value="">Automático (Baseado na Subida)</option>
+                         <option value="hide">Não Mencionar Fixação (Texto Limpo)</option>
+                         <option value="Fixação Frontal">Fixação Frontal</option>
+                         <option value="Fixação Lateral Esquerda">Fixação Lateral Esquerda</option>
+                         <option value="Fixação Lateral Direita">Fixação Lateral Direita</option>
                          <option value="Formato L (Vira Esquerda)">Formato L (Vira Esquerda)</option>
                          <option value="Formato L (Vira Direita)">Formato L (Vira Direita)</option>
                          <option value="Formato U">Formato U</option>
