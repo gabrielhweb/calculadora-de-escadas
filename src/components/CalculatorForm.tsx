@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { CalculatorInput, OptionalItem, LandingInfo } from '../types';
+import React, { useState, useEffect } from 'react';
+import { CalculatorInput, OptionalItem, LandingInfo, ReferenceDoor } from '../types';
 
 interface CalculatorFormProps {
   onCalculate: (data: CalculatorInput) => void;
@@ -103,6 +103,22 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
   const [newItemPrice, setNewItemPrice] = useState('');
   const [error, setError] = useState<string>('');
 
+  // Estados de Visualização Avançada
+  const [stairDirection, setStairDirection] = useState<'standard' | 'mirrored'>('standard');
+  const [stairGeometry, setStairGeometry] = useState<string>(''); // Novo campo de geometria
+  const [doorActive, setDoorActive] = useState(false);
+  const [doorWidth, setDoorWidth] = useState('80');
+  const [doorHeight, setDoorHeight] = useState('210');
+  const [doorDistance, setDoorDistance] = useState('100'); // Distância do início da escada
+  const [doorPosition, setDoorPosition] = useState<'ground' | 'upper'>('upper'); // Padrão: Laje
+
+  // Efeito para garantir que amortecedores sejam 0 se tiver rodinhas
+  useEffect(() => {
+      if (hasWheels) {
+          setDampers('0');
+      }
+  }, [hasWheels]);
+
   // Handlers para Itens Extras e Patamares
   const handleAddItem = () => {
     if (newItemName && newItemPrice) {
@@ -116,19 +132,39 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
     setOptionalItems(optionalItems.filter(item => item.id !== id));
   };
 
+  // ADICIONAR PATAMAR GENÉRICO
   const handleAddLanding = () => {
     const lastStep = parseInt(desiredSteps) || 1;
     const newLanding: LandingInfo = {
         id: Date.now().toString(),
-        step: lastStep,
+        step: Math.floor(lastStep / 2), // Default no meio
         length: 80,
         width: 70,
         price: 1030,
-        type: 'articulated', // Padrão
+        type: 'articulated',
         isLastStep: false,
         isFlushWithSlab: false,
         direction: 'straight',
         hasSideGuardrail: false,
+        hasFrontGuardrail: false
+    };
+    setLandings([...landings, newLanding]);
+  };
+
+  // ADICIONAR PATAMAR DE TOPO (ESPECÍFICO DO PEDIDO)
+  const handleAddTopLanding = () => {
+    const lastStep = parseInt(desiredSteps) || 1;
+    const newLanding: LandingInfo = {
+        id: Date.now().toString(),
+        step: lastStep,
+        length: 75, // Conforme vídeo (70~75)
+        width: 70,
+        price: 1030,
+        type: 'fixed', // Topo geralmente é fixo
+        isLastStep: true,
+        isFlushWithSlab: true, // Padrão rente
+        direction: 'straight',
+        hasSideGuardrail: true,
         hasFrontGuardrail: false
     };
     setLandings([...landings, newLanding]);
@@ -156,11 +192,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
   const handleToggleWheels = (e: React.ChangeEvent<HTMLInputElement>) => {
       const isChecked = e.target.checked;
       setHasWheels(isChecked);
-      if (isChecked) {
-          setDampers('0');
-      } else {
-          setDampers('4'); // Valor padrão ao desmarcar
-      }
+      // O useEffect cuidará de zerar os amortecedores
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -173,8 +205,20 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
     const openingInCm = convertToCm(slabOpening, openingUnit);
     const slabThickInCm = parseFloat(slabThickness) || 0;
 
-    const dampersInt = parseInt(dampers, 10);
-    const finalDampers = isNaN(dampersInt) ? 0 : dampersInt;
+    // Se tiver rodinhas, força amortecedores a 0 na submissão também
+    let finalDampers = 0;
+    if (!hasWheels) {
+        const dampersInt = parseInt(dampers, 10);
+        finalDampers = isNaN(dampersInt) ? 0 : dampersInt;
+    }
+
+    const referenceDoorData: ReferenceDoor = {
+        isActive: doorActive,
+        width: parseFloat(doorWidth) || 0,
+        height: parseFloat(doorHeight) || 0,
+        distance: parseFloat(doorDistance) || 0,
+        position: doorPosition
+    };
 
     const formData: CalculatorInput = {
       totalHeight: heightInCm || 0,
@@ -190,6 +234,9 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
       landings: landings,
       slabThickness: slabThickInCm,
       slabOpening: openingInCm || undefined,
+      stairDirection: stairDirection,
+      stairGeometry: stairGeometry, // Novo campo
+      referenceDoor: referenceDoorData
     };
 
     if (formData.totalHeight <= 0 || formData.desiredSteps <= 0) {
@@ -298,7 +345,119 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
             />
         </div>
         
-        <div className="pt-4 border-t border-gray-100 dark:border-gray-700 grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* VISUALIZAÇÃO AVANÇADA */}
+        <div className="pt-4 border-t border-gray-100 dark:border-gray-700 bg-blue-50 dark:bg-blue-900/20 -mx-6 px-6 pb-4 mb-4">
+             <h3 className="text-sm font-black text-blue-900 dark:text-blue-100 uppercase flex items-center gap-2 mb-3 mt-4">
+                <span className="bg-blue-600 text-white w-6 h-6 flex items-center justify-center rounded-full text-xs">👁</span>
+                Configuração & Ambiente
+             </h3>
+
+             <div className="grid grid-cols-1 gap-4">
+                 {/* Controle de Direção da Escada */}
+                 <div className="bg-white dark:bg-gray-800 p-3 rounded border border-blue-200 dark:border-blue-800">
+                     <label className="text-xs font-bold text-gray-500 uppercase mb-2 block">Sentido da Subida</label>
+                     <div className="flex gap-1 mb-3">
+                         <button 
+                             type="button"
+                             onClick={() => setStairDirection('standard')}
+                             className={`flex-1 py-2 text-xs font-bold rounded border ${stairDirection === 'standard' ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-200'}`}
+                         >
+                             Subir p/ Direita ↗️
+                         </button>
+                         <button 
+                             type="button"
+                             onClick={() => setStairDirection('mirrored')}
+                             className={`flex-1 py-2 text-xs font-bold rounded border ${stairDirection === 'mirrored' ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-200'}`}
+                         >
+                             Subir p/ Esquerda ↖️
+                         </button>
+                     </div>
+
+                     <label className="text-xs font-bold text-gray-500 uppercase mb-2 block">Formato / Fixação</label>
+                     <select 
+                        value={stairGeometry}
+                        onChange={(e) => setStairGeometry(e.target.value)}
+                        className="w-full bg-white dark:bg-gray-700 p-2 rounded border border-gray-300 dark:border-gray-600 text-sm font-bold text-gray-900 dark:text-white"
+                     >
+                         <option value="">Não Especificar (Padrão)</option>
+                         <option value="Reta (Parede à Esquerda)">Reta (Fixação Parede Esquerda)</option>
+                         <option value="Reta (Parede à Direita)">Reta (Fixação Parede Direita)</option>
+                         <option value="Formato L (Vira Esquerda)">Formato L (Vira Esquerda)</option>
+                         <option value="Formato L (Vira Direita)">Formato L (Vira Direita)</option>
+                         <option value="Formato U">Formato U</option>
+                     </select>
+                 </div>
+
+                 {/* Controle de Porta/Janela (Reformulado) */}
+                 <div className="bg-white dark:bg-gray-800 p-3 rounded border border-blue-200 dark:border-blue-800">
+                     <div className="flex items-center gap-3 mb-3 cursor-pointer" onClick={() => setDoorActive(!doorActive)}>
+                        <input type="checkbox" checked={doorActive} onChange={e => setDoorActive(e.target.checked)} className="accent-blue-600 w-5 h-5 cursor-pointer"/>
+                        <div className="flex flex-col">
+                            <label className="text-sm font-bold text-gray-800 dark:text-white cursor-pointer">Adicionar Porta ou Janela</label>
+                            <span className="text-[10px] text-gray-500">Ajuda a ver se a escada vai passar na frente de algo.</span>
+                        </div>
+                     </div>
+                     
+                     {doorActive && (
+                        <div className="grid grid-cols-2 gap-3 mt-2 animate-fade-in bg-gray-50 dark:bg-gray-700 p-2 rounded">
+                            <div className="col-span-2 flex bg-gray-200 dark:bg-gray-600 rounded p-1 mb-1">
+                                <button 
+                                    type="button"
+                                    onClick={() => setDoorPosition('ground')}
+                                    className={`flex-1 py-1 text-xs font-bold rounded transition ${doorPosition === 'ground' ? 'bg-white dark:bg-gray-800 shadow text-blue-700' : 'text-gray-500'}`}
+                                >
+                                    No Térreo (Baixo)
+                                </button>
+                                <button 
+                                    type="button"
+                                    onClick={() => setDoorPosition('upper')}
+                                    className={`flex-1 py-1 text-xs font-bold rounded transition ${doorPosition === 'upper' ? 'bg-white dark:bg-gray-800 shadow text-blue-700' : 'text-gray-500'}`}
+                                >
+                                    Na Laje (Cima)
+                                </button>
+                            </div>
+
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-500 dark:text-gray-300 uppercase mb-1">Largura</label>
+                                <div className="flex items-center">
+                                    <input type="number" value={doorWidth} onChange={e => setDoorWidth(e.target.value)} className="w-full text-sm p-2 border rounded font-bold text-blue-700" placeholder="80" />
+                                    <span className="ml-1 text-xs font-bold text-gray-400">cm</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-500 dark:text-gray-300 uppercase mb-1">Altura</label>
+                                <div className="flex items-center">
+                                    <input type="number" value={doorHeight} onChange={e => setDoorHeight(e.target.value)} className="w-full text-sm p-2 border rounded font-bold text-blue-700" placeholder="210" />
+                                    <span className="ml-1 text-xs font-bold text-gray-400">cm</span>
+                                </div>
+                            </div>
+                            <div className="col-span-2">
+                                <label className="block text-[10px] font-bold text-gray-500 dark:text-gray-300 uppercase mb-1 flex justify-between">
+                                    <span>Distância do 1º Degrau</span>
+                                    {doorPosition === 'ground' && <span className="text-blue-500 cursor-help" title="Distância do começo da escada (pé) até o começo da porta">?</span>}
+                                </label>
+                                {doorPosition === 'ground' ? (
+                                    <>
+                                        <div className="flex items-center">
+                                            <input type="number" value={doorDistance} onChange={e => setDoorDistance(e.target.value)} className="w-full text-sm p-2 border rounded font-bold text-blue-700" placeholder="100" />
+                                            <span className="ml-1 text-xs font-bold text-gray-400">cm</span>
+                                        </div>
+                                        <p className="text-[10px] text-gray-400 mt-1 italic">Ex: Se a porta está a 1 metro do início da escada, coloque 100.</p>
+                                    </>
+                                ) : (
+                                    <div className="w-full p-2 bg-gray-200 dark:bg-gray-600 rounded border border-gray-300 dark:border-gray-500 text-xs text-gray-500 dark:text-gray-300 italic flex items-center gap-2">
+                                        <span className="text-lg">🔒</span> 
+                                        <span className="font-bold">Fixa no final da escada</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                     )}
+                 </div>
+             </div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
              {/* Opção Com Rodinhas */}
              <div className="flex flex-col gap-2">
                  <label className="flex items-center gap-2 cursor-pointer bg-gray-50 dark:bg-gray-700 p-2 rounded border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition h-14">
@@ -371,9 +530,14 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                     Patamares ({landings.length})
                     <TooltipIcon text="Plataformas de descanso ou curva. Cada patamar substitui 1 degrau na contagem total de peças." />
                 </h3>
-                <button type="button" onClick={handleAddLanding} className="text-xs bg-gray-800 dark:bg-gray-700 text-white px-3 py-1 rounded font-bold hover:bg-black dark:hover:bg-gray-600 transition">
-                    + Adicionar
-                </button>
+                <div className="flex gap-2">
+                    <button type="button" onClick={handleAddTopLanding} className="text-xs bg-orange-600 text-white px-2 py-1 rounded font-bold hover:bg-orange-700 transition" title="Patamar no Topo (Acesso Lateral)">
+                        + Chegada
+                    </button>
+                    <button type="button" onClick={handleAddLanding} className="text-xs bg-gray-800 dark:bg-gray-700 text-white px-3 py-1 rounded font-bold hover:bg-black dark:hover:bg-gray-600 transition">
+                        + Meio
+                    </button>
+                </div>
             </div>
             
             {landings.length === 0 ? (
@@ -393,6 +557,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                             <span className="text-xs font-bold text-gray-400 absolute top-1 left-2">#{index + 1}</span>
                             
                             <div className="grid grid-cols-2 gap-2 mt-2">
+                                {/* Campos do patamar mantidos como estavam */}
                                 <div className="mb-0 col-span-2">
                                     <div className="flex justify-between items-center mb-1">
                                          <label className="text-sm font-black text-gray-900 dark:text-gray-100 mr-1">Posição</label>
@@ -410,24 +575,26 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                                 }} 
                                                 className="w-4 h-4 accent-highlight"
                                              />
-                                             <span className="text-xs font-bold text-gray-700 dark:text-gray-200 uppercase">Último?</span>
+                                             <span className="text-xs font-bold text-gray-700 dark:text-gray-200 uppercase">Topo (Chegada)?</span>
                                         </label>
                                         
-                                        <label className="flex items-center gap-1 cursor-pointer select-none">
-                                             <input 
-                                                type="checkbox" 
-                                                checked={!!landing.isFlushWithSlab} 
-                                                onChange={(e) => {
-                                                    const isChecked = e.target.checked;
-                                                    updateLanding(landing.id, {
-                                                        isFlushWithSlab: isChecked,
-                                                        isLastStep: isChecked ? true : landing.isLastStep 
-                                                    });
-                                                }} 
-                                                className="w-4 h-4 accent-highlight"
-                                             />
-                                             <span className="text-xs font-bold text-gray-700 dark:text-gray-200 uppercase">Rente à Laje?</span>
-                                        </label>
+                                        {landing.isLastStep && (
+                                            <label className="flex items-center gap-1 cursor-pointer select-none" title="Para porta nivelada com o piso superior">
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={!!landing.isFlushWithSlab} 
+                                                    onChange={(e) => {
+                                                        const isChecked = e.target.checked;
+                                                        updateLanding(landing.id, {
+                                                            isFlushWithSlab: isChecked,
+                                                            isLastStep: isChecked ? true : landing.isLastStep 
+                                                        });
+                                                    }} 
+                                                    className="w-4 h-4 accent-highlight"
+                                                />
+                                                <span className="text-xs font-bold text-gray-700 dark:text-gray-200 uppercase">Rente à Laje?</span>
+                                            </label>
+                                        )}
                                     </div>
 
                                     <input
@@ -436,7 +603,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                         disabled={landing.isLastStep}
                                         onChange={e => updateLanding(landing.id, { step: parseFloat(e.target.value) })}
                                         className={`w-full p-2 rounded border-2 focus:outline-none transition font-bold ${landing.isLastStep ? 'bg-gray-200 dark:bg-gray-600 border-gray-300 dark:border-gray-500 text-gray-400 dark:text-gray-300' : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 focus:border-highlight text-black dark:text-white'}`}
-                                        placeholder={landing.isLastStep ? "Automático (Topo)" : "Nº do Degrau (Ex: 5)"}
+                                        placeholder={landing.isLastStep ? "Automático (Último Degrau)" : "Nº do Degrau (Ex: 5)"}
                                     />
                                 </div>
 

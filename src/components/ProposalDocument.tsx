@@ -47,50 +47,55 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
             currentY += 25;
         }
     } else {
-        // Fallback textual se a imagem for inválida ou curta
+        // Fallback textual
         doc.setFontSize(18);
         doc.setFont('helvetica', 'bold');
-        doc.setTextColor(245, 158, 11); // highlight color
+        doc.setTextColor(0, 0, 0); 
         doc.text('ZILINSKI', (pageWidth / 2), currentY + 10, { align: 'center' });
-        doc.setTextColor(0, 0, 0);
         currentY += 20;
     }
 
-    // --- CABEÇALHO ---
+    // --- CABEÇALHO COMPACTADO ---
+    doc.setTextColor(0, 0, 0); // Garante preto
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
     doc.text('Zilinski Distribuidora', pageWidth / 2, currentY, { align: 'center' });
-    currentY += 7;
+    currentY += 6; // Menos espaço
 
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
     doc.text('Av. Maria Luiza Americano 1954, São Paulo –SP Tel.:019 992237714', pageWidth / 2, currentY, { align: 'center' });
-    currentY += 15;
+    currentY += 12; // Menos espaço
 
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     doc.text('ORÇAMENTO', pageWidth / 2, currentY, { align: 'center' });
-    currentY += 20;
+    currentY += 15;
 
     const extrasCost = inputData.optionalItems.reduce((acc, item) => acc + item.price, 0);
 
     // --- OPÇÕES ---
     options.forEach((opt) => {
-        // --- PRÉ-CÁLCULO DE ESPAÇO PARA O CONJUNTO (TEXTO + IMAGENS) ---
-        let estimatedHeight = 0;
-        estimatedHeight += 10; 
         
         doc.setFontSize(11);
         doc.setFont('helvetica', 'normal');
         
-        // --- LÓGICA DE TEXTO DINÂMICO PARA RODINHAS E CORRIMÃO ---
+        // --- LÓGICA DE TEXTO DINÂMICO ---
         let descriptionTitle = "Escada articulada lateral em aço carbono";
         let handrailDesc = "e com corrimão de 70 centímetros";
         let damperDesc = ` com ${inputData.dampers} amortecedores de alívio`;
 
+        // Direção e Fixação da Escada
+        const fixationText = inputData.stairDirection === 'mirrored' 
+            ? "Fixação do Lado ESQUERDO" 
+            : "Fixação do Lado DIREITO";
+            
+        // Geometria / Fixação (Novo Campo)
+        const geometryText = inputData.stairGeometry ? `, modelo ${inputData.stairGeometry}` : "";
+
         if (inputData.hasWheels) {
             descriptionTitle = "Escada articulada com rodinhas em aço carbono";
-            damperDesc = ""; // Remove texto de amortecedores se tiver rodinhas (zero)
+            damperDesc = ""; 
             
             const sideMap: Record<string, string> = { 
                 left: 'apenas no lado esquerdo', 
@@ -104,53 +109,47 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
         const alturaM = (inputData.totalHeight / 100).toFixed(2).replace('.', ',');
         const compM = (opt.totalLength / 100).toFixed(2).replace('.', ',');
         const widthCm = opt.stairWidth;
-        const text1 = `${descriptionTitle} com corte à laser, com medidas de: ${alturaM} metros de altura, ${compM} metros de comprimento, ${widthCm} centímetros de largura ${handrailDesc}.`;
+        
+        // Texto 1 Incluindo Direção e Geometria
+        const text1 = `${descriptionTitle} com corte à laser, ${fixationText}${geometryText}, com medidas de: ${alturaM} metros de altura, ${compM} metros de comprimento, ${widthCm} centímetros de largura ${handrailDesc}.`;
         const lines1 = doc.splitTextToSize(text1, pageWidth - (pageMargin * 2));
-        estimatedHeight += (lines1.length * 5) + 2;
-
+        
         const stepH = opt.stepHeight.toFixed(2).replace('.', ',');
         const tread = opt.treadDepth.toFixed(2).replace('.', ',');
         const text2 = `-Com ${opt.structureSteps} degraus articulados com dimensões de ${stepH} centímetros de altura e pisante de ${tread} centímetros${damperDesc}.`;
         const lines2 = doc.splitTextToSize(text2, pageWidth - (pageMargin * 2));
-        estimatedHeight += (lines2.length * 5) + 3;
-
-        // Lista de Preços (Estimativa)
-        estimatedHeight += 6; // Valor Escada
-        if (opt.landings.length > 0) estimatedHeight += 5 + (opt.landings.length * 6); 
-        estimatedHeight += 6; // Frete
-        estimatedHeight += 6; // Instalação
-        if (inputData.optionalItems.length > 0) estimatedHeight += (inputData.optionalItems.length * 6);
-        estimatedHeight += 6; // Total
-        estimatedHeight += 10; // Espaço
-
-        // Altura das Imagens
-        let imagesForOption: { title: string; imgData: string; width?: number; height?: number }[] = [];
-        if (userData.drawingImages) {
-             imagesForOption = userData.drawingImages.filter(img => img.title.includes(`Opção ${opt.optionNumber}`));
+        
+        // Aviso da Porta (Se existir)
+        let disclaimerLines: string[] = [];
+        if (inputData.referenceDoor && inputData.referenceDoor.isActive) {
+            const disclaimer = "NOTA: Portas/Janelas exibidas nos desenhos técnicos são apenas ilustrativas para referência de espaço. NÃO FABRICAMOS OU FORNECEMOS PORTAS.";
+            disclaimerLines = doc.splitTextToSize(disclaimer, pageWidth - (pageMargin * 2));
         }
-        
-        const fixedDisplayWidth = 150; 
-        
-        let imagesTotalHeight = 0;
-        imagesForOption.forEach(img => {
-            let h = 100; // fallback default
-            if (img.width && img.height) {
-                const ratio = img.height / img.width;
-                h = fixedDisplayWidth * ratio;
-            }
-            imagesTotalHeight += (h + 10); 
-        });
-        
-        estimatedHeight += imagesTotalHeight;
 
-        // --- VERIFICAÇÃO DE QUEBRA DE PÁGINA INTELIGENTE ---
+        // --- CÁLCULO DE ESPAÇO APENAS DO TEXTO ---
+        // Estimamos o espaço que o TEXTO (título + descrição + preços) vai ocupar.
+        // Se couber, imprimimos na página atual. A imagem vai depois (e pode pular página).
+        let textBlockHeight = 6; // Título
+        textBlockHeight += (lines1.length * 5) + 2;
+        textBlockHeight += (lines2.length * 5) + 3;
+        if (disclaimerLines.length > 0) textBlockHeight += (disclaimerLines.length * 5) + 3;
+        textBlockHeight += 6; // Preço Escada
+        if (opt.landings.length > 0) textBlockHeight += 5 + (opt.landings.length * 6); 
+        textBlockHeight += 6; // Frete
+        textBlockHeight += 6; // Instalação
+        if (inputData.optionalItems.length > 0) textBlockHeight += (inputData.optionalItems.length * 6);
+        textBlockHeight += 6; // Total
+        textBlockHeight += 10; // Espaço Extra
+
         const pageLimit = pageHeight - pageMargin;
-        if (currentY + estimatedHeight > pageLimit) {
+
+        // SE O TEXTO NÃO CABE, QUEBRA A PÁGINA ANTES
+        if (currentY + textBlockHeight > pageLimit) {
              doc.addPage();
              currentY = 20;
         }
 
-        // --- RENDERIZAÇÃO REAL ---
+        // --- RENDERIZAÇÃO DO TEXTO ---
 
         // Título da Opção
         doc.setFontSize(12);
@@ -169,8 +168,16 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
         doc.text(lines2, pageMargin, currentY);
         currentY += (lines2.length * 5) + 3;
 
-        // --- LISTA DE PREÇOS (Estilo Pré-Orçamento Detalhado) ---
-        
+        // Disclaimer Porta (Se houver) - PRETO E NEGRITO
+        if (disclaimerLines.length > 0) {
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(0, 0, 0); 
+            doc.text(disclaimerLines, pageMargin, currentY);
+            doc.setFont('helvetica', 'normal');
+            currentY += (disclaimerLines.length * 5) + 3;
+        }
+
+        // --- LISTA DE PREÇOS ---
         const landingsPrice = opt.landings.reduce((acc, l) => acc + l.price, 0);
         const structureOnly = opt.totalPrice - landingsPrice;
         
@@ -178,9 +185,8 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
         doc.text(`-Valor Escada (${opt.structureSteps} degraus): ${formatCurrencyBRL(structureOnly)}`, pageMargin, currentY);
         currentY += 6;
         
-        // 2. Patamares
+        // Patamares
         if (opt.landings.length > 0) {
-            // Se tiver mais de um patamar, mostra a soma. Se for só um, não repete o valor somado.
             if (opt.landings.length > 1) {
                 doc.text(`  • Soma de ${opt.landings.length} Patamares: ${formatCurrencyBRL(landingsPrice)}`, pageMargin, currentY);
                 currentY += 5;
@@ -207,11 +213,10 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
 
         currentY += 1;
 
-        // 3. Frete
+        // Frete
         if (freightCost + tollCost > 0) {
             doc.text(`- Frete: ${formatCurrencyBRL(freightCost + tollCost)}`, pageMargin, currentY);
         } else {
-            // Removido cor vermelha e texto entre parênteses
             doc.setTextColor(0, 0, 0); 
             doc.setFont('helvetica', 'bold');
             doc.text(`- Frete: POR CONTA DO CLIENTE`, pageMargin, currentY);
@@ -219,7 +224,7 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
         }
         currentY += 6;
 
-        // 4. Instalação
+        // Instalação
         if (installationCost > 0) {
              doc.text(`-Instalação: ${formatCurrencyBRL(installationCost)} (Valor para local de fácil acesso)`, pageMargin, currentY);
         } else {
@@ -227,7 +232,7 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
         }
         currentY += 6;
 
-        // 5. Extras
+        // Extras
         if (inputData.optionalItems.length > 0) {
             inputData.optionalItems.forEach(item => {
                 doc.text(`- ${item.name}: ${formatCurrencyBRL(item.price)}`, pageMargin, currentY);
@@ -235,7 +240,7 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
             });
         }
 
-        // 6. TOTAL
+        // TOTAL
         const totalGeral = opt.totalPrice + freightCost + tollCost + installationCost + extrasCost;
         doc.setFont('helvetica', 'bold');
         doc.text(`Total: ${formatCurrencyBRL(totalGeral)}`, pageMargin, currentY);
@@ -243,32 +248,38 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
         
         currentY += 10; 
 
-        // --- INSERÇÃO DE IMAGENS DA OPÇÃO ---
+        // --- INSERÇÃO DE IMAGENS ---
+        // Verificamos imagens individualmente. Se não couber na página atual (que já tem o texto),
+        // joga SÓ A IMAGEM pra próxima página.
+        let imagesForOption: { title: string; imgData: string; width?: number; height?: number }[] = [];
+        if (userData.drawingImages) {
+             imagesForOption = userData.drawingImages.filter(img => img.title.includes(`Opção ${opt.optionNumber}`));
+        }
+        
+        const fixedDisplayWidth = 150; 
+        
         imagesForOption.forEach(img => {
-            // Calcula altura exata para manter proporção
             let currentImgHeight = 100; // Fallback
             if (img.width && img.height) {
                 const ratio = img.height / img.width;
                 currentImgHeight = fixedDisplayWidth * ratio;
             }
 
-            // Centraliza a imagem
             const xPos = (pageWidth - fixedDisplayWidth) / 2;
 
-            // Verifica se cabe na página, senão quebra (backup check)
+            // Lógica de Quebra para Imagem
             if (currentY + currentImgHeight + 20 > pageLimit) {
                 doc.addPage();
                 currentY = 20;
             }
 
-            // Título da Imagem (Pequeno e discreto acima)
+            // Título Imagem
             doc.setFontSize(9);
             doc.setFont('helvetica', 'bold');
-            doc.setTextColor(100, 100, 100);
+            doc.setTextColor(0, 0, 0); // Preto
             const titleWidth = doc.getTextWidth(img.title);
             doc.text(img.title, (pageWidth - titleWidth) / 2, currentY);
             currentY += 4;
-            doc.setTextColor(0, 0, 0);
             
             // Desenha Imagem
             try {

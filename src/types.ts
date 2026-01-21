@@ -29,6 +29,14 @@ export interface LogisticsInfo {
   totalFreightCost: number;
 }
 
+export interface ReferenceDoor {
+  isActive: boolean;
+  width: number;
+  height: number;
+  distance: number; // Distância do início da escada
+  position: 'ground' | 'upper'; // NOVO: Define se é no térreo ou laje
+}
+
 export interface CalculatorInput {
   totalHeight: number; // in cm
   desiredSteps: number;
@@ -46,6 +54,11 @@ export interface CalculatorInput {
   slabThickness?: number; // Espessura da laje (cm)
   slabOpening?: number; // Tamanho do vão livre (cm)
   
+  // Visualização Avançada e Geometria
+  stairDirection?: 'standard' | 'mirrored'; // standard = sobe p/ direita, mirrored = sobe p/ esquerda
+  stairGeometry?: string; // NOVO: Reta parede esq, Reta parede dir, L, U, etc.
+  referenceDoor?: ReferenceDoor;
+
   // Logística Pré-calculada
   logistics?: LogisticsInfo;
 }

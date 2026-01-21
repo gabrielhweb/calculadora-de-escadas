@@ -754,6 +754,10 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                                 hideUI={true}    // Esconde botões internos do componente
                                 initialViewMode={item.viewMode === '3d' ? '3d' : 'side'} // Força o modo correto
                                 forcedState={forcedState}
+                                
+                                // NOVOS PROPS
+                                stairDirection={inputData?.stairDirection}
+                                referenceDoor={inputData?.referenceDoor}
                            />
                       </div>
                   </div>
@@ -1184,6 +1188,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
       {/* RENDERIZAÇÃO DO MODAL DE VISUALIZAÇÃO PADRÃO */}
       {selectedVisualizerOption && (
           <StaircaseVisualizer 
+             key={`${selectedVisualizerOption.optionNumber}-${inputData?.referenceDoor?.isActive ? 'door' : 'nodoor'}-${inputData?.stairDirection}`}
              option={selectedVisualizerOption} 
              totalHeight={inputData?.totalHeight || 300} 
              slabOpening={inputData?.slabOpening}
@@ -1191,6 +1196,10 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
              onClose={() => setSelectedVisualizerOption(null)} 
              onApplyCorrection={(t, l) => handleApplyCorrection(selectedVisualizerOption.optionNumber, t, l)}
              forcedState={visualizerForcedState}
+
+             // NOVOS PROPS
+             stairDirection={inputData?.stairDirection}
+             referenceDoor={inputData?.referenceDoor}
           />
       )}
 
