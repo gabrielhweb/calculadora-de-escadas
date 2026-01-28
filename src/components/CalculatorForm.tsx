@@ -86,6 +86,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
   const [widthUnit, setWidthUnit] = useState<'cm' | 'm'>('cm');
   const [treadDepth, setTreadDepth] = useState<string>('20');
   const [depthUnit, setDepthUnit] = useState<'cm' | 'm'>('cm');
+  const [treadMaterial, setTreadMaterial] = useState<'metal' | 'wood'>('metal'); // NOVO ESTADO
   
   const [dampers, setDampers] = useState<string>('4');
   const [hasWheels, setHasWheels] = useState(false);
@@ -225,6 +226,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
       desiredSteps: parseInt(desiredSteps, 10) || 0,
       stairWidth: widthInCm,
       treadDepth: depthInCm,
+      treadMaterial: treadMaterial,
       dampers: finalDampers,
       hasWheels: hasWheels,
       handrailSide: hasWheels ? handrailSide : undefined, 
@@ -343,6 +345,27 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                 helperText="Padrão: 24cm"
                 tooltip="Profundidade do degrau onde se coloca o pé. Padrão confortável é entre 25cm e 30cm."
             />
+        </div>
+
+        {/* NOVO: MATERIAL DO PISANTE */}
+        <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded border border-gray-300 dark:border-gray-600">
+            <label className="block text-sm font-black text-gray-900 dark:text-gray-100 mb-2">Material dos Degraus</label>
+            <div className="flex gap-2">
+                <button
+                    type="button"
+                    onClick={() => setTreadMaterial('metal')}
+                    className={`flex-1 py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === 'metal' ? 'bg-gray-800 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
+                >
+                    Metal (Ferro)
+                </button>
+                <button
+                    type="button"
+                    onClick={() => setTreadMaterial('wood')}
+                    className={`flex-1 py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === 'wood' ? 'bg-orange-700 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
+                >
+                    Madeira
+                </button>
+            </div>
         </div>
         
         {/* VISUALIZAÇÃO AVANÇADA */}

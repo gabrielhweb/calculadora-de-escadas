@@ -131,7 +131,11 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
         
         const stepH = opt.stepHeight.toFixed(2).replace('.', ',');
         const tread = opt.treadDepth.toFixed(2).replace('.', ',');
-        const text2 = `-Com ${opt.structureSteps} degraus articulados com dimensões de ${stepH} centímetros de altura e pisante de ${tread} centímetros${damperDesc}.`;
+        
+        // Lógica de material do pisante
+        const materialText = inputData.treadMaterial === 'wood' ? 'de Madeira' : 'de Metal Antiderrapante';
+        
+        const text2 = `-Com ${opt.structureSteps} degraus articulados com dimensões de ${stepH} centímetros de altura e pisante ${materialText} de ${tread} centímetros${damperDesc}.`;
         const lines2 = doc.splitTextToSize(text2, pageWidth - (pageMargin * 2));
         
         // Aviso da Porta (Se existir)

@@ -530,12 +530,16 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
 
     if (freightMode === 'auto') {
         currentDistance = distance;
-        currentTolls = autoTollCost;
+        // As APIs e o prompt Gemini geralmente retornam o custo da rota (ida). 
+        // Multiplicamos por 2 para ida e volta.
+        currentTolls = autoTollCost * 2;
     } else { // manual
         const d = parseFloat(manualDistance);
         const t = parseFloat(manualTollCost);
         currentDistance = isNaN(d) ? 0 : d;
-        currentTolls = isNaN(t) ? 0 : t;
+        // Se for manual, assumimos que o usuário digitou o valor do pedágio da ida (assim como a distância da ida)
+        // Multiplicamos por 2 para ida e volta.
+        currentTolls = (isNaN(t) ? 0 : t) * 2;
     }
 
     const fPrice = parseFloat(fuelPrice);
@@ -1019,7 +1023,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
 
                              {(freightCost + tollCost) > 0 && (
                                 <div className="flex justify-between items-center mt-2">
-                                    <span className="font-medium text-gray-600 dark:text-gray-400">Frete + Pedágio:</span>
+                                    <span className="font-medium text-gray-600 dark:text-gray-400">Frete + Pedágio (Ida e Volta):</span>
                                     <span className="font-bold text-gray-800 dark:text-gray-200">{formatCurrencyBRL(freightCost + tollCost)}</span>
                                 </div>
                             )}
@@ -1097,8 +1101,8 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 italic">Distância do Google Maps (só ida).</p>
                     </div>
                     <div>
-                        <input type="number" value={manualTollCost} onChange={e => setManualTollCost(e.target.value)} placeholder="Custo Pedágios (R$)" className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-md border-2 border-gray-300 dark:border-gray-600 font-medium" min="0" step="0.01"/>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 italic">Valor total dos pedágios (ida e volta).</p>
+                        <input type="number" value={manualTollCost} onChange={e => setManualTollCost(e.target.value)} placeholder="Custo Pedágios (R$ - ida)" className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-md border-2 border-gray-300 dark:border-gray-600 font-medium" min="0" step="0.01"/>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 italic">Informe o pedágio de IDA. O sistema multiplica por 2.</p>
                     </div>
                 </div>
                 ) : (
@@ -1150,7 +1154,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                                 <li>📍 Distância Ida: <strong>{(freightMode === 'auto' ? distance : parseFloat(manualDistance)).toFixed(2)} km</strong></li>
                                 <li>🔄 Distância Total (Ida x 2): <strong>{((freightMode === 'auto' ? distance : parseFloat(manualDistance)) * 2).toFixed(2)} km</strong></li>
                                 <li>⛽ Custo Combustível: <strong>{formatCurrencyBRL(calculateFreightCost((freightMode === 'auto' ? distance : parseFloat(manualDistance)), parseFloat(fuelPrice), parseFloat(consumption)))}</strong> <span className="text-xs opacity-75">({((freightMode === 'auto' ? distance : parseFloat(manualDistance))*2).toFixed(1)}km / {consumption}km/l * R${fuelPrice})</span></li>
-                                <li>🚧 Pedágios (Estimado): <strong>{formatCurrencyBRL(freightMode === 'auto' ? autoTollCost : (parseFloat(manualTollCost) || 0))}</strong></li>
+                                <li>🚧 Pedágios (Ida e Volta): <strong>{formatCurrencyBRL(freightMode === 'auto' ? (autoTollCost * 2) : (parseFloat(manualTollCost) || 0) * 2)}</strong></li>
                                 <li className="font-bold border-t border-blue-300 dark:border-blue-700 pt-2 mt-2 text-base text-blue-900 dark:text-blue-100">🚚 Total Logística: {formatCurrencyBRL(freightCost + tollCost)}</li>
                             </ul>
                         )}

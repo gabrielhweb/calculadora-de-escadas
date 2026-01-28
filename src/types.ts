@@ -42,6 +42,7 @@ export interface CalculatorInput {
   desiredSteps: number;
   stairWidth: number; // in cm
   treadDepth: number; // in cm
+  treadMaterial?: 'metal' | 'wood'; // NOVO: Material do pisante
   dampers: number; // Quantidade de amortecedores
   hasWheels?: boolean; // Opção com Rodinhas
   handrailSide?: 'left' | 'right' | 'both'; // Lado do corrimão (apenas se hasWheels=true)

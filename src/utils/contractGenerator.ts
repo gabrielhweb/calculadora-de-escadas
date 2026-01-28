@@ -170,7 +170,8 @@ export const generateContractPDF = (data: ContractData) => {
   
   addText(objText, 11, false, 'left');
   
-  let stepsText = `-Com ${data.selectedOption.structureSteps} degraus articulados com dimensões de ${stepH}cm de altura e pisante de ${tread}cm${dampersText}`;
+  const materialText = data.inputData.treadMaterial === 'wood' ? 'de MADEIRA' : 'de METAL';
+  let stepsText = `-Com ${data.selectedOption.structureSteps} degraus articulados com dimensões de ${stepH}cm de altura e pisante ${materialText} de ${tread}cm${dampersText}`;
   addText(stepsText, 11, false, 'left');
 
   // Adiciona a nota de exclusão se houver porta configurada nos desenhos
@@ -182,9 +183,14 @@ export const generateContractPDF = (data: ContractData) => {
   if (data.selectedOption.landings && data.selectedOption.landings.length > 0) {
       data.selectedOption.landings.forEach((landing, idx) => {
           const typeText = landing.type === 'fixed' ? 'FIXO' : 'ARTICULADO';
+          
+          let dirText = 'RETO';
+          if (landing.direction === 'left') dirText = 'Curva à ESQUERDA';
+          if (landing.direction === 'right') dirText = 'Curva à DIREITA';
+
           const lM = (landing.length/100).toFixed(2);
           const wM = (landing.width/100).toFixed(2);
-          addText(`-Patamar ${idx+1} (${typeText}): Medidas ${lM}m x ${wM}m`, 11, false, 'left');
+          addText(`-Patamar ${idx+1} (${typeText} - ${dirText}): Medidas ${lM}m x ${wM}m`, 11, false, 'left');
       });
   }
 
