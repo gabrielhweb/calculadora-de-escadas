@@ -18,6 +18,8 @@ interface ContractData {
       signalPercent: number;   
       installments: number;    
       installmentValue: number;
+      hybridSignalAmount?: number; // Novo: Valor manual exato
+      pixTiming?: 'entry' | 'delivery'; // Novo: Momento do pagamento Pix
   };
   additionalClauses?: string[]; 
 }
@@ -273,16 +275,25 @@ export const generateContractPDF = (data: ContractData) => {
       addText(`Sendo pago ${formatCurrencyBRL(valorSinal)} via pix de sinal e ${formatCurrencyBRL(valorEntrega)} no dia entrega e instalação`, 11, false, 'left');
   
   } else if (data.paymentMethod === 'hybrid') {
-      const signalP = data.paymentDetails.signalPercent || 20; 
-      const valorEntradaPix = totalGeral * (signalP / 100);
-      const restanteBase = totalGeral - valorEntradaPix; 
+      // Usa o valor manual se disponível, senão calcula pela %
+      const valorPixFinal = data.paymentDetails.hybridSignalAmount !== undefined 
+          ? data.paymentDetails.hybridSignalAmount 
+          : totalGeral * ((data.paymentDetails.signalPercent || 20) / 100);
+      
+      // Restante vai pro cartão
+      const restanteBase = totalGeral - valorPixFinal;
       
       const installments = data.paymentDetails.installments || 1;
       const installmentValue = data.paymentDetails.installmentValue || (restanteBase / installments);
       const totalNoCartao = installmentValue * installments; 
       
+      // Determina o texto baseado no momento do pagamento (Timing)
+      const timingText = data.paymentDetails.pixTiming === 'delivery' 
+          ? "via pix/dinheiro no ato da entrega/retirada" 
+          : "via pix de entrada";
+
       addText(`Total R$ ${formatCurrencyBRL(totalGeral)}`, 11, false, 'left');
-      addText(`Sendo pago ${formatCurrencyBRL(valorEntradaPix)} via pix de entrada.`, 11, false, 'left');
+      addText(`Sendo pago ${formatCurrencyBRL(valorPixFinal)} ${timingText}.`, 11, false, 'left');
       addText(`E o restante de ${formatCurrencyBRL(restanteBase)} mais juros da operadora financeira totalizando ${formatCurrencyBRL(totalNoCartao)} via Link de Pagamento (Cartão de Crédito) em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}`, 11, false, 'justify');
 
   } else {

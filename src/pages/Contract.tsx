@@ -115,6 +115,10 @@ const Contract = () => {
     const [signalPercent, setSignalPercent] = useState(50);
     const [installments, setInstallments] = useState(6);
     
+    // --- LÓGICA DE VALOR MANUAL HÍBRIDO ---
+    const [hybridSignalValue, setHybridSignalValue] = useState<string>(''); // Valor manual em R$
+    const [pixTiming, setPixTiming] = useState<'entry' | 'delivery'>('entry'); // Quando o Pix é pago?
+
     // --- LÓGICA DE JUROS/TAXAS NO CARTÃO ---
     const [enableInterest, setEnableInterest] = useState(false);
     const [interestValue, setInterestValue] = useState(''); // Valor monetário (R$)
@@ -138,6 +142,21 @@ const Contract = () => {
         const totalExtras = optionalItems.reduce((acc, item) => acc + item.price, 0);
         setExtrasPrice(totalExtras.toFixed(2));
     }, [optionalItems]);
+
+    // Cálculos Base
+    const totalGeralBase = (parseFloat(structurePrice)||0) + (parseFloat(freightPrice)||0) + (parseFloat(installationPrice)||0) + (parseFloat(extrasPrice)||0);
+
+    // Atualiza o valor manual do sinal híbrido quando o total muda ou quando a porcentagem muda (apenas se não estiver editando manualmente)
+    useEffect(() => {
+        if (paymentMethod === 'hybrid') {
+            const calculatedSignal = totalGeralBase * (signalPercent / 100);
+            // Só atualiza se a diferença for significativa para evitar loop, 
+            // mas garante que ao abrir a tela já tenha valor
+            if (Math.abs(calculatedSignal - (parseFloat(hybridSignalValue) || 0)) > 1) {
+                setHybridSignalValue(calculatedSignal.toFixed(2));
+            }
+        }
+    }, [totalGeralBase, paymentMethod]); // Remove signalPercent dependency to avoid fighting with manual input
 
     useEffect(() => {
         const targetDate = addBusinessDays(new Date(), 20);
@@ -201,6 +220,23 @@ const Contract = () => {
         }
     }, [location.state]);
 
+    // --- MANIPULAÇÃO DE VALORES HÍBRIDOS (SINCRONIZAÇÃO BIDIRECIONAL) ---
+    const handleHybridSignalPercentChange = (newPercent: number) => {
+        setSignalPercent(newPercent);
+        const newVal = totalGeralBase * (newPercent / 100);
+        setHybridSignalValue(newVal.toFixed(2));
+    };
+
+    const handleHybridSignalValueChange = (valStr: string) => {
+        setHybridSignalValue(valStr);
+        const val = parseFloat(valStr);
+        if (!isNaN(val) && totalGeralBase > 0) {
+            const newPercent = (val / totalGeralBase) * 100;
+            // Atualiza a porcentagem mas limita visualmente entre 0 e 100
+            setSignalPercent(Math.min(100, Math.max(0, newPercent)));
+        }
+    };
+
     // --- RECONHECIMENTO DE VOZ ---
     const toggleListening = (target: 'main' | 'refine') => {
         if (isListening) {
@@ -261,17 +297,15 @@ const Contract = () => {
         }
     };
 
-    // Cálculos Base
-    const totalGeralBase = (parseFloat(structurePrice)||0) + (parseFloat(freightPrice)||0) + (parseFloat(installationPrice)||0) + (parseFloat(extrasPrice)||0);
-
     // Cálculos Pix
     const pixDiscountVal = totalGeralBase * (discountPercent / 100);
     const pixTotal = totalGeralBase - pixDiscountVal;
     
     // Cálculos Híbrido / Cartão
-    const hybridEntryPix = totalGeralBase * (signalPercent / 100);
+    // Agora usamos o valor manual se disponível, senão a porcentagem
+    const hybridEntryPix = parseFloat(hybridSignalValue) || (totalGeralBase * (signalPercent / 100));
     const baseAmountForCard = paymentMethod === 'hybrid' 
-        ? totalGeralBase - hybridEntryPix 
+        ? Math.max(0, totalGeralBase - hybridEntryPix)
         : totalGeralBase;
 
     const interestMoney = enableInterest ? (parseFloat(interestValue) || 0) : 0;
@@ -284,7 +318,10 @@ const Contract = () => {
         setEnableInterest(false);
         setInterestValue('');
         if (method === 'pix') setSignalPercent(50);
-        if (method === 'hybrid') setSignalPercent(20);
+        if (method === 'hybrid') {
+            setSignalPercent(20);
+            handleHybridSignalPercentChange(20); // Reseta valor manual pra sincronizar
+        }
         if (method === 'card') setSignalPercent(0);
     };
 
@@ -399,6 +436,9 @@ const Contract = () => {
         const structureStepsNum = totalStepsNum - numLandings;
         const fullAddress = `${street}, ${number} - ${neighborhood}, ${city} - ${state}, ${zip}`;
 
+        // Calcula o valor exato da entrada híbrida para passar para o gerador
+        const finalHybridSignal = parseFloat(hybridSignalValue) || (totalGeralBase * (signalPercent/100));
+
         generateContractPDF({
             userData: { 
                 name: clientName, cpf: clientDoc, rg: clientRG, address: fullAddress, 
@@ -431,7 +471,12 @@ const Contract = () => {
             deadlineDate, 
             paymentMethod,
             paymentDetails: {
-                discountPercent, signalPercent, installments, installmentValue: finalInstallmentVal
+                discountPercent, 
+                signalPercent, 
+                installments, 
+                installmentValue: finalInstallmentVal,
+                hybridSignalAmount: finalHybridSignal, // Passa o valor manual exato
+                pixTiming: pixTiming // Passa o momento do pagamento
             },
             additionalClauses: customClauses 
         });
@@ -690,10 +735,56 @@ const Contract = () => {
 
                         {paymentMethod === 'hybrid' && (
                             <div className="space-y-4 animate-fade-in">
-                                <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded">
-                                    <label className="block text-xs font-bold text-blue-800 dark:text-blue-300 uppercase mb-1">Entrada no PIX ({signalPercent}%)</label>
-                                    <input type="range" min="10" max="80" step="5" value={signalPercent} onChange={e => setSignalPercent(parseFloat(e.target.value))} className="w-full accent-highlight mb-1"/>
-                                    <div className="text-right font-black text-blue-900 dark:text-blue-300">{formatCurrencyBRL(hybridEntryPix)}</div>
+                                <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <label className="block text-xs font-bold text-blue-800 dark:text-blue-300 uppercase">
+                                            Valor em Dinheiro/Pix ({signalPercent.toFixed(1)}%)
+                                        </label>
+                                    </div>
+                                    
+                                    {/* INPUT MANUAL DE VALOR EM REAIS */}
+                                    <div className="flex items-center gap-2">
+                                        <span className="font-bold text-blue-800 dark:text-blue-300">R$</span>
+                                        <input 
+                                            type="number" 
+                                            value={hybridSignalValue} 
+                                            onChange={(e) => handleHybridSignalValueChange(e.target.value)}
+                                            placeholder="0,00"
+                                            className="w-full p-2 border border-blue-300 rounded font-bold text-lg text-blue-900 focus:outline-none focus:border-highlight"
+                                        />
+                                    </div>
+
+                                    {/* SLIDER AINDA DISPONÍVEL COMO OPÇÃO */}
+                                    <input 
+                                        type="range" 
+                                        min="0" 
+                                        max="100" 
+                                        step="1" 
+                                        value={signalPercent} 
+                                        onChange={e => handleHybridSignalPercentChange(parseFloat(e.target.value))} 
+                                        className="w-full accent-highlight"
+                                    />
+
+                                    {/* TOGGLE PARA O MOMENTO DO PAGAMENTO */}
+                                    <div className="pt-2 border-t border-blue-200 dark:border-blue-800">
+                                        <span className="block text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase mb-1">
+                                            Quando pagar o Pix/Dinheiro?
+                                        </span>
+                                        <div className="flex bg-white dark:bg-gray-800 rounded p-1">
+                                            <button 
+                                                onClick={() => setPixTiming('entry')} 
+                                                className={`flex-1 py-1 px-2 text-xs rounded font-bold transition ${pixTiming === 'entry' ? 'bg-blue-600 text-white shadow' : 'text-gray-500'}`}
+                                            >
+                                                Na Entrada (Sinal)
+                                            </button>
+                                            <button 
+                                                onClick={() => setPixTiming('delivery')} 
+                                                className={`flex-1 py-1 px-2 text-xs rounded font-bold transition ${pixTiming === 'delivery' ? 'bg-blue-600 text-white shadow' : 'text-gray-500'}`}
+                                            >
+                                                Na Entrega/Retirada
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div className="bg-white dark:bg-gray-700 p-3 rounded border border-gray-300 dark:border-gray-600">
