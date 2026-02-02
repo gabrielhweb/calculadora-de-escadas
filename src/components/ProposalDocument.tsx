@@ -1,5 +1,5 @@
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
 import { useNavigate } from 'react-router-dom';
 import { ProposalOption, UserData, CalculatorInput } from '../types';
@@ -23,7 +23,27 @@ const LOGO_BASE64 = "'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAM
 
 const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, inputData, freightCost, tollCost, installationCost, onBack }) => {
   const [isGenerating, setIsGenerating] = useState(false);
+  
+  // Estado para controlar quais opções serão impressas no PDF
+  // Inicializa com todas as opções selecionadas por padrão
+  const [selectedOptionIndices, setSelectedOptionIndices] = useState<number[]>([]);
+
+  // Sincroniza o estado quando as opções mudam (ex: novo cálculo)
+  useEffect(() => {
+      setSelectedOptionIndices(options.map(o => o.optionNumber));
+  }, [options]);
+
   const navigate = useNavigate();
+
+  const toggleOptionSelection = (optionNum: number) => {
+      setSelectedOptionIndices(prev => {
+          if (prev.includes(optionNum)) {
+              return prev.filter(n => n !== optionNum);
+          } else {
+              return [...prev, optionNum].sort();
+          }
+      });
+  };
 
   const createPdfDoc = useCallback(() => {
     const doc = new jsPDF();
@@ -74,8 +94,11 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
 
     const extrasCost = inputData.optionalItems.reduce((acc, item) => acc + item.price, 0);
 
+    // FILTRA AS OPÇÕES SELECIONADAS PELO USUÁRIO
+    const optionsToPrint = options.filter(o => selectedOptionIndices.includes(o.optionNumber));
+
     // --- OPÇÕES ---
-    options.forEach((opt) => {
+    optionsToPrint.forEach((opt) => {
         
         doc.setFontSize(11);
         doc.setFont('helvetica', 'normal');
@@ -132,8 +155,8 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
         const stepH = opt.stepHeight.toFixed(2).replace('.', ',');
         const tread = opt.treadDepth.toFixed(2).replace('.', ',');
         
-        // Lógica de material do pisante
-        const materialText = inputData.treadMaterial === 'wood' ? 'de Madeira' : 'de Metal Antiderrapante';
+        // Lógica de material do pisante (MODIFICADO: REMOVIDO "ANTIDERRAPANTE")
+        const materialText = inputData.treadMaterial === 'wood' ? 'de Madeira' : 'de Metal';
         
         const text2 = `-Com ${opt.structureSteps} degraus articulados com dimensões de ${stepH} centímetros de altura e pisante ${materialText} de ${tread} centímetros${damperDesc}.`;
         const lines2 = doc.splitTextToSize(text2, pageWidth - (pageMargin * 2));
@@ -348,9 +371,14 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
     doc.text('Transferência via pix chave Cnpj: 28.869.537/0001-01 P G Zilinski ME', pageMargin, currentY);
 
     return doc;
-  }, [options, userData, inputData, freightCost, tollCost, installationCost]);
+  }, [options, userData, inputData, freightCost, tollCost, installationCost, selectedOptionIndices]);
 
   const handleDownload = () => {
+    if (selectedOptionIndices.length === 0) {
+        alert("Por favor, selecione pelo menos uma opção para incluir no PDF.");
+        return;
+    }
+
     setIsGenerating(true);
     setTimeout(() => {
         try {
@@ -375,7 +403,25 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
 
       <div className="max-w-md mx-auto bg-gray-50 dark:bg-gray-700/50 p-6 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-600">
           <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-4 uppercase">Proposta Pronta</h2>
-          <button onClick={handleDownload} disabled={isGenerating} className="w-full bg-highlight text-white font-black py-4 rounded shadow-lg hover:bg-yellow-600 uppercase tracking-widest">
+          
+          <div className="mb-4 text-left bg-white dark:bg-gray-800 p-4 rounded border border-gray-200 dark:border-gray-600">
+            <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 uppercase border-b border-gray-100 dark:border-gray-700 pb-1">Selecione as opções no PDF:</h4>
+            {options.map(opt => (
+                <label key={opt.optionNumber} className="flex items-center gap-2 mb-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-1 rounded">
+                   <input 
+                        type="checkbox" 
+                        checked={selectedOptionIndices.includes(opt.optionNumber)} 
+                        onChange={() => toggleOptionSelection(opt.optionNumber)} 
+                        className="w-5 h-5 accent-highlight rounded cursor-pointer"
+                   />
+                   <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                       Opção {opt.optionNumber} ({opt.steps} peças - {formatCurrencyBRL(opt.totalPrice)})
+                   </span>
+                </label>
+            ))}
+          </div>
+
+          <button onClick={handleDownload} disabled={isGenerating || selectedOptionIndices.length === 0} className={`w-full font-black py-4 rounded shadow-lg uppercase tracking-widest transition-all ${selectedOptionIndices.length === 0 ? 'bg-gray-300 cursor-not-allowed text-gray-500' : 'bg-highlight text-white hover:bg-yellow-600'}`}>
               {isGenerating ? 'Gerando...' : 'Baixar Orçamento PDF'}
           </button>
       </div>
