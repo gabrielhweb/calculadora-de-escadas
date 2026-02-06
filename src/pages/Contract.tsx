@@ -146,17 +146,21 @@ const Contract = () => {
     // Cálculos Base
     const totalGeralBase = (parseFloat(structurePrice)||0) + (parseFloat(freightPrice)||0) + (parseFloat(installationPrice)||0) + (parseFloat(extrasPrice)||0);
 
-    // Atualiza o valor manual do sinal híbrido quando o total muda ou quando a porcentagem muda (apenas se não estiver editando manualmente)
+    // Atualiza o valor manual do sinal híbrido quando o total muda, mas não sobrescreve se o usuário já digitou algo específico
+    // exceto na primeira carga
     useEffect(() => {
         if (paymentMethod === 'hybrid') {
             const calculatedSignal = totalGeralBase * (signalPercent / 100);
-            // Só atualiza se a diferença for significativa para evitar loop, 
-            // mas garante que ao abrir a tela já tenha valor
-            if (Math.abs(calculatedSignal - (parseFloat(hybridSignalValue) || 0)) > 1) {
-                setHybridSignalValue(calculatedSignal.toFixed(2));
+            
+            // Se o campo estiver vazio ou muito diferente (mudança de preço base drástica), atualiza
+            // Mas tentamos respeitar o valor manual se possível
+            if (!hybridSignalValue || Math.abs(calculatedSignal - (parseFloat(hybridSignalValue) || 0)) > 1) {
+                // Se a diferença for grande, assume que o preço total mudou e recalcula baseado na %
+                // OU se é a primeira vez.
+                 setHybridSignalValue(calculatedSignal.toFixed(2));
             }
         }
-    }, [totalGeralBase, paymentMethod]); // Remove signalPercent dependency to avoid fighting with manual input
+    }, [totalGeralBase, paymentMethod]); 
 
     useEffect(() => {
         const targetDate = addBusinessDays(new Date(), 20);
@@ -232,7 +236,7 @@ const Contract = () => {
         const val = parseFloat(valStr);
         if (!isNaN(val) && totalGeralBase > 0) {
             const newPercent = (val / totalGeralBase) * 100;
-            // Atualiza a porcentagem mas limita visualmente entre 0 e 100
+            // Atualiza a porcentagem mas limita visualmente entre 0 e 100 para o slider
             setSignalPercent(Math.min(100, Math.max(0, newPercent)));
         }
     };
@@ -320,7 +324,9 @@ const Contract = () => {
         if (method === 'pix') setSignalPercent(50);
         if (method === 'hybrid') {
             setSignalPercent(20);
-            handleHybridSignalPercentChange(20); // Reseta valor manual pra sincronizar
+            // Recalcula o valor manual baseado na nova porcentagem padrão
+            const newVal = totalGeralBase * (20 / 100);
+            setHybridSignalValue(newVal.toFixed(2));
         }
         if (method === 'card') setSignalPercent(0);
     };

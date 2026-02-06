@@ -955,49 +955,32 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                                 <span className="text-base font-black text-gray-900 dark:text-white">{formatCurrencyBRL(activeOption.totalPrice)}</span>
                             </div>
                             
-                            {/* DETALHAMENTO DA CONTA (ATUALIZADO E MELHORADO) */}
-                            <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg border border-gray-200 dark:border-gray-600 text-xs space-y-1 mt-2">
-                                <div className="font-bold text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-600 pb-1 mb-1">
-                                    Detalhamento Estrutura:
+                            {/* DETALHAMENTO DA CONTA (SIMPLIFICADO E LIMPO) */}
+                            <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg border border-gray-200 dark:border-gray-600 text-xs space-y-2 mt-2">
+                                
+                                {/* Linha Degraus */}
+                                <div className="flex justify-between items-center">
+                                    <span className="text-gray-600 dark:text-gray-300">
+                                        {activeOption.structureSteps} Degraus {hasCustomPrice ? '(Preço Manual)' : `(${formatCurrencyBRL(calculatedUnitPrice)}/un)`}:
+                                    </span>
+                                    <span className="font-bold text-gray-800 dark:text-gray-200">
+                                        {formatCurrencyBRL(hasCustomPrice ? (inputData!.customStepPrice! * activeOption.structureSteps) : structureStepsPrice)}
+                                    </span>
                                 </div>
                                 
-                                {!hasCustomPrice ? (
-                                    <>
-                                        <div className="flex justify-between">
-                                            <span>Preço Base (Larg. {activeOption.stairWidth}cm):</span>
-                                            <span>{formatCurrencyBRL(basePrice)}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span>Mult. Pisante ({activeOption.treadDepth.toFixed(1)}cm):</span>
-                                            <span>x {multiplier.toFixed(2)}</span>
-                                        </div>
-                                        <div className="flex justify-between font-bold text-gray-600 dark:text-gray-400">
-                                            <span>= Preço Unitário:</span>
-                                            <span>{formatCurrencyBRL(calculatedUnitPrice)}</span>
-                                        </div>
-                                    </>
-                                ) : (
-                                    <div className="flex justify-between font-bold text-blue-600 dark:text-blue-400">
-                                        <span>Preço Manual Definido:</span>
-                                        <span>{formatCurrencyBRL(inputData.customStepPrice!)}</span>
-                                    </div>
-                                )}
-
-                                <div className="border-t border-gray-200 dark:border-gray-600 my-1 pt-1"></div>
-
-                                <div className="flex justify-between">
-                                    <span>(+) {activeOption.structureSteps} Degraus:</span>
-                                    <span>{formatCurrencyBRL(hasCustomPrice ? (inputData!.customStepPrice! * activeOption.structureSteps) : structureStepsPrice)}</span>
-                                </div>
-                                
+                                {/* Linha Patamares */}
                                 {activeOption.landings.length > 0 && (
-                                     <div className="flex justify-between">
-                                        <span>(+) {activeOption.landings.length} Patamares:</span>
-                                        <span>{formatCurrencyBRL(landingsPrice)}</span>
+                                     <div className="flex justify-between items-center">
+                                        <span className="text-gray-600 dark:text-gray-300">
+                                            {activeOption.landings.length} Patamares (Soma):
+                                        </span>
+                                        <span className="font-bold text-gray-800 dark:text-gray-200">
+                                            {formatCurrencyBRL(landingsPrice)}
+                                        </span>
                                     </div>
                                 )}
 
-                                {/* --- EXIBIÇÃO DETALHADA DOS ITENS ADICIONAIS DENTRO DO QUADRO --- */}
+                                {/* Linha Extras */}
                                 {inputData?.optionalItems && inputData.optionalItems.length > 0 && (
                                     <>
                                         <div className="border-t border-gray-200 dark:border-gray-600 my-1 pt-1"></div>
