@@ -470,3 +470,5 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
     </div>
   );
 };
+
+export default ProposalDocument;
