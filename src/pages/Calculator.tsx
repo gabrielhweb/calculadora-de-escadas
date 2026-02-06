@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import CalculatorForm from '../components/CalculatorForm';
 import ProposalOptions from '../components/ProposalOptions';
-import ProposalDocument from '../components/ProposalDocument';
+import { ProposalDocument } from '../components/ProposalDocument';
 import { CalculatorInput, ProposalOption, UserData, SavedQuote } from '../types';
 import { calculateTotalPrice } from '../utils';
 import { saveQuote } from '../services/storage';

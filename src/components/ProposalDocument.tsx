@@ -21,7 +21,7 @@ interface ProposalDocumentProps {
 // (Usando um placeholder seguro para evitar conflitos de merge em strings muito longas)
 const LOGO_BASE64 = "data:image/jpeg;base64,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"; 
 
-const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, inputData, freightCost, tollCost, installationCost, onBack }) => {
+export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, inputData, freightCost, tollCost, installationCost, onBack }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   
   // Estado para controlar quais opções serão impressas no PDF
@@ -223,15 +223,22 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
         const landingsPrice = opt.landings.reduce((acc, l) => acc + l.price, 0);
         const structureOnly = opt.totalPrice - landingsPrice;
         
+        // Valor da Escada
+        const escadaText = `-Valor Escada (${opt.structureSteps} degraus):`;
+        const escadaPrice = formatCurrencyBRL(structureOnly);
         doc.setFont('helvetica', 'normal');
-        doc.text(`-Valor Escada (${opt.structureSteps} degraus): ${formatCurrencyBRL(structureOnly)}`, pageMargin, currentY);
+        doc.text(escadaText, pageMargin, currentY);
+        doc.text(escadaPrice, pageWidth - pageMargin, currentY, { align: 'right' }); // Preço na direita
         currentY += 6;
         
         // Patamares
         if (opt.landings.length > 0) {
+            // Se tiver múltiplos, mostra a soma primeiro, alinhada à direita
             if (opt.landings.length > 1) {
-                doc.text(`  • Soma de ${opt.landings.length} Patamares: ${formatCurrencyBRL(landingsPrice)}`, pageMargin, currentY);
-                currentY += 5;
+                // Mantém um pequeno recuo visual apenas se for um grupo, mas alinhado corretamente
+                doc.text(`  • Soma de ${opt.landings.length} Patamares:`, pageMargin, currentY);
+                doc.text(formatCurrencyBRL(landingsPrice), pageWidth - pageMargin, currentY, { align: 'right' });
+                currentY += 6;
             }
 
             opt.landings.forEach((landing) => {
@@ -239,23 +246,32 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
                 const wM = (landing.width / 100).toFixed(2).replace('.', ',');
                 
                 // LÓGICA DO TIPO DE PATAMAR (FIXO ou ARTICULADO)
-                let typeText = "";
+                // Se não estiver definido, assume ARTICULADO por segurança/padrão
+                let typeText = " ARTICULADO"; 
                 if (landing.type === 'fixed') typeText = " FIXO";
-                else if (landing.type === 'articulated') typeText = " ARTICULADO";
-
+                
                 let guardText = "";
-                if (landing.hasSideGuardrail && landing.hasFrontGuardrail) guardText = " com Guarda-Corpo Lateral e Frontal";
-                else if (landing.hasSideGuardrail) guardText = " com Guarda-Corpo Lateral";
-                else if (landing.hasFrontGuardrail) guardText = " com Guarda-Corpo Frontal";
+                if (landing.hasSideGuardrail && landing.hasFrontGuardrail) guardText = " + GC Lat/Front";
+                else if (landing.hasSideGuardrail) guardText = " + GC Lateral";
+                else if (landing.hasFrontGuardrail) guardText = " + GC Frontal";
 
                 let flushText = landing.isFlushWithSlab ? " (Rente)" : "";
 
                 // Monta a linha com o tipo explícito
-                const line = `    - Patamar${typeText} de ${lM}m de comprimento por ${wM}m de largura${guardText}${flushText}: ${formatCurrencyBRL(landing.price)}`;
+                // CORREÇÃO: Removemos a indentação (espaços) do início da string
+                const description = `- Patamar${typeText}: ${lM}m x ${wM}m${guardText}${flushText}`;
+                const price = formatCurrencyBRL(landing.price);
                 
-                const splitLine = doc.splitTextToSize(line, pageWidth - (pageMargin * 2));
-                doc.text(splitLine, pageMargin, currentY);
-                currentY += (splitLine.length * 5) + 1;
+                // Calcula espaço disponível para o texto (total - margens - espaço pro preço - folga)
+                const availableWidth = pageWidth - (pageMargin * 2) - 40; 
+                
+                const splitDesc = doc.splitTextToSize(description, availableWidth);
+                doc.text(splitDesc, pageMargin, currentY);
+                
+                // Imprime o preço alinhado à direita na mesma linha do início da descrição
+                doc.text(price, pageWidth - pageMargin, currentY, { align: 'right' });
+                
+                currentY += (splitDesc.length * 5) + 1;
             });
         }
 
@@ -263,35 +279,44 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
 
         // Frete
         if (freightCost + tollCost > 0) {
-            doc.text(`- Frete: ${formatCurrencyBRL(freightCost + tollCost)}`, pageMargin, currentY);
+            doc.text(`- Frete:`, pageMargin, currentY);
+            doc.text(formatCurrencyBRL(freightCost + tollCost), pageWidth - pageMargin, currentY, { align: 'right' });
         } else {
             doc.setTextColor(0, 0, 0); 
+            doc.text(`- Frete:`, pageMargin, currentY);
             doc.setFont('helvetica', 'bold');
-            doc.text(`- Frete: POR CONTA DO CLIENTE`, pageMargin, currentY);
+            doc.text(`POR CONTA DO CLIENTE`, pageWidth - pageMargin, currentY, { align: 'right' });
             doc.setFont('helvetica', 'normal');
         }
         currentY += 6;
 
         // Instalação
         if (installationCost > 0) {
-             doc.text(`-Instalação: ${formatCurrencyBRL(installationCost)} (Valor para local de fácil acesso)`, pageMargin, currentY);
+             doc.text(`-Instalação (Local fácil acesso):`, pageMargin, currentY);
+             doc.text(formatCurrencyBRL(installationCost), pageWidth - pageMargin, currentY, { align: 'right' });
         } else {
-             doc.text(`-Instalação: Por conta do cliente`, pageMargin, currentY);
+             doc.text(`-Instalação:`, pageMargin, currentY);
+             doc.setFont('helvetica', 'bold');
+             doc.text(`POR CONTA DO CLIENTE`, pageWidth - pageMargin, currentY, { align: 'right' });
+             doc.setFont('helvetica', 'normal');
         }
         currentY += 6;
 
         // Extras
         if (inputData.optionalItems.length > 0) {
             inputData.optionalItems.forEach(item => {
-                doc.text(`- ${item.name}: ${formatCurrencyBRL(item.price)}`, pageMargin, currentY);
+                doc.text(`- ${item.name}:`, pageMargin, currentY);
+                doc.text(formatCurrencyBRL(item.price), pageWidth - pageMargin, currentY, { align: 'right' });
                 currentY += 6;
             });
         }
 
         // TOTAL
+        currentY += 2;
         const totalGeral = opt.totalPrice + freightCost + tollCost + installationCost + extrasCost;
         doc.setFont('helvetica', 'bold');
-        doc.text(`Total: ${formatCurrencyBRL(totalGeral)}`, pageMargin, currentY);
+        doc.text(`Total:`, pageMargin, currentY);
+        doc.text(formatCurrencyBRL(totalGeral), pageWidth - pageMargin, currentY, { align: 'right' });
         doc.setFont('helvetica', 'normal');
         
         currentY += 10; 
@@ -445,5 +470,3 @@ const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, userData, 
     </div>
   );
 };
-
-export default ProposalDocument;
