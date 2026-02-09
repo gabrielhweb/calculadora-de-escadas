@@ -5,6 +5,7 @@ import { GoogleGenAI } from "@google/genai";
 import { generateContractPDF } from '../utils/contractGenerator';
 import { LandingInfo, OptionalItem } from '../types';
 import { formatCurrencyBRL } from '../utils';
+import { TechnicalBudget } from '../components/TechnicalBudget';
 
 // Declaração global para SpeechRecognition (API do Navegador)
 declare global {
@@ -95,6 +96,7 @@ const Contract = () => {
     const [dampers, setDampers] = useState('4');
     const [landings, setLandings] = useState<LandingInfo[]>([]);
     const [optionalItems, setOptionalItems] = useState<OptionalItem[]>([]);
+    const [stairDirection, setStairDirection] = useState<'standard' | 'mirrored'>('standard');
     
     // Inputs para adicionar novo item
     const [newItemName, setNewItemName] = useState('');
@@ -206,6 +208,7 @@ const Contract = () => {
                 setTreadDepth(selectedOption.treadDepth.toFixed(2));
                 setTotalLength(selectedOption.totalLength.toString());
                 setDampers(inputData.dampers.toString());
+                setStairDirection(inputData.stairDirection || 'standard');
                 
                 if (selectedOption.landings && selectedOption.landings.length > 0) {
                     setLandings(selectedOption.landings);
@@ -855,6 +858,18 @@ const Contract = () => {
                              <span>📄</span> Gerar e Baixar Contrato
                         </button>
                     </div>
+
+                    {/* COMPONENTE NOVO: ORÇAMENTO TÉCNICO (FÁBRICA) */}
+                    <TechnicalBudget 
+                        clientName={clientName}
+                        totalSteps={parseFloat(totalSteps) || 0}
+                        stepHeightCm={parseFloat(stepHeight) || 0}
+                        treadDepthCm={parseFloat(treadDepth) || 0}
+                        widthCm={parseFloat(width) || 0}
+                        landings={landings}
+                        stairDirection={stairDirection}
+                    />
+
                 </div>
 
                 {/* Seção de IA para Cláusulas */}
