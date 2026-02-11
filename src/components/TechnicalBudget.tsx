@@ -1,5 +1,7 @@
+
 import React, { useState } from 'react';
 import emailjs from '@emailjs/browser';
+import jsPDF from 'jspdf';
 import { LandingInfo } from '../types';
 
 interface TechnicalBudgetProps {
@@ -21,46 +23,38 @@ export const TechnicalBudget: React.FC<TechnicalBudgetProps> = ({
   landings,
   stairDirection
 }) => {
-  // Ajuste: E-mail padrão definido para zilinskidistribuidora@gmail.com
+  // Define o e-mail padrão que aparecerá no campo
   const [email, setEmail] = useState('zilinskidistribuidora@gmail.com');
   const [isSending, setIsSending] = useState(false);
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [errorDetails, setErrorDetails] = useState<string>('');
 
   // --- LÓGICA DE SERRALHERIA (Conversão e Ajustes) ---
   const generateTechnicalData = () => {
-    // 1. Conversão para Milímetros e Formatação
     const stepHeightMM = (stepHeightCm * 10).toFixed(1).replace('.0', '');
     const widthMM = (widthCm * 10).toFixed(0);
     const treadMM = (treadDepthCm * 10);
     
-    // 2. Ajustes de Medidas
-    
-    // A) Corpo da Escada (Lateral)
     // Regra: Se altura do degrau < 16cm, aumenta 0.5cm (5mm). Se >= 16cm, aumenta 1cm (10mm).
     const extraGapMM = stepHeightCm < 16 ? 5 : 10;
     const bodyTreadMM = treadMM + extraGapMM; 
     const bodyTreadStr = bodyTreadMM.toFixed(1).replace('.0', '');
 
-    // B) Degraus (Peças individuais): Medida exata sem folga adicional
     const stepTreadMM = treadMM;
     const stepTreadStr = stepTreadMM.toFixed(1).replace('.0', '');
 
     const numLandings = landings.length;
     const structureSteps = totalSteps - numLandings;
 
-    // Lógica do Lado (Espelhado = Esquerda, Padrão = Direita)
     const sideText = stairDirection === 'mirrored' ? 'esquerdo' : 'direito';
 
-    // --- MONTAGEM DO TEXTO (NOVO FORMATO SERRALHERIA) ---
-    
-    // Parte 1: Corpo da Escada
-    let report = `Orçamento ${clientName}\n`;
+    // --- MONTAGEM DO TEXTO ---
+    let report = `Orçamento ${clientName}\n\n`;
     report += `2 corpo de escada com\n`;
-    report += `${structureSteps} degraus  com medidas de:${stepHeightMM}mm de altura e pisante ${bodyTreadStr}mm\n`;
+    report += `${structureSteps} degraus com medidas de: ${stepHeightMM}mm de altura e pisante ${bodyTreadStr}mm\n`;
     report += `${structureSteps} degraus de ${stepTreadStr}mm x ${widthMM}mm\n`;
     report += `Olhando de baixo para cima furos do lado ${sideText}\n`;
 
-    // Parte 2: Patamares (Se houver)
     if (numLandings > 0) {
         report += `\nOrçamento ${clientName} 2\n`;
         landings.forEach((l) => {
@@ -75,35 +69,80 @@ export const TechnicalBudget: React.FC<TechnicalBudgetProps> = ({
     return report;
   };
 
+  const handleDownloadPDF = () => {
+      const doc = new jsPDF();
+      const text = generateTechnicalData();
+
+      // Configuração do PDF
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(18);
+      doc.text("FICHA DE PRODUÇÃO - CORTE A LASER", 105, 20, { align: 'center' });
+      
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Cliente: ${clientName}`, 20, 35);
+      doc.text(`Data: ${new Date().toLocaleDateString()}`, 20, 42);
+      
+      // Linha separadora
+      doc.line(20, 48, 190, 48);
+
+      // Conteúdo Técnico (Fonte Monospaced para alinhar números)
+      doc.setFont('courier', 'bold'); 
+      doc.setFontSize(14);
+      doc.setTextColor(0, 0, 0); // Preto
+
+      const splitText = doc.splitTextToSize(text, 170);
+      doc.text(splitText, 20, 65);
+
+      // Rodapé Técnico
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text("Zilinski Distribuidora - Sistema de Controle de Produção", 105, 280, { align: 'center' });
+
+      doc.save(`producao_laser_${clientName.replace(/\s/g, '_').toLowerCase()}.pdf`);
+  };
+
   const handleSendEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
 
     setIsSending(true);
     setStatus('idle');
+    setErrorDetails('');
 
     const technicalData = generateTechnicalData();
 
-    try {
-      // =================================================================================
-      // ENVIO REAL CONFIGURADO (Baseado no seu print)
-      // =================================================================================
-      
-      await emailjs.send(
-        'service_qoxzc9l',           // Service ID (Do seu print)
-        '_ejs-test-mail-service_',   // Template ID (Do seu print)
-        { 
-           to_email: email,          // Variável para o destinatário
-           message: technicalData    // O texto técnico
-        }, 
-        'COLE_SUA_PUBLIC_KEY_AQUI'   // <--- IMPORTANTE: Pegue isso em Account -> Public Key no site EmailJS
-      );
-      
-      console.log("E-mail enviado com sucesso!");
-      setStatus('success');
+    // DADOS DO EMAILJS (Mantidos caso queira usar futuramente)
+    const SERVICE_ID = 'service_et2wtl7'; 
+    const TEMPLATE_ID: string = 'COLE_SEU_NOVO_TEMPLATE_ID_AQUI'; 
+    const PUBLIC_KEY = 'pNnojqJb7tjg3sjYV';
 
-    } catch (error) {
+    if (TEMPLATE_ID === 'COLE_SEU_NOVO_TEMPLATE_ID_AQUI' || TEMPLATE_ID.includes('test-mail')) {
+        setErrorDetails("Configuração de Email pendente. Use o botão de PDF acima.");
+        setStatus('error');
+        setIsSending(false);
+        return;
+    }
+
+    try {
+      await emailjs.send(SERVICE_ID, TEMPLATE_ID, { 
+           to_email: email,
+           message: technicalData,
+           from_name: "Zilinski Sistema",
+           reply_to: email
+        }, PUBLIC_KEY);
+      
+      setStatus('success');
+    } catch (error: any) {
       console.error('Erro ao enviar e-mail:', error);
+      let msg = "Erro desconhecido.";
+      if (error && typeof error === 'object') {
+          if (error.text) msg = error.text;
+          else if (error.message) msg = error.message;
+          else msg = JSON.stringify(error);
+      }
+      setErrorDetails(msg);
       setStatus('error');
     } finally {
       setIsSending(false);
@@ -114,57 +153,71 @@ export const TechnicalBudget: React.FC<TechnicalBudgetProps> = ({
     <div className="bg-gray-800 text-white p-6 rounded-xl mt-8 border-2 border-gray-600">
       <div className="flex items-center gap-3 mb-4 border-b border-gray-600 pb-2">
         <span className="text-2xl">⚙️</span>
-        <h2 className="text-xl font-black uppercase tracking-wide">Parte Técnica Corte a Laser</h2>
+        <h2 className="text-xl font-black uppercase tracking-wide">Ficha de Produção (Laser)</h2>
       </div>
       
-      <p className="text-sm text-gray-400 mb-4">
-        Gera a lista de corte no padrão exato da serralheria (mm + folgas condicionais).
+      <p className="text-sm text-gray-400 mb-6">
+        Gera o relatório técnico com as medidas exatas para corte e dobra.
       </p>
 
-      <form onSubmit={handleSendEmail} className="flex flex-col md:flex-row gap-4 items-end">
-        <div className="flex-1 w-full">
-          <label className="block text-xs font-bold text-gray-400 mb-1 uppercase">E-mail da Produção</label>
-          <input 
-            type="email" 
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="zilinskidistribuidora@gmail.com"
-            className="w-full bg-gray-700 text-white p-3 rounded border border-gray-600 focus:border-highlight focus:outline-none font-mono"
-          />
-        </div>
+      {/* BOTÃO DE DOWNLOAD PDF - DESTAQUE PRINCIPAL */}
+      <button 
+        onClick={handleDownloadPDF}
+        className="w-full bg-orange-600 hover:bg-orange-500 text-white font-black py-4 px-6 rounded-lg shadow-lg flex items-center justify-center gap-3 text-lg mb-6 border-b-4 border-orange-800 active:border-b-0 active:translate-y-1 transition-all"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        BAIXAR FICHA DE PRODUÇÃO (PDF)
+      </button>
+
+      {/* ÁREA DE EMAIL (SECUNDÁRIA / COLAPSED) */}
+      <details className="group border border-gray-600 rounded-lg p-3 bg-gray-700/30">
+        <summary className="flex justify-between items-center font-bold cursor-pointer list-none text-gray-400 group-hover:text-white transition-colors">
+            <span>✉️ Enviar por E-mail (Opcional)</span>
+            <span className="transition group-open:rotate-180">▼</span>
+        </summary>
         
-        <button 
-          type="submit" 
-          disabled={isSending}
-          className={`px-6 py-3 rounded font-bold uppercase transition-all shadow-lg flex items-center gap-2 ${
-            isSending ? 'bg-gray-600 cursor-wait' : 'bg-blue-600 hover:bg-blue-500 text-white'
-          }`}
-        >
-          {isSending ? 'Enviando...' : 'Enviar Orçamento Técnico'}
-        </button>
-      </form>
+        <div className="mt-4 pt-4 border-t border-gray-600 animate-fade-in">
+            <form onSubmit={handleSendEmail} className="flex flex-col md:flex-row gap-4 items-end">
+                <div className="flex-1 w-full">
+                <label className="block text-xs font-bold text-gray-400 mb-1 uppercase">E-mail da Produção</label>
+                <input 
+                    type="email" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="producao@zilinski.com.br"
+                    className="w-full bg-gray-700 text-white p-3 rounded border border-gray-600 focus:border-highlight focus:outline-none font-mono"
+                />
+                </div>
+                
+                <button 
+                type="submit" 
+                disabled={isSending}
+                className={`px-4 py-3 rounded font-bold uppercase transition-all shadow flex items-center gap-2 ${
+                    isSending ? 'bg-gray-600 cursor-wait' : 'bg-blue-600 hover:bg-blue-500 text-white'
+                }`}
+                >
+                {isSending ? 'Enviando...' : 'Enviar'}
+                </button>
+            </form>
 
-      {status === 'success' && (
-        <div className="mt-4 p-3 bg-green-900/50 border border-green-700 text-green-300 rounded text-sm font-bold flex items-center gap-2">
-          ✅ Sucesso! A lista técnica foi enviada para o e-mail.
+            {status === 'success' && (
+                <div className="mt-2 text-green-400 text-xs font-bold">✅ E-mail enviado com sucesso.</div>
+            )}
+            
+            {status === 'error' && (
+                <div className="mt-2 text-red-400 text-xs font-bold">❌ {errorDetails}</div>
+            )}
         </div>
-      )}
-      
-      {status === 'error' && (
-        <div className="mt-4 p-3 bg-red-900/50 border border-red-700 text-red-300 rounded text-sm font-bold">
-          ❌ Erro ao enviar. Verifique se você colocou a Public Key correta no código.
-        </div>
-      )}
+      </details>
 
-      {/* Preview Rápido (apenas visual para conferência) */}
-      <div className="mt-6 pt-4 border-t border-gray-700">
-         <details className="cursor-pointer" open>
-            <summary className="text-xs font-bold text-gray-500 hover:text-white uppercase select-none">Ver Preview (Padrão Serralheria)</summary>
-            <pre className="mt-2 text-sm text-gray-300 bg-black p-4 rounded font-mono whitespace-pre-wrap leading-relaxed border border-gray-700">
-                {generateTechnicalData()}
-            </pre>
-         </details>
+      {/* Preview do Conteúdo na Tela */}
+      <div className="mt-6">
+         <div className="text-xs font-bold text-gray-500 uppercase mb-2">Visualização do Conteúdo:</div>
+         <pre className="text-sm text-green-400 bg-black p-4 rounded font-mono whitespace-pre-wrap leading-relaxed border border-gray-700 shadow-inner">
+            {generateTechnicalData()}
+         </pre>
       </div>
     </div>
   );

@@ -120,6 +120,9 @@ const Contract = () => {
     // --- LÓGICA DE VALOR MANUAL HÍBRIDO ---
     const [hybridSignalValue, setHybridSignalValue] = useState<string>(''); // Valor manual em R$
     const [pixTiming, setPixTiming] = useState<'entry' | 'delivery'>('entry'); // Quando o Pix é pago?
+    
+    // --- LÓGICA DE FLEXIBILIDADE DO RESTANTE (Áudio: "Segunda opção híbrida/flexível") ---
+    const [remainderPaymentMode, setRemainderPaymentMode] = useState('Link de Pagamento (Cartão de Crédito)');
 
     // --- LÓGICA DE JUROS/TAXAS NO CARTÃO ---
     const [enableInterest, setEnableInterest] = useState(false);
@@ -330,6 +333,7 @@ const Contract = () => {
             // Recalcula o valor manual baseado na nova porcentagem padrão
             const newVal = totalGeralBase * (20 / 100);
             setHybridSignalValue(newVal.toFixed(2));
+            setRemainderPaymentMode('Link de Pagamento (Cartão de Crédito)'); // Reset padrão
         }
         if (method === 'card') setSignalPercent(0);
     };
@@ -485,7 +489,8 @@ const Contract = () => {
                 installments, 
                 installmentValue: finalInstallmentVal,
                 hybridSignalAmount: finalHybridSignal, // Passa o valor manual exato
-                pixTiming: pixTiming // Passa o momento do pagamento
+                pixTiming: pixTiming, // Passa o momento do pagamento
+                remainderText: remainderPaymentMode // Texto personalizado do restante
             },
             additionalClauses: customClauses 
         });
@@ -797,17 +802,49 @@ const Contract = () => {
                                 </div>
 
                                 <div className="bg-white dark:bg-gray-700 p-3 rounded border border-gray-300 dark:border-gray-600">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <label className="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Restante no Cartão</label>
-                                        <label className="flex items-center gap-1 cursor-pointer">
+                                    <div className="flex flex-col gap-2 mb-2">
+                                        
+                                        {/* ÁREA DE DESTAQUE PARA O RESTANTE */}
+                                        <div className="mt-4 bg-orange-50 dark:bg-orange-900/20 border-2 border-orange-200 dark:border-orange-700 p-4 rounded-lg animate-fade-in">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <span className="text-xl">✍️</span>
+                                                <label className="text-sm font-black text-orange-900 dark:text-orange-200 uppercase">
+                                                    Como será pago o restante? (Texto do Contrato)
+                                                </label>
+                                            </div>
+
+                                            <input 
+                                                type="text" 
+                                                value={remainderPaymentMode} 
+                                                onChange={e => setRemainderPaymentMode(e.target.value)} 
+                                                placeholder="Ex: Boleto Bancário, Cheque, Dinheiro..."
+                                                className="w-full p-3 border-2 border-orange-300 dark:border-orange-700 rounded-lg text-lg font-bold text-gray-800 dark:text-white bg-white dark:bg-gray-800 focus:outline-none focus:border-orange-500 mb-3 transition-colors"
+                                            />
+
+                                            {/* BOTÕES RÁPIDOS */}
+                                            <div className="flex flex-wrap gap-2">
+                                                {['Link de Pagamento (Cartão)', 'Boleto Bancário', 'Cheque Pré', 'Dinheiro na Entrega', 'Transferência Bancária'].map(opt => (
+                                                    <button
+                                                        key={opt}
+                                                        onClick={() => setRemainderPaymentMode(opt)}
+                                                        className="px-3 py-1 bg-white dark:bg-gray-700 border border-orange-200 dark:border-orange-800 rounded-full text-xs font-bold text-gray-600 dark:text-gray-300 hover:bg-orange-100 dark:hover:bg-orange-900/40 hover:text-orange-800 dark:hover:text-orange-200 transition-colors"
+                                                    >
+                                                        {opt}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-1 cursor-pointer mt-4 border-t border-gray-200 dark:border-gray-600 pt-2">
                                             <input type="checkbox" checked={enableInterest} onChange={e => setEnableInterest(e.target.checked)} className="w-4 h-4 rounded text-highlight"/>
-                                            <span className="text-xs font-bold text-highlight">Somar Juros (R$)</span>
-                                        </label>
+                                            <span className="text-xs font-bold text-highlight">Somar Juros (Opcional)</span>
+                                        </div>
                                     </div>
+
                                     {enableInterest && (
                                         <input type="number" placeholder="Valor total dos juros (R$)" value={interestValue} onChange={e => setInterestValue(e.target.value)} className="w-full p-2 border border-orange-300 rounded mb-2 text-sm bg-white dark:bg-gray-600 text-black dark:text-white"/>
                                     )}
-                                    <div className="flex gap-2 items-center">
+                                    <div className="flex gap-2 items-center mt-2">
                                         <div className="flex-1">
                                             <span className="text-xs text-gray-400 block">Parcelas</span>
                                             <input type="number" value={installments} onChange={e => setInstallments(parseInt(e.target.value)||1)} className="w-full p-1 border rounded font-bold text-center bg-white dark:bg-gray-600 text-black dark:text-white dark:border-gray-500"/>
