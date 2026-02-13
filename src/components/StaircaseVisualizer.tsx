@@ -50,6 +50,7 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
   const [targetHeadroom, setTargetHeadroom] = useState(200); 
   const [zoom, setZoom] = useState(printMode ? 1 : 1.1); 
   const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [isAlertMinimized, setIsAlertMinimized] = useState(false); // CONTROLE DE MINIMIZAR
   
   // Rotação inicial baseada na direção da escada
   const [rotation, setRotation] = useState({ 
@@ -181,7 +182,8 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
       let isSolutionFound = false;
       let bestClearance = -999;
 
-      for (let t = option.treadDepth; t >= 18; t -= 0.1) {
+      // *** CORREÇÃO AQUI: LOOP VAI ATÉ 10cm ***
+      for (let t = option.treadDepth; t >= 10; t -= 0.05) {
           const tryLength = (stairsOnlySteps * (t + 0.5)) + landingsLen;
           const check = calculateHeadroom(t, tryLength);
 
@@ -231,10 +233,11 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
 
   const handleApply = () => {
       if (onApplyCorrection) {
-          const msg = `CONFIRMAR REDUÇÃO NO ORÇAMENTO?\n\n` + 
-                      `A escada será ajustada para garantir ${targetHeadroom}cm de altura livre:\n` +
+          const msg = `CONFIRMAR AJUSTE?\n\n` + 
+                      `A escada será alterada para:\n` +
                       `• Pisante: ${option.treadDepth}cm ➝ ${simulatedValues.tread.toFixed(1)}cm\n` +
-                      `• Comp. Total: ${(option.totalLength/100).toFixed(2)}m ➝ ${(simulatedValues.length/100).toFixed(2)}m`;
+                      `• Comp. Total: ${(option.totalLength/100).toFixed(2)}m ➝ ${(simulatedValues.length/100).toFixed(2)}m` + 
+                      `${simulatedValues.tread < 18 ? '\n⚠️ ATENÇÃO: Pisante muito curto!' : ''}`;
                       
           if (window.confirm(msg)) {
               onApplyCorrection(simulatedValues.tread, simulatedValues.length);
@@ -261,19 +264,15 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
   const landingLength = topLanding ? topLanding.length : 0;
   const stairRunLength = drawTotalLength - landingLength;
   
-  // VERIFICA SE O PATAMAR TOPO É FLUSH (RENTE À LAJE)
   const isLastFlush = topLanding && topLanding.isFlushWithSlab;
 
   const drawStairEndX = margin + drawTotalLength;
-  // Opening value calculation
   const calculatedOpeningSize = (margin + drawTotalLength) - drawSlabEdgeX;
-  // Ensure visual opening is reasonable if no slab info (infinite)
   const visualOpeningSize = hasSlabInfo ? calculatedOpeningSize : 2000;
   
   const svgWidth = Math.max(margin + option.totalLength, drawStairEndX, drawSlabEdgeX, 1000) + (margin * 3);
   const isMirrored = stairDirection === 'mirrored';
 
-  // --- CÁLCULO DA POSIÇÃO DA PORTA 2D ---
   let refDoorX2D = 0;
   let refDoorY2D = 0;
   let refDoorWidth2D = 0;
@@ -283,23 +282,17 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
       const isUpper = referenceDoor.position === 'upper';
       
       if (isUpper) {
-          // CORREÇÃO SOLICITADA: Porta Superior SEMPRE no nível da laje (ceilingY)
-          // Mesmo que o patamar desça (não seja rente), a porta fica na laje.
           refDoorY2D = ceilingY;
-          
           if (topLanding) {
               const landingLen = topLanding.length;
               if (!isMirrored) {
-                  // Padrão: Patamar começa após a escada
                   const landingStart = margin + stairRunLength;
                   refDoorX2D = landingStart + (landingLen / 2) - (refDoorWidth2D / 2);
               } else {
-                  // Espelhado: Patamar está no topo (margin)
                   const landingStart = margin;
                   refDoorX2D = landingStart + (landingLen / 2) - (refDoorWidth2D / 2);
               }
           } else {
-              // Sem Patamar (Chegada Direta)
               if (!isMirrored) {
                   refDoorX2D = margin + drawTotalLength + 10; 
               } else {
@@ -307,7 +300,6 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
               }
           }
       } else {
-          // Lógica de Porta Térrea (Chão)
           refDoorY2D = floorY;
           const dist = referenceDoor.distance;
           if (!isMirrored) {
@@ -322,13 +314,8 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
       const cx = drawTotalLength / 2;
       const cy = (totalHeight || 300) / 2;
       const cz = option.stairWidth / 2;
-      
       let rawX = p.x;
-      // Inverte a geometria se for espelhado
-      if (isMirrored) {
-          rawX = drawTotalLength - p.x; 
-      }
-
+      if (isMirrored) rawX = drawTotalLength - p.x; 
       let x = rawX - cx; let y = p.y - cy; let z = p.z - cz;
       const radY = (rotation.y * Math.PI) / 180;
       const x1 = x * Math.cos(radY) - z * Math.sin(radY);
@@ -336,7 +323,7 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
       const radX = (rotation.x * Math.PI) / 180;
       const y2 = y * Math.cos(radX) - z1 * Math.sin(radX);
       const scale = 1.0; 
-      return { x: x1 * scale + (svgWidth / 2), y: y2 * scale + (svgHeight / 2) };
+      return { x: x1 * scale + (svgWidth / 2) + pan.x, y: y2 * scale + (svgHeight / 2) + pan.y };
   };
 
   const getFaces = (): Face[] => {
@@ -356,7 +343,6 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
 
       const baseY = (totalHeight || 300);
       const wallWidth = Math.max(2000, drawTotalLength + (referenceDoor?.distance || 0) + 500);
-      
       const wallZ = -width - 50; 
 
       faces.push({
@@ -366,44 +352,28 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
               { x: wallWidth, y: -500, z: wallZ }, 
               { x: -500, y: -500, z: wallZ } 
           ],
-          fill: '#f1f5f9',
-          stroke: '#cbd5e1',
-          zIndex: -2000,
-          id: 'back-wall',
-          opacity: 0.9
+          fill: '#f1f5f9', stroke: '#cbd5e1', zIndex: -2000, id: 'back-wall', opacity: 0.9
       });
 
       if (referenceDoor && referenceDoor.isActive) {
           let dX = referenceDoor.distance;
           if (referenceDoor.position === 'upper') {
-              // Ajuste 3D se tiver patamar
-              if (topLanding) {
-                  dX = stairRunLength; 
-              } else {
-                  dX = drawTotalLength + 10;
-              }
+              if (topLanding) dX = stairRunLength; 
+              else dX = drawTotalLength + 10;
           }
-
           const dW = referenceDoor.width;
           const dH = referenceDoor.height;
           const dZ = wallZ + 2; 
           const isUpper = referenceDoor.position === 'upper';
-          // CORREÇÃO 3D: Se a porta é upper, o Y base é 0 (topo da laje)
           const doorBaseY = isUpper ? 0 : baseY;
           
-          const dp1 = { x: dX,      y: doorBaseY,      z: dZ };
-          const dp2 = { x: dX + dW, y: doorBaseY,      z: dZ };
+          const dp1 = { x: dX, y: doorBaseY, z: dZ };
+          const dp2 = { x: dX + dW, y: doorBaseY, z: dZ };
           const dp3 = { x: dX + dW, y: doorBaseY - dH, z: dZ };
-          const dp4 = { x: dX,      y: doorBaseY - dH, z: dZ };
+          const dp4 = { x: dX, y: doorBaseY - dH, z: dZ };
           
           faces.push({ 
-              points: [dp1, dp2, dp3, dp4], 
-              fill: '#3b82f6', 
-              stroke: '#1e3a8a', 
-              strokeWidth: 4,
-              zIndex: -1900,
-              id: 'ref-door',
-              opacity: 0.7 
+              points: [dp1, dp2, dp3, dp4], fill: '#3b82f6', stroke: '#1e3a8a', strokeWidth: 4, zIndex: -1900, id: 'ref-door', opacity: 0.7 
           });
       }
       
@@ -460,14 +430,13 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
           const rightX = Math.sin(rad) * width;
           const rightZ = -Math.cos(rad) * width;
 
-          // CORREÇÃO: Se for patamar rente à laje (último passo), Y deve ser 0 (topo), não stepH abaixo
           let yTop;
           if (landing && landing.isLastStep && landing.isFlushWithSlab) {
-              yTop = 0; // Topo exato
+              yTop = 0; 
           } else {
               yTop = currentPos.y - stepH;
           }
-          const yBottom = currentPos.y; // Base do degrau anterior
+          const yBottom = currentPos.y; 
 
           const p0 = { x: currentPos.x, y: yTop, z: currentPos.z };
           const p1 = { x: currentPos.x + rightX, y: yTop, z: currentPos.z + rightZ };
@@ -503,9 +472,7 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
               faces.push({ points: [vb0, vb3, vb3_d, vb0_d], fill: beamColor, stroke: beamStroke, zIndex: -1, id: `b${i}-left` });
           }
           
-          // Avança para o próximo
           if (landing && landing.isLastStep && landing.isFlushWithSlab) {
-              // Se foi o último rente, não desce mais
           } else {
               currentPos.y = yTop;
           }
@@ -540,34 +507,20 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
   };
 
   const renderSideView = () => {
-    // --- CÁLCULO DINÂMICO DAS POSIÇÕES DA LAJE/BURLACO PARA ESPELHAMENTO ---
-    // Padrão: Buraco é à direita (final da escada)
-    // Espelhado: Buraco é à esquerda (final da escada)
-    
     let holeStartX, holeEndX;
     
     if (!isMirrored) {
-        // Padrão: Laje esquerda (PERIGO) -> Buraco -> Laje direita (CHEGADA)
-        // Se Vão Livre (!hasSlabInfo), o buraco é enorme e não tem perigo à esquerda
-        holeEndX = margin + drawTotalLength; // Borda da chegada (Topo do degrau)
+        holeEndX = margin + drawTotalLength; 
         holeStartX = hasSlabInfo ? (holeEndX - visualOpeningSize) : -2000;
     } else {
-        // Espelhado: Laje esquerda (CHEGADA) -> Buraco -> Laje direita (PERIGO)
-        // A escada chega na ESQUERDA (margin).
-        holeStartX = margin; // Borda da chegada (Topo do degrau)
+        holeStartX = margin; 
         holeEndX = hasSlabInfo ? (holeStartX + visualOpeningSize) : 20000;
     }
 
-    // Cálculo de Cabeçada (Ajustado para espelhamento)
     const getHeadroomLine = () => {
         if (!hasSlabInfo) return null;
-        
-        // A quina da laje que causa perigo muda de lado
-        // Padrão: Perigo é à esquerda do buraco (holeStartX)
-        // Espelhado: Perigo é à direita do buraco (holeEndX)
         const lineX = isMirrored ? holeEndX : holeStartX;
         const lineTopY = slabBottomY;
-        
         let foundStepY = floorY;
         
         for (let i = 1; i <= option.steps; i++) {
@@ -583,18 +536,14 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
                 stepStartVisual = margin + currentRunStart;
                 stepEndVisual = stepStartVisual + runLen;
             } else {
-                // Espelhado: Começa na direita (margin+total) e vai para esquerda
-                stepStartVisual = (margin + drawTotalLength) - currentRunStart; // Início do degrau (lado direito dele)
-                stepEndVisual = stepStartVisual - runLen; // Fim do degrau (lado esquerdo dele)
-                
-                // Normaliza para [min, max]
+                stepStartVisual = (margin + drawTotalLength) - currentRunStart; 
+                stepEndVisual = stepStartVisual - runLen;
                 const minX = Math.min(stepStartVisual, stepEndVisual);
                 const maxX = Math.max(stepStartVisual, stepEndVisual);
                 stepStartVisual = minX;
                 stepEndVisual = maxX;
             }
             
-            // Verifica colisão com margem de segurança pequena
             if (lineX >= stepStartVisual - 0.5 && lineX <= stepEndVisual + 0.5) {
                 foundStepY = floorY - (i * option.stepHeight);
                 break;
@@ -617,7 +566,6 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
     let currentY = floorY;
     
     for (let i = 1; i <= option.steps; i++) {
-        // CORREÇÃO 2D: Se for patamar rente à laje, ele fica na altura da laje (ceilingY)
         const landing = safeLandings.find(l => l.step === i);
         const isThisFlush = landing && landing.isLastStep && landing.isFlushWithSlab;
 
@@ -654,20 +602,13 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
     let d = `M ${stepsPoints[0].x} ${stepsPoints[0].y}`;
     for (let p of stepsPoints) d += ` L ${p.x} ${p.y}`;
 
-    // Definição da posição da seta de Pé Direito
     const ceilingArrowX = isMirrored ? (margin + drawTotalLength + 20) : (margin - 20);
     const ceilingTextX = isMirrored ? (ceilingArrowX + 15) : (ceilingArrowX - 15);
     const textRot = isMirrored ? 90 : -90;
 
-    // Definição da cota de Altura Total
     const heightArrowX = isMirrored ? (margin + drawTotalLength + 60) : (margin - 60);
     const heightTextX = isMirrored ? (heightArrowX + 15) : (heightArrowX - 15);
 
-    // FUNÇÕES PARA DESENHAR AS LAJES DE FORMA LÓGICA
-    
-    // Laje Esquerda (Coordenadas Negativas até o buraco)
-    // No modo Padrão: É a laje de risco (antes da escada).
-    // No modo Espelhado: É a laje de chegada (Piso Superior).
     const renderLeftSlab = (isArrival: boolean) => (
         <g>
             <rect x={-2000} y={ceilingY} width={2000 + holeStartX} height={slabThickness} fill={(!isArrival && simulateSafe && correctionType === 'expand_opening') ? '#86efac' : '#cbd5e1'} stroke="none" opacity="0.8"/>
@@ -677,9 +618,6 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
         </g>
     );
 
-    // Laje Direita (Do fim do buraco até o infinito)
-    // No modo Padrão: É a laje de chegada (Piso Superior).
-    // No modo Espelhado: É a laje de risco (antes da escada).
     const renderRightSlab = (isArrival: boolean) => (
         <g>
             <rect x={holeEndX} y={ceilingY} width={3000} height={slabThickness} fill={(!isArrival && simulateSafe && correctionType === 'expand_opening') ? '#86efac' : '#cbd5e1'} stroke="none" opacity="0.8"/>
@@ -691,44 +629,23 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
 
     return (
         <g>
-            {/* PAREDE DE FUNDO */}
-            <rect 
-                x={margin} 
-                y={ceilingY} 
-                width={Math.max(drawTotalLength, (referenceDoor?.isActive ? referenceDoor.distance + referenceDoor.width + 50 : 0))} 
-                height={totalHeight || 300} 
-                fill="#f1f5f9" 
-                stroke="none" 
-            />
+            <rect x={margin} y={ceilingY} width={Math.max(drawTotalLength, (referenceDoor?.isActive ? referenceDoor.distance + referenceDoor.width + 50 : 0))} height={totalHeight || 300} fill="#f1f5f9" stroke="none" />
             <text x={margin + 10} y={floorY - 20} fill="#cbd5e1" fontSize="40" fontWeight="bold" opacity="0.5">PAREDE</text>
             
-            {/* Linhas de Chão e Teto */}
             <line x1={-1000} y1={floorY} x2={svgWidth + 1000} y2={floorY} stroke="#333" strokeWidth="4" />
             <line x1={-1000} y1={ceilingY} x2={svgWidth + 1000} y2={ceilingY} stroke="#94a3b8" strokeWidth="2" opacity="0.7" />
             <text x={margin + drawTotalLength + 50} y={ceilingY - 10} fill="#94a3b8" fontSize="14" fontStyle="italic">Nível Piso Superior</text>
 
-            {/* LAJES - Lógica Condicional Baseada na Direção */}
             {isMirrored ? (
-                <>
-                    {/* Espelhado: Esquerda = Chegada (Sempre desenha). Direita = Risco (Só se tiver info de vão) */}
-                    {renderLeftSlab(true)}
-                    {hasSlabInfo && renderRightSlab(false)}
-                </>
+                <> {renderLeftSlab(true)} {hasSlabInfo && renderRightSlab(false)} </>
             ) : (
-                <>
-                    {/* Padrão: Esquerda = Risco (Só se tiver info de vão). Direita = Chegada (Sempre desenha) */}
-                    {hasSlabInfo && renderLeftSlab(false)}
-                    {renderRightSlab(true)}
-                </>
+                <> {hasSlabInfo && renderLeftSlab(false)} {renderRightSlab(true)} </>
             )}
             
-            {/* Patamares (Preenchimento) */}
             {landingDraws}
 
-            {/* Perfil da Escada (Linha Preta) */}
             <path d={d} fill="none" stroke={simulateSafe && correctionType === 'shrink_stair' ? '#16a34a' : 'black'} strokeWidth="2" strokeLinejoin="round" />
             
-            {/* Indicador Último Degrau */}
             <g>
                 <circle cx={isMirrored ? margin : drawStairEndX} cy={ceilingY + (isLastFlush ? 0 : option.stepHeight)} r="5" fill={isLastFlush ? "transparent" : "red"} />
                 {isLastFlush ? (
@@ -744,7 +661,6 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
                 )}
             </g>
 
-            {/* Cotas e Medidas */}
             <g>
                 <line x1={heightArrowX} y1={floorY} x2={heightArrowX} y2={floorY - (totalHeight || 300)} stroke="#000" strokeWidth="3" markerEnd="url(#arrowGray)" markerStart="url(#arrowGray)" />
                 <text x={heightTextX} y={floorY - (totalHeight || 300)/2} fill="#000" fontSize="20" fontWeight="bold" textAnchor="middle" transform={`rotate(${textRot}, ${heightTextX}, ${floorY - (totalHeight || 300)/2})`}>H: {((totalHeight || 300)/100).toFixed(2)}m</text>
@@ -797,28 +713,12 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
                 </g>
             )}
 
-            {/* PORTA 2D - MOVIDO PARA O FINAL (OVERLAY) PARA GARANTIR VISIBILIDADE */}
             {referenceDoor && referenceDoor.isActive && (
                 <g id="door-group-2d" style={{ pointerEvents: 'none' }}>
-                    <rect 
-                        x={refDoorX2D} 
-                        y={refDoorY2D - referenceDoor.height} 
-                        width={referenceDoor.width} 
-                        height={referenceDoor.height} 
-                        fill="rgba(30, 58, 138, 0.3)" 
-                        stroke="#1e3a8a" 
-                        strokeWidth="3" 
-                        strokeDasharray="10,5"
-                    />
-                    <text x={refDoorX2D + referenceDoor.width/2} y={refDoorY2D - referenceDoor.height - 15} textAnchor="middle" fontSize="16" fill="#1e3a8a" fontWeight="900" stroke="white" strokeWidth="3" paintOrder="stroke">
-                        PORTA ({referenceDoor.position === 'upper' ? 'Laje' : 'Térreo'})
-                    </text>
-                    <text x={refDoorX2D + referenceDoor.width/2} y={refDoorY2D - referenceDoor.height - 15} textAnchor="middle" fontSize="16" fill="#1e3a8a" fontWeight="900">
-                        PORTA ({referenceDoor.position === 'upper' ? 'Laje' : 'Térreo'})
-                    </text>
-                    <text x={refDoorX2D + referenceDoor.width/2} y={refDoorY2D - referenceDoor.height/2} textAnchor="middle" fontSize="14" fill="#1e3a8a" fontWeight="bold">
-                        {referenceDoor.width}x{referenceDoor.height}
-                    </text>
+                    <rect x={refDoorX2D} y={refDoorY2D - referenceDoor.height} width={referenceDoor.width} height={referenceDoor.height} fill="rgba(30, 58, 138, 0.3)" stroke="#1e3a8a" strokeWidth="3" strokeDasharray="10,5"/>
+                    <text x={refDoorX2D + referenceDoor.width/2} y={refDoorY2D - referenceDoor.height - 15} textAnchor="middle" fontSize="16" fill="#1e3a8a" fontWeight="900" stroke="white" strokeWidth="3" paintOrder="stroke">PORTA</text>
+                    <text x={refDoorX2D + referenceDoor.width/2} y={refDoorY2D - referenceDoor.height - 15} textAnchor="middle" fontSize="16" fill="#1e3a8a" fontWeight="900">PORTA</text>
+                    <text x={refDoorX2D + referenceDoor.width/2} y={refDoorY2D - referenceDoor.height/2} textAnchor="middle" fontSize="14" fill="#1e3a8a" fontWeight="bold">{referenceDoor.width}x{referenceDoor.height}</text>
                 </g>
             )}
         </g>
@@ -865,34 +765,13 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
               {faces.map((face, i) => {
                   const projected = face.points.map(projectPoint);
                   let path = `M ${projected[0].x} ${projected[0].y}`;
-                  for (let j = 1; j < projected.length; j++) {
-                      path += ` L ${projected[j].x} ${projected[j].y}`;
-                  }
+                  for (let j = 1; j < projected.length; j++) { path += ` L ${projected[j].x} ${projected[j].y}`; }
                   path += " Z";
                   return (
                       <g key={`${face.id}-${i}`}>
-                        <path
-                            d={path}
-                            fill={face.fill}
-                            stroke={face.stroke}
-                            strokeWidth={face.strokeWidth || 1}
-                            fillOpacity={face.opacity || 1}
-                            strokeDasharray={face.strokeDashArray}
-                        />
-                        {/* Se a face tiver texto configurado, desenha no centro */}
+                        <path d={path} fill={face.fill} stroke={face.stroke} strokeWidth={face.strokeWidth || 1} fillOpacity={face.opacity || 1} strokeDasharray={face.strokeDashArray}/>
                         {face.text && (
-                            <text 
-                                x={(projected[0].x + projected[2].x)/2} 
-                                y={(projected[0].y + projected[2].y)/2}
-                                fill="#15803d"
-                                fontSize="14"
-                                fontWeight="900"
-                                textAnchor="middle"
-                                dominantBaseline="middle"
-                                style={{ pointerEvents: 'none' }}
-                            >
-                                {face.text}
-                            </text>
+                            <text x={(projected[0].x + projected[2].x)/2} y={(projected[0].y + projected[2].y)/2} fill="#15803d" fontSize="14" fontWeight="900" textAnchor="middle" dominantBaseline="middle" style={{ pointerEvents: 'none' }}>{face.text}</text>
                         )}
                       </g>
                   );
@@ -907,11 +786,8 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
     setIsDragging(true);
     setDragStart({ x: e.clientX, y: e.clientY });
     if (viewMode === '3d') {
-        if (e.button === 2 || e.shiftKey) {
-            setDragType('pan');
-        } else {
-            setDragType('rotate');
-        }
+        if (e.button === 2 || e.shiftKey) setDragType('pan');
+        else setDragType('rotate');
     } else {
         setDragType('pan');
     }
@@ -930,19 +806,14 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
     setDragStart({ x: e.clientX, y: e.clientY });
   };
 
-  const stopDrag = () => {
-    setIsDragging(false);
-  };
+  const stopDrag = () => setIsDragging(false);
 
   const handleWheel = (e: React.WheelEvent) => {
       if (printMode && !hideUI) return; 
       e.stopPropagation();
       const scaleFactor = 1.1;
-      if (e.deltaY < 0) {
-          setZoom(z => z * scaleFactor);
-      } else {
-          setZoom(z => Math.max(0.1, z / scaleFactor));
-      }
+      if (e.deltaY < 0) setZoom(z => z * scaleFactor);
+      else setZoom(z => Math.max(0.1, z / scaleFactor));
   };
 
   const executeExport = async (variantName: string, safeState: boolean, corrType: 'expand_opening' | 'shrink_stair', mode: 'side' | '3d') => {
@@ -950,12 +821,8 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
       setIsExporting(true);
       setShowExportMenu(false);
       
-      const prevView = viewMode;
-      const prevSafe = simulateSafe;
-      const prevCorr = correctionType;
-      const prevZoom = zoom;
-      const prevPan = pan;
-      const prevRot = rotation;
+      const prevView = viewMode; const prevSafe = simulateSafe; const prevCorr = correctionType;
+      const prevZoom = zoom; const prevPan = pan; const prevRot = rotation;
 
       setViewMode(mode);
       setSimulateSafe(safeState);
@@ -973,48 +840,32 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
       setTimeout(async () => {
           if (internalCanvasRef.current) {
               try {
-                  const canvas = await html2canvas(internalCanvasRef.current, {
-                      scale: 2,
-                      backgroundColor: '#ffffff'
-                  });
+                  const canvas = await html2canvas(internalCanvasRef.current, { scale: 2, backgroundColor: '#ffffff' });
                   const imgData = canvas.toDataURL('image/png');
                   const doc = new jsPDF('landscape', 'mm', 'a4');
                   const width = doc.internal.pageSize.getWidth();
                   const height = doc.internal.pageSize.getHeight();
                   const ratio = canvas.width / canvas.height;
-                  
                   let w = width - 20;
                   let h = w / ratio;
-                  if (h > height - 20) {
-                      h = height - 20;
-                      w = h * ratio;
-                  }
+                  if (h > height - 20) { h = height - 20; w = h * ratio; }
                   
                   doc.setFontSize(16);
                   doc.text(`Visualização ${mode === '3d' ? '3D' : '2D'} - Opção ${option.optionNumber} (${variantName})`, 10, 15);
                   doc.addImage(imgData, 'PNG', 10, 25, w, h);
                   doc.save(`visualizacao_${variantName}_${mode}.pdf`);
-              } catch (err) {
-                  console.error(err);
-                  alert("Erro ao exportar PDF.");
-              }
+              } catch (err) { console.error(err); alert("Erro ao exportar PDF."); }
           }
-          setViewMode(prevView);
-          setSimulateSafe(prevSafe);
-          setCorrectionType(prevCorr);
-          setZoom(prevZoom);
-          setPan(prevPan);
-          setRotation(prevRot);
+          setViewMode(prevView); setSimulateSafe(prevSafe); setCorrectionType(prevCorr);
+          setZoom(prevZoom); setPan(prevPan); setRotation(prevRot);
           setIsExporting(false);
       }, 800);
   };
 
-  // --- COMPONENTE SVG COMUM ---
   const SVGContent = () => (
       <svg width="100%" height="100%" viewBox={`0 0 ${svgWidth} ${svgHeight}`}>
         <defs>
             <pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse"><path d="M 100 0 L 0 0 0 100" fill="none" stroke="#e2e8f0" strokeWidth="2"/></pattern>
-            
             <marker id="arrowGreen" markerWidth="4" markerHeight="4" refX="0" refY="2" orient="auto-start-reverse" markerUnits="strokeWidth"><path d="M0,0 L0,4 L6,2 z" fill="#16a34a" /></marker>
             <marker id="arrowOrange" markerWidth="4" markerHeight="4" refX="0" refY="2" orient="auto-start-reverse" markerUnits="strokeWidth"><path d="M0,0 L0,4 L6,2 z" fill="#f97316" /></marker>
             <marker id="arrowBlue" markerWidth="4" markerHeight="4" refX="0" refY="2" orient="auto-start-reverse" markerUnits="strokeWidth"><path d="M0,0 L0,4 L6,2 z" fill="#2563eb" /></marker>
@@ -1029,35 +880,26 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
     </svg>
   );
 
-  // Se for o modo de impressão ESTÁTICO (Batch export antigo, sem Wizard UI)
   if (printMode && !hideUI) {
       return (
         <div ref={internalCanvasRef} className="bg-white p-4 inline-block">
              <div className="text-center font-bold text-xl mb-4 text-black">Opção {option.optionNumber}</div>
-             <div style={{ width: 800, height: 600 }}>
-                <SVGContent />
-             </div>
+             <div style={{ width: 800, height: 600 }}> <SVGContent /> </div>
         </div>
       );
   }
 
-  // Se for o modo WIZARD (Interativo e Limpo)
   if (printMode && hideUI) {
      return (
-        <div ref={captureRef} 
-             className="w-full h-full bg-white relative overflow-hidden cursor-move"
-             onMouseDown={startDrag} 
-             onMouseMove={doDrag} 
-             onMouseUp={stopDrag} 
-             onMouseLeave={stopDrag} 
-             onWheel={handleWheel}
+        <div ref={captureRef} className="w-full h-full bg-white relative overflow-hidden cursor-move"
+             onMouseDown={startDrag} onMouseMove={doDrag} onMouseUp={stopDrag} onMouseLeave={stopDrag} onWheel={handleWheel}
         >
             <SVGContent />
         </div>
      );
   }
 
-  // MODO NORMAL (MODAL COMPLETO COM BOTÕES)
+  // --- NOVA INTERFACE FLUTUANTE (CARD BRANCO SOBREPOSTO AO CANVAS) ---
   return (
     <div className="fixed inset-0 bg-gray-900 flex items-center justify-center z-50 overflow-hidden">
       <div className="w-full h-full flex flex-col relative bg-white">
@@ -1070,7 +912,6 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
              <button onClick={() => setZoom(z => z + 0.2)} className="px-4 py-2 bg-gray-200 rounded font-black hover:bg-gray-300 text-lg">Zoom +</button>
              <button onClick={() => setZoom(z => Math.max(0.2, z - 0.2))} className="px-4 py-2 bg-gray-200 rounded font-black hover:bg-gray-300 text-lg">Zoom -</button>
              
-             {/* PDF MENU */}
              <div className="relative ml-4 group">
                  <button onClick={() => setShowExportMenu(!showExportMenu)} disabled={isExporting} className="px-6 py-2 bg-purple-600 text-white rounded font-black hover:bg-purple-700 text-lg shadow-lg flex items-center gap-2">
                     {isExporting ? '...' : '📥 Baixar PDF'} ▾
@@ -1079,10 +920,7 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
                      <div className="absolute top-full left-0 mt-2 w-80 bg-white rounded-lg shadow-2xl border border-gray-200 flex flex-col z-50 overflow-hidden animate-fade-in">
                          <div className="px-4 py-3 bg-gray-100 border-b font-bold text-gray-600 text-xs uppercase tracking-wider flex justify-between">
                             <span>Cenário</span>
-                            <div className="flex gap-4 pr-2">
-                                <span>2D</span>
-                                <span>3D</span>
-                            </div>
+                            <div className="flex gap-4 pr-2"><span>2D</span><span>3D</span></div>
                          </div>
                          <div className="px-4 py-3 border-b flex justify-between items-center hover:bg-gray-50">
                             <span className="font-bold text-gray-800 text-sm">O Que Vejo Agora</span>
@@ -1099,102 +937,116 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
 
         <button onClick={onClose} className="absolute top-4 right-4 z-10 bg-red-600 text-white w-12 h-12 rounded-full font-black text-xl shadow-lg hover:bg-red-700">✕</button>
 
-        {/* CANVAS */}
+        {/* CANVAS - OCUPA TELA TODA AGORA */}
         <div ref={internalCanvasRef} 
-             className={`flex-1 w-full h-full cursor-move overflow-hidden relative ${isExporting ? 'bg-white' : 'bg-blueprint-grid'}`} 
-             onMouseDown={startDrag} 
-             onMouseMove={doDrag} 
-             onMouseUp={stopDrag} 
-             onMouseLeave={stopDrag} 
-             onContextMenu={(e) => e.preventDefault()}
-             onWheel={handleWheel}>
+             className={`absolute inset-0 w-full h-full cursor-move overflow-hidden ${isExporting ? 'bg-white' : 'bg-blueprint-grid'}`} 
+             onMouseDown={startDrag} onMouseMove={doDrag} onMouseUp={stopDrag} onMouseLeave={stopDrag} onContextMenu={(e) => e.preventDefault()} onWheel={handleWheel}>
             <SVGContent />
         </div>
 
-        {/* CONTROLES INFERIORES */}
+        {/* --- CONTROLES FLUTUANTES (MODIFICADO PARA SER CARD SOBREPOSTO) --- */}
         {!isExporting && (
-            <div className="bg-gray-900 text-white p-6 flex flex-col md:flex-row justify-between items-center z-20 shadow-[0_-5px_15px_rgba(0,0,0,0.3)] gap-4">
-                <div className="flex flex-col gap-2">
-                    <div className="flex items-center gap-6">
-                        <div className="text-xl font-black">Opção {option.optionNumber}</div>
+            <div className={`absolute bottom-4 left-4 right-4 md:right-auto md:left-1/2 md:-translate-x-1/2 md:w-[600px] bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl z-20 border transition-all duration-300 overflow-hidden flex flex-col ${simulatedValues.safe ? 'border-green-400' : 'border-red-400'}`}>
+                
+                {/* HEADER (Sempre visível - Funciona como Toggle) */}
+                <div 
+                    onClick={() => setIsAlertMinimized(!isAlertMinimized)}
+                    className={`p-3 flex justify-between items-center cursor-pointer transition-colors ${simulatedValues.safe ? 'bg-green-100 hover:bg-green-200 text-green-900' : 'bg-red-100 hover:bg-red-200 text-red-900'}`}
+                >
+                    <div className="flex items-center gap-3">
+                        <span className="text-2xl">{simulatedValues.safe ? '✅' : '🚨'}</span>
+                        <div className="flex flex-col">
+                            <span className="font-black uppercase text-sm tracking-wide">
+                                {simulateSafe ? (simulatedValues.safe ? 'MODO CORREÇÃO (AJUSTADO)' : 'FALHA NA CORREÇÃO') : (simulatedValues.safe ? 'APROVADO - SEM CABEÇADA' : 'REPROVADO - CABEÇADA')}
+                            </span>
+                            {hasSlabInfo && (
+                                <span className="text-xs font-bold opacity-80">
+                                    Altura Livre: {simulatedValues.clearance.toFixed(0)}cm {simulatedValues.clearance < 200 ? '(Baixo)' : '(OK)'}
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                    <div className="text-xs font-bold bg-white/50 px-2 py-1 rounded">
+                        {isAlertMinimized ? 'Expandir ▲' : 'Minimizar ▼'}
+                    </div>
+                </div>
+
+                {/* BODY (Conteúdo Expansível) */}
+                {!isAlertMinimized && (
+                    <div className="p-4 bg-white text-gray-800 text-sm border-t border-gray-200">
                         {hasSlabInfo ? (
-                            <div className={`px-6 py-3 rounded-lg font-bold text-lg flex items-center gap-3 border-2 ${simulateSafe && simulatedValues.safe ? 'bg-blue-900 border-blue-500' : (!simulateSafe && simulatedValues.safe ? 'bg-green-800 border-green-500' : 'bg-red-900 border-red-500')}`}>
-                                <span className="text-3xl">{simulatedValues.safe ? '✅' : '❌'}</span>
-                                <div>
-                                    <div>{simulateSafe ? 'MODO CORREÇÃO' : (simulatedValues.safe ? 'APROVADO' : 'REPROVADO')}</div>
-                                    <div className="text-sm font-normal opacity-80">
-                                        {simulateSafe 
-                                            ? (simulatedValues.safe 
-                                                ? `Corrigido: ${simulatedValues.clearance.toFixed(0)}cm Livre` 
-                                                : `Falha: ${simulatedValues.clearance.toFixed(0)}cm (Max possível)`)
-                                            : `Cabeçada Atual: ${simulatedValues.clearance.toFixed(0)}cm`
-                                        }
+                            <div className="space-y-4">
+                                {!simulatedValues.safe && !simulateSafe && (
+                                    <div className="bg-red-50 text-red-800 p-2 rounded text-xs border border-red-100 font-medium">
+                                        <strong>Atenção:</strong> O usuário vai bater a cabeça na laje ao subir. É necessário ajustar o projeto.
                                     </div>
+                                )}
+
+                                <div className="flex flex-col gap-2">
+                                    <label className="flex items-center gap-2 cursor-pointer bg-gray-50 p-2 rounded hover:bg-gray-100 border border-gray-200 transition">
+                                        <input type="checkbox" checked={simulateSafe} onChange={e => setSimulateSafe(e.target.checked)} className="w-5 h-5 accent-blue-600 cursor-pointer" />
+                                        <span className="font-bold text-blue-900 uppercase text-xs">Ativar Ferramenta de Correção</span>
+                                    </label>
+                                    
+                                    {simulateSafe && (
+                                        <div className="space-y-3 animate-fade-in pl-2 border-l-4 border-blue-100 ml-1">
+                                            <div className="flex bg-gray-100 p-1 rounded">
+                                                <button onClick={() => setCorrectionType('expand_opening')} className={`flex-1 py-1.5 px-2 rounded text-[10px] font-bold transition ${correctionType === 'expand_opening' ? 'bg-white shadow text-blue-700' : 'text-gray-500 hover:text-gray-700'}`}>1. Aumentar Buraco</button>
+                                                <button onClick={() => setCorrectionType('shrink_stair')} className={`flex-1 py-1.5 px-2 rounded text-[10px] font-bold transition ${correctionType === 'shrink_stair' ? 'bg-white shadow text-blue-700' : 'text-gray-500 hover:text-gray-700'}`}>2. Encurtar Escada</button>
+                                            </div>
+
+                                            {correctionType === 'expand_opening' ? (
+                                                <div className="text-xs text-blue-800 bg-blue-50 p-2 rounded">
+                                                    <p className="font-bold mb-1">Solução 1: Quebrar mais a laje.</p>
+                                                    <p>Novo Vão Necessário: <strong className="text-lg">{(calculationData.corrections.safeSlabX - margin).toFixed(0)}cm</strong></p>
+                                                    <p className="opacity-70 mt-1">(Original: {slabOpening}cm)</p>
+                                                </div>
+                                            ) : (
+                                                <div className="text-xs bg-orange-50 p-2 rounded border border-orange-100">
+                                                    <p className="font-bold text-orange-900 mb-2">Solução 2: Diminuir o pisante da escada.</p>
+                                                    
+                                                    <div className="flex justify-between items-center mb-2">
+                                                        <span>Pisante Original: <strong>{option.treadDepth}cm</strong></span>
+                                                        <span>➝</span>
+                                                        <span className="text-blue-700">Novo: <strong className="text-lg">{simulatedValues.tread.toFixed(1)}cm</strong></span>
+                                                    </div>
+                                                    
+                                                    {simulatedValues.tread < 18 && (
+                                                        <div className="text-red-600 font-bold mb-2 flex items-center gap-1 bg-red-100 p-1 rounded border border-red-200">
+                                                            ⚠️ Pisante muito curto (&lt;18cm)! Ficará íngreme.
+                                                        </div>
+                                                    )}
+
+                                                    {simulatedValues.safe ? (
+                                                        <button onClick={handleApply} className="w-full bg-green-600 text-white font-bold py-2 rounded shadow hover:bg-green-700 transition flex items-center justify-center gap-2">
+                                                            <span>💾</span> Aplicar no Orçamento
+                                                        </button>
+                                                    ) : (
+                                                        <div className="text-red-600 font-bold text-center p-2 bg-red-100 rounded">Impossível corrigir (Geometria Extrema)</div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="pt-2 border-t border-gray-100 flex items-center gap-2 justify-end">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase whitespace-nowrap">Altura Livre Desejada:</label>
+                                    <input 
+                                        type="number" 
+                                        value={headroomInput} 
+                                        onChange={e => setHeadroomInput(parseInt(e.target.value) || 0)} 
+                                        className="w-12 bg-gray-100 text-center text-xs font-bold rounded border border-gray-300 focus:outline-none focus:border-blue-500 p-1"
+                                    />
+                                    <button onClick={() => setTargetHeadroom(headroomInput)} className="text-[10px] bg-blue-100 text-blue-700 px-2 py-1 rounded font-bold hover:bg-blue-200">Definir</button>
                                 </div>
                             </div>
                         ) : (
-                            <div className="bg-blue-600 px-4 py-2 rounded font-bold">INFO: Sem laje superior (Vão Livre).</div>
-                        )}
-                        
-                        {/* Indicador de Espelhamento */}
-                        {stairDirection === 'mirrored' ? (
-                            <div className="bg-purple-800 border border-purple-500 px-3 py-1 rounded text-xs font-bold uppercase">
-                                ↔️ Fixação Lado ESQUERDO
-                            </div>
-                        ) : (
-                            <div className="bg-gray-700 border border-gray-500 px-3 py-1 rounded text-xs font-bold uppercase text-gray-300">
-                                ➡️ Fixação Lado DIREITO
+                            <div className="text-center py-2 text-gray-500 italic">
+                                Sem laje superior configurada (Vão Livre).
                             </div>
                         )}
                     </div>
-                    {simulateSafe && correctionType === 'shrink_stair' && (
-                        <div className="text-sm text-gray-400">
-                             De: {(option.totalLength || 300).toFixed(1)}cm (Pisante {option.treadDepth}cm) → <span className={`${simulatedValues.safe ? 'text-green-400' : 'text-orange-400'} font-bold`}>Para: {simulatedValues.length.toFixed(1)}cm (Pisante {simulatedValues.tread.toFixed(1)}cm)</span>
-                        </div>
-                    )}
-                </div>
-
-                {hasSlabInfo && (
-                    <div className="flex flex-col gap-2">
-                        {/* INPUT PARA DEFINIR ALTURA LIVRE DESEJADA */}
-                        <div className="flex items-center gap-2 bg-gray-800 p-2 rounded">
-                            <label className="text-xs font-bold text-gray-400 uppercase">Altura Livre Mínima:</label>
-                            <input 
-                                type="number" 
-                                value={headroomInput} 
-                                onChange={e => setHeadroomInput(parseInt(e.target.value) || 0)} 
-                                className="w-16 bg-gray-700 text-white font-bold text-center rounded border border-gray-600 focus:outline-none focus:border-highlight"
-                            />
-                            <span className="text-xs font-bold text-gray-400">cm</span>
-                            <button 
-                                onClick={() => setTargetHeadroom(headroomInput)} 
-                                className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs font-bold ml-2 shadow-sm uppercase"
-                            >
-                                Definir
-                            </button>
-                        </div>
-
-                        {!simulatedValues.safe && !simulateSafe && (
-                            <div className="flex items-center gap-4 bg-gray-800 p-2 rounded-lg">
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input type="checkbox" checked={simulateSafe} onChange={e => setSimulateSafe(e.target.checked)} className="w-5 h-5 text-blue-600" />
-                                    <span className="font-bold">Ativar Correção</span>
-                                </label>
-                            </div>
-                        )}
-                    </div>
-                )}
-                
-                {simulateSafe && (
-                     <div className="flex flex-col md:flex-row gap-2 items-center">
-                         <div className="flex bg-gray-700 rounded p-1">
-                            <button onClick={() => setCorrectionType('expand_opening')} className={`px-3 py-2 rounded text-sm font-bold transition ${correctionType === 'expand_opening' ? 'bg-blue-600 text-white shadow' : 'text-gray-300 hover:text-white'}`}>Aumentar Vão</button>
-                            <button onClick={() => setCorrectionType('shrink_stair')} className={`px-3 py-2 rounded text-sm font-bold transition ${correctionType === 'shrink_stair' ? 'bg-blue-600 text-white shadow' : 'text-gray-300 hover:text-white'}`}>Ajustar Escada</button>
-                        </div>
-                        {correctionType === 'shrink_stair' && simulatedValues.safe && (
-                            <button onClick={handleApply} className="bg-green-600 hover:bg-green-700 text-white font-black px-4 py-2 rounded shadow-lg animate-pulse flex items-center gap-2">💾 Aplicar no Orçamento</button>
-                        )}
-                     </div>
                 )}
             </div>
         )}
