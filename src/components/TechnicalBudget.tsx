@@ -10,6 +10,7 @@ interface TechnicalBudgetProps {
   stepHeightCm: number;
   treadDepthCm: number;
   widthCm: number;
+  totalLength: number; // NOVO
   landings: LandingInfo[];
   stairDirection?: 'standard' | 'mirrored';
 }
@@ -17,9 +18,10 @@ interface TechnicalBudgetProps {
 export const TechnicalBudget: React.FC<TechnicalBudgetProps> = ({
   clientName,
   totalSteps,
-  stepHeightCm: stepHeightCm,
-  treadDepthCm: treadDepthCm,
+  stepHeightCm,
+  treadDepthCm,
   widthCm,
+  totalLength,
   landings,
   stairDirection
 }) => {
@@ -29,7 +31,7 @@ export const TechnicalBudget: React.FC<TechnicalBudgetProps> = ({
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorDetails, setErrorDetails] = useState<string>('');
 
-  // --- LÓGICA DE SERRALHERIA (Conversão e Ajustes) ---
+  // --- LÓGICA DE SERRALHERIA (CORTE A LASER) ---
   const generateTechnicalData = () => {
     const stepHeightMM = (stepHeightCm * 10).toFixed(1).replace('.0', '');
     const widthMM = (widthCm * 10).toFixed(0);
@@ -69,14 +71,56 @@ export const TechnicalBudget: React.FC<TechnicalBudgetProps> = ({
     return report;
   };
 
-  const handleDownloadPDF = () => {
+  // --- LÓGICA DE MATÉRIA PRIMA (ESTIMATIVA) ---
+  const generateMaterialData = () => {
+      const numSteps = totalSteps - landings.length;
+      const totalLengthM = totalLength / 100;
+      
+      let report = `LISTA DE MATÉRIA PRIMA (ESTIMATIVA)\n`;
+      report += `Cliente: ${clientName}\n`;
+      report += `Data: ${new Date().toLocaleDateString()}\n\n`;
+      
+      report += `ESTRUTURA PRINCIPAL:\n`;
+      report += `- Comprimento Total (Tubo Central): Aprox. ${totalLengthM.toFixed(2)} metros\n`;
+      report += `- Quantidade Degraus (Suportes): ${numSteps} peças\n`;
+      report += `- Altura Espelhos (Entre-degraus): ${stepHeightCm.toFixed(2)} cm\n`;
+      report += `- Largura Escada: ${widthCm} cm\n\n`;
+      
+      if (landings.length > 0) {
+          report += `PATAMARES (${landings.length} un):\n`;
+          landings.forEach((l, i) => {
+               report += `   ${i+1}. ${l.length}cm x ${l.width}cm (${l.type === 'fixed' ? 'Fixo' : 'Articulado'}) - ${l.direction === 'left' ? 'Esq' : l.direction === 'right' ? 'Dir' : 'Reto'}\n`;
+          });
+          report += `\n`;
+      }
+      
+      report += `OBSERVAÇÕES DE FÁBRICA:\n`;
+      report += `- Conferir estoque de chapa xadrez.\n`;
+      report += `- Verificar consumíveis de solda.\n`;
+      
+      return report;
+  };
+
+  const handleDownloadPDF = (type: 'laser' | 'material') => {
       const doc = new jsPDF();
-      const text = generateTechnicalData();
+      let text = "";
+      let title = "";
+      let filename = "";
+
+      if (type === 'laser') {
+          text = generateTechnicalData();
+          title = "FICHA DE PRODUÇÃO - CORTE A LASER";
+          filename = `producao_laser_${clientName.replace(/\s/g, '_').toLowerCase()}.pdf`;
+      } else {
+          text = generateMaterialData();
+          title = "FICHA DE MATÉRIA PRIMA";
+          filename = `materia_prima_${clientName.replace(/\s/g, '_').toLowerCase()}.pdf`;
+      }
 
       // Configuração do PDF
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(18);
-      doc.text("FICHA DE PRODUÇÃO - CORTE A LASER", 105, 20, { align: 'center' });
+      doc.text(title, 105, 20, { align: 'center' });
       
       doc.setFontSize(12);
       doc.setFont('helvetica', 'normal');
@@ -88,11 +132,11 @@ export const TechnicalBudget: React.FC<TechnicalBudgetProps> = ({
 
       // Conteúdo Técnico (Fonte Monospaced para alinhar números)
       doc.setFont('courier', 'bold'); 
-      doc.setFontSize(14);
+      doc.setFontSize(12);
       doc.setTextColor(0, 0, 0); // Preto
 
       const splitText = doc.splitTextToSize(text, 170);
-      doc.text(splitText, 20, 65);
+      doc.text(splitText, 20, 60);
 
       // Rodapé Técnico
       doc.setFont('helvetica', 'italic');
@@ -100,7 +144,7 @@ export const TechnicalBudget: React.FC<TechnicalBudgetProps> = ({
       doc.setTextColor(100);
       doc.text("Zilinski Distribuidora - Sistema de Controle de Produção", 105, 280, { align: 'center' });
 
-      doc.save(`producao_laser_${clientName.replace(/\s/g, '_').toLowerCase()}.pdf`);
+      doc.save(filename);
   };
 
   const handleSendEmail = async (e: React.FormEvent) => {
@@ -113,7 +157,7 @@ export const TechnicalBudget: React.FC<TechnicalBudgetProps> = ({
 
     const technicalData = generateTechnicalData();
 
-    // DADOS DO EMAILJS (Mantidos caso queira usar futuramente)
+    // DADOS DO EMAILJS
     const SERVICE_ID = 'service_et2wtl7'; 
     const TEMPLATE_ID: string = 'COLE_SEU_NOVO_TEMPLATE_ID_AQUI'; 
     const PUBLIC_KEY = 'pNnojqJb7tjg3sjYV';
@@ -153,28 +197,41 @@ export const TechnicalBudget: React.FC<TechnicalBudgetProps> = ({
     <div className="bg-gray-800 text-white p-6 rounded-xl mt-8 border-2 border-gray-600">
       <div className="flex items-center gap-3 mb-4 border-b border-gray-600 pb-2">
         <span className="text-2xl">⚙️</span>
-        <h2 className="text-xl font-black uppercase tracking-wide">Ficha de Produção (Laser)</h2>
+        <h2 className="text-xl font-black uppercase tracking-wide">Área Técnica (Produção)</h2>
       </div>
       
       <p className="text-sm text-gray-400 mb-6">
-        Gera o relatório técnico com as medidas exatas para corte e dobra.
+        Gere os relatórios técnicos para envio à fábrica.
       </p>
 
-      {/* BOTÃO DE DOWNLOAD PDF - DESTAQUE PRINCIPAL */}
-      <button 
-        onClick={handleDownloadPDF}
-        className="w-full bg-orange-600 hover:bg-orange-500 text-white font-black py-4 px-6 rounded-lg shadow-lg flex items-center justify-center gap-3 text-lg mb-6 border-b-4 border-orange-800 active:border-b-0 active:translate-y-1 transition-all"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-        </svg>
-        BAIXAR FICHA DE PRODUÇÃO (PDF)
-      </button>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          {/* BOTÃO DE DOWNLOAD PDF - LASER */}
+          <button 
+            onClick={() => handleDownloadPDF('laser')}
+            className="w-full bg-orange-600 hover:bg-orange-500 text-white font-black py-4 px-4 rounded-lg shadow-lg flex items-center justify-center gap-2 text-sm md:text-base border-b-4 border-orange-800 active:border-b-0 active:translate-y-1 transition-all uppercase"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            FICHA LASER (Corte)
+          </button>
+
+          {/* BOTÃO DE DOWNLOAD PDF - MATÉRIA PRIMA */}
+          <button 
+            onClick={() => handleDownloadPDF('material')}
+            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 px-4 rounded-lg shadow-lg flex items-center justify-center gap-2 text-sm md:text-base border-b-4 border-blue-800 active:border-b-0 active:translate-y-1 transition-all uppercase"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            FICHA MATÉRIA PRIMA
+          </button>
+      </div>
 
       {/* ÁREA DE EMAIL (SECUNDÁRIA / COLAPSED) */}
       <details className="group border border-gray-600 rounded-lg p-3 bg-gray-700/30">
         <summary className="flex justify-between items-center font-bold cursor-pointer list-none text-gray-400 group-hover:text-white transition-colors">
-            <span>✉️ Enviar por E-mail (Opcional)</span>
+            <span>✉️ Enviar Lista de Laser por E-mail</span>
             <span className="transition group-open:rotate-180">▼</span>
         </summary>
         
@@ -214,7 +271,7 @@ export const TechnicalBudget: React.FC<TechnicalBudgetProps> = ({
 
       {/* Preview do Conteúdo na Tela */}
       <div className="mt-6">
-         <div className="text-xs font-bold text-gray-500 uppercase mb-2">Visualização do Conteúdo:</div>
+         <div className="text-xs font-bold text-gray-500 uppercase mb-2">Visualização (Lista Laser):</div>
          <pre className="text-sm text-green-400 bg-black p-4 rounded font-mono whitespace-pre-wrap leading-relaxed border border-gray-700 shadow-inner">
             {generateTechnicalData()}
          </pre>

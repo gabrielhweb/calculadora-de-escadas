@@ -102,8 +102,10 @@ const Contract = () => {
     const [newItemName, setNewItemName] = useState('');
     const [newItemPrice, setNewItemPrice] = useState('');
 
-    // Dados Financeiros
-    const [structurePrice, setStructurePrice] = useState('0');
+    // Dados Financeiros (Separados)
+    const [stairPrice, setStairPrice] = useState('0');     // Preço só da escada
+    const [landingsPrice, setLandingsPrice] = useState('0'); // Preço total dos patamares
+    
     const [freightPrice, setFreightPrice] = useState('0');
     const [installationPrice, setInstallationPrice] = useState('0');
     const [extrasPrice, setExtrasPrice] = useState('0');
@@ -121,7 +123,7 @@ const Contract = () => {
     const [hybridSignalValue, setHybridSignalValue] = useState<string>(''); // Valor manual em R$
     const [pixTiming, setPixTiming] = useState<'entry' | 'delivery'>('entry'); // Quando o Pix é pago?
     
-    // --- LÓGICA DE FLEXIBILIDADE DO RESTANTE (Áudio: "Segunda opção híbrida/flexível") ---
+    // --- LÓGICA DE FLEXIBILIDADE DO RESTANTE ---
     const [remainderPaymentMode, setRemainderPaymentMode] = useState('Link de Pagamento (Cartão de Crédito)');
 
     // --- LÓGICA DE JUROS/TAXAS NO CARTÃO ---
@@ -149,19 +151,14 @@ const Contract = () => {
     }, [optionalItems]);
 
     // Cálculos Base
-    const totalGeralBase = (parseFloat(structurePrice)||0) + (parseFloat(freightPrice)||0) + (parseFloat(installationPrice)||0) + (parseFloat(extrasPrice)||0);
+    const totalStructure = (parseFloat(stairPrice) || 0) + (parseFloat(landingsPrice) || 0);
+    const totalGeralBase = totalStructure + (parseFloat(freightPrice)||0) + (parseFloat(installationPrice)||0) + (parseFloat(extrasPrice)||0);
 
-    // Atualiza o valor manual do sinal híbrido quando o total muda, mas não sobrescreve se o usuário já digitou algo específico
-    // exceto na primeira carga
+    // Atualiza o valor manual do sinal híbrido quando o total muda
     useEffect(() => {
         if (paymentMethod === 'hybrid') {
             const calculatedSignal = totalGeralBase * (signalPercent / 100);
-            
-            // Se o campo estiver vazio ou muito diferente (mudança de preço base drástica), atualiza
-            // Mas tentamos respeitar o valor manual se possível
             if (!hybridSignalValue || Math.abs(calculatedSignal - (parseFloat(hybridSignalValue) || 0)) > 1) {
-                // Se a diferença for grande, assume que o preço total mudou e recalcula baseado na %
-                // OU se é a primeira vez.
                  setHybridSignalValue(calculatedSignal.toFixed(2));
             }
         }
@@ -215,15 +212,21 @@ const Contract = () => {
                 
                 if (selectedOption.landings && selectedOption.landings.length > 0) {
                     setLandings(selectedOption.landings);
+                    
+                    // SEPARA O PREÇO: LANDINGS VS ESCADA
+                    const totalL = selectedOption.landings.reduce((acc: number, l: LandingInfo) => acc + l.price, 0);
+                    setLandingsPrice(totalL.toFixed(2));
+                    setStairPrice((selectedOption.totalPrice - totalL).toFixed(2));
                 } else {
                     setLandings([]);
+                    setLandingsPrice('0');
+                    setStairPrice(selectedOption.totalPrice.toFixed(2));
                 }
                 
                 if (inputData.optionalItems && inputData.optionalItems.length > 0) {
                     setOptionalItems(inputData.optionalItems);
                 }
 
-                setStructurePrice(selectedOption.totalPrice.toFixed(2));
                 setFreightPrice(((freightCost || 0) + (tollCost || 0)).toFixed(2));
                 setInstallationPrice((installationCost || 0).toFixed(2));
             }
@@ -330,22 +333,19 @@ const Contract = () => {
         if (method === 'pix') setSignalPercent(50);
         if (method === 'hybrid') {
             setSignalPercent(20);
-            // Recalcula o valor manual baseado na nova porcentagem padrão
             const newVal = totalGeralBase * (20 / 100);
             setHybridSignalValue(newVal.toFixed(2));
-            setRemainderPaymentMode('Link de Pagamento (Cartão de Crédito)'); // Reset padrão
+            setRemainderPaymentMode('Link de Pagamento (Cartão de Crédito)');
         }
         if (method === 'card') setSignalPercent(0);
     };
 
-    // Permite alterar o nome de um item adicional individualmente
     const updateOptionalItemName = (index: number, newName: string) => {
         const updated = [...optionalItems];
         updated[index] = { ...updated[index], name: newName };
         setOptionalItems(updated);
     };
 
-    // Permite adicionar novos itens
     const handleAddItem = () => {
         if (!newItemName || !newItemPrice) return;
         const newItem: OptionalItem = {
@@ -364,13 +364,11 @@ const Contract = () => {
         setOptionalItems(updated);
     };
 
-    // --- FUNÇÃO DE GERAÇÃO DE CLÁUSULA COM IA ---
     const handleGenerateClause = async () => {
         if (!aiPrompt.trim()) return;
         setIsGeneratingClause(true);
         try {
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-            
             const prompt = `Você é um advogado especialista em contratos comerciais e código de defesa do consumidor no Brasil. 
             Escreva uma cláusula contratual formal, clara e direta para um contrato de venda de escada de aço, baseada na seguinte solicitação do usuário: "${aiPrompt}".
             A cláusula deve ser numerada (ex: 7.1) ou apenas o texto do parágrafo. Não inclua introduções como "Aqui está a cláusula". Apenas o texto legal.`;
@@ -393,7 +391,6 @@ const Contract = () => {
         }
     };
 
-    // --- FUNÇÃO DE REFINAMENTO DE CLÁUSULA (CHATZINHO) ---
     const handleRefineClause = async (index: number) => {
         if (!refinementPrompt.trim()) return;
         setIsRefining(true);
@@ -421,7 +418,7 @@ const Contract = () => {
                 const updatedClauses = [...customClauses];
                 updatedClauses[index] = newText.trim();
                 setCustomClauses(updatedClauses);
-                setRefiningIndex(null); // Fecha o chatzinho
+                setRefiningIndex(null); 
                 setRefinementPrompt('');
             }
         } catch (e) {
@@ -448,8 +445,6 @@ const Contract = () => {
         const totalStepsNum = parseFloat(totalSteps) || 0;
         const structureStepsNum = totalStepsNum - numLandings;
         const fullAddress = `${street}, ${number} - ${neighborhood}, ${city} - ${state}, ${zip}`;
-
-        // Calcula o valor exato da entrada híbrida para passar para o gerador
         const finalHybridSignal = parseFloat(hybridSignalValue) || (totalGeralBase * (signalPercent/100));
 
         generateContractPDF({
@@ -463,11 +458,15 @@ const Contract = () => {
                 structureSteps: structureStepsNum,
                 stepHeight: parseFloat(stepHeight) || 0,
                 totalLength: parseFloat(totalLength) || 0,
-                totalPrice: parseFloat(structurePrice) || 0,
+                totalPrice: totalStructure, // Usa a soma calculada
                 stairWidth: parseFloat(width) || 0,
                 treadDepth: parseFloat(treadDepth) || 0,
                 landings: landings
             },
+            // PASSANDO OS PREÇOS SEPARADOS EXPLICITAMENTE
+            finalStairPrice: parseFloat(stairPrice) || 0,
+            finalLandingsPrice: parseFloat(landingsPrice) || 0,
+            
             inputData: {
                 totalHeight: parseFloat(totalHeight) || 0,
                 desiredSteps: totalStepsNum,
@@ -488,9 +487,9 @@ const Contract = () => {
                 signalPercent, 
                 installments, 
                 installmentValue: finalInstallmentVal,
-                hybridSignalAmount: finalHybridSignal, // Passa o valor manual exato
-                pixTiming: pixTiming, // Passa o momento do pagamento
-                remainderText: remainderPaymentMode // Texto personalizado do restante
+                hybridSignalAmount: finalHybridSignal,
+                pixTiming: pixTiming,
+                remainderText: remainderPaymentMode 
             },
             additionalClauses: customClauses 
         });
@@ -655,19 +654,39 @@ const Contract = () => {
                                     + Adicionar
                                 </button>
                             </div>
-                            
-                            <p className="text-[10px] text-gray-500 mt-2 italic">* Edite os nomes acima como deseja que apareçam no PDF (ex: Adicionar detalhes do material).</p>
                         </div>
                     </div>
 
                     <div className="space-y-6">
                         <SectionTitle title="3. Valores & Entrega" />
+                        
+                        {/* SEPARAÇÃO: PREÇO ESCADA E PREÇO PATAMARES */}
                         <div className="grid grid-cols-2 gap-4">
-                            <ContractInput label="Estrutura (R$)" value={structurePrice} onChange={(e: any) => setStructurePrice(e.target.value)} type="number" />
+                            <div className="col-span-2 sm:col-span-1">
+                                <ContractInput 
+                                    label="Valor Escada (S/ Patamar)" 
+                                    value={stairPrice} 
+                                    onChange={(e: any) => setStairPrice(e.target.value)} 
+                                    type="number" 
+                                />
+                            </div>
+                            
+                            {/* MOSTRA O TOTAL DE PATAMARES SEPARADO */}
+                            {parseFloat(landingsPrice) > 0 && (
+                                <div className="col-span-2 sm:col-span-1">
+                                    <ContractInput 
+                                        label="Valor Patamares (Total)" 
+                                        value={landingsPrice} 
+                                        onChange={(e: any) => setLandingsPrice(e.target.value)} 
+                                        type="number" 
+                                    />
+                                </div>
+                            )}
+                            
                             <ContractInput label="Frete + Pedágio (R$)" value={freightPrice} onChange={(e: any) => setFreightPrice(e.target.value)} type="number" />
                             
                             {/* Instalação Customizada */}
-                            <div className="col-span-2 sm:col-span-1 sm:col-start-1 sm:row-start-2">
+                            <div className="col-span-2 sm:col-span-1">
                                 <div className="flex justify-between items-end mb-1">
                                     <label className="block text-sm font-bold text-gray-700 dark:text-gray-300">Instalação (R$)</label>
                                     {parseFloat(installationPrice) !== STANDARD_INSTALLATION && (
@@ -697,11 +716,6 @@ const Contract = () => {
                                         </span>
                                     )}
                                 </div>
-                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                    {parseFloat(installationPrice) === STANDARD_INSTALLATION
-                                        ? "Valor fixo para locais de fácil acesso."
-                                        : "Valor personalizado (manual)."}
-                                </p>
                             </div>
                         </div>
                         
@@ -903,6 +917,7 @@ const Contract = () => {
                         stepHeightCm={parseFloat(stepHeight) || 0}
                         treadDepthCm={parseFloat(treadDepth) || 0}
                         widthCm={parseFloat(width) || 0}
+                        totalLength={parseFloat(totalLength) || 0}
                         landings={landings}
                         stairDirection={stairDirection}
                     />
