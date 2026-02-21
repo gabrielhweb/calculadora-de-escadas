@@ -102,8 +102,8 @@ const Contract = () => {
     const [newItemName, setNewItemName] = useState('');
     const [newItemPrice, setNewItemPrice] = useState('');
 
-    // Dados Financeiros (Separados)
-    const [stairPrice, setStairPrice] = useState('0');     // Preço só da escada
+    // Dados Financeiros (SEPARADOS)
+    const [stairPrice, setStairPrice] = useState('0'); // Preço só da escada
     const [landingsPrice, setLandingsPrice] = useState('0'); // Preço total dos patamares
     
     const [freightPrice, setFreightPrice] = useState('0');
@@ -154,10 +154,12 @@ const Contract = () => {
     const totalStructure = (parseFloat(stairPrice) || 0) + (parseFloat(landingsPrice) || 0);
     const totalGeralBase = totalStructure + (parseFloat(freightPrice)||0) + (parseFloat(installationPrice)||0) + (parseFloat(extrasPrice)||0);
 
-    // Atualiza o valor manual do sinal híbrido quando o total muda
+    // Atualiza o valor manual do sinal híbrido quando o total muda, mas não sobrescreve se o usuário já digitou algo específico
     useEffect(() => {
         if (paymentMethod === 'hybrid') {
             const calculatedSignal = totalGeralBase * (signalPercent / 100);
+            
+            // Se o campo estiver vazio ou muito diferente (mudança de preço base drástica), atualiza
             if (!hybridSignalValue || Math.abs(calculatedSignal - (parseFloat(hybridSignalValue) || 0)) > 1) {
                  setHybridSignalValue(calculatedSignal.toFixed(2));
             }
@@ -340,12 +342,14 @@ const Contract = () => {
         if (method === 'card') setSignalPercent(0);
     };
 
+    // Permite alterar o nome de um item adicional individualmente
     const updateOptionalItemName = (index: number, newName: string) => {
         const updated = [...optionalItems];
         updated[index] = { ...updated[index], name: newName };
         setOptionalItems(updated);
     };
 
+    // Permite adicionar novos itens
     const handleAddItem = () => {
         if (!newItemName || !newItemPrice) return;
         const newItem: OptionalItem = {
@@ -364,11 +368,13 @@ const Contract = () => {
         setOptionalItems(updated);
     };
 
+    // --- FUNÇÃO DE GERAÇÃO DE CLÁUSULA COM IA ---
     const handleGenerateClause = async () => {
         if (!aiPrompt.trim()) return;
         setIsGeneratingClause(true);
         try {
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            
             const prompt = `Você é um advogado especialista em contratos comerciais e código de defesa do consumidor no Brasil. 
             Escreva uma cláusula contratual formal, clara e direta para um contrato de venda de escada de aço, baseada na seguinte solicitação do usuário: "${aiPrompt}".
             A cláusula deve ser numerada (ex: 7.1) ou apenas o texto do parágrafo. Não inclua introduções como "Aqui está a cláusula". Apenas o texto legal.`;
@@ -391,6 +397,7 @@ const Contract = () => {
         }
     };
 
+    // --- FUNÇÃO DE REFINAMENTO DE CLÁUSULA (CHATZINHO) ---
     const handleRefineClause = async (index: number) => {
         if (!refinementPrompt.trim()) return;
         setIsRefining(true);
@@ -418,7 +425,7 @@ const Contract = () => {
                 const updatedClauses = [...customClauses];
                 updatedClauses[index] = newText.trim();
                 setCustomClauses(updatedClauses);
-                setRefiningIndex(null); 
+                setRefiningIndex(null); // Fecha o chatzinho
                 setRefinementPrompt('');
             }
         } catch (e) {
@@ -445,6 +452,8 @@ const Contract = () => {
         const totalStepsNum = parseFloat(totalSteps) || 0;
         const structureStepsNum = totalStepsNum - numLandings;
         const fullAddress = `${street}, ${number} - ${neighborhood}, ${city} - ${state}, ${zip}`;
+
+        // Calcula o valor exato da entrada híbrida para passar para o gerador
         const finalHybridSignal = parseFloat(hybridSignalValue) || (totalGeralBase * (signalPercent/100));
 
         generateContractPDF({
@@ -458,7 +467,7 @@ const Contract = () => {
                 structureSteps: structureStepsNum,
                 stepHeight: parseFloat(stepHeight) || 0,
                 totalLength: parseFloat(totalLength) || 0,
-                totalPrice: totalStructure, // Usa a soma calculada
+                totalPrice: totalStructure, // Soma o valor da escada + patamares
                 stairWidth: parseFloat(width) || 0,
                 treadDepth: parseFloat(treadDepth) || 0,
                 landings: landings
@@ -468,13 +477,15 @@ const Contract = () => {
             finalLandingsPrice: parseFloat(landingsPrice) || 0,
             
             inputData: {
+                ...(location.state?.inputData || {}),
                 totalHeight: parseFloat(totalHeight) || 0,
                 desiredSteps: totalStepsNum,
                 stairWidth: parseFloat(width) || 0,
                 treadDepth: parseFloat(treadDepth) || 0,
                 dampers: parseFloat(dampers) || 4,
                 optionalItems: optionalItems, 
-                landings: landings
+                landings: landings,
+                stairDirection: stairDirection
             },
             freightCost: parseFloat(freightPrice) || 0,
             tollCost: 0,
@@ -487,9 +498,9 @@ const Contract = () => {
                 signalPercent, 
                 installments, 
                 installmentValue: finalInstallmentVal,
-                hybridSignalAmount: finalHybridSignal,
-                pixTiming: pixTiming,
-                remainderText: remainderPaymentMode 
+                hybridSignalAmount: finalHybridSignal, // Passa o valor manual exato
+                pixTiming: pixTiming, // Passa o momento do pagamento
+                remainderText: remainderPaymentMode // Texto personalizado do restante
             },
             additionalClauses: customClauses 
         });
@@ -654,6 +665,8 @@ const Contract = () => {
                                     + Adicionar
                                 </button>
                             </div>
+                            
+                            <p className="text-[10px] text-gray-500 mt-2 italic">* Edite os nomes acima como deseja que apareçam no PDF (ex: Adicionar detalhes do material).</p>
                         </div>
                     </div>
 
@@ -672,16 +685,14 @@ const Contract = () => {
                             </div>
                             
                             {/* MOSTRA O TOTAL DE PATAMARES SEPARADO */}
-                            {parseFloat(landingsPrice) > 0 && (
-                                <div className="col-span-2 sm:col-span-1">
-                                    <ContractInput 
-                                        label="Valor Patamares (Total)" 
-                                        value={landingsPrice} 
-                                        onChange={(e: any) => setLandingsPrice(e.target.value)} 
-                                        type="number" 
-                                    />
-                                </div>
-                            )}
+                            <div className="col-span-2 sm:col-span-1">
+                                <ContractInput 
+                                    label="Valor Patamares (Total)" 
+                                    value={landingsPrice} 
+                                    onChange={(e: any) => setLandingsPrice(e.target.value)} 
+                                    type="number" 
+                                />
+                            </div>
                             
                             <ContractInput label="Frete + Pedágio (R$)" value={freightPrice} onChange={(e: any) => setFreightPrice(e.target.value)} type="number" />
                             
@@ -716,6 +727,11 @@ const Contract = () => {
                                         </span>
                                     )}
                                 </div>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                    {parseFloat(installationPrice) === STANDARD_INSTALLATION
+                                        ? "Valor fixo para locais de fácil acesso."
+                                        : "Valor personalizado (manual)."}
+                                </p>
                             </div>
                         </div>
                         
