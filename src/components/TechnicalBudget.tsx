@@ -13,6 +13,7 @@ interface TechnicalBudgetProps {
   totalLength: number; // NOVO
   landings: LandingInfo[];
   stairDirection?: 'standard' | 'mirrored';
+  treadMaterial?: 'metal' | 'wood';
 }
 
 export const TechnicalBudget: React.FC<TechnicalBudgetProps> = ({
@@ -23,7 +24,8 @@ export const TechnicalBudget: React.FC<TechnicalBudgetProps> = ({
   widthCm,
   totalLength,
   landings,
-  stairDirection
+  stairDirection,
+  treadMaterial
 }) => {
   // Define o e-mail padrão que aparecerá no campo
   const [email, setEmail] = useState('zilinskidistribuidora@gmail.com');
@@ -63,8 +65,13 @@ export const TechnicalBudget: React.FC<TechnicalBudgetProps> = ({
             const lLen = (l.length * 10).toFixed(0);
             const lWidth = (l.width * 10).toFixed(0);
             
-            report += `1 patamar em chapa xadrez em 3mm com dobras de 100mm\n`;
-            report += `Com medidas de ${lLen}mm x ${lWidth}mm\n`;
+            if (l.type === 'fixed') {
+                report += `1 patamar em chapa xadrez em 3mm com dobras de 100mm\n`;
+                report += `Com medidas de ${lLen}mm x ${lWidth}mm\n`;
+            } else {
+                report += `1 patamar articulado\n`;
+                report += `Com medidas de ${lLen}mm x ${lWidth}mm\n`;
+            }
         });
     }
 
@@ -84,12 +91,35 @@ export const TechnicalBudget: React.FC<TechnicalBudgetProps> = ({
       report += `- Comprimento Total (Tubo Central): Aprox. ${totalLengthM.toFixed(2)} metros\n`;
       report += `- Quantidade Degraus (Suportes): ${numSteps} peças\n`;
       report += `- Altura Espelhos (Entre-degraus): ${stepHeightCm.toFixed(2)} cm\n`;
-      report += `- Largura Escada: ${widthCm} cm\n\n`;
-      
+      report += `- Largura Escada: ${widthCm} cm\n`;
+      report += `- Tamanho do Pisante: ${treadDepthCm.toFixed(2)} cm\n\n`;
+
+      const hingesPerStep = treadDepthCm < 16 ? 2 : 4;
+      const hingeSize = treadDepthCm < 16 ? "4x3" : "3x2,5/8";
+      const totalHinges = hingesPerStep * numSteps;
+
+      report += `Matéria: ${totalHinges} dobradiças de ${hingeSize} polegadas\n\n`;
+
+      if (treadMaterial === 'wood') {
+          report += `DEGRAUS DE MADEIRA:\n`;
+          report += `- Largura do Degrau: ${(widthCm - 0.6).toFixed(2)} cm\n`;
+          report += `- Comprimento do Degrau: ${(treadDepthCm - 0.6).toFixed(2)} cm\n`;
+          report += `- Altura do Degrau: 2.3 cm\n\n`;
+      }
+
       if (landings.length > 0) {
-          report += `PATAMARES (${landings.length} un):\n`;
-          landings.forEach((l, i) => {
-               report += `   ${i+1}. ${l.length}cm x ${l.width}cm (${l.type === 'fixed' ? 'Fixo' : 'Articulado'}) - ${l.direction === 'left' ? 'Esq' : l.direction === 'right' ? 'Dir' : 'Reto'}\n`;
+          report += `\nOrçamento ${clientName} 2\n`;
+          landings.forEach((l) => {
+              const lLen = (l.length * 10).toFixed(0);
+              const lWidth = (l.width * 10).toFixed(0);
+              
+              if (l.type === 'fixed') {
+                  report += `1 patamar em chapa xadrez em 3mm com dobras de 100mm\n`;
+                  report += `Com medidas de ${lLen}mm x ${lWidth}mm\n`;
+              } else {
+                  report += `1 patamar articulado\n`;
+                  report += `Com medidas de ${lLen}mm x ${lWidth}mm\n`;
+              }
           });
           report += `\n`;
       }

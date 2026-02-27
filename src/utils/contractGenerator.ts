@@ -15,6 +15,7 @@ interface ContractData {
   paymentMethod: 'pix' | 'card' | 'hybrid'; 
   paymentDetails: {
       discountPercent: number; 
+      discountValue?: number;
       signalPercent: number;   
       installments: number;    
       installmentValue: number;
@@ -275,26 +276,30 @@ export const generateContractPDF = (data: ContractData) => {
   addText('6. Do valor e forma de pagamento.', 11, true, 'left');
   addText('6.1 O valor pago referente à presente transação, poderá ser pago da(s) seguinte(s) maneira(s):', 11, false, 'justify');
   
+  const discountVal = data.paymentDetails.discountValue || 0;
+  const discountP = data.paymentDetails.discountPercent || 0;
+  const totalComDesconto = totalGeral - discountVal;
+
   if (data.paymentMethod === 'pix') {
-      const discount = data.paymentDetails.discountPercent || 0;
-      const discountVal = totalGeral * (discount / 100);
-      const totalComDesconto = totalGeral - discountVal;
-      
       const signalP = data.paymentDetails.signalPercent || 50;
       const valorSinal = totalComDesconto * (signalP / 100);
       const valorEntrega = totalComDesconto - valorSinal;
       
-      addText(`Total ${formatCurrencyBRL(totalGeral)} - ${discount}% desconto = ${formatCurrencyBRL(totalComDesconto)}`, 11, false, 'left');
+      if (discountVal > 0) {
+          addText(`Total ${formatCurrencyBRL(totalGeral)} - Desconto = ${formatCurrencyBRL(totalComDesconto)}`, 11, false, 'left');
+      } else {
+          addText(`Total ${formatCurrencyBRL(totalGeral)}`, 11, false, 'left');
+      }
       addText(`Sendo pago ${formatCurrencyBRL(valorSinal)} via pix de sinal e ${formatCurrencyBRL(valorEntrega)} no dia entrega e instalação`, 11, false, 'left');
   
   } else if (data.paymentMethod === 'hybrid') {
       // Usa o valor manual se disponível, senão calcula pela %
       const valorPixFinal = data.paymentDetails.hybridSignalAmount !== undefined 
           ? data.paymentDetails.hybridSignalAmount 
-          : totalGeral * ((data.paymentDetails.signalPercent || 20) / 100);
+          : totalComDesconto * ((data.paymentDetails.signalPercent || 20) / 100);
       
       // Restante vai pro cartão
-      const restanteBase = totalGeral - valorPixFinal;
+      const restanteBase = totalComDesconto - valorPixFinal;
       
       const installments = data.paymentDetails.installments || 1;
       const installmentValue = data.paymentDetails.installmentValue || 0;
@@ -309,7 +314,11 @@ export const generateContractPDF = (data: ContractData) => {
       // Texto flexível do restante
       const remainderMethodName = data.paymentDetails.remainderText || "Link de Pagamento (Cartão de Crédito)";
 
-      addText(`Total R$ ${formatCurrencyBRL(totalGeral)}`, 11, false, 'left');
+      if (discountVal > 0) {
+          addText(`Total ${formatCurrencyBRL(totalGeral)} - Desconto = ${formatCurrencyBRL(totalComDesconto)}`, 11, false, 'left');
+      } else {
+          addText(`Total R$ ${formatCurrencyBRL(totalGeral)}`, 11, false, 'left');
+      }
       addText(`Sendo pago ${formatCurrencyBRL(valorPixFinal)} ${timingText}.`, 11, false, 'left');
       
       // Se tiver juros, menciona. Se não, simplifica.
@@ -325,8 +334,17 @@ export const generateContractPDF = (data: ContractData) => {
       const installmentValue = data.paymentDetails.installmentValue || 0;
       const totalCartao = installmentValue * installments;
       
-      addText(`Total ${formatCurrencyBRL(totalGeral)} base + juros da operadora totalizando ${formatCurrencyBRL(totalCartao)}.`, 11, false, 'left');
-      addText(`Sendo pago via Link de Pagamento (Cartão de Crédito) em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}`, 11, false, 'left');
+      if (discountVal > 0) {
+          addText(`Total ${formatCurrencyBRL(totalGeral)} - Desconto = ${formatCurrencyBRL(totalComDesconto)}`, 11, false, 'left');
+      } else {
+          addText(`Total R$ ${formatCurrencyBRL(totalGeral)}`, 11, false, 'left');
+      }
+
+      if (totalCartao > totalComDesconto + 1) {
+          addText(`Sendo pago o total de ${formatCurrencyBRL(totalComDesconto)} mais juros totalizando ${formatCurrencyBRL(totalCartao)} via Link de Pagamento (Cartão de Crédito) em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}`, 11, false, 'justify');
+      } else {
+          addText(`Sendo pago o total de ${formatCurrencyBRL(totalComDesconto)} via Link de Pagamento (Cartão de Crédito) em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}`, 11, false, 'justify');
+      }
   }
 
   addText('.', 11, false, 'left');

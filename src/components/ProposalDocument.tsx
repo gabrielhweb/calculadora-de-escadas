@@ -3,7 +3,7 @@ import React, { useCallback, useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
 import { useNavigate } from 'react-router-dom';
 import { ProposalOption, UserData, CalculatorInput } from '../types';
-import { formatCurrencyBRL } from '../utils';
+import { formatCurrencyBRL, generateProposalDescription } from '../utils';
 
 interface ProposalDocumentProps {
   options: ProposalOption[];
@@ -25,13 +25,22 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
   const [isGenerating, setIsGenerating] = useState(false);
   
   // Estado para controlar quais opções serão impressas no PDF
-  // Inicializa com todas as opções selecionadas por padrão
   const [selectedOptionIndices, setSelectedOptionIndices] = useState<number[]>([]);
+  
+  // Estado para descrições editáveis
+  const [optionDescriptions, setOptionDescriptions] = useState<{ [key: number]: string }>({});
+  const [editingOptionId, setEditingOptionId] = useState<number | null>(null);
 
-  // Sincroniza o estado quando as opções mudam (ex: novo cálculo)
+  // Sincroniza o estado quando as opções mudam
   useEffect(() => {
       setSelectedOptionIndices(options.map(o => o.optionNumber));
-  }, [options]);
+      
+      const initialDescs: { [key: number]: string } = {};
+      options.forEach(opt => {
+          initialDescs[opt.optionNumber] = generateProposalDescription(inputData, opt);
+      });
+      setOptionDescriptions(initialDescs);
+  }, [options, inputData]);
 
   const navigate = useNavigate();
 
@@ -103,78 +112,13 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
         doc.setFontSize(11);
         doc.setFont('helvetica', 'normal');
         
-        // --- LÓGICA DE TEXTO DINÂMICO ---
-        let descriptionTitle = "Escada articulada lateral em aço carbono";
-        let handrailDesc = "e com corrimão de 70 centímetros";
-        let damperDesc = ` com ${inputData.dampers} amortecedores de alívio`;
-
-        // LÓGICA DE FIXAÇÃO ATUALIZADA (Baseada em stairGeometry que agora contém Fixação explícita)
-        let fixationText = "";
+        // USA O TEXTO PERSONALIZADO
+        const fullDescription = optionDescriptions[opt.optionNumber] || "";
+        const lines = doc.splitTextToSize(fullDescription, pageWidth - (pageMargin * 2));
         
-        if (inputData.stairGeometry === 'hide') {
-            fixationText = ""; // Ocultar explicitamente
-        } else if (inputData.stairGeometry && inputData.stairGeometry.includes('Fixação')) {
-            fixationText = inputData.stairGeometry; // Usa o texto exato (Frontal, Lateral Esquerda, etc)
-        } else {
-            // Fallback padrão se não for 'hide' nem fixação específica
-            fixationText = inputData.stairDirection === 'mirrored' 
-                ? "Fixação do Lado ESQUERDO" 
-                : "Fixação do Lado DIREITO";
-        }
-
-        // LÓGICA GEOMETRIA (L / U)
-        const geometryText = (inputData.stairGeometry && !inputData.stairGeometry.includes('Fixação') && inputData.stairGeometry !== 'hide') 
-            ? `, modelo ${inputData.stairGeometry}` 
-            : "";
-
-        if (inputData.hasWheels) {
-            descriptionTitle = "Escada articulada com rodinhas em aço carbono";
-            damperDesc = ""; 
-            
-            const sideMap: Record<string, string> = { 
-                left: 'apenas no lado esquerdo', 
-                right: 'apenas no lado direito', 
-                both: 'nos dois lados' 
-            };
-            const sideText = sideMap[inputData.handrailSide || 'both'] || 'nos dois lados';
-            handrailDesc = `e com corrimão articulado ${sideText}`;
-        }
-
-        const alturaM = (inputData.totalHeight / 100).toFixed(2).replace('.', ',');
-        const compM = (opt.totalLength / 100).toFixed(2).replace('.', ',');
-        const widthCm = opt.stairWidth;
-        
-        // Constrói o texto garantindo pontuação correta se fixationText for vazio
-        let text1 = `${descriptionTitle} com corte à laser`;
-        if (fixationText) text1 += `, ${fixationText}`;
-        if (geometryText) text1 += `${geometryText}`;
-        text1 += `, com medidas de: ${alturaM} metros de altura, ${compM} metros de comprimento, ${widthCm} centímetros de largura ${handrailDesc}.`;
-
-        const lines1 = doc.splitTextToSize(text1, pageWidth - (pageMargin * 2));
-        
-        const stepH = opt.stepHeight.toFixed(2).replace('.', ',');
-        const tread = opt.treadDepth.toFixed(2).replace('.', ',');
-        
-        // Lógica de material do pisante (MODIFICADO: REMOVIDO "ANTIDERRAPANTE")
-        const materialText = inputData.treadMaterial === 'wood' ? 'de Madeira' : 'de Metal';
-        
-        const text2 = `-Com ${opt.structureSteps} degraus articulados com dimensões de ${stepH} centímetros de altura e pisante ${materialText} de ${tread} centímetros${damperDesc}.`;
-        const lines2 = doc.splitTextToSize(text2, pageWidth - (pageMargin * 2));
-        
-        // Aviso da Porta (Se existir)
-        let disclaimerLines: string[] = [];
-        if (inputData.referenceDoor && inputData.referenceDoor.isActive) {
-            const disclaimer = "NOTA: Portas/Janelas exibidas nos desenhos técnicos são apenas ilustrativas para referência de espaço. NÃO FABRICAMOS OU FORNECEMOS PORTAS.";
-            disclaimerLines = doc.splitTextToSize(disclaimer, pageWidth - (pageMargin * 2));
-        }
-
         // --- CÁLCULO DE ESPAÇO APENAS DO TEXTO ---
-        // Estimamos o espaço que o TEXTO (título + descrição + preços) vai ocupar.
-        // Se couber, imprimimos na página atual. A imagem vai depois (e pode pular página).
         let textBlockHeight = 6; // Título
-        textBlockHeight += (lines1.length * 5) + 2;
-        textBlockHeight += (lines2.length * 5) + 3;
-        if (disclaimerLines.length > 0) textBlockHeight += (disclaimerLines.length * 5) + 3;
+        textBlockHeight += (lines.length * 5) + 2;
         textBlockHeight += 6; // Preço Escada
         if (opt.landings.length > 0) textBlockHeight += 5 + (opt.landings.length * 6); 
         textBlockHeight += 6; // Frete
@@ -202,24 +146,13 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
         doc.setFontSize(11);
         doc.setFont('helvetica', 'normal');
         
-        // Descrição Geral
-        doc.text(lines1, pageMargin, currentY);
-        currentY += (lines1.length * 5) + 2;
-
-        // Detalhes dos Degraus
-        doc.text(lines2, pageMargin, currentY);
-        currentY += (lines2.length * 5) + 3;
-
-        // Disclaimer Porta (Se houver) - PRETO E NEGRITO
-        if (disclaimerLines.length > 0) {
-            doc.setFont('helvetica', 'bold');
-            doc.setTextColor(0, 0, 0); 
-            doc.text(disclaimerLines, pageMargin, currentY);
-            doc.setFont('helvetica', 'normal');
-            currentY += (disclaimerLines.length * 5) + 3;
-        }
+        // Descrição Completa
+        doc.text(lines, pageMargin, currentY);
+        currentY += (lines.length * 5) + 5;
 
         // --- LISTA DE PREÇOS ---
+        // ... (rest of the function remains mostly same)
+
         const landingsPrice = opt.landings.reduce((acc, l) => acc + l.price, 0);
         const structureOnly = opt.totalPrice - landingsPrice;
         
@@ -438,17 +371,36 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
           <div className="mb-4 text-left bg-white dark:bg-gray-800 p-4 rounded border border-gray-200 dark:border-gray-600">
             <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 uppercase border-b border-gray-100 dark:border-gray-700 pb-1">Selecione as opções no PDF:</h4>
             {options.map(opt => (
-                <label key={opt.optionNumber} className="flex items-center gap-2 mb-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-1 rounded">
-                   <input 
-                        type="checkbox" 
-                        checked={selectedOptionIndices.includes(opt.optionNumber)} 
-                        onChange={() => toggleOptionSelection(opt.optionNumber)} 
-                        className="w-5 h-5 accent-highlight rounded cursor-pointer"
-                   />
-                   <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
-                       Opção {opt.optionNumber} ({opt.steps} peças - {formatCurrencyBRL(opt.totalPrice)})
-                   </span>
-                </label>
+                <div key={opt.optionNumber} className="mb-2 border-b border-gray-100 dark:border-gray-700 pb-2 last:border-0">
+                    <div className="flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 p-1 rounded">
+                        <label className="flex items-center gap-2 cursor-pointer flex-1">
+                           <input 
+                                type="checkbox" 
+                                checked={selectedOptionIndices.includes(opt.optionNumber)} 
+                                onChange={() => toggleOptionSelection(opt.optionNumber)} 
+                                className="w-5 h-5 accent-highlight rounded cursor-pointer"
+                           />
+                           <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                               Opção {opt.optionNumber} ({opt.steps} peças - {formatCurrencyBRL(opt.totalPrice)})
+                           </span>
+                        </label>
+                        <button 
+                            onClick={(e) => { e.preventDefault(); setEditingOptionId(editingOptionId === opt.optionNumber ? null : opt.optionNumber); }}
+                            className="text-xs text-blue-500 hover:text-blue-700 underline ml-2 whitespace-nowrap"
+                        >
+                            {editingOptionId === opt.optionNumber ? 'Fechar' : 'Editar Texto'}
+                        </button>
+                    </div>
+                    
+                    {editingOptionId === opt.optionNumber && (
+                        <textarea
+                            value={optionDescriptions[opt.optionNumber] || ''}
+                            onChange={(e) => setOptionDescriptions({ ...optionDescriptions, [opt.optionNumber]: e.target.value })}
+                            className="w-full h-32 p-2 mt-2 text-xs border rounded bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white focus:outline-none focus:border-highlight resize-y"
+                            placeholder="Edite a descrição desta opção..."
+                        />
+                    )}
+                </div>
             ))}
           </div>
 

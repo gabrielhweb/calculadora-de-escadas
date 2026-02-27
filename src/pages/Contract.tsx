@@ -115,7 +115,8 @@ const Contract = () => {
     const [paymentMethod, setPaymentMethod] = useState<'pix' | 'card' | 'hybrid'>('pix');
     
     // Pagamento
-    const [discountPercent, setDiscountPercent] = useState(5);
+    const [discountPercent, setDiscountPercent] = useState(0);
+    const [discountValue, setDiscountValue] = useState('');
     const [signalPercent, setSignalPercent] = useState(50);
     const [installments, setInstallments] = useState(6);
     
@@ -153,18 +154,20 @@ const Contract = () => {
     // Cálculos Base
     const totalStructure = (parseFloat(stairPrice) || 0) + (parseFloat(landingsPrice) || 0);
     const totalGeralBase = totalStructure + (parseFloat(freightPrice)||0) + (parseFloat(installationPrice)||0) + (parseFloat(extrasPrice)||0);
+    const discountMoney = parseFloat(discountValue) || 0;
+    const discountedBase = Math.max(0, totalGeralBase - discountMoney);
 
     // Atualiza o valor manual do sinal híbrido quando o total muda, mas não sobrescreve se o usuário já digitou algo específico
     useEffect(() => {
         if (paymentMethod === 'hybrid') {
-            const calculatedSignal = totalGeralBase * (signalPercent / 100);
+            const calculatedSignal = discountedBase * (signalPercent / 100);
             
             // Se o campo estiver vazio ou muito diferente (mudança de preço base drástica), atualiza
             if (!hybridSignalValue || Math.abs(calculatedSignal - (parseFloat(hybridSignalValue) || 0)) > 1) {
                  setHybridSignalValue(calculatedSignal.toFixed(2));
             }
         }
-    }, [totalGeralBase, paymentMethod]); 
+    }, [discountedBase, paymentMethod]); 
 
     useEffect(() => {
         const targetDate = addBusinessDays(new Date(), 20);
@@ -238,17 +241,33 @@ const Contract = () => {
     // --- MANIPULAÇÃO DE VALORES HÍBRIDOS (SINCRONIZAÇÃO BIDIRECIONAL) ---
     const handleHybridSignalPercentChange = (newPercent: number) => {
         setSignalPercent(newPercent);
-        const newVal = totalGeralBase * (newPercent / 100);
+        const newVal = discountedBase * (newPercent / 100);
         setHybridSignalValue(newVal.toFixed(2));
     };
 
     const handleHybridSignalValueChange = (valStr: string) => {
         setHybridSignalValue(valStr);
         const val = parseFloat(valStr);
-        if (!isNaN(val) && totalGeralBase > 0) {
-            const newPercent = (val / totalGeralBase) * 100;
+        if (!isNaN(val) && discountedBase > 0) {
+            const newPercent = (val / discountedBase) * 100;
             // Atualiza a porcentagem mas limita visualmente entre 0 e 100 para o slider
             setSignalPercent(Math.min(100, Math.max(0, newPercent)));
+        }
+    };
+
+    const handleDiscountPercentChange = (valStr: string) => {
+        const percent = parseFloat(valStr) || 0;
+        setDiscountPercent(percent);
+        const val = totalGeralBase * (percent / 100);
+        setDiscountValue(val > 0 ? val.toFixed(2) : '');
+    };
+
+    const handleDiscountValueChange = (valStr: string) => {
+        setDiscountValue(valStr);
+        const val = parseFloat(valStr) || 0;
+        if (totalGeralBase > 0) {
+            const newPercent = (val / totalGeralBase) * 100;
+            setDiscountPercent(newPercent);
         }
     };
 
@@ -313,15 +332,14 @@ const Contract = () => {
     };
 
     // Cálculos Pix
-    const pixDiscountVal = totalGeralBase * (discountPercent / 100);
-    const pixTotal = totalGeralBase - pixDiscountVal;
+    const pixTotal = discountedBase;
     
     // Cálculos Híbrido / Cartão
     // Agora usamos o valor manual se disponível, senão a porcentagem
-    const hybridEntryPix = parseFloat(hybridSignalValue) || (totalGeralBase * (signalPercent / 100));
+    const hybridEntryPix = parseFloat(hybridSignalValue) || (discountedBase * (signalPercent / 100));
     const baseAmountForCard = paymentMethod === 'hybrid' 
-        ? Math.max(0, totalGeralBase - hybridEntryPix)
-        : totalGeralBase;
+        ? Math.max(0, discountedBase - hybridEntryPix)
+        : discountedBase;
 
     const interestMoney = enableInterest ? (parseFloat(interestValue) || 0) : 0;
     const totalFinanciadoReal = baseAmountForCard + interestMoney;
@@ -335,7 +353,7 @@ const Contract = () => {
         if (method === 'pix') setSignalPercent(50);
         if (method === 'hybrid') {
             setSignalPercent(20);
-            const newVal = totalGeralBase * (20 / 100);
+            const newVal = discountedBase * (20 / 100);
             setHybridSignalValue(newVal.toFixed(2));
             setRemainderPaymentMode('Link de Pagamento (Cartão de Crédito)');
         }
@@ -454,7 +472,7 @@ const Contract = () => {
         const fullAddress = `${street}, ${number} - ${neighborhood}, ${city} - ${state}, ${zip}`;
 
         // Calcula o valor exato da entrada híbrida para passar para o gerador
-        const finalHybridSignal = parseFloat(hybridSignalValue) || (totalGeralBase * (signalPercent/100));
+        const finalHybridSignal = parseFloat(hybridSignalValue) || (discountedBase * (signalPercent/100));
 
         generateContractPDF({
             userData: { 
@@ -477,15 +495,13 @@ const Contract = () => {
             finalLandingsPrice: parseFloat(landingsPrice) || 0,
             
             inputData: {
-                ...(location.state?.inputData || {}),
                 totalHeight: parseFloat(totalHeight) || 0,
                 desiredSteps: totalStepsNum,
                 stairWidth: parseFloat(width) || 0,
                 treadDepth: parseFloat(treadDepth) || 0,
                 dampers: parseFloat(dampers) || 4,
                 optionalItems: optionalItems, 
-                landings: landings,
-                stairDirection: stairDirection
+                landings: landings
             },
             freightCost: parseFloat(freightPrice) || 0,
             tollCost: 0,
@@ -495,6 +511,7 @@ const Contract = () => {
             paymentMethod,
             paymentDetails: {
                 discountPercent, 
+                discountValue: discountMoney,
                 signalPercent, 
                 installments, 
                 installmentValue: finalInstallmentVal,
@@ -750,6 +767,18 @@ const Contract = () => {
                     <div className="space-y-6 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
                         <SectionTitle title="4. Pagamento (Item 6)" />
                         
+                        {/* DESCONTO GLOBAL */}
+                        <div className="flex items-center gap-4 mb-4 bg-white dark:bg-gray-700 p-3 rounded border border-gray-300 dark:border-gray-600">
+                            <div className="flex-1">
+                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Desconto (%)</label>
+                                <input type="number" value={discountPercent || ''} onChange={e => handleDiscountPercentChange(e.target.value)} placeholder="0" className="w-full p-2 border rounded font-bold text-center bg-gray-50 dark:bg-gray-600 text-black dark:text-white border-gray-300 dark:border-gray-500"/>
+                            </div>
+                            <div className="flex-1">
+                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Desconto (R$)</label>
+                                <input type="number" value={discountValue} onChange={e => handleDiscountValueChange(e.target.value)} placeholder="0,00" className="w-full p-2 border rounded font-bold text-center text-green-600 dark:text-green-400 bg-gray-50 dark:bg-gray-600 border-gray-300 dark:border-gray-500"/>
+                            </div>
+                        </div>
+
                         {/* 3 OPÇÕES DE BOTÃO */}
                         <div className="flex gap-2 mb-4 bg-gray-200 dark:bg-gray-700 p-1 rounded">
                             <button onClick={() => handleMethodChange('pix')} className={`flex-1 py-2 rounded font-bold transition text-xs sm:text-sm ${paymentMethod === 'pix' ? 'bg-white dark:bg-gray-800 shadow text-green-700 dark:text-green-400' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600'}`}>Pix / À Vista</button>
@@ -761,18 +790,15 @@ const Contract = () => {
                             <div className="space-y-4 animate-fade-in">
                                 <div className="flex items-center gap-4">
                                     <div className="flex-1">
-                                        <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Desconto (%)</label>
-                                        <input type="number" value={discountPercent} onChange={e => setDiscountPercent(parseFloat(e.target.value)||0)} className="w-full p-2 border rounded font-bold text-center bg-white dark:bg-gray-700 text-black dark:text-white border-gray-300 dark:border-gray-600"/>
-                                    </div>
-                                    <div className="flex-1">
                                         <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Sinal (%)</label>
                                         <input type="number" value={signalPercent} onChange={e => setSignalPercent(parseFloat(e.target.value)||0)} className="w-full p-2 border rounded font-bold text-center text-green-600 dark:text-green-400 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600"/>
                                     </div>
                                 </div>
                                 <div className="pt-2 text-sm text-gray-500 dark:text-gray-400 font-medium border-t border-gray-300 dark:border-gray-600">
                                     <p className="flex justify-between"><span>Valor Original:</span> <span className="line-through">{formatCurrencyBRL(totalGeralBase)}</span></p>
+                                    {discountMoney > 0 && <p className="flex justify-between text-green-600"><span>Desconto:</span> <span>- {formatCurrencyBRL(discountMoney)}</span></p>}
                                     <p className="flex justify-between text-green-700 dark:text-green-400 font-bold text-lg"><span>A Pagar:</span> <span>{formatCurrencyBRL(pixTotal)}</span></p>
-                                    <p className="text-xs mt-1">* 50% de sinal na assinatura e 50% na entrega.</p>
+                                    <p className="text-xs mt-1">* {signalPercent}% de sinal na assinatura e {100 - signalPercent}% na entrega.</p>
                                 </div>
                             </div>
                         )}

@@ -183,3 +183,62 @@ export const getRouteInfoFromGemini = async (origin: string, destination: string
 
   throw new Error("Não foi possível traçar a rota automaticamente. Por favor, insira a distância manualmente.");
 };
+
+export const generateProposalDescription = (inputData: any, opt: any): string => {
+    let descriptionTitle = "Escada articulada lateral em aço carbono";
+    let handrailDesc = "e com corrimão de 70 centímetros";
+    let damperDesc = ` com ${inputData.dampers} amortecedores de alívio`;
+
+    let fixationText = "";
+    
+    if (inputData.stairGeometry === 'hide') {
+        fixationText = ""; 
+    } else if (inputData.stairGeometry && inputData.stairGeometry.includes('Fixação')) {
+        fixationText = inputData.stairGeometry; 
+    } else {
+        fixationText = inputData.stairDirection === 'mirrored' 
+            ? "Fixação do Lado ESQUERDO" 
+            : "Fixação do Lado DIREITO";
+    }
+
+    const geometryText = (inputData.stairGeometry && !inputData.stairGeometry.includes('Fixação') && inputData.stairGeometry !== 'hide') 
+        ? `, modelo ${inputData.stairGeometry}` 
+        : "";
+
+    if (inputData.hasWheels) {
+        descriptionTitle = "Escada articulada com rodinhas em aço carbono";
+        damperDesc = ""; 
+        
+        const sideMap: Record<string, string> = { 
+            left: 'apenas no lado esquerdo', 
+            right: 'apenas no lado direito', 
+            both: 'nos dois lados' 
+        };
+        const sideText = sideMap[inputData.handrailSide || 'both'] || 'nos dois lados';
+        handrailDesc = `e com corrimão articulado ${sideText}`;
+    }
+
+    const alturaM = (inputData.totalHeight / 100).toFixed(2).replace('.', ',');
+    const compM = (opt.totalLength / 100).toFixed(2).replace('.', ',');
+    const widthCm = opt.stairWidth;
+    
+    let text1 = `${descriptionTitle} com corte à laser`;
+    if (fixationText) text1 += `, ${fixationText}`;
+    if (geometryText) text1 += `${geometryText}`;
+    text1 += `, com medidas de: ${alturaM} metros de altura, ${compM} metros de comprimento, ${widthCm} centímetros de largura ${handrailDesc}.`;
+
+    const stepH = opt.stepHeight.toFixed(2).replace('.', ',');
+    const tread = opt.treadDepth.toFixed(2).replace('.', ',');
+    
+    const materialText = inputData.treadMaterial === 'wood' ? 'de Madeira' : 'de Metal';
+    
+    const text2 = `-Com ${opt.structureSteps} degraus articulados com dimensões de ${stepH} centímetros de altura e pisante ${materialText} de ${tread} centímetros${damperDesc}.`;
+    
+    let fullText = `${text1}\n${text2}`;
+
+    if (inputData.referenceDoor && inputData.referenceDoor.isActive) {
+        fullText += "\nNOTA: Portas/Janelas exibidas nos desenhos técnicos são apenas ilustrativas para referência de espaço. NÃO FABRICAMOS OU FORNECEMOS PORTAS.";
+    }
+
+    return fullText;
+};
