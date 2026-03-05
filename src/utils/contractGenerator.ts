@@ -178,7 +178,7 @@ export const generateContractPDF = (data: ContractData) => {
   
   addText(objText, 11, false, 'left');
   
-  const materialText = data.inputData.treadMaterial === 'wood' ? 'de MADEIRA' : 'de METAL';
+  const materialText = (data.inputData.treadMaterial === 'wood' || (data.inputData.treadMaterial as string) === 'Madeira') ? 'de MADEIRA' : 'de METAL';
   let stepsText = `-Com ${data.selectedOption.structureSteps} degraus articulados com dimensões de ${stepH}cm de altura e pisante ${materialText} de ${tread}cm${dampersText}`;
   addText(stepsText, 11, false, 'left');
 
@@ -280,13 +280,17 @@ export const generateContractPDF = (data: ContractData) => {
   const discountP = data.paymentDetails.discountPercent || 0;
   const totalComDesconto = totalGeral - discountVal;
 
+  const discountText = discountP > 0 
+      ? `menos ${discountP.toFixed(2).replace('.00', '')}% de desconto`
+      : `menos desconto de ${formatCurrencyBRL(discountVal)}`;
+
   if (data.paymentMethod === 'pix') {
       const signalP = data.paymentDetails.signalPercent || 50;
       const valorSinal = totalComDesconto * (signalP / 100);
       const valorEntrega = totalComDesconto - valorSinal;
       
       if (discountVal > 0) {
-          addText(`Total ${formatCurrencyBRL(totalGeral)} - Desconto = ${formatCurrencyBRL(totalComDesconto)}`, 11, false, 'left');
+          addText(`Total ${formatCurrencyBRL(totalGeral)} ${discountText} = ${formatCurrencyBRL(totalComDesconto)}`, 11, false, 'left');
       } else {
           addText(`Total ${formatCurrencyBRL(totalGeral)}`, 11, false, 'left');
       }
@@ -315,7 +319,7 @@ export const generateContractPDF = (data: ContractData) => {
       const remainderMethodName = data.paymentDetails.remainderText || "Link de Pagamento (Cartão de Crédito)";
 
       if (discountVal > 0) {
-          addText(`Total ${formatCurrencyBRL(totalGeral)} - Desconto = ${formatCurrencyBRL(totalComDesconto)}`, 11, false, 'left');
+          addText(`Total ${formatCurrencyBRL(totalGeral)} ${discountText} = ${formatCurrencyBRL(totalComDesconto)}`, 11, false, 'left');
       } else {
           addText(`Total R$ ${formatCurrencyBRL(totalGeral)}`, 11, false, 'left');
       }
@@ -335,7 +339,7 @@ export const generateContractPDF = (data: ContractData) => {
       const totalCartao = installmentValue * installments;
       
       if (discountVal > 0) {
-          addText(`Total ${formatCurrencyBRL(totalGeral)} - Desconto = ${formatCurrencyBRL(totalComDesconto)}`, 11, false, 'left');
+          addText(`Total ${formatCurrencyBRL(totalGeral)} ${discountText} = ${formatCurrencyBRL(totalComDesconto)}`, 11, false, 'left');
       } else {
           addText(`Total R$ ${formatCurrencyBRL(totalGeral)}`, 11, false, 'left');
       }
