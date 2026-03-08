@@ -106,6 +106,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
 
   // Estados de Visualização Avançada
   const [stairDirection, setStairDirection] = useState<'standard' | 'mirrored'>('standard');
+  const [wallFixation, setWallFixation] = useState<'left' | 'right'>('left'); // Novo campo
   const [stairGeometry, setStairGeometry] = useState<string>(''); // Novo campo de geometria
   const [doorActive, setDoorActive] = useState(false);
   const [doorWidth, setDoorWidth] = useState('80');
@@ -237,6 +238,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
       slabThickness: slabThickInCm,
       slabOpening: openingInCm || undefined,
       stairDirection: stairDirection,
+      wallFixation: wallFixation,
       stairGeometry: stairGeometry, // Novo campo
       referenceDoor: referenceDoorData
     };
@@ -396,7 +398,25 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                          </button>
                      </div>
 
-                     <label className="text-xs font-bold text-gray-500 uppercase mb-2 block">Formato / Fixação</label>
+                     <label className="text-xs font-bold text-gray-500 uppercase mb-2 block">Lado da Fixação (Parede)</label>
+                     <div className="flex gap-1 mb-3">
+                         <button 
+                             type="button"
+                             onClick={() => setWallFixation('left')}
+                             className={`flex-1 py-2 text-xs font-bold rounded border ${wallFixation === 'left' ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-200'}`}
+                         >
+                             Parede à Esquerda
+                         </button>
+                         <button 
+                             type="button"
+                             onClick={() => setWallFixation('right')}
+                             className={`flex-1 py-2 text-xs font-bold rounded border ${wallFixation === 'right' ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-200'}`}
+                         >
+                             Parede à Direita
+                         </button>
+                     </div>
+
+                     <label className="text-xs font-bold text-gray-500 uppercase mb-2 block">Formato Adicional</label>
                      <select 
                         value={stairGeometry}
                         onChange={(e) => setStairGeometry(e.target.value)}

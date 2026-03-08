@@ -135,17 +135,21 @@ export const generateContractPDF = (data: ContractData) => {
   const stepH = data.selectedOption.stepHeight.toFixed(2);
   const tread = data.selectedOption.treadDepth.toFixed(2);
   
-  // LÓGICA DE FIXAÇÃO
+  // LÓGICA DE FIXAÇÃO E DESENHO
   let fixationText = "";
   if (data.inputData.stairGeometry === 'hide') {
       fixationText = ""; 
   } else if (data.inputData.stairGeometry && data.inputData.stairGeometry.includes('Fixação')) {
       fixationText = data.inputData.stairGeometry; 
   } else {
-      fixationText = data.inputData.stairDirection === 'mirrored' 
-          ? "Fixação do Lado ESQUERDO" 
-          : "Fixação do Lado DIREITO";
+      fixationText = data.inputData.wallFixation === 'left' 
+          ? "Fixação na Parede ESQUERDA" 
+          : "Fixação na Parede DIREITA";
   }
+
+  let directionText = data.inputData.stairDirection === 'mirrored'
+      ? "Desenho (Sentido): Subida para a ESQUERDA"
+      : "Desenho (Sentido): Subida para a DIREITA";
 
   // Geometria (L / U)
   const geometryText = (data.inputData.stairGeometry && !data.inputData.stairGeometry.includes('Fixação') && data.inputData.stairGeometry !== 'hide')
@@ -172,13 +176,14 @@ export const generateContractPDF = (data: ContractData) => {
 
   // Constrói objeto com formatação correta de vírgulas
   let objText = `${baseDescription} com corte à laser`;
+  if (directionText) objText += `, ${directionText}`;
   if (fixationText) objText += `, ${fixationText}`;
   if (geometryText) objText += `${geometryText}`;
   objText += `, com medidas de: ${alturaM}m de altura, ${compM}m de comprimento, ${widthM}m de largura ${handrailText}.`;
   
   addText(objText, 11, false, 'left');
   
-  const materialText = data.inputData.treadMaterial === 'wood' ? 'de MADEIRA' : 'de METAL';
+  const materialText = (data.inputData.treadMaterial === 'wood' || (data.inputData.treadMaterial as string) === 'Madeira') ? 'de MADEIRA' : 'de METAL';
   let stepsText = `-Com ${data.selectedOption.structureSteps} degraus articulados com dimensões de ${stepH}cm de altura e pisante ${materialText} de ${tread}cm${dampersText}`;
   addText(stepsText, 11, false, 'left');
 
@@ -280,13 +285,17 @@ export const generateContractPDF = (data: ContractData) => {
   const discountP = data.paymentDetails.discountPercent || 0;
   const totalComDesconto = totalGeral - discountVal;
 
+  const discountText = discountP > 0 
+      ? `menos ${discountP.toFixed(2).replace('.00', '')}% de desconto`
+      : `menos desconto de ${formatCurrencyBRL(discountVal)}`;
+
   if (data.paymentMethod === 'pix') {
       const signalP = data.paymentDetails.signalPercent || 50;
       const valorSinal = totalComDesconto * (signalP / 100);
       const valorEntrega = totalComDesconto - valorSinal;
       
       if (discountVal > 0) {
-          addText(`Total ${formatCurrencyBRL(totalGeral)} - Desconto = ${formatCurrencyBRL(totalComDesconto)}`, 11, false, 'left');
+          addText(`Total ${formatCurrencyBRL(totalGeral)} ${discountText} = ${formatCurrencyBRL(totalComDesconto)}`, 11, false, 'left');
       } else {
           addText(`Total ${formatCurrencyBRL(totalGeral)}`, 11, false, 'left');
       }
@@ -315,7 +324,7 @@ export const generateContractPDF = (data: ContractData) => {
       const remainderMethodName = data.paymentDetails.remainderText || "Link de Pagamento (Cartão de Crédito)";
 
       if (discountVal > 0) {
-          addText(`Total ${formatCurrencyBRL(totalGeral)} - Desconto = ${formatCurrencyBRL(totalComDesconto)}`, 11, false, 'left');
+          addText(`Total ${formatCurrencyBRL(totalGeral)} ${discountText} = ${formatCurrencyBRL(totalComDesconto)}`, 11, false, 'left');
       } else {
           addText(`Total R$ ${formatCurrencyBRL(totalGeral)}`, 11, false, 'left');
       }
@@ -335,7 +344,7 @@ export const generateContractPDF = (data: ContractData) => {
       const totalCartao = installmentValue * installments;
       
       if (discountVal > 0) {
-          addText(`Total ${formatCurrencyBRL(totalGeral)} - Desconto = ${formatCurrencyBRL(totalComDesconto)}`, 11, false, 'left');
+          addText(`Total ${formatCurrencyBRL(totalGeral)} ${discountText} = ${formatCurrencyBRL(totalComDesconto)}`, 11, false, 'left');
       } else {
           addText(`Total R$ ${formatCurrencyBRL(totalGeral)}`, 11, false, 'left');
       }

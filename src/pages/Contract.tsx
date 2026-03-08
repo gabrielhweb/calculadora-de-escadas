@@ -97,6 +97,8 @@ const Contract = () => {
     const [landings, setLandings] = useState<LandingInfo[]>([]);
     const [optionalItems, setOptionalItems] = useState<OptionalItem[]>([]);
     const [stairDirection, setStairDirection] = useState<'standard' | 'mirrored'>('standard');
+    const [wallFixation, setWallFixation] = useState<'left' | 'right'>('left');
+    const [treadMaterial, setTreadMaterial] = useState<'metal' | 'wood' | undefined>(undefined);
     
     // Inputs para adicionar novo item
     const [newItemName, setNewItemName] = useState('');
@@ -214,6 +216,8 @@ const Contract = () => {
                 setTotalLength(selectedOption.totalLength.toString());
                 setDampers(inputData.dampers.toString());
                 setStairDirection(inputData.stairDirection || 'standard');
+                setWallFixation(inputData.wallFixation || 'left');
+                setTreadMaterial(inputData.treadMaterial);
                 
                 if (selectedOption.landings && selectedOption.landings.length > 0) {
                     setLandings(selectedOption.landings);
@@ -501,7 +505,10 @@ const Contract = () => {
                 treadDepth: parseFloat(treadDepth) || 0,
                 dampers: parseFloat(dampers) || 4,
                 optionalItems: optionalItems, 
-                landings: landings
+                landings: landings,
+                treadMaterial: treadMaterial,
+                stairDirection: stairDirection,
+                wallFixation: wallFixation
             },
             freightCost: parseFloat(freightPrice) || 0,
             tollCost: 0,
@@ -684,6 +691,70 @@ const Contract = () => {
                             </div>
                             
                             <p className="text-[10px] text-gray-500 mt-2 italic">* Edite os nomes acima como deseja que apareçam no PDF (ex: Adicionar detalhes do material).</p>
+                        </div>
+                    </div>
+
+                    {/* NOVO: CONTROLES DE MATERIAL E DIREÇÃO */}
+                    <div className="space-y-6 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                        <SectionTitle title="Detalhes da Escada" icon={<span>🪜</span>} />
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* Material */}
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Material dos Degraus</label>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => setTreadMaterial('metal')}
+                                        className={`flex-1 py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === 'metal' ? 'bg-gray-800 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-100'}`}
+                                    >
+                                        Metal
+                                    </button>
+                                    <button
+                                        onClick={() => setTreadMaterial('wood')}
+                                        className={`flex-1 py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === 'wood' ? 'bg-orange-700 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-100'}`}
+                                    >
+                                        Madeira
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Direção */}
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Desenho (Sentido da Subida)</label>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => setStairDirection('standard')}
+                                        className={`flex-1 py-2 px-3 rounded font-bold text-sm transition ${stairDirection === 'standard' ? 'bg-blue-600 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-100'}`}
+                                    >
+                                        Padrão (Direita)
+                                    </button>
+                                    <button
+                                        onClick={() => setStairDirection('mirrored')}
+                                        className={`flex-1 py-2 px-3 rounded font-bold text-sm transition ${stairDirection === 'mirrored' ? 'bg-purple-600 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-100'}`}
+                                    >
+                                        Espelhado (Esquerda)
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Fixação na Parede */}
+                            <div className="md:col-span-2">
+                                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Lado da Fixação (Parede)</label>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => setWallFixation('left')}
+                                        className={`flex-1 py-2 px-3 rounded font-bold text-sm transition ${wallFixation === 'left' ? 'bg-emerald-600 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-100'}`}
+                                    >
+                                        Parede à Esquerda
+                                    </button>
+                                    <button
+                                        onClick={() => setWallFixation('right')}
+                                        className={`flex-1 py-2 px-3 rounded font-bold text-sm transition ${wallFixation === 'right' ? 'bg-emerald-600 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-100'}`}
+                                    >
+                                        Parede à Direita
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -962,6 +1033,7 @@ const Contract = () => {
                         totalLength={parseFloat(totalLength) || 0}
                         landings={landings}
                         stairDirection={stairDirection}
+                        treadMaterial={treadMaterial}
                     />
 
                 </div>

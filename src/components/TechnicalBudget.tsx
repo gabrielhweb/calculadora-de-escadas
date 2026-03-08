@@ -13,6 +13,7 @@ interface TechnicalBudgetProps {
   totalLength: number; // NOVO
   landings: LandingInfo[];
   stairDirection?: 'standard' | 'mirrored';
+  wallFixation?: 'left' | 'right';
   treadMaterial?: 'metal' | 'wood';
 }
 
@@ -25,6 +26,7 @@ export const TechnicalBudget: React.FC<TechnicalBudgetProps> = ({
   totalLength,
   landings,
   stairDirection,
+  wallFixation,
   treadMaterial
 }) => {
   // Define o e-mail padrão que aparecerá no campo
@@ -50,14 +52,22 @@ export const TechnicalBudget: React.FC<TechnicalBudgetProps> = ({
     const numLandings = landings.length;
     const structureSteps = totalSteps - numLandings;
 
-    const sideText = stairDirection === 'mirrored' ? 'esquerdo' : 'direito';
+    const sideText = wallFixation === 'right' ? 'direito' : 'esquerdo';
+    const directionText = stairDirection === 'mirrored' ? 'esquerda' : 'direita';
 
     // --- MONTAGEM DO TEXTO ---
     let report = `Orçamento ${clientName}\n\n`;
     report += `2 corpo de escada com\n`;
     report += `${structureSteps} degraus com medidas de: ${stepHeightMM}mm de altura e pisante ${bodyTreadStr}mm\n`;
+    
+    // ADIÇÃO SOLICITADA: VAZADO PARA MADEIRA
+    if (treadMaterial === 'wood') {
+        report += `*** VAZADO PARA MADEIRA ***\n`;
+    }
+
     report += `${structureSteps} degraus de ${stepTreadStr}mm x ${widthMM}mm\n`;
     report += `Olhando de baixo para cima furos do lado ${sideText}\n`;
+    report += `Sentido da subida para a ${directionText}\n`;
 
     if (numLandings > 0) {
         report += `\nOrçamento ${clientName} 2\n`;
@@ -81,18 +91,50 @@ export const TechnicalBudget: React.FC<TechnicalBudgetProps> = ({
   // --- LÓGICA DE MATÉRIA PRIMA (ESTIMATIVA) ---
   const generateMaterialData = () => {
       const numSteps = totalSteps - landings.length;
-      const totalLengthM = totalLength / 100;
+      // const totalLengthM = totalLength / 100; // Removido conforme solicitado
       
       let report = `LISTA DE MATÉRIA PRIMA (ESTIMATIVA)\n`;
       report += `Cliente: ${clientName}\n`;
       report += `Data: ${new Date().toLocaleDateString()}\n\n`;
       
       report += `ESTRUTURA PRINCIPAL:\n`;
-      report += `- Comprimento Total (Tubo Central): Aprox. ${totalLengthM.toFixed(2)} metros\n`;
+      // report += `- Comprimento Total (Tubo Central): Aprox. ${totalLengthM.toFixed(2)} metros\n`; // REMOVIDO
+      
+      // CÁLCULO DE ÁREA DE CHAPA COM +5CM DE MARGEM
+      const widthWithMargin = widthCm + 5;
+      const depthWithMargin = treadDepthCm + 5;
+      const areaPerStepM2 = (widthWithMargin / 100) * (depthWithMargin / 100);
+      const totalAreaM2 = areaPerStepM2 * numSteps;
+
+      // CÁLCULO DE VOLUME E PESO (Chapa 3mm = 0.003m)
+      const thicknessM = 0.003;
+      const density = 7840; // 7.84 g/cm³ = 7840 kg/m³
+
+      // Unitários
+      const volumePerStepM3 = areaPerStepM2 * thicknessM;
+      const weightPerStepKg = volumePerStepM3 * density;
+
+      // Totais
+      const totalVolumeM3 = totalAreaM2 * thicknessM;
+      const totalWeightKg = totalVolumeM3 * density;
+
       report += `- Quantidade Degraus (Suportes): ${numSteps} peças\n`;
       report += `- Altura Espelhos (Entre-degraus): ${stepHeightCm.toFixed(2)} cm\n`;
       report += `- Largura Escada: ${widthCm} cm\n`;
       report += `- Tamanho do Pisante: ${treadDepthCm.toFixed(2)} cm\n\n`;
+      
+      report += `DETALHAMENTO DE MATERIAL DOS DEGRAUS (CHAPA 3MM):\n`;
+      report += `(Considerando margem de +5cm na largura e profundidade)\n`;
+      report += `--------------------------------------------------\n`;
+      report += `UNITÁRIO (Por Degrau):\n`;
+      report += `- Área:   ${areaPerStepM2.toFixed(4)} m²\n`;
+      report += `- Volume: ${volumePerStepM3.toFixed(6)} m³\n`;
+      report += `- Peso:   ${weightPerStepKg.toFixed(3)} kg\n\n`;
+      
+      report += `TOTAL (${numSteps} Degraus):\n`;
+      report += `- Área:   ${totalAreaM2.toFixed(2)} m²\n`;
+      report += `- Volume: ${totalVolumeM3.toFixed(4)} m³\n`;
+      report += `- Peso:   ${totalWeightKg.toFixed(2)} kg\n\n`;
 
       const hingesPerStep = treadDepthCm < 16 ? 2 : 4;
       const hingeSize = treadDepthCm < 16 ? "4x3" : "3x2,5/8";
