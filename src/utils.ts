@@ -196,9 +196,9 @@ export const generateProposalDescription = (inputData: any, opt: any): string =>
     } else if (inputData.stairGeometry && inputData.stairGeometry.includes('Fixação')) {
         fixationText = inputData.stairGeometry; 
     } else {
-        fixationText = inputData.stairDirection === 'mirrored' 
-            ? "Fixação do Lado ESQUERDO" 
-            : "Fixação do Lado DIREITO";
+        fixationText = inputData.wallFixation === 'left' 
+            ? "Fixação na Parede ESQUERDA" 
+            : "Fixação na Parede DIREITA";
     }
 
     const geometryText = (inputData.stairGeometry && !inputData.stairGeometry.includes('Fixação') && inputData.stairGeometry !== 'hide') 

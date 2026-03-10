@@ -28,6 +28,13 @@ interface ContractData {
   // PREÇOS SEPARADOS EXPLICITAMENTE
   finalStairPrice: number;
   finalLandingsPrice: number;
+
+  // CUSTOMIZÁVEIS
+  finishText?: string;
+  stepCapacityText?: string;
+  stairCapacityText?: string;
+  warrantyText?: string;
+  deliveryText?: string;
 }
 
 // =================================================================================
@@ -147,10 +154,6 @@ export const generateContractPDF = (data: ContractData) => {
           : "Fixação na Parede DIREITA";
   }
 
-  let directionText = data.inputData.stairDirection === 'mirrored'
-      ? "Desenho (Sentido): Subida para a ESQUERDA"
-      : "Desenho (Sentido): Subida para a DIREITA";
-
   // Geometria (L / U)
   const geometryText = (data.inputData.stairGeometry && !data.inputData.stairGeometry.includes('Fixação') && data.inputData.stairGeometry !== 'hide')
     ? `, modelo ${data.inputData.stairGeometry}` 
@@ -176,7 +179,6 @@ export const generateContractPDF = (data: ContractData) => {
 
   // Constrói objeto com formatação correta de vírgulas
   let objText = `${baseDescription} com corte à laser`;
-  if (directionText) objText += `, ${directionText}`;
   if (fixationText) objText += `, ${fixationText}`;
   if (geometryText) objText += `${geometryText}`;
   objText += `, com medidas de: ${alturaM}m de altura, ${compM}m de comprimento, ${widthM}m de largura ${handrailText}.`;
@@ -236,16 +238,16 @@ export const generateContractPDF = (data: ContractData) => {
   if (data.installationCost > 0) {
       addText(`-Instalação ${formatCurrencyBRL(data.installationCost)} (Valor para local de fácil acesso)`, 11, false, 'left');
   } else {
-      addText(`-Instalação: Por conta do comprador`, 11, false, 'left');
+      addText(`-Instalação: A CONFIRMAR`, 11, false, 'left');
   }
 
   // Soma final
   const totalGeral = structureTotal + data.freightCost + data.tollCost + data.installationCost + data.extrasCost;
   addText(`Total ${formatCurrencyBRL(totalGeral)}`, 11, false, 'left');
 
-  addText('-Acabamento: fundo prime', 11, true, 'left');
-  addText('-Capacidade máxima por degrau: 180 quilos', 11, true, 'left');
-  addText('-Capacidade máxima da escada: 360 quilos', 11, true, 'left');
+  addText(`-Acabamento: ${data.finishText || 'fundo prime'}`, 11, true, 'left');
+  addText(`-Capacidade máxima por degrau: ${data.stepCapacityText || '180 quilos'}`, 11, true, 'left');
+  addText(`-Capacidade máxima da escada: ${data.stairCapacityText || '360 quilos'}`, 11, true, 'left');
   
   currentY += 5;
 
@@ -268,12 +270,13 @@ export const generateContractPDF = (data: ContractData) => {
   currentY += 5;
 
   addText('4. Do prazo de entrega.', 11, true, 'left');
-  const formattedDate = data.deadlineDate.split('-').reverse().join('/');
-  addText(`4.1 Deve ser feita até dia ${formattedDate}, após o pagamento do sinal`, 11, false, 'left');
+  const formattedDate = data.deadlineDate ? data.deadlineDate.split('-').reverse().join('/') : '';
+  const defaultDeliveryText = formattedDate ? `Deve ser feita até dia ${formattedDate}, após o pagamento do sinal` : 'A combinar';
+  addText(`4.1 ${data.deliveryText || defaultDeliveryText}`, 11, false, 'left');
   currentY += 5;
 
   addText('5. Da garantia.', 11, true, 'left');
-  addText('5.1 A empresa oferece um ano de garantia após a entrega e instalação do produto relacionado no item 1.1', 11, false, 'justify');
+  addText(`5.1 A empresa oferece ${data.warrantyText || 'um ano'} de garantia após a entrega e instalação do produto relacionado no item 1.1`, 11, false, 'justify');
   addText('5.2 Esta cláusula será nula apenas por mal uso do item 1.1', 11, false, 'justify');
   currentY += 5;
 
@@ -322,6 +325,11 @@ export const generateContractPDF = (data: ContractData) => {
 
       // Texto flexível do restante
       const remainderMethodName = data.paymentDetails.remainderText || "Link de Pagamento (Cartão de Crédito)";
+      
+      let deliveryText = "";
+      if (remainderMethodName.toLowerCase().includes('link')) {
+          deliveryText = data.installationCost > 0 ? " no dia da entrega e instalação" : " no dia da entrega";
+      }
 
       if (discountVal > 0) {
           addText(`Total ${formatCurrencyBRL(totalGeral)} ${discountText} = ${formatCurrencyBRL(totalComDesconto)}`, 11, false, 'left');
@@ -332,9 +340,9 @@ export const generateContractPDF = (data: ContractData) => {
       
       // Se tiver juros, menciona. Se não, simplifica.
       if (totalNoCartao > restanteBase + 1) { // margem de erro pequena
-           addText(`E o restante de ${formatCurrencyBRL(restanteBase)} mais juros totalizando ${formatCurrencyBRL(totalNoCartao)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}`, 11, false, 'justify');
+           addText(`E o restante de ${formatCurrencyBRL(restanteBase)} mais juros totalizando ${formatCurrencyBRL(totalNoCartao)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}`, 11, false, 'justify');
       } else {
-           addText(`E o restante de ${formatCurrencyBRL(restanteBase)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}`, 11, false, 'justify');
+           addText(`E o restante de ${formatCurrencyBRL(restanteBase)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}`, 11, false, 'justify');
       }
 
   } else {

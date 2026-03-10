@@ -138,6 +138,13 @@ const Contract = () => {
     const [aiPrompt, setAiPrompt] = useState('');
     const [isGeneratingClause, setIsGeneratingClause] = useState(false);
     
+    // --- CAMPOS CUSTOMIZÁVEIS EXTRAS ---
+    const [finishText, setFinishText] = useState('fundo prime');
+    const [stepCapacityText, setStepCapacityText] = useState('180 quilos');
+    const [stairCapacityText, setStairCapacityText] = useState('360 quilos');
+    const [warrantyText, setWarrantyText] = useState('um ano');
+    const [deliveryText, setDeliveryText] = useState(''); // Se vazio, usa o default com a data
+
     // Estados para Refinamento (Chatzinho)
     const [refiningIndex, setRefiningIndex] = useState<number | null>(null);
     const [refinementPrompt, setRefinementPrompt] = useState('');
@@ -526,7 +533,12 @@ const Contract = () => {
                 pixTiming: pixTiming, // Passa o momento do pagamento
                 remainderText: remainderPaymentMode // Texto personalizado do restante
             },
-            additionalClauses: customClauses 
+            additionalClauses: customClauses,
+            finishText,
+            stepCapacityText,
+            stairCapacityText,
+            warrantyText,
+            deliveryText
         });
     };
 
@@ -754,6 +766,32 @@ const Contract = () => {
                                         Parede à Direita
                                     </button>
                                 </div>
+                            </div>
+
+                            {/* Medidas Extras */}
+                            <div>
+                                <ContractInput 
+                                    label="Altura do Degrau (cm)" 
+                                    value={stepHeight} 
+                                    onChange={(e: any) => setStepHeight(e.target.value)} 
+                                    type="number"
+                                />
+                            </div>
+                            <div>
+                                <ContractInput 
+                                    label="Profundidade do Pisante (cm)" 
+                                    value={treadDepth} 
+                                    onChange={(e: any) => setTreadDepth(e.target.value)} 
+                                    type="number"
+                                />
+                            </div>
+                            <div>
+                                <ContractInput 
+                                    label="Qtd. Amortecedores" 
+                                    value={dampers} 
+                                    onChange={(e: any) => setDampers(e.target.value)} 
+                                    type="number"
+                                />
                             </div>
                         </div>
                     </div>
@@ -1033,14 +1071,52 @@ const Contract = () => {
                         totalLength={parseFloat(totalLength) || 0}
                         landings={landings}
                         stairDirection={stairDirection}
+                        wallFixation={wallFixation}
                         treadMaterial={treadMaterial}
                     />
 
                 </div>
 
+                {/* Seção de Textos Customizáveis */}
+                <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-6 md:p-8">
+                    <SectionTitle title="5. Textos Customizáveis do Contrato" icon={<span>✏️</span>} />
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Altere os textos padrão que aparecerão no PDF do contrato.</p>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <ContractInput 
+                            label="Acabamento" 
+                            value={finishText} 
+                            onChange={(e: any) => setFinishText(e.target.value)} 
+                        />
+                        <ContractInput 
+                            label="Garantia" 
+                            value={warrantyText} 
+                            onChange={(e: any) => setWarrantyText(e.target.value)} 
+                        />
+                        <ContractInput 
+                            label="Capacidade por Degrau" 
+                            value={stepCapacityText} 
+                            onChange={(e: any) => setStepCapacityText(e.target.value)} 
+                        />
+                        <ContractInput 
+                            label="Capacidade Total da Escada" 
+                            value={stairCapacityText} 
+                            onChange={(e: any) => setStairCapacityText(e.target.value)} 
+                        />
+                        <div className="md:col-span-2">
+                            <ContractInput 
+                                label="Texto do Prazo de Entrega (Deixe vazio para usar a data calculada)" 
+                                value={deliveryText} 
+                                onChange={(e: any) => setDeliveryText(e.target.value)} 
+                                placeholder="Ex: Deve ser feita em até 20 dias úteis após o pagamento do sinal"
+                            />
+                        </div>
+                    </div>
+                </div>
+
                 {/* Seção de IA para Cláusulas */}
                 <div className="bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700 p-6 md:p-8">
-                    <SectionTitle title="5. Cláusulas Adicionais (IA)" icon={<span>🤖</span>} />
+                    <SectionTitle title="6. Cláusulas Adicionais (IA)" icon={<span>🤖</span>} />
                     <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Adicione ou refine condições específicas usando Inteligência Artificial (ex: Garantia estendida, condições de acesso, etc).</p>
                     
                     <div className="flex gap-2 mb-4">

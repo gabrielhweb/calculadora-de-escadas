@@ -230,7 +230,7 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
         } else {
              doc.text(`-Instalação:`, pageMargin, currentY);
              doc.setFont('helvetica', 'bold');
-             doc.text(`POR CONTA DO CLIENTE`, pageWidth - pageMargin, currentY, { align: 'right' });
+             doc.text(`A confirmar`, pageWidth - pageMargin, currentY, { align: 'right' });
              doc.setFont('helvetica', 'normal');
         }
         currentY += 6;
