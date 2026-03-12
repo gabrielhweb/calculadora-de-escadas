@@ -5,7 +5,7 @@ import Calculator from './pages/Calculator';
 import Contract from './pages/Contract';
 import SavedQuotes from './pages/SavedQuotes';
 import { ContractsList } from './pages/ContractsList';
-import ProductionQueue from './pages/ProductionQueue';
+import ProductionQueue from './pages/productionQueue';
 import { AuthProvider } from './components/AuthProvider';
 
 function App() {
