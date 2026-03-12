@@ -1,0 +1,40 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: contracts
+    // Collection: production_queue
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAllowedUser() {
+      return isAuthenticated() && (
+        request.auth.token.email == 'gaguisilva15@gmail.com' ||
+        request.auth.token.email == 'zilinskidistribuidora@gmail.com' ||
+        request.auth.token.email == 'somarcilioz@gmail.com'
+      );
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+    match /contracts/{contractId} {
+      allow read, write: if isAllowedUser();
+    }
+    
+    match /production_queue/{orderId} {
+      allow read, write: if isAllowedUser();
+    }
+  }
+}

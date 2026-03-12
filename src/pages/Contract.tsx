@@ -6,6 +6,9 @@ import { generateContractPDF } from '../utils/contractGenerator';
 import { LandingInfo, OptionalItem } from '../types';
 import { formatCurrencyBRL } from '../utils';
 import { TechnicalBudget } from '../components/TechnicalBudget';
+import { db } from '../firebase';
+import { doc, setDoc } from 'firebase/firestore';
+import { useAuth } from '../components/AuthProvider';
 
 // Declaração global para SpeechRecognition (API do Navegador)
 declare global {
@@ -67,6 +70,7 @@ const addBusinessDays = (startDate: Date, days: number) => {
 
 const Contract = () => {
     const location = useLocation();
+    const { user } = useAuth();
     
     const STANDARD_INSTALLATION = 290;
     
@@ -74,6 +78,7 @@ const Contract = () => {
     const [clientName, setClientName] = useState('');
     const [clientDoc, setClientDoc] = useState(''); // CPF ou CNPJ
     const [clientRG, setClientRG] = useState('');
+    const [addToQueue, setAddToQueue] = useState(true);
     
     // Endereço Estruturado
     const [zip, setZip] = useState('');
@@ -469,6 +474,140 @@ const Contract = () => {
         const newClauses = [...customClauses];
         newClauses.splice(index, 1);
         setCustomClauses(newClauses);
+    };
+
+    const handleSaveContract = async () => {
+        if (!user) {
+            alert("Você precisa fazer login para salvar contratos na nuvem.");
+            return;
+        }
+
+        if (!clientName) {
+            alert("Por favor, preencha o Nome do Cliente antes de salvar.");
+            return;
+        }
+
+        const numLandings = landings.length;
+        const totalStepsNum = parseFloat(totalSteps) || 0;
+        const structureStepsNum = totalStepsNum - numLandings;
+        const fullAddress = `${street}, ${number} - ${neighborhood}, ${city} - ${state}, ${zip}`;
+        const finalHybridSignal = parseFloat(hybridSignalValue) || (discountedBase * (signalPercent/100));
+
+        const contractData = {
+            userData: { 
+                name: clientName, cpf: clientDoc, rg: clientRG, address: fullAddress, 
+                zip, street, number, neighborhood, city, state 
+            },
+            selectedOption: {
+                optionNumber: 1,
+                steps: totalStepsNum,
+                structureSteps: structureStepsNum,
+                stepHeight: parseFloat(stepHeight) || 0,
+                totalLength: parseFloat(totalLength) || 0,
+                totalPrice: totalStructure,
+                stairWidth: parseFloat(width) || 0,
+                treadDepth: parseFloat(treadDepth) || 0,
+                landings: landings
+            },
+            finalStairPrice: parseFloat(stairPrice) || 0,
+            finalLandingsPrice: parseFloat(landingsPrice) || 0,
+            inputData: {
+                totalHeight: parseFloat(totalHeight) || 0,
+                desiredSteps: totalStepsNum,
+                stairWidth: parseFloat(width) || 0,
+                treadDepth: parseFloat(treadDepth) || 0,
+                dampers: parseFloat(dampers) || 4,
+                optionalItems: optionalItems, 
+                landings: landings,
+                treadMaterial: treadMaterial,
+                stairDirection: stairDirection,
+                wallFixation: wallFixation
+            },
+            freightCost: parseFloat(freightPrice) || 0,
+            tollCost: 0,
+            installationCost: parseFloat(installationPrice) || 0,
+            extrasCost: parseFloat(extrasPrice) || 0,
+            deadlineDate, 
+            paymentMethod,
+            paymentDetails: {
+                discountPercent, 
+                discountValue: discountMoney,
+                signalPercent, 
+                installments, 
+                installmentValue: finalInstallmentVal,
+                hybridSignalAmount: finalHybridSignal,
+                pixTiming: pixTiming,
+                remainderText: remainderPaymentMode
+            },
+            additionalClauses: customClauses,
+            finishText,
+            stepCapacityText,
+            stairCapacityText,
+            warrantyText,
+            deliveryText
+        };
+
+        const newSavedContract = {
+            id: Date.now().toString(),
+            createdAt: new Date().toISOString(),
+            clientName: clientName,
+            totalValue: paymentMethod === 'pix' ? pixTotal : totalGeralFinal,
+            status: 'falta_assinar' as const,
+            contractData: JSON.stringify(contractData),
+            userId: user.uid
+        };
+
+        try {
+            await setDoc(doc(db, 'contracts', newSavedContract.id), newSavedContract);
+            
+            if (addToQueue) {
+                let downPayment = 0;
+                let balanceDue = 0;
+
+                if (paymentMethod === 'pix') {
+                    downPayment = pixTotal * (signalPercent / 100);
+                    balanceDue = pixTotal - downPayment;
+                } else if (paymentMethod === 'card') {
+                    downPayment = 0;
+                    balanceDue = totalGeralFinal;
+                } else if (paymentMethod === 'hybrid') {
+                    if (pixTiming === 'delivery') {
+                        downPayment = discountedBase - finalHybridSignal; // Cartão é o sinal
+                        balanceDue = finalHybridSignal; // PIX é o restante
+                    } else {
+                        downPayment = finalHybridSignal; // PIX é o sinal
+                        balanceDue = discountedBase - finalHybridSignal; // Cartão é o restante
+                    }
+                }
+
+                const newOrder: any = {
+                    id: Date.now().toString() + '_queue',
+                    contractId: newSavedContract.id,
+                    createdAt: new Date().toISOString(),
+                    clientName: clientName,
+                    deliveryDate: deadlineDate,
+                    downPayment: downPayment,
+                    balanceDue: balanceDue,
+                    status: 'in_queue' as const,
+                    downPaymentStatus: 'pending' as const,
+                    balanceStatus: 'pending' as const,
+                    paymentMethod: paymentMethod,
+                    pixTiming: pixTiming // Salva o pixTiming para saber quem é parcelado
+                };
+
+                if (paymentMethod === 'card' || paymentMethod === 'hybrid') {
+                    newOrder.installments = installments;
+                    newOrder.paidInstallments = 0;
+                }
+
+                await setDoc(doc(db, 'production_queue', newOrder.id), newOrder);
+            }
+
+            alert("Contrato salvo com sucesso na sua Timeline na Nuvem!");
+        } catch (error) {
+            console.error("Erro ao salvar contrato:", error);
+            alert("Erro ao salvar o contrato na nuvem.");
+        }
     };
 
     const handleGeneratePDF = () => {
@@ -1056,9 +1195,27 @@ const Contract = () => {
                             <div className="mt-2 text-xs text-gray-400">Inclui: Estrutura + Frete + Instalação + Extras {enableInterest ? '+ Juros' : ''}</div>
                         </div>
 
-                        <button onClick={handleGeneratePDF} className="w-full bg-highlight text-white font-black py-4 rounded-lg shadow-lg hover:bg-yellow-600 transition-all text-xl mt-4 uppercase tracking-wide flex justify-center items-center gap-2">
-                             <span>📄</span> Gerar e Baixar Contrato
-                        </button>
+                        <div className="flex items-center mt-4 mb-2">
+                            <input 
+                                type="checkbox" 
+                                id="addToQueue" 
+                                checked={addToQueue} 
+                                onChange={(e) => setAddToQueue(e.target.checked)} 
+                                className="mr-2 w-4 h-4 text-highlight focus:ring-highlight rounded border-gray-300" 
+                            />
+                            <label htmlFor="addToQueue" className="text-sm font-bold text-gray-700 dark:text-gray-300">
+                                Adicionar automaticamente à Fila de Produção
+                            </label>
+                        </div>
+
+                        <div className="flex gap-4 mt-2">
+                            <button onClick={handleSaveContract} className="flex-1 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white font-black py-4 rounded-lg shadow-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2">
+                                <span>💾</span> Salvar na Timeline
+                            </button>
+                            <button onClick={handleGeneratePDF} className="flex-1 bg-highlight text-white font-black py-4 rounded-lg shadow-lg hover:bg-yellow-600 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2">
+                                 <span>📄</span> Gerar PDF
+                            </button>
+                        </div>
                     </div>
 
                     {/* COMPONENTE NOVO: ORÇAMENTO TÉCNICO (FÁBRICA) */}
@@ -1073,6 +1230,8 @@ const Contract = () => {
                         stairDirection={stairDirection}
                         wallFixation={wallFixation}
                         treadMaterial={treadMaterial}
+                        address={`${street}, ${number} - ${neighborhood}, ${city} - ${state}, ${zip}`}
+                        zip={zip}
                     />
 
                 </div>

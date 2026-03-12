@@ -18,6 +18,8 @@ interface ProposalOptionsProps {
   setIsInstallationIncluded: (included: boolean) => void;
   installationCost: number;
   setInstallationCost: (cost: number) => void;
+  freightMode: 'auto' | 'manual' | 'fixed' | 'transportadora';
+  setFreightMode: (mode: 'auto' | 'manual' | 'fixed' | 'transportadora') => void;
 }
 
 const BRAZIL_STATES = [
@@ -361,7 +363,9 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
     isInstallationIncluded,
     setIsInstallationIncluded,
     installationCost,
-    setInstallationCost
+    setInstallationCost,
+    freightMode,
+    setFreightMode
 }) => {
     
   // --- INICIALIZAÇÃO COM DADOS DA CALCULADORA ANTERIOR ---
@@ -375,7 +379,6 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   
-  const [freightMode, setFreightMode] = useState<'auto' | 'manual' | 'fixed'>('auto');
   const [manualDistance, setManualDistance] = useState('');
   const [manualTollCost, setManualTollCost] = useState('');
   const [fixedFreightValue, setFixedFreightValue] = useState('');
@@ -518,7 +521,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
         return;
     }
 
-    if (freightMode === 'fixed') {
+    if (freightMode === 'fixed' || freightMode === 'transportadora') {
         const fixedVal = parseFloat(fixedFreightValue);
         setFreightCost(isNaN(fixedVal) ? 0 : fixedVal);
         setTollCost(0);
@@ -656,7 +659,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
           if (currentExportIndex < exportQueue.length - 1) {
               setCurrentExportIndex(prev => prev + 1);
           } else {
-              finishExport(); // FIX: removed unused args
+              finishExport();
           }
 
       } catch (e) {
@@ -665,7 +668,6 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
       }
   };
 
-  // FIX: Removed unused parameters lastW and lastH
   const finishExport = () => {
       setTimeout(() => {
         setCapturedImages(finalImages => {
@@ -1039,7 +1041,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
         
         {isFreightIncluded ? (
             <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
-                <div className="grid grid-cols-3 bg-gray-200 dark:bg-gray-600 rounded-lg p-1 mb-4 gap-1">
+                <div className="grid grid-cols-2 sm:grid-cols-4 bg-gray-200 dark:bg-gray-600 rounded-lg p-1 mb-4 gap-1">
                     <button 
                         onClick={() => setFreightMode('auto')}
                         className={`py-2 text-sm rounded-md font-bold transition ${freightMode === 'auto' ? 'bg-white dark:bg-gray-800 text-highlight shadow-sm' : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white'}`}
@@ -1057,6 +1059,12 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                         className={`py-2 text-sm rounded-md font-bold transition ${freightMode === 'fixed' ? 'bg-white dark:bg-gray-800 text-highlight shadow-sm' : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white'}`}
                     >
                         Valor Fixo
+                    </button>
+                    <button 
+                        onClick={() => setFreightMode('transportadora')}
+                        className={`py-2 text-sm rounded-md font-bold transition ${freightMode === 'transportadora' ? 'bg-white dark:bg-gray-800 text-highlight shadow-sm' : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white'}`}
+                    >
+                        Transportadora
                     </button>
                 </div>
 
@@ -1106,7 +1114,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                 </div>
                 )}
 
-                {freightMode !== 'fixed' && (
+                {(freightMode !== 'fixed' && freightMode !== 'transportadora') && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
                         <div>
                             <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">Preço Gasolina</label>
@@ -1121,15 +1129,15 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
 
                 {/* VISUALIZAÇÃO DO CÁLCULO - MOSTRAR SEMPRE SE TIVER DISTÂNCIA OU SE ESTIVER EM MANUAL */}
                 <div className={`mt-4 p-4 bg-blue-50 dark:bg-blue-900/30 rounded-md border border-blue-200 dark:border-blue-800 text-sm transition-all ${
-                    (freightMode === 'fixed' || distance > 0 || (freightMode === 'manual' && parseFloat(manualDistance) > 0)) ? 'opacity-100 block' : 'opacity-0 hidden'
+                    (freightMode === 'fixed' || freightMode === 'transportadora' || distance > 0 || (freightMode === 'manual' && parseFloat(manualDistance) > 0)) ? 'opacity-100 block' : 'opacity-0 hidden'
                 }`}>
                         <h4 className="font-bold text-blue-900 dark:text-blue-300 mb-2 border-b border-blue-200 dark:border-blue-800 pb-1">
-                            {freightMode === 'fixed' ? 'Resumo do Frete:' : (freightMode === 'auto' ? 'Detalhamento (Rota Segura/Longa):' : 'Detalhamento do Frete:')}
+                            {freightMode === 'fixed' || freightMode === 'transportadora' ? 'Resumo do Frete:' : (freightMode === 'auto' ? 'Detalhamento (Rota Segura/Longa):' : 'Detalhamento do Frete:')}
                         </h4>
                         
-                        {freightMode === 'fixed' ? (
+                        {freightMode === 'fixed' || freightMode === 'transportadora' ? (
                              <ul className="space-y-1 text-blue-800 dark:text-blue-200">
-                                <li>📦 Tipo: <strong>Valor Definido Manualmente</strong></li>
+                                <li>📦 Tipo: <strong>{freightMode === 'transportadora' ? 'Transportadora' : 'Valor Definido Manualmente'}</strong></li>
                                 <li className="font-bold border-t border-blue-300 dark:border-blue-700 pt-2 mt-2 text-base text-blue-900 dark:text-blue-100">🚚 Total a Cobrar: {formatCurrencyBRL(freightCost)}</li>
                              </ul>
                         ) : (

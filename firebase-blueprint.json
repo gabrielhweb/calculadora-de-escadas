@@ -1,0 +1,50 @@
+{
+  "entities": {
+    "SavedContract": {
+      "title": "SavedContract",
+      "description": "A contract saved by a user",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the contract"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp"
+        },
+        "clientName": {
+          "type": "string",
+          "description": "Name of the client"
+        },
+        "totalValue": {
+          "type": "number",
+          "description": "Total value of the contract"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["falta_assinar", "producao", "entregue"],
+          "description": "Current status of the contract"
+        },
+        "contractData": {
+          "type": "string",
+          "description": "JSON stringified contract data payload"
+        },
+        "userId": {
+          "type": "string",
+          "description": "User ID of the contract owner"
+        }
+      },
+      "required": ["id", "createdAt", "clientName", "totalValue", "status", "contractData", "userId"]
+    }
+  },
+  "firestore": {
+    "/contracts/{contractId}": {
+      "schema": {
+        "$ref": "#/entities/SavedContract"
+      },
+      "description": "Contracts saved by users"
+    }
+  }
+}

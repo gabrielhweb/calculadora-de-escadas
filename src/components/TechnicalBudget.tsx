@@ -15,6 +15,8 @@ interface TechnicalBudgetProps {
   stairDirection?: 'standard' | 'mirrored';
   wallFixation?: 'left' | 'right';
   treadMaterial?: 'metal' | 'wood';
+  address?: string;
+  zip?: string;
 }
 
 export const TechnicalBudget: React.FC<TechnicalBudgetProps> = ({
@@ -27,7 +29,9 @@ export const TechnicalBudget: React.FC<TechnicalBudgetProps> = ({
   landings,
   stairDirection,
   wallFixation,
-  treadMaterial
+  treadMaterial,
+  address,
+  zip
 }) => {
   // Define o e-mail padrão que aparecerá no campo
   const [email, setEmail] = useState('zilinskidistribuidora@gmail.com');
@@ -95,6 +99,8 @@ export const TechnicalBudget: React.FC<TechnicalBudgetProps> = ({
       
       let report = `LISTA DE MATÉRIA PRIMA (ESTIMATIVA)\n`;
       report += `Cliente: ${clientName}\n`;
+      if (address) report += `Endereço: ${address}\n`;
+      if (zip) report += `CEP: ${zip}\n`;
       report += `Data: ${new Date().toLocaleDateString()}\n\n`;
       
       report += `ESTRUTURA PRINCIPAL:\n`;

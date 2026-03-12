@@ -16,6 +16,7 @@ function Calculator() {
   const [tollCost, setTollCost] = useState(0);
   const [isInstallationIncluded, setIsInstallationIncluded] = useState(true);
   const [installationCost, setInstallationCost] = useState(290);
+  const [freightMode, setFreightMode] = useState<'auto' | 'manual' | 'fixed' | 'transportadora'>('auto');
   const [isSaving, setIsSaving] = useState(false);
 
   const location = useLocation();
@@ -30,6 +31,9 @@ function Calculator() {
         setTollCost(saved.tollCost);
         setInstallationCost(saved.installationCost);
         setIsInstallationIncluded(saved.isInstallationIncluded);
+        if (saved.inputData.logistics?.freightMode) {
+            setFreightMode(saved.inputData.logistics.freightMode);
+        }
         
         // Recalcula opções
         handleCalculate(saved.inputData, true); // true = silent (sem scroll se quisesse)
@@ -168,7 +172,21 @@ function Calculator() {
     setIsSaving(true);
     await saveQuote({
         clientName,
-        inputData,
+        inputData: {
+            ...inputData,
+            logistics: {
+                ...(inputData.logistics || {
+                    originCep: '',
+                    destinationCep: '',
+                    distance: 0,
+                    tolls: 0,
+                    fuelPrice: 0,
+                    consumption: 0,
+                    totalFreightCost: freightCost
+                }),
+                freightMode
+            }
+        },
         userData: userData || undefined,
         freightCost,
         tollCost,
@@ -213,6 +231,7 @@ function Calculator() {
             <ProposalDocument
               options={options} userData={userData} inputData={inputData}
               freightCost={freightCost} tollCost={tollCost} installationCost={finalInstallationCost}
+              isTransportadora={freightMode === 'transportadora'}
               onBack={() => setUserData(null)}
             />
           ) : options.length > 0 && inputData ? (
@@ -222,6 +241,7 @@ function Calculator() {
               tollCost={tollCost} setTollCost={setTollCost}
               isInstallationIncluded={isInstallationIncluded} setIsInstallationIncluded={setIsInstallationIncluded}
               installationCost={installationCost} setInstallationCost={setInstallationCost}
+              freightMode={freightMode} setFreightMode={setFreightMode}
             />
           ) : (
             <div className="bg-white dark:bg-gray-800 p-6 rounded-lg text-center shadow-sm border border-gray-100 dark:border-gray-700">

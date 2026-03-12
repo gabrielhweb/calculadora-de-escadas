@@ -1,9 +1,11 @@
 
 import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
+import { useAuth } from './AuthProvider';
 
 const Layout: React.FC = () => {
   const location = useLocation();
+  const { user, login, logout } = useAuth();
   // Agora a calculadora é a raiz '/', então verificamos se é exatamente '/'
   const isActive = (path: string) => location.pathname === path;
 
@@ -84,14 +86,42 @@ const Layout: React.FC = () => {
                   to="/contrato" 
                   className={`${isActive('/contrato') ? 'text-highlight font-bold border-b-4 border-highlight' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'} px-2 pt-1 text-sm uppercase tracking-wide transition-all duration-200 h-full flex items-center font-bold`}
                 >
-                  Contratos
+                  Gerar Contrato
+                </Link>
+                <Link 
+                  to="/contratos" 
+                  className={`${isActive('/contratos') ? 'text-highlight font-bold border-b-4 border-highlight' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'} px-2 pt-1 text-sm uppercase tracking-wide transition-all duration-200 h-full flex items-center font-bold`}
+                >
+                  Meus Contratos
+                </Link>
+                <Link 
+                  to="/fila" 
+                  className={`${isActive('/fila') ? 'text-highlight font-bold border-b-4 border-highlight' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'} px-2 pt-1 text-sm uppercase tracking-wide transition-all duration-200 h-full flex items-center font-bold`}
+                >
+                  Fila de Produção
                 </Link>
                 <Link 
                   to="/salvos" 
                   className={`${isActive('/salvos') ? 'text-highlight font-bold border-b-4 border-highlight' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'} px-2 pt-1 text-sm uppercase tracking-wide transition-all duration-200 h-full flex items-center font-bold`}
                 >
-                  Salvos
+                  Orçamentos Salvos
                 </Link>
+              </div>
+
+              {/* User Login/Logout */}
+              <div className="flex items-center gap-3 ml-4">
+                {user ? (
+                  <div className="flex items-center gap-2">
+                    <img src={user.photoURL || ''} alt="User" className="w-8 h-8 rounded-full border border-gray-300" />
+                    <button onClick={logout} className="text-xs font-bold text-gray-500 hover:text-red-500 transition-colors">
+                      Sair
+                    </button>
+                  </div>
+                ) : (
+                  <button onClick={login} className="bg-highlight text-white text-xs font-bold px-3 py-1.5 rounded hover:bg-yellow-600 transition-colors">
+                    Fazer Login
+                  </button>
+                )}
               </div>
 
               {/* Theme Toggle Button */}

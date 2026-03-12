@@ -27,6 +27,7 @@ export interface LogisticsInfo {
   fuelPrice: number;
   consumption: number;
   totalFreightCost: number;
+  freightMode?: 'auto' | 'manual' | 'fixed' | 'transportadora';
 }
 
 export interface ReferenceDoor {
@@ -96,6 +97,35 @@ export interface UserData {
 }
 
 export type QuoteStatus = 'draft' | 'negotiation' | 'production' | 'installed' | 'archived';
+
+export type ContractStatus = 'falta_assinar' | 'producao' | 'entregue';
+
+export interface SavedContract {
+  id: string;
+  createdAt: string;
+  clientName: string;
+  totalValue: number;
+  status: ContractStatus;
+  contractData: any; // O payload completo do contrato para poder gerar o PDF novamente se precisar
+  userId?: string; // ID do usuário do Firebase
+}
+
+export interface ProductionOrder {
+  id: string;
+  contractId?: string;
+  createdAt: string;
+  clientName: string;
+  deliveryDate: string;
+  downPayment: number;
+  balanceDue: number;
+  status: 'in_queue' | 'completed';
+  downPaymentStatus?: 'pending' | 'paid';
+  balanceStatus?: 'pending' | 'paid';
+  paymentMethod?: 'pix' | 'card' | 'hybrid';
+  pixTiming?: 'entry' | 'delivery';
+  installments?: number;
+  paidInstallments?: number;
+}
 
 export interface ProjectFile {
   id: string;

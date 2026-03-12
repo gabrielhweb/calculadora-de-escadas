@@ -319,7 +319,8 @@ export const generateContractPDF = (data: ContractData) => {
       const totalNoCartao = installmentValue * installments; 
       
       // Determina o texto baseado no momento do pagamento (Timing)
-      const timingText = data.paymentDetails.pixTiming === 'delivery' 
+      const isPixOnDelivery = data.paymentDetails.pixTiming === 'delivery';
+      const timingText = isPixOnDelivery
           ? "via pix/dinheiro no ato da entrega/retirada" 
           : "via pix de entrada";
 
@@ -327,8 +328,10 @@ export const generateContractPDF = (data: ContractData) => {
       const remainderMethodName = data.paymentDetails.remainderText || "Link de Pagamento (Cartão de Crédito)";
       
       let deliveryText = "";
-      if (remainderMethodName.toLowerCase().includes('link')) {
+      if (!isPixOnDelivery) {
           deliveryText = data.installationCost > 0 ? " no dia da entrega e instalação" : " no dia da entrega";
+      } else {
+          deliveryText = " no ato do fechamento (sinal)";
       }
 
       if (discountVal > 0) {
@@ -336,13 +339,23 @@ export const generateContractPDF = (data: ContractData) => {
       } else {
           addText(`Total R$ ${formatCurrencyBRL(totalGeral)}`, 11, false, 'left');
       }
-      addText(`Sendo pago ${formatCurrencyBRL(valorPixFinal)} ${timingText}.`, 11, false, 'left');
-      
-      // Se tiver juros, menciona. Se não, simplifica.
-      if (totalNoCartao > restanteBase + 1) { // margem de erro pequena
-           addText(`E o restante de ${formatCurrencyBRL(restanteBase)} mais juros totalizando ${formatCurrencyBRL(totalNoCartao)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}`, 11, false, 'justify');
+
+      if (isPixOnDelivery) {
+          // Cartão é o sinal
+          if (totalNoCartao > restanteBase + 1) {
+              addText(`Sendo pago ${formatCurrencyBRL(restanteBase)} mais juros totalizando ${formatCurrencyBRL(totalNoCartao)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}.`, 11, false, 'justify');
+          } else {
+              addText(`Sendo pago ${formatCurrencyBRL(restanteBase)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}.`, 11, false, 'justify');
+          }
+          addText(`E o restante de ${formatCurrencyBRL(valorPixFinal)} ${timingText}.`, 11, false, 'left');
       } else {
-           addText(`E o restante de ${formatCurrencyBRL(restanteBase)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}`, 11, false, 'justify');
+          // PIX é o sinal
+          addText(`Sendo pago ${formatCurrencyBRL(valorPixFinal)} ${timingText}.`, 11, false, 'left');
+          if (totalNoCartao > restanteBase + 1) {
+              addText(`E o restante de ${formatCurrencyBRL(restanteBase)} mais juros totalizando ${formatCurrencyBRL(totalNoCartao)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}`, 11, false, 'justify');
+          } else {
+              addText(`E o restante de ${formatCurrencyBRL(restanteBase)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}`, 11, false, 'justify');
+          }
       }
 
   } else {
