@@ -33,8 +33,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async () => {
     try {
       await signInWithPopup(auth, googleProvider);
-    } catch (error) {
-      console.error('Erro ao fazer login:', error);
+    } catch (error: any) {
+      if (error.code === 'auth/cancelled-popup-request' || error.code === 'auth/popup-closed-by-user') {
+        // O usuário apenas fechou o popup, não é um erro real.
+        console.log('Login cancelado pelo usuário.');
+      } else {
+        console.error('Erro ao fazer login:', error);
+        alert(`Ocorreu um erro ao tentar fazer login: ${error.message || error.code}. Tente novamente.`);
+      }
     }
   };
 

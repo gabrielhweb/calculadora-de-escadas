@@ -284,14 +284,23 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
         currentY += 6; 
 
         // Aviso de instalação abaixo do total (em vermelho)
-        if (installationCost > 0) {
+        if (installationCost > 0 || isTransportadora) {
             doc.setFontSize(9);
             doc.setFont('helvetica', 'italic');
             doc.setTextColor(220, 38, 38); // Vermelho
-            doc.text('Atenção: O valor da instalação considera um local de fácil acesso.', pageMargin, currentY);
-            currentY += 4;
-            doc.text('Caso seja necessário içar a escada ou levá-la desmontada, o valor será diferente.', pageMargin, currentY);
-            currentY += 6;
+            
+            if (installationCost > 0) {
+                doc.text('Atenção: O valor da instalação considera um local de fácil acesso.', pageMargin, currentY);
+                currentY += 4;
+                doc.text('Caso seja necessário içar a escada ou levá-la desmontada, o valor será diferente.', pageMargin, currentY);
+                currentY += 6;
+            }
+            
+            if (isTransportadora) {
+                doc.text('Atenção: O valor do frete via transportadora pode sofrer variações.', pageMargin, currentY);
+                currentY += 6;
+            }
+            
             doc.setTextColor(0, 0, 0); // Volta para preto
         } else {
             currentY += 4;
@@ -371,11 +380,6 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
     doc.setFontSize(9);
     doc.setFont('helvetica', 'italic');
     doc.setTextColor(100, 100, 100);
-
-    if (isTransportadora) {
-        doc.text('O valor do frete via transportadora pode sofrer variações.', pageMargin, currentY);
-        currentY += 5;
-    }
     
     currentY += 3;
     doc.setFontSize(11);
