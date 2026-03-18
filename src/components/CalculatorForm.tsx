@@ -106,7 +106,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
 
   // Estados de Visualização Avançada
   const [stairDirection, setStairDirection] = useState<'standard' | 'mirrored'>('standard');
-  const [wallFixation, setWallFixation] = useState<'left' | 'right'>('left'); // Novo campo
+  const [wallFixation, setWallFixation] = useState<'left' | 'right' | 'frontal'>('left'); // Novo campo
   const [stairGeometry, setStairGeometry] = useState<string>(''); // Novo campo de geometria
   const [doorActive, setDoorActive] = useState(false);
   const [doorWidth, setDoorWidth] = useState('80');
@@ -194,6 +194,9 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
   const handleToggleWheels = (e: React.ChangeEvent<HTMLInputElement>) => {
       const isChecked = e.target.checked;
       setHasWheels(isChecked);
+      if (isChecked) {
+          setWallFixation('frontal');
+      }
       // O useEffect cuidará de zerar os amortecedores
   };
 
@@ -413,6 +416,13 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                              className={`flex-1 py-2 text-xs font-bold rounded border ${wallFixation === 'right' ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-200'}`}
                          >
                              Parede à Direita
+                         </button>
+                         <button 
+                             type="button"
+                             onClick={() => setWallFixation('frontal')}
+                             className={`flex-1 py-2 text-xs font-bold rounded border ${wallFixation === 'frontal' ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-200'}`}
+                         >
+                             Fixação Frontal
                          </button>
                      </div>
 

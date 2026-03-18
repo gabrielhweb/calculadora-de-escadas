@@ -13,7 +13,7 @@ interface TechnicalBudgetProps {
   totalLength: number; // NOVO
   landings: LandingInfo[];
   stairDirection?: 'standard' | 'mirrored';
-  wallFixation?: 'left' | 'right';
+  wallFixation?: 'left' | 'right' | 'frontal';
   treadMaterial?: 'metal' | 'wood';
   address?: string;
   zip?: string;
@@ -56,7 +56,11 @@ export const TechnicalBudget: React.FC<TechnicalBudgetProps> = ({
     const numLandings = landings.length;
     const structureSteps = totalSteps - numLandings;
 
-    const sideText = wallFixation === 'right' ? 'direito' : 'esquerdo';
+    let sideText = '';
+    if (wallFixation === 'right') sideText = 'direito';
+    else if (wallFixation === 'left') sideText = 'esquerdo';
+    else sideText = 'frontal';
+
     const directionText = stairDirection === 'mirrored' ? 'esquerda' : 'direita';
 
     // --- MONTAGEM DO TEXTO ---
@@ -70,7 +74,11 @@ export const TechnicalBudget: React.FC<TechnicalBudgetProps> = ({
     }
 
     report += `${structureSteps} degraus de ${stepTreadStr}mm x ${widthMM}mm\n`;
-    report += `Olhando de baixo para cima furos do lado ${sideText}\n`;
+    if (sideText === 'frontal') {
+        report += `Olhando de baixo para cima furos frontais\n`;
+    } else {
+        report += `Olhando de baixo para cima furos do lado ${sideText}\n`;
+    }
     report += `Sentido da subida para a ${directionText}\n`;
 
     if (numLandings > 0) {

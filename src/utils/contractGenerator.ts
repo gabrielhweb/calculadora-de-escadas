@@ -59,7 +59,7 @@ export const generateContractPDF = (data: ContractData) => {
     try { 
         const cleanBase64 = LOGO_BASE64.includes('base64,') ? LOGO_BASE64.split('base64,')[1] : LOGO_BASE64;
         doc.addImage(cleanBase64, 'JPEG', (pageWidth / 2) - 15, currentY, 30, 30);
-        currentY += 50; // Aumentado de 35 para 50 para dar mais espaço (2 a 3 linhas) entre a logo e o texto
+        currentY += 50; // Aumentado para dar 2 a 3 linhas de espaço entre a logo e o texto
     } catch (e) {
         console.error("Erro ao carregar imagem no contrato:", e);
         doc.setFontSize(18);
@@ -149,9 +149,13 @@ export const generateContractPDF = (data: ContractData) => {
   } else if (data.inputData.stairGeometry && data.inputData.stairGeometry.includes('Fixação')) {
       fixationText = data.inputData.stairGeometry; 
   } else {
-      fixationText = data.inputData.wallFixation === 'left' 
-          ? "Fixação na Parede ESQUERDA" 
-          : "Fixação na Parede DIREITA";
+      if (data.inputData.wallFixation === 'frontal') {
+          fixationText = "Fixação FRONTAL";
+      } else {
+          fixationText = data.inputData.wallFixation === 'left' 
+              ? "Fixação na Parede ESQUERDA" 
+              : "Fixação na Parede DIREITA";
+      }
   }
 
   // Geometria (L / U)

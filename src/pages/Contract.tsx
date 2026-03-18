@@ -91,6 +91,8 @@ const Contract = () => {
 
     const [personType, setPersonType] = useState<'pf' | 'pj'>('pf');
 
+    const [originalInputData, setOriginalInputData] = useState<any>(null);
+
     // Dados Técnicos
     const [totalHeight, setTotalHeight] = useState('300');
     const [width, setWidth] = useState('70');
@@ -102,7 +104,7 @@ const Contract = () => {
     const [landings, setLandings] = useState<LandingInfo[]>([]);
     const [optionalItems, setOptionalItems] = useState<OptionalItem[]>([]);
     const [stairDirection, setStairDirection] = useState<'standard' | 'mirrored'>('standard');
-    const [wallFixation, setWallFixation] = useState<'left' | 'right'>('left');
+    const [wallFixation, setWallFixation] = useState<'left' | 'right' | 'frontal'>('left');
     const [treadMaterial, setTreadMaterial] = useState<'metal' | 'wood' | undefined>(undefined);
     
     // Inputs para adicionar novo item
@@ -220,6 +222,7 @@ const Contract = () => {
             }
 
             if (selectedOption && inputData) {
+                setOriginalInputData(inputData);
                 setTotalHeight(inputData.totalHeight.toString());
                 setWidth(selectedOption.stairWidth.toString());
                 setTotalSteps(selectedOption.steps.toString());
@@ -512,6 +515,7 @@ const Contract = () => {
             finalStairPrice: parseFloat(stairPrice) || 0,
             finalLandingsPrice: parseFloat(landingsPrice) || 0,
             inputData: {
+                ...(originalInputData || {}),
                 totalHeight: parseFloat(totalHeight) || 0,
                 desiredSteps: totalStepsNum,
                 stairWidth: parseFloat(width) || 0,
@@ -645,6 +649,7 @@ const Contract = () => {
             finalLandingsPrice: parseFloat(landingsPrice) || 0,
             
             inputData: {
+                ...(originalInputData || {}),
                 totalHeight: parseFloat(totalHeight) || 0,
                 desiredSteps: totalStepsNum,
                 stairWidth: parseFloat(width) || 0,
@@ -903,6 +908,12 @@ const Contract = () => {
                                         className={`flex-1 py-2 px-3 rounded font-bold text-sm transition ${wallFixation === 'right' ? 'bg-emerald-600 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-100'}`}
                                     >
                                         Parede à Direita
+                                    </button>
+                                    <button
+                                        onClick={() => setWallFixation('frontal')}
+                                        className={`flex-1 py-2 px-3 rounded font-bold text-sm transition ${wallFixation === 'frontal' ? 'bg-emerald-600 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-100'}`}
+                                    >
+                                        Fixação Frontal
                                     </button>
                                 </div>
                             </div>
