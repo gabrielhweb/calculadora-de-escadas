@@ -2,6 +2,13 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User } from 'firebase/auth';
 import { auth, onAuthStateChanged, signInWithPopup, googleProvider, signOut } from '../firebase';
 
+// Lista de e-mails autorizados
+export const AUTHORIZED_EMAILS = [
+  'zilinskidistribuidora@gmail.com',
+  'somarcilioz@gmail.com',
+  'gaguisilva15@gmail.com'
+];
+
 interface AuthContextType {
   user: User | null;
   loading: boolean;
@@ -23,8 +30,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      // Se tiver usuário logado, vamos verificar se o e-mail está na lista
+      if (currentUser && currentUser.email) {
+        if (!AUTHORIZED_EMAILS.includes(currentUser.email)) {
+          // Se não estiver na lista, desloga imediatamente
+          console.warn("Acesso bloqueado para o e-mail:", currentUser.email);
+          await signOut(auth);
+          setUser(null);
+        } else {
+          // E-mail autorizado
+          setUser(currentUser);
+        }
+      } else {
+        setUser(null);
+      }
       setLoading(false);
     });
     return () => unsubscribe();
@@ -32,7 +52,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async () => {
     try {
-      await signInWithPopup(auth, googleProvider);
+      const result = await signInWithPopup(auth, googleProvider);
+      const email = result.user.email;
+      
+      // Verifica na hora do login também para dar o alerta
+      if (email && !AUTHORIZED_EMAILS.includes(email)) {
+        alert("Acesso negado: Este e-mail não tem permissão para acessar o sistema.");
+        await signOut(auth);
+      }
     } catch (error: any) {
       if (error.code === 'auth/cancelled-popup-request' || error.code === 'auth/popup-closed-by-user') {
         // O usuário apenas fechou o popup, não é um erro real.
