@@ -49,6 +49,7 @@ export interface CalculatorInput {
   handrailSide?: 'left' | 'right' | 'both'; // Lado do corrimão (apenas se hasWheels=true)
   customStepPrice?: number; // Optional manual price per step
   customTotalLength?: number; // Optional manual total length
+  customTotalLengthOption?: 'all' | '1' | '2' | '3'; // Which option to apply the length limiter to
   optionalItems: OptionalItem[]; // Lista de itens extras
   landings: LandingInfo[]; // Agora é uma lista de patamares
   

@@ -230,16 +230,16 @@ const Contract = () => {
                         setLandings([]);
                     }
                     
-                    setStairPrice(data.finalStairPrice?.toFixed(2) || '0');
-                    setLandingsPrice(data.finalLandingsPrice?.toFixed(2) || '0');
+                    setStairPrice(data.finalStairPrice ? Number(data.finalStairPrice).toFixed(2) : '0');
+                    setLandingsPrice(data.finalLandingsPrice ? Number(data.finalLandingsPrice).toFixed(2) : '0');
                     
                     if (inputData.optionalItems && inputData.optionalItems.length > 0) {
                         setOptionalItems(inputData.optionalItems);
                     }
 
-                    setFreightPrice(data.freightCost?.toFixed(2) || '0');
-                    setInstallationPrice(data.installationCost?.toFixed(2) || '0');
-                    setExtrasPrice(data.extrasCost?.toFixed(2) || '0');
+                    setFreightPrice(data.freightCost ? Number(data.freightCost).toFixed(2) : '0');
+                    setInstallationPrice(data.installationCost ? Number(data.installationCost).toFixed(2) : '0');
+                    setExtrasPrice(data.extrasCost ? Number(data.extrasCost).toFixed(2) : '0');
                 }
 
                 if (data.deadlineDate) setDeadlineDate(data.deadlineDate);
@@ -247,10 +247,10 @@ const Contract = () => {
 
                 if (paymentDetails) {
                     setDiscountPercent(paymentDetails.discountPercent || 0);
-                    setDiscountValue(paymentDetails.discountValue ? paymentDetails.discountValue.toFixed(2) : '');
+                    setDiscountValue(paymentDetails.discountValue ? Number(paymentDetails.discountValue).toFixed(2) : '');
                     setSignalPercent(paymentDetails.signalPercent || 50);
                     setInstallments(paymentDetails.installments || 6);
-                    setHybridSignalValue(paymentDetails.hybridSignalAmount ? paymentDetails.hybridSignalAmount.toFixed(2) : '');
+                    setHybridSignalValue(paymentDetails.hybridSignalAmount ? Number(paymentDetails.hybridSignalAmount).toFixed(2) : '');
                     setPixTiming(paymentDetails.pixTiming || 'entry');
                     setRemainderPaymentMode(paymentDetails.remainderText || 'Link de Pagamento (Cartão de Crédito)');
                 }

@@ -100,8 +100,12 @@ function Calculator() {
       let totalLength = 0;
       let finalTreadDepth = effectiveTread;
       
-      if (data.customTotalLength && data.customTotalLength > 0) {
-          totalLength = data.customTotalLength;
+      const optionNumber = index + 1;
+      const applyLimiter = data.customTotalLength && data.customTotalLength > 0 && 
+                           (!data.customTotalLengthOption || data.customTotalLengthOption === 'all' || data.customTotalLengthOption === optionNumber.toString());
+
+      if (applyLimiter) {
+          totalLength = data.customTotalLength!;
           // finalTreadDepth = (totalLength / totalUnits); <-- Lógica antiga simples
           
           const landingsLen = adjustedLandings.reduce((acc, l) => acc + l.length, 0);

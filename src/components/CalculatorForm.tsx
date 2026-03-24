@@ -97,6 +97,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
   const [openingUnit, setOpeningUnit] = useState<'cm' | 'm'>('cm');
   const [customStepPrice, setCustomStepPrice] = useState<string>('440');
   const [customTotalLength, setCustomTotalLength] = useState<string>('');
+  const [customTotalLengthOption, setCustomTotalLengthOption] = useState<'all' | '1' | '2' | '3'>('all');
   const [lengthUnit, setLengthUnit] = useState<'cm' | 'm'>('cm');
   const [landings, setLandings] = useState<LandingInfo[]>([]);
   const [optionalItems, setOptionalItems] = useState<OptionalItem[]>([]);
@@ -236,6 +237,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
       handrailSide: hasWheels ? handrailSide : undefined, 
       customStepPrice: customStepPrice ? parseFloat(customStepPrice) : undefined,
       customTotalLength: lengthInCm || undefined,
+      customTotalLengthOption: customTotalLengthOption,
       optionalItems: optionalItems,
       landings: landings,
       slabThickness: slabThickInCm,
@@ -566,16 +568,37 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
             />
         </div>
         
-        <InputField 
-            label="Comprimento Total Manual" 
-            value={customTotalLength} 
-            onChange={e => setCustomTotalLength(e.target.value)} 
-            isOptional={true}
-            onUnitChange={setLengthUnit}
-            currentUnit={lengthUnit}
-            helperText="Trava o comprimento da escada"
-            tooltip="Força a escada a ter um comprimento exato, ajustando o pisante automaticamente se necessário."
-        />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <InputField 
+                label="Comprimento Total Manual" 
+                value={customTotalLength} 
+                onChange={e => setCustomTotalLength(e.target.value)} 
+                isOptional={true}
+                onUnitChange={setLengthUnit}
+                currentUnit={lengthUnit}
+                helperText="Trava o comprimento da escada"
+                tooltip="Força a escada a ter um comprimento exato, ajustando o pisante automaticamente se necessário."
+            />
+            
+            <div className="flex flex-col">
+                <label className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
+                    Aplicar Limitador em:
+                </label>
+                <select 
+                    value={customTotalLengthOption}
+                    onChange={(e) => setCustomTotalLengthOption(e.target.value as any)}
+                    className="w-full p-2 border-2 border-gray-200 dark:border-gray-600 rounded font-medium focus:border-highlight outline-none bg-white dark:bg-gray-800 text-black dark:text-white"
+                >
+                    <option value="all">Todas as Opções</option>
+                    <option value="1">Apenas na Opção 1</option>
+                    <option value="2">Apenas na Opção 2</option>
+                    <option value="3">Apenas na Opção 3</option>
+                </select>
+                <p className="text-xs text-gray-500 mt-1">
+                    Escolha em qual opção do orçamento o limite será aplicado.
+                </p>
+            </div>
+        </div>
 
         {/* --- SEÇÃO PATAMARES --- */}
         <div className="pt-4 border-t border-gray-100 dark:border-gray-700 bg-orange-50 dark:bg-orange-900/20 -mx-6 px-6 pb-4">
