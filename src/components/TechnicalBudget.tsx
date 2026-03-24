@@ -1,8 +1,8 @@
 
 import React, { useState } from 'react';
 import emailjs from '@emailjs/browser';
-import jsPDF from 'jspdf';
 import { LandingInfo } from '../types';
+import { generateTechnicalDataText, generateMaterialDataText, generateUnifiedTechnicalPDF } from '../utils/technicalPdfGenerator';
 
 interface TechnicalBudgetProps {
   clientName: string;
@@ -10,29 +10,33 @@ interface TechnicalBudgetProps {
   stepHeightCm: number;
   treadDepthCm: number;
   widthCm: number;
-  totalLength: number; // NOVO
+  totalLength: number;
   landings: LandingInfo[];
   stairDirection?: 'standard' | 'mirrored';
   wallFixation?: 'left' | 'right' | 'frontal';
   treadMaterial?: 'metal' | 'wood';
   address?: string;
   zip?: string;
+  optionalItems?: { id: string; name: string; price: number }[];
 }
 
-export const TechnicalBudget: React.FC<TechnicalBudgetProps> = ({
-  clientName,
-  totalSteps,
-  stepHeightCm,
-  treadDepthCm,
-  widthCm,
-  totalLength,
-  landings,
-  stairDirection,
-  wallFixation,
-  treadMaterial,
-  address,
-  zip
-}) => {
+export const TechnicalBudget: React.FC<TechnicalBudgetProps> = (props) => {
+  const {
+    clientName,
+    totalSteps,
+    stepHeightCm,
+    treadDepthCm,
+    widthCm,
+    totalLength,
+    landings,
+    stairDirection,
+    wallFixation,
+    treadMaterial,
+    address,
+    zip,
+    optionalItems = []
+  } = props;
+
   // Define o e-mail padrão que aparecerá no campo
   const [email, setEmail] = useState('zilinskidistribuidora@gmail.com');
   const [isSending, setIsSending] = useState(false);
@@ -41,196 +45,16 @@ export const TechnicalBudget: React.FC<TechnicalBudgetProps> = ({
 
   // --- LÓGICA DE SERRALHERIA (CORTE A LASER) ---
   const generateTechnicalData = () => {
-    const stepHeightMM = (stepHeightCm * 10).toFixed(1).replace('.0', '');
-    const widthMM = (widthCm * 10).toFixed(0);
-    const treadMM = (treadDepthCm * 10);
-    
-    // Regra: Se altura do degrau < 16cm, aumenta 0.5cm (5mm). Se >= 16cm, aumenta 1cm (10mm).
-    const extraGapMM = stepHeightCm < 16 ? 5 : 10;
-    const bodyTreadMM = treadMM + extraGapMM; 
-    const bodyTreadStr = bodyTreadMM.toFixed(1).replace('.0', '');
-
-    const stepTreadMM = treadMM;
-    const stepTreadStr = stepTreadMM.toFixed(1).replace('.0', '');
-
-    const numLandings = landings.length;
-    const structureSteps = totalSteps - numLandings;
-
-    let sideText = '';
-    if (wallFixation === 'right') sideText = 'direito';
-    else if (wallFixation === 'left') sideText = 'esquerdo';
-    else sideText = 'frontal';
-
-    const directionText = stairDirection === 'mirrored' ? 'esquerda' : 'direita';
-
-    // --- MONTAGEM DO TEXTO ---
-    let report = `Orçamento ${clientName}\n\n`;
-    report += `2 corpo de escada com\n`;
-    report += `${structureSteps} degraus com medidas de: ${stepHeightMM}mm de altura e pisante ${bodyTreadStr}mm\n`;
-    
-    // ADIÇÃO SOLICITADA: VAZADO PARA MADEIRA
-    if (treadMaterial === 'wood') {
-        report += `*** VAZADO PARA MADEIRA ***\n`;
-    }
-
-    report += `${structureSteps} degraus de ${stepTreadStr}mm x ${widthMM}mm\n`;
-    if (sideText === 'frontal') {
-        report += `Olhando de baixo para cima furos frontais\n`;
-    } else {
-        report += `Olhando de baixo para cima furos do lado ${sideText}\n`;
-    }
-    report += `Sentido da subida para a ${directionText}\n`;
-
-    if (numLandings > 0) {
-        report += `\nOrçamento ${clientName} 2\n`;
-        landings.forEach((l) => {
-            const lLen = (l.length * 10).toFixed(0);
-            const lWidth = (l.width * 10).toFixed(0);
-            
-            if (l.type === 'fixed') {
-                report += `1 patamar em chapa xadrez em 3mm com dobras de 100mm\n`;
-                report += `Com medidas de ${lLen}mm x ${lWidth}mm\n`;
-            } else {
-                report += `1 patamar articulado\n`;
-                report += `Com medidas de ${lLen}mm x ${lWidth}mm\n`;
-            }
-        });
-    }
-
-    return report;
+    return generateTechnicalDataText(props);
   };
 
   // --- LÓGICA DE MATÉRIA PRIMA (ESTIMATIVA) ---
   const generateMaterialData = () => {
-      const numSteps = totalSteps - landings.length;
-      // const totalLengthM = totalLength / 100; // Removido conforme solicitado
-      
-      let report = `LISTA DE MATÉRIA PRIMA (ESTIMATIVA)\n`;
-      report += `Cliente: ${clientName}\n`;
-      if (address) report += `Endereço: ${address}\n`;
-      if (zip) report += `CEP: ${zip}\n`;
-      report += `Data: ${new Date().toLocaleDateString()}\n\n`;
-      
-      report += `ESTRUTURA PRINCIPAL:\n`;
-      // report += `- Comprimento Total (Tubo Central): Aprox. ${totalLengthM.toFixed(2)} metros\n`; // REMOVIDO
-      
-      // CÁLCULO DE ÁREA DE CHAPA COM +5CM DE MARGEM
-      const widthWithMargin = widthCm + 5;
-      const depthWithMargin = treadDepthCm + 5;
-      const areaPerStepM2 = (widthWithMargin / 100) * (depthWithMargin / 100);
-      const totalAreaM2 = areaPerStepM2 * numSteps;
-
-      // CÁLCULO DE VOLUME E PESO (Chapa 3mm = 0.003m)
-      const thicknessM = 0.003;
-      const density = 7840; // 7.84 g/cm³ = 7840 kg/m³
-
-      // Unitários
-      const volumePerStepM3 = areaPerStepM2 * thicknessM;
-      const weightPerStepKg = volumePerStepM3 * density;
-
-      // Totais
-      const totalVolumeM3 = totalAreaM2 * thicknessM;
-      const totalWeightKg = totalVolumeM3 * density;
-
-      report += `- Quantidade Degraus (Suportes): ${numSteps} peças\n`;
-      report += `- Altura Espelhos (Entre-degraus): ${stepHeightCm.toFixed(2)} cm\n`;
-      report += `- Largura Escada: ${widthCm} cm\n`;
-      report += `- Tamanho do Pisante: ${treadDepthCm.toFixed(2)} cm\n\n`;
-      
-      report += `DETALHAMENTO DE MATERIAL DOS DEGRAUS (CHAPA 3MM):\n`;
-      report += `(Considerando margem de +5cm na largura e profundidade)\n`;
-      report += `--------------------------------------------------\n`;
-      report += `UNITÁRIO (Por Degrau):\n`;
-      report += `- Área:   ${areaPerStepM2.toFixed(4)} m²\n`;
-      report += `- Volume: ${volumePerStepM3.toFixed(6)} m³\n`;
-      report += `- Peso:   ${weightPerStepKg.toFixed(3)} kg\n\n`;
-      
-      report += `TOTAL (${numSteps} Degraus):\n`;
-      report += `- Área:   ${totalAreaM2.toFixed(2)} m²\n`;
-      report += `- Volume: ${totalVolumeM3.toFixed(4)} m³\n`;
-      report += `- Peso:   ${totalWeightKg.toFixed(2)} kg\n\n`;
-
-      const hingesPerStep = treadDepthCm < 16 ? 2 : 4;
-      const hingeSize = treadDepthCm < 16 ? "4x3" : "3x2,5/8";
-      const totalHinges = hingesPerStep * numSteps;
-
-      report += `Matéria: ${totalHinges} dobradiças de ${hingeSize} polegadas\n\n`;
-
-      if (treadMaterial === 'wood') {
-          report += `DEGRAUS DE MADEIRA:\n`;
-          report += `- Largura do Degrau: ${(widthCm - 0.6).toFixed(2)} cm\n`;
-          report += `- Comprimento do Degrau: ${(treadDepthCm - 0.6).toFixed(2)} cm\n`;
-          report += `- Altura do Degrau: 2.3 cm\n\n`;
-      }
-
-      if (landings.length > 0) {
-          report += `\nOrçamento ${clientName} 2\n`;
-          landings.forEach((l) => {
-              const lLen = (l.length * 10).toFixed(0);
-              const lWidth = (l.width * 10).toFixed(0);
-              
-              if (l.type === 'fixed') {
-                  report += `1 patamar em chapa xadrez em 3mm com dobras de 100mm\n`;
-                  report += `Com medidas de ${lLen}mm x ${lWidth}mm\n`;
-              } else {
-                  report += `1 patamar articulado\n`;
-                  report += `Com medidas de ${lLen}mm x ${lWidth}mm\n`;
-              }
-          });
-          report += `\n`;
-      }
-      
-      report += `OBSERVAÇÕES DE FÁBRICA:\n`;
-      report += `- Conferir estoque de chapa xadrez.\n`;
-      report += `- Verificar consumíveis de solda.\n`;
-      
-      return report;
+      return generateMaterialDataText(props);
   };
 
-  const handleDownloadPDF = (type: 'laser' | 'material') => {
-      const doc = new jsPDF();
-      let text = "";
-      let title = "";
-      let filename = "";
-
-      if (type === 'laser') {
-          text = generateTechnicalData();
-          title = "FICHA DE PRODUÇÃO - CORTE A LASER";
-          filename = `producao_laser_${clientName.replace(/\s/g, '_').toLowerCase()}.pdf`;
-      } else {
-          text = generateMaterialData();
-          title = "FICHA DE MATÉRIA PRIMA";
-          filename = `materia_prima_${clientName.replace(/\s/g, '_').toLowerCase()}.pdf`;
-      }
-
-      // Configuração do PDF
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(18);
-      doc.text(title, 105, 20, { align: 'center' });
-      
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Cliente: ${clientName}`, 20, 35);
-      doc.text(`Data: ${new Date().toLocaleDateString()}`, 20, 42);
-      
-      // Linha separadora
-      doc.line(20, 48, 190, 48);
-
-      // Conteúdo Técnico (Fonte Monospaced para alinhar números)
-      doc.setFont('courier', 'bold'); 
-      doc.setFontSize(12);
-      doc.setTextColor(0, 0, 0); // Preto
-
-      const splitText = doc.splitTextToSize(text, 170);
-      doc.text(splitText, 20, 60);
-
-      // Rodapé Técnico
-      doc.setFont('helvetica', 'italic');
-      doc.setFontSize(10);
-      doc.setTextColor(100);
-      doc.text("Zilinski Distribuidora - Sistema de Controle de Produção", 105, 280, { align: 'center' });
-
-      doc.save(filename);
+  const handleDownloadPDF = () => {
+      generateUnifiedTechnicalPDF(props);
   };
 
   const handleSendEmail = async (e: React.FormEvent) => {
@@ -290,27 +114,16 @@ export const TechnicalBudget: React.FC<TechnicalBudgetProps> = ({
         Gere os relatórios técnicos para envio à fábrica.
       </p>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          {/* BOTÃO DE DOWNLOAD PDF - LASER */}
+      <div className="mb-6">
+          {/* BOTÃO DE DOWNLOAD PDF - UNIFICADO */}
           <button 
-            onClick={() => handleDownloadPDF('laser')}
-            className="w-full bg-orange-600 hover:bg-orange-500 text-white font-black py-4 px-4 rounded-lg shadow-lg flex items-center justify-center gap-2 text-sm md:text-base border-b-4 border-orange-800 active:border-b-0 active:translate-y-1 transition-all uppercase"
+            onClick={() => handleDownloadPDF()}
+            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 px-4 rounded-lg shadow-lg flex items-center justify-center gap-2 text-sm md:text-base border-b-4 border-blue-800 active:border-b-0 active:translate-y-1 transition-all uppercase"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            FICHA LASER (Corte)
-          </button>
-
-          {/* BOTÃO DE DOWNLOAD PDF - MATÉRIA PRIMA */}
-          <button 
-            onClick={() => handleDownloadPDF('material')}
-            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 px-4 rounded-lg shadow-lg flex items-center justify-center gap-2 text-sm md:text-base border-b-4 border-blue-800 active:border-b-0 active:translate-y-1 transition-all uppercase"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            FICHA MATÉRIA PRIMA
+            BAIXAR FICHA TÉCNICA (PRODUÇÃO + MATÉRIA PRIMA)
           </button>
       </div>
 

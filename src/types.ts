@@ -108,6 +108,8 @@ export interface SavedContract {
   status: ContractStatus;
   contractData: any; // O payload completo do contrato para poder gerar o PDF novamente se precisar
   userId?: string; // ID do usuário do Firebase
+  paymentStatus?: 'a_receber' | 'recebido';
+  deliveryStatus?: 'em_producao' | 'a_entregar';
 }
 
 export interface ProductionOrder {

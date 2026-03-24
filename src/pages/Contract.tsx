@@ -1243,6 +1243,7 @@ const Contract = () => {
                         treadMaterial={treadMaterial}
                         address={`${street}, ${number} - ${neighborhood}, ${city} - ${state}, ${zip}`}
                         zip={zip}
+                        optionalItems={optionalItems}
                     />
 
                 </div>
