@@ -1,13 +1,13 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { GoogleGenAI } from "@google/genai";
 import { generateContractPDF } from '../utils/contractGenerator';
 import { LandingInfo, OptionalItem } from '../types';
 import { formatCurrencyBRL } from '../utils';
 import { TechnicalBudget } from '../components/TechnicalBudget';
 import { db } from '../firebase';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, updateDoc } from 'firebase/firestore';
 import { useAuth } from '../components/AuthProvider';
 
 // Declaração global para SpeechRecognition (API do Navegador)
@@ -70,6 +70,7 @@ const addBusinessDays = (startDate: Date, days: number) => {
 
 const Contract = () => {
     const location = useLocation();
+    const navigate = useNavigate();
     const { user } = useAuth();
     
     const STANDARD_INSTALLATION = 290;
@@ -193,66 +194,136 @@ const Contract = () => {
         setDeadlineDate(`${year}-${month}-${day}`);
 
         if (location.state) {
-            const { 
-                userData, selectedOption, inputData, 
-                freightCost, tollCost, installationCost 
-            } = location.state;
+            if (location.state.isEditing && location.state.savedContractData) {
+                const data = location.state.savedContractData;
+                const { userData, selectedOption, inputData, paymentDetails } = data;
 
-            if (userData) {
-                setClientName(userData.name || '');
-                setClientDoc(userData.cpf || '');
-                setClientRG(userData.rg || '');
-                
-                if (userData.zip) setZip(userData.zip);
-                if (userData.street) setStreet(userData.street);
-                if (userData.number) setNumber(userData.number);
-                if (userData.neighborhood) setNeighborhood(userData.neighborhood);
-                if (userData.city) setCity(userData.city);
-                if (userData.state) setState(userData.state);
-                
-                if (!userData.street && userData.address) {
-                    setStreet(userData.address);
+                if (userData) {
+                    setClientName(userData.name || '');
+                    setClientDoc(userData.cpf || '');
+                    setClientRG(userData.rg || '');
+                    setZip(userData.zip || '');
+                    setStreet(userData.street || userData.address || '');
+                    setNumber(userData.number || '');
+                    setNeighborhood(userData.neighborhood || '');
+                    setCity(userData.city || '');
+                    setState(userData.state || '');
+                    setPersonType(userData.cpf && userData.cpf.length > 14 ? 'pj' : 'pf');
                 }
 
-                if (userData.cpf && userData.cpf.length > 14) {
-                    setPersonType('pj');
-                } else {
-                    setPersonType('pf');
-                }
-            }
-
-            if (selectedOption && inputData) {
-                setOriginalInputData(inputData);
-                setTotalHeight(inputData.totalHeight.toString());
-                setWidth(selectedOption.stairWidth.toString());
-                setTotalSteps(selectedOption.steps.toString());
-                setStepHeight(selectedOption.stepHeight.toFixed(2));
-                setTreadDepth(selectedOption.treadDepth.toFixed(2));
-                setTotalLength(selectedOption.totalLength.toString());
-                setDampers(inputData.dampers.toString());
-                setStairDirection(inputData.stairDirection || 'standard');
-                setWallFixation(inputData.wallFixation || 'left');
-                setTreadMaterial(inputData.treadMaterial);
-                
-                if (selectedOption.landings && selectedOption.landings.length > 0) {
-                    setLandings(selectedOption.landings);
+                if (selectedOption && inputData) {
+                    setOriginalInputData(inputData);
+                    setTotalHeight(inputData.totalHeight?.toString() || '300');
+                    setWidth(selectedOption.stairWidth?.toString() || '70');
+                    setTotalSteps(selectedOption.steps?.toString() || '15');
+                    setStepHeight(selectedOption.stepHeight?.toFixed(2) || '20');
+                    setTreadDepth(selectedOption.treadDepth?.toFixed(2) || '25');
+                    setTotalLength(selectedOption.totalLength?.toString() || '300');
+                    setDampers(inputData.dampers?.toString() || '4');
+                    setStairDirection(inputData.stairDirection || 'standard');
+                    setWallFixation(inputData.wallFixation || 'left');
+                    setTreadMaterial(inputData.treadMaterial);
                     
-                    // SEPARA O PREÇO: LANDINGS VS ESCADA
-                    const totalL = selectedOption.landings.reduce((acc: number, l: LandingInfo) => acc + l.price, 0);
-                    setLandingsPrice(totalL.toFixed(2));
-                    setStairPrice((selectedOption.totalPrice - totalL).toFixed(2));
-                } else {
-                    setLandings([]);
-                    setLandingsPrice('0');
-                    setStairPrice(selectedOption.totalPrice.toFixed(2));
-                }
-                
-                if (inputData.optionalItems && inputData.optionalItems.length > 0) {
-                    setOptionalItems(inputData.optionalItems);
+                    if (selectedOption.landings && selectedOption.landings.length > 0) {
+                        setLandings(selectedOption.landings);
+                    } else {
+                        setLandings([]);
+                    }
+                    
+                    setStairPrice(data.finalStairPrice?.toFixed(2) || '0');
+                    setLandingsPrice(data.finalLandingsPrice?.toFixed(2) || '0');
+                    
+                    if (inputData.optionalItems && inputData.optionalItems.length > 0) {
+                        setOptionalItems(inputData.optionalItems);
+                    }
+
+                    setFreightPrice(data.freightCost?.toFixed(2) || '0');
+                    setInstallationPrice(data.installationCost?.toFixed(2) || '0');
+                    setExtrasPrice(data.extrasCost?.toFixed(2) || '0');
                 }
 
-                setFreightPrice(((freightCost || 0) + (tollCost || 0)).toFixed(2));
-                setInstallationPrice((installationCost || 0).toFixed(2));
+                if (data.deadlineDate) setDeadlineDate(data.deadlineDate);
+                if (data.paymentMethod) setPaymentMethod(data.paymentMethod);
+
+                if (paymentDetails) {
+                    setDiscountPercent(paymentDetails.discountPercent || 0);
+                    setDiscountValue(paymentDetails.discountValue ? paymentDetails.discountValue.toFixed(2) : '');
+                    setSignalPercent(paymentDetails.signalPercent || 50);
+                    setInstallments(paymentDetails.installments || 6);
+                    setHybridSignalValue(paymentDetails.hybridSignalAmount ? paymentDetails.hybridSignalAmount.toFixed(2) : '');
+                    setPixTiming(paymentDetails.pixTiming || 'entry');
+                    setRemainderPaymentMode(paymentDetails.remainderText || 'Link de Pagamento (Cartão de Crédito)');
+                }
+
+                if (data.additionalClauses) setCustomClauses(data.additionalClauses);
+                if (data.finishText) setFinishText(data.finishText);
+                if (data.stepCapacityText) setStepCapacityText(data.stepCapacityText);
+                if (data.stairCapacityText) setStairCapacityText(data.stairCapacityText);
+                if (data.warrantyText) setWarrantyText(data.warrantyText);
+                if (data.deliveryText) setDeliveryText(data.deliveryText);
+
+            } else {
+                const { 
+                    userData, selectedOption, inputData, 
+                    freightCost, tollCost, installationCost 
+                } = location.state;
+
+                if (userData) {
+                    setClientName(userData.name || '');
+                    setClientDoc(userData.cpf || '');
+                    setClientRG(userData.rg || '');
+                    
+                    if (userData.zip) setZip(userData.zip);
+                    if (userData.street) setStreet(userData.street);
+                    if (userData.number) setNumber(userData.number);
+                    if (userData.neighborhood) setNeighborhood(userData.neighborhood);
+                    if (userData.city) setCity(userData.city);
+                    if (userData.state) setState(userData.state);
+                    
+                    if (!userData.street && userData.address) {
+                        setStreet(userData.address);
+                    }
+
+                    if (userData.cpf && userData.cpf.length > 14) {
+                        setPersonType('pj');
+                    } else {
+                        setPersonType('pf');
+                    }
+                }
+
+                if (selectedOption && inputData) {
+                    setOriginalInputData(inputData);
+                    setTotalHeight(inputData.totalHeight.toString());
+                    setWidth(selectedOption.stairWidth.toString());
+                    setTotalSteps(selectedOption.steps.toString());
+                    setStepHeight(selectedOption.stepHeight.toFixed(2));
+                    setTreadDepth(selectedOption.treadDepth.toFixed(2));
+                    setTotalLength(selectedOption.totalLength.toString());
+                    setDampers(inputData.dampers.toString());
+                    setStairDirection(inputData.stairDirection || 'standard');
+                    setWallFixation(inputData.wallFixation || 'left');
+                    setTreadMaterial(inputData.treadMaterial);
+                    
+                    if (selectedOption.landings && selectedOption.landings.length > 0) {
+                        setLandings(selectedOption.landings);
+                        
+                        // SEPARA O PREÇO: LANDINGS VS ESCADA
+                        const totalL = selectedOption.landings.reduce((acc: number, l: LandingInfo) => acc + l.price, 0);
+                        setLandingsPrice(totalL.toFixed(2));
+                        setStairPrice((selectedOption.totalPrice - totalL).toFixed(2));
+                    } else {
+                        setLandings([]);
+                        setLandingsPrice('0');
+                        setStairPrice(selectedOption.totalPrice.toFixed(2));
+                    }
+                    
+                    if (inputData.optionalItems && inputData.optionalItems.length > 0) {
+                        setOptionalItems(inputData.optionalItems);
+                    }
+
+                    setFreightPrice(((freightCost || 0) + (tollCost || 0)).toFixed(2));
+                    setInstallationPrice((installationCost || 0).toFixed(2));
+                }
             }
         }
     }, [location.state]);
@@ -551,8 +622,11 @@ const Contract = () => {
             deliveryText
         };
 
+        const isEditing = location.state?.isEditing;
+        const editingContractId = location.state?.editingContractId;
+
         const newSavedContract = {
-            id: Date.now().toString(),
+            id: isEditing ? editingContractId : Date.now().toString(),
             createdAt: new Date().toISOString(),
             clientName: clientName,
             totalValue: paymentMethod === 'pix' ? pixTotal : totalGeralFinal,
@@ -562,9 +636,18 @@ const Contract = () => {
         };
 
         try {
-            await setDoc(doc(db, 'contracts', newSavedContract.id), newSavedContract);
+            if (isEditing) {
+                // Remove id e createdAt para não sobrescrever na atualização
+                const { id, createdAt, status, ...updateData } = newSavedContract;
+                await updateDoc(doc(db, 'contracts', editingContractId), updateData);
+                alert("Contrato atualizado com sucesso!");
+                navigate('/contracts');
+                return;
+            } else {
+                await setDoc(doc(db, 'contracts', newSavedContract.id), newSavedContract);
+            }
             
-            if (addToQueue) {
+            if (addToQueue && !isEditing) {
                 let downPayment = 0;
                 let balanceDue = 0;
 
@@ -698,8 +781,12 @@ const Contract = () => {
     return (
         <div className="max-w-5xl mx-auto p-4 sm:p-6 md:p-12">
             <header className="mb-10 text-center">
-                <h1 className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white mb-2">Emissão de Contrato</h1>
-                <p className="text-gray-500 dark:text-gray-400">Preencha os dados finais para gerar o PDF.</p>
+                <h1 className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white mb-2">
+                    {location.state?.isEditing ? 'Editar Contrato' : 'Emissão de Contrato'}
+                </h1>
+                <p className="text-gray-500 dark:text-gray-400">
+                    {location.state?.isEditing ? 'Atualize os dados e salve as alterações.' : 'Preencha os dados finais para gerar o PDF.'}
+                </p>
             </header>
 
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
@@ -1206,22 +1293,24 @@ const Contract = () => {
                             <div className="mt-2 text-xs text-gray-400">Inclui: Estrutura + Frete + Instalação + Extras {enableInterest ? '+ Juros' : ''}</div>
                         </div>
 
-                        <div className="flex items-center mt-4 mb-2">
-                            <input 
-                                type="checkbox" 
-                                id="addToQueue" 
-                                checked={addToQueue} 
-                                onChange={(e) => setAddToQueue(e.target.checked)} 
-                                className="mr-2 w-4 h-4 text-highlight focus:ring-highlight rounded border-gray-300" 
-                            />
-                            <label htmlFor="addToQueue" className="text-sm font-bold text-gray-700 dark:text-gray-300">
-                                Adicionar automaticamente à Fila de Produção
-                            </label>
-                        </div>
+                        {!location.state?.isEditing && (
+                            <div className="flex items-center mt-4 mb-2">
+                                <input 
+                                    type="checkbox" 
+                                    id="addToQueue" 
+                                    checked={addToQueue} 
+                                    onChange={(e) => setAddToQueue(e.target.checked)} 
+                                    className="mr-2 w-4 h-4 text-highlight focus:ring-highlight rounded border-gray-300" 
+                                />
+                                <label htmlFor="addToQueue" className="text-sm font-bold text-gray-700 dark:text-gray-300">
+                                    Adicionar automaticamente à Fila de Produção
+                                </label>
+                            </div>
+                        )}
 
                         <div className="flex gap-4 mt-2">
                             <button onClick={handleSaveContract} className="flex-1 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white font-black py-4 rounded-lg shadow-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2">
-                                <span>💾</span> Salvar na Timeline
+                                <span>💾</span> {location.state?.isEditing ? 'Salvar Alterações' : 'Salvar na Timeline'}
                             </button>
                             <button onClick={handleGeneratePDF} className="flex-1 bg-highlight text-white font-black py-4 rounded-lg shadow-lg hover:bg-yellow-600 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2">
                                  <span>📄</span> Gerar PDF

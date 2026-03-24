@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { SavedContract, ContractStatus } from '../types';
 import { formatCurrencyBRL } from '../utils';
 import { generateContractPDF } from '../utils/contractGenerator';
@@ -10,8 +11,10 @@ import { useAuth } from '../components/AuthProvider';
 export const ContractsList: React.FC = () => {
     const [contracts, setContracts] = useState<SavedContract[]>([]);
     const { user } = useAuth();
+    const navigate = useNavigate();
 
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [showAdvanced, setShowAdvanced] = useState(false);
     const [editingContract, setEditingContract] = useState<SavedContract | null>(null);
     const [formData, setFormData] = useState({
         clientName: '',
@@ -19,37 +22,63 @@ export const ContractsList: React.FC = () => {
         createdAt: new Date().toISOString().split('T')[0],
         status: 'producao' as ContractStatus,
         paymentStatus: 'a_receber' as 'a_receber' | 'recebido',
-        deliveryStatus: 'em_producao' as 'em_producao' | 'a_entregar'
+        deliveryStatus: 'em_producao' as 'em_producao' | 'a_entregar',
+        contractDataString: ''
     });
 
     const openAddModal = () => {
         setEditingContract(null);
+        setShowAdvanced(false);
         setFormData({
             clientName: '',
             totalValue: 0,
             createdAt: new Date().toISOString().split('T')[0],
             status: 'producao',
             paymentStatus: 'a_receber',
-            deliveryStatus: 'em_producao'
+            deliveryStatus: 'em_producao',
+            contractDataString: ''
         });
         setIsModalOpen(true);
     };
 
     const openEditModal = (contract: SavedContract) => {
         setEditingContract(contract);
+        setShowAdvanced(false);
+        
+        let dataString = '';
+        if (contract.contractData) {
+            try {
+                const parsed = typeof contract.contractData === 'string' ? JSON.parse(contract.contractData) : contract.contractData;
+                dataString = JSON.stringify(parsed, null, 2);
+            } catch (e) {
+                console.error("Erro ao formatar dados do contrato:", e);
+            }
+        }
+
         setFormData({
             clientName: contract.clientName,
             totalValue: contract.totalValue,
             createdAt: new Date(contract.createdAt).toISOString().split('T')[0],
             status: contract.status,
             paymentStatus: contract.paymentStatus || 'a_receber',
-            deliveryStatus: contract.deliveryStatus || 'em_producao'
+            deliveryStatus: contract.deliveryStatus || 'em_producao',
+            contractDataString: dataString
         });
         setIsModalOpen(true);
     };
 
     const handleSaveModal = async () => {
         try {
+            let parsedContractData = null;
+            if (formData.contractDataString.trim()) {
+                try {
+                    parsedContractData = JSON.parse(formData.contractDataString);
+                } catch (e) {
+                    alert("Erro no formato da Edição Avançada (JSON inválido). Por favor, corrija antes de salvar.");
+                    return;
+                }
+            }
+
             const dataToSave = {
                 clientName: formData.clientName,
                 totalValue: Number(formData.totalValue),
@@ -62,11 +91,14 @@ export const ContractsList: React.FC = () => {
 
             if (editingContract) {
                 const contractRef = doc(db, 'contracts', editingContract.id);
-                await updateDoc(contractRef, dataToSave);
+                await updateDoc(contractRef, { 
+                    ...dataToSave,
+                    ...(parsedContractData ? { contractData: parsedContractData } : {})
+                });
             } else {
                 await addDoc(collection(db, 'contracts'), {
                     ...dataToSave,
-                    contractData: null // Pedidos retroativos podem não ter o payload completo
+                    contractData: parsedContractData
                 });
             }
             setIsModalOpen(false);
@@ -431,19 +463,71 @@ export const ContractsList: React.FC = () => {
                             )}
                         </div>
 
-                        <div className="mt-6 flex justify-end gap-3">
-                            <button 
-                                onClick={() => setIsModalOpen(false)}
-                                className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                            <button
+                                type="button"
+                                onClick={() => setShowAdvanced(!showAdvanced)}
+                                className="text-sm text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
                             >
-                                Cancelar
+                                {showAdvanced ? '🔽 Ocultar Edição Avançada' : '▶️ Mostrar Edição Avançada (Corrigir PDFs)'}
                             </button>
-                            <button 
-                                onClick={handleSaveModal}
-                                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
-                            >
-                                Salvar
-                            </button>
+                            
+                            {showAdvanced && (
+                                <div className="mt-3">
+                                    <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                                        Dados Brutos do Contrato (JSON) - Cuidado ao editar!
+                                    </label>
+                                    <textarea
+                                        value={formData.contractDataString}
+                                        onChange={(e) => setFormData({...formData, contractDataString: e.target.value})}
+                                        className="w-full h-48 p-2 text-xs font-mono border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 custom-scrollbar"
+                                        spellCheck={false}
+                                        placeholder="Cole ou edite o JSON do contrato aqui..."
+                                    />
+                                    <p className="text-[10px] text-gray-400 mt-1">
+                                        Dica: Procure o texto que deseja corrigir (ex: nome, endereço) e altere apenas o conteúdo entre aspas.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="mt-6 flex justify-between items-center">
+                            {editingContract && editingContract.contractData ? (
+                                <button
+                                    onClick={() => {
+                                        setIsModalOpen(false);
+                                        navigate('/contract', { 
+                                            state: { 
+                                                isEditing: true, 
+                                                editingContractId: editingContract.id,
+                                                savedContractData: typeof editingContract.contractData === 'string' 
+                                                    ? JSON.parse(editingContract.contractData) 
+                                                    : editingContract.contractData 
+                                            } 
+                                        });
+                                    }}
+                                    className="px-4 py-2 bg-purple-100 hover:bg-purple-200 text-purple-700 dark:bg-purple-900/30 dark:hover:bg-purple-900/50 dark:text-purple-300 rounded-lg font-medium transition-colors flex items-center gap-2 text-sm"
+                                >
+                                    <span>📝</span> Editar no Formulário
+                                </button>
+                            ) : (
+                                <div></div>
+                            )}
+                            
+                            <div className="flex gap-3">
+                                <button 
+                                    onClick={() => setIsModalOpen(false)}
+                                    className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                                >
+                                    Cancelar
+                                </button>
+                                <button 
+                                    onClick={handleSaveModal}
+                                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                                >
+                                    Salvar
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
