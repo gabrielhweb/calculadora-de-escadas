@@ -73,8 +73,9 @@ export const generateTechnicalDataText = (props: TechnicalDataProps) => {
   if (numLandings > 0) {
       report += `\nOrçamento ${clientName} 2\n`;
       landings.forEach((l) => {
-          const lLen = (l.length * 10).toFixed(0);
-          const lWidth = (l.width * 10).toFixed(0);
+          if (!l) return;
+          const lLen = (l.length ? l.length * 10 : 0).toFixed(0);
+          const lWidth = (l.width ? l.width * 10 : 0).toFixed(0);
           
           if (l.type === 'fixed') {
               report += `1 patamar em chapa xadrez em 3mm com dobras de 100mm\n`;
@@ -165,8 +166,9 @@ export const generateMaterialDataText = (props: TechnicalDataProps) => {
   if (landings.length > 0) {
       report += `\nOrçamento ${clientName} 2\n`;
       landings.forEach((l) => {
-          const lLen = (l.length * 10).toFixed(0);
-          const lWidth = (l.width * 10).toFixed(0);
+          if (!l) return;
+          const lLen = (l.length ? l.length * 10 : 0).toFixed(0);
+          const lWidth = (l.width ? l.width * 10 : 0).toFixed(0);
           
           if (l.type === 'fixed') {
               report += `1 patamar em chapa xadrez em 3mm com dobras de 100mm\n`;

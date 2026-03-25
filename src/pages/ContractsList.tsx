@@ -192,7 +192,10 @@ export const ContractsList: React.FC = () => {
 
     const handleDownload = (contractData: any) => {
         try {
-            const parsedData = typeof contractData === 'string' ? JSON.parse(contractData) : contractData;
+            let parsedData = typeof contractData === 'string' ? JSON.parse(contractData) : contractData;
+            if (typeof parsedData === 'string') {
+                parsedData = JSON.parse(parsedData);
+            }
             generateContractPDF(parsedData);
         } catch (error) {
             console.error("Erro ao gerar PDF:", error);
@@ -202,21 +205,24 @@ export const ContractsList: React.FC = () => {
 
     const handleDownloadTechnical = (contractData: any) => {
         try {
-            const parsedData = typeof contractData === 'string' ? JSON.parse(contractData) : contractData;
+            let parsedData = typeof contractData === 'string' ? JSON.parse(contractData) : contractData;
+            if (typeof parsedData === 'string') {
+                parsedData = JSON.parse(parsedData);
+            }
             const technicalProps = {
-                clientName: parsedData.userData.name,
-                totalSteps: parsedData.selectedOption.steps,
-                stepHeightCm: parsedData.selectedOption.stepHeight,
-                treadDepthCm: parsedData.selectedOption.treadDepth,
-                widthCm: parsedData.selectedOption.stairWidth,
-                totalLength: parsedData.selectedOption.totalLength,
-                landings: parsedData.selectedOption.landings || [],
-                stairDirection: parsedData.inputData.stairDirection,
-                wallFixation: parsedData.inputData.wallFixation,
-                treadMaterial: parsedData.inputData.treadMaterial,
-                address: parsedData.userData.address,
-                zip: parsedData.userData.zip,
-                optionalItems: parsedData.inputData.optionalItems || []
+                clientName: parsedData.userData?.name || '',
+                totalSteps: parsedData.selectedOption?.steps || 0,
+                stepHeightCm: parsedData.selectedOption?.stepHeight || 0,
+                treadDepthCm: parsedData.selectedOption?.treadDepth || 0,
+                widthCm: parsedData.selectedOption?.stairWidth || 0,
+                totalLength: parsedData.selectedOption?.totalLength || 0,
+                landings: parsedData.selectedOption?.landings || [],
+                stairDirection: parsedData.inputData?.stairDirection || 'standard',
+                wallFixation: parsedData.inputData?.wallFixation || 'left',
+                treadMaterial: parsedData.inputData?.treadMaterial || 'wood',
+                address: parsedData.userData?.address || '',
+                zip: parsedData.userData?.zip || '',
+                optionalItems: parsedData.inputData?.optionalItems || []
             };
             generateUnifiedTechnicalPDF(technicalProps);
         } catch (error) {
@@ -542,6 +548,10 @@ export const ContractsList: React.FC = () => {
                                             parsedData = typeof editingContract.contractData === 'string' 
                                                 ? JSON.parse(editingContract.contractData) 
                                                 : editingContract.contractData;
+                                            
+                                            if (typeof parsedData === 'string') {
+                                                parsedData = JSON.parse(parsedData);
+                                            }
                                         } catch (e) {
                                             console.error("Erro ao parsear contractData", e);
                                             alert("Erro ao ler os dados do contrato. O formato pode estar corrompido.");

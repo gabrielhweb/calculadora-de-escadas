@@ -199,30 +199,30 @@ const Contract = () => {
                 const { userData, selectedOption, inputData, paymentDetails } = data;
 
                 if (userData) {
-                    setClientName(userData.name || '');
-                    setClientDoc(userData.cpf || '');
-                    setClientRG(userData.rg || '');
-                    setZip(userData.zip || '');
-                    setStreet(userData.street || userData.address || '');
-                    setNumber(userData.number || '');
-                    setNeighborhood(userData.neighborhood || '');
-                    setCity(userData.city || '');
-                    setState(userData.state || '');
-                    setPersonType(userData.cpf && userData.cpf.length > 14 ? 'pj' : 'pf');
+                    setClientName(String(userData.name || ''));
+                    setClientDoc(String(userData.cpf || ''));
+                    setClientRG(String(userData.rg || ''));
+                    setZip(String(userData.zip || ''));
+                    setStreet(String(userData.street || userData.address || ''));
+                    setNumber(String(userData.number || ''));
+                    setNeighborhood(String(userData.neighborhood || ''));
+                    setCity(String(userData.city || ''));
+                    setState(String(userData.state || ''));
+                    setPersonType(String(userData.cpf || '').length > 14 ? 'pj' : 'pf');
                 }
 
                 if (selectedOption && inputData) {
                     setOriginalInputData(inputData);
-                    setTotalHeight(inputData.totalHeight?.toString() || '300');
-                    setWidth(selectedOption.stairWidth?.toString() || '70');
-                    setTotalSteps(selectedOption.steps?.toString() || '15');
+                    setTotalHeight(String(inputData.totalHeight || '300'));
+                    setWidth(String(selectedOption.stairWidth || '70'));
+                    setTotalSteps(String(selectedOption.steps || '15'));
                     setStepHeight(Number(selectedOption.stepHeight || 20).toFixed(2));
                     setTreadDepth(Number(selectedOption.treadDepth || 25).toFixed(2));
-                    setTotalLength(selectedOption.totalLength?.toString() || '300');
-                    setDampers(inputData.dampers?.toString() || '4');
-                    setStairDirection(inputData.stairDirection || 'standard');
-                    setWallFixation(inputData.wallFixation || 'left');
-                    setTreadMaterial(inputData.treadMaterial);
+                    setTotalLength(String(selectedOption.totalLength || '300'));
+                    setDampers(String(inputData.dampers || '4'));
+                    setStairDirection(String(inputData.stairDirection || 'standard') as any);
+                    setWallFixation(String(inputData.wallFixation || 'left') as any);
+                    setTreadMaterial(String(inputData.treadMaterial || 'wood') as any);
                     
                     if (selectedOption.landings && Array.isArray(selectedOption.landings) && selectedOption.landings.length > 0) {
                         setLandings(selectedOption.landings);
@@ -234,7 +234,11 @@ const Contract = () => {
                     setLandingsPrice(data.finalLandingsPrice ? Number(data.finalLandingsPrice).toFixed(2) : '0');
                     
                     if (inputData.optionalItems && Array.isArray(inputData.optionalItems) && inputData.optionalItems.length > 0) {
-                        setOptionalItems(inputData.optionalItems);
+                        setOptionalItems(inputData.optionalItems.map((item: any) => ({
+                            id: String(item.id || Date.now()),
+                            name: String(item.name || ''),
+                            price: Number(item.price || 0)
+                        })));
                     } else {
                         setOptionalItems([]);
                     }
@@ -244,29 +248,29 @@ const Contract = () => {
                     setExtrasPrice(data.extrasCost ? Number(data.extrasCost).toFixed(2) : '0');
                 }
 
-                if (data.deadlineDate) setDeadlineDate(data.deadlineDate);
-                if (data.paymentMethod) setPaymentMethod(data.paymentMethod);
+                if (data.deadlineDate) setDeadlineDate(String(data.deadlineDate));
+                if (data.paymentMethod) setPaymentMethod(String(data.paymentMethod) as any);
 
                 if (paymentDetails) {
-                    setDiscountPercent(paymentDetails.discountPercent || 0);
+                    setDiscountPercent(Number(paymentDetails.discountPercent || 0));
                     setDiscountValue(paymentDetails.discountValue ? Number(paymentDetails.discountValue).toFixed(2) : '');
                     setSignalPercent(Number(paymentDetails.signalPercent || 50));
-                    setInstallments(paymentDetails.installments || 6);
+                    setInstallments(Number(paymentDetails.installments || 6));
                     setHybridSignalValue(paymentDetails.hybridSignalAmount ? Number(paymentDetails.hybridSignalAmount).toFixed(2) : '');
-                    setPixTiming(paymentDetails.pixTiming || 'entry');
-                    setRemainderPaymentMode(paymentDetails.remainderText || 'Link de Pagamento (Cartão de Crédito)');
+                    setPixTiming(String(paymentDetails.pixTiming || 'entry') as any);
+                    setRemainderPaymentMode(String(paymentDetails.remainderText || 'Link de Pagamento (Cartão de Crédito)'));
                 }
 
                 if (data.additionalClauses && Array.isArray(data.additionalClauses)) {
-                    setCustomClauses(data.additionalClauses);
+                    setCustomClauses(data.additionalClauses.map((c: any) => String(c)));
                 } else {
                     setCustomClauses([]);
                 }
-                if (data.finishText) setFinishText(data.finishText);
-                if (data.stepCapacityText) setStepCapacityText(data.stepCapacityText);
-                if (data.stairCapacityText) setStairCapacityText(data.stairCapacityText);
-                if (data.warrantyText) setWarrantyText(data.warrantyText);
-                if (data.deliveryText) setDeliveryText(data.deliveryText);
+                if (data.finishText) setFinishText(String(data.finishText));
+                if (data.stepCapacityText) setStepCapacityText(String(data.stepCapacityText));
+                if (data.stairCapacityText) setStairCapacityText(String(data.stairCapacityText));
+                if (data.warrantyText) setWarrantyText(String(data.warrantyText));
+                if (data.deliveryText) setDeliveryText(String(data.deliveryText));
 
             } else {
                 const { 
@@ -275,22 +279,22 @@ const Contract = () => {
                 } = location.state;
 
                 if (userData) {
-                    setClientName(userData.name || '');
-                    setClientDoc(userData.cpf || '');
-                    setClientRG(userData.rg || '');
+                    setClientName(String(userData.name || ''));
+                    setClientDoc(String(userData.cpf || ''));
+                    setClientRG(String(userData.rg || ''));
                     
-                    if (userData.zip) setZip(userData.zip);
-                    if (userData.street) setStreet(userData.street);
-                    if (userData.number) setNumber(userData.number);
-                    if (userData.neighborhood) setNeighborhood(userData.neighborhood);
-                    if (userData.city) setCity(userData.city);
-                    if (userData.state) setState(userData.state);
+                    if (userData.zip) setZip(String(userData.zip));
+                    if (userData.street) setStreet(String(userData.street));
+                    if (userData.number) setNumber(String(userData.number));
+                    if (userData.neighborhood) setNeighborhood(String(userData.neighborhood));
+                    if (userData.city) setCity(String(userData.city));
+                    if (userData.state) setState(String(userData.state));
                     
                     if (!userData.street && userData.address) {
-                        setStreet(userData.address);
+                        setStreet(String(userData.address));
                     }
 
-                    if (userData.cpf && userData.cpf.length > 14) {
+                    if (userData.cpf && String(userData.cpf).length > 14) {
                         setPersonType('pj');
                     } else {
                         setPersonType('pf');
@@ -299,16 +303,16 @@ const Contract = () => {
 
                 if (selectedOption && inputData) {
                     setOriginalInputData(inputData);
-                    setTotalHeight(inputData.totalHeight?.toString() || '300');
-                    setWidth(selectedOption.stairWidth?.toString() || '70');
-                    setTotalSteps(selectedOption.steps?.toString() || '15');
+                    setTotalHeight(String(inputData.totalHeight || '300'));
+                    setWidth(String(selectedOption.stairWidth || '70'));
+                    setTotalSteps(String(selectedOption.steps || '15'));
                     setStepHeight(Number(selectedOption.stepHeight || 20).toFixed(2));
                     setTreadDepth(Number(selectedOption.treadDepth || 25).toFixed(2));
-                    setTotalLength(selectedOption.totalLength?.toString() || '300');
-                    setDampers(inputData.dampers?.toString() || '4');
-                    setStairDirection(inputData.stairDirection || 'standard');
-                    setWallFixation(inputData.wallFixation || 'left');
-                    setTreadMaterial(inputData.treadMaterial);
+                    setTotalLength(String(selectedOption.totalLength || '300'));
+                    setDampers(String(inputData.dampers || '4'));
+                    setStairDirection(String(inputData.stairDirection || 'standard') as any);
+                    setWallFixation(String(inputData.wallFixation || 'left') as any);
+                    setTreadMaterial(String(inputData.treadMaterial || 'wood') as any);
                     
                     if (selectedOption.landings && Array.isArray(selectedOption.landings) && selectedOption.landings.length > 0) {
                         setLandings(selectedOption.landings);
@@ -324,7 +328,11 @@ const Contract = () => {
                     }
                     
                     if (inputData.optionalItems && Array.isArray(inputData.optionalItems) && inputData.optionalItems.length > 0) {
-                        setOptionalItems(inputData.optionalItems);
+                        setOptionalItems(inputData.optionalItems.map((item: any) => ({
+                            id: String(item.id || Date.now()),
+                            name: String(item.name || ''),
+                            price: Number(item.price || 0)
+                        })));
                     } else {
                         setOptionalItems([]);
                     }
