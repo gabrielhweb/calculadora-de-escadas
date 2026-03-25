@@ -79,15 +79,15 @@ export const ContractsList: React.FC = () => {
                 }
             }
 
-            const dataToSave = {
+            const dataToSave: any = {
                 clientName: formData.clientName,
                 totalValue: Number(formData.totalValue),
                 createdAt: new Date(formData.createdAt).toISOString(),
                 status: formData.status,
-                paymentStatus: formData.paymentStatus,
-                deliveryStatus: formData.deliveryStatus,
-                userId: user?.uid,
             };
+            if (formData.paymentStatus !== undefined) dataToSave.paymentStatus = formData.paymentStatus;
+            if (formData.deliveryStatus !== undefined) dataToSave.deliveryStatus = formData.deliveryStatus;
+            if (user?.uid !== undefined) dataToSave.userId = user.uid;
 
             if (editingContract) {
                 const contractRef = doc(db, 'contracts', editingContract.id);
@@ -496,13 +496,21 @@ export const ContractsList: React.FC = () => {
                                 <button
                                     onClick={() => {
                                         setIsModalOpen(false);
+                                        let parsedData = {};
+                                        try {
+                                            parsedData = typeof editingContract.contractData === 'string' 
+                                                ? JSON.parse(editingContract.contractData) 
+                                                : editingContract.contractData;
+                                        } catch (e) {
+                                            console.error("Erro ao parsear contractData", e);
+                                            alert("Erro ao ler os dados do contrato. O formato pode estar corrompido.");
+                                            return;
+                                        }
                                         navigate('/contract', { 
                                             state: { 
                                                 isEditing: true, 
                                                 editingContractId: editingContract.id,
-                                                savedContractData: typeof editingContract.contractData === 'string' 
-                                                    ? JSON.parse(editingContract.contractData) 
-                                                    : editingContract.contractData 
+                                                savedContractData: parsedData
                                             } 
                                         });
                                     }}

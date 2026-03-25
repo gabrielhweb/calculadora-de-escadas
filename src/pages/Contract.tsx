@@ -637,6 +637,10 @@ const Contract = () => {
 
         try {
             if (isEditing) {
+                if (!editingContractId) {
+                    alert("Erro: ID do contrato não encontrado para edição.");
+                    return;
+                }
                 // Remove id e createdAt para não sobrescrever na atualização
                 const { id, createdAt, status, ...updateData } = newSavedContract;
                 await updateDoc(doc(db, 'contracts', editingContractId), updateData);
