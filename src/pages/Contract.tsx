@@ -216,15 +216,15 @@ const Contract = () => {
                     setTotalHeight(inputData.totalHeight?.toString() || '300');
                     setWidth(selectedOption.stairWidth?.toString() || '70');
                     setTotalSteps(selectedOption.steps?.toString() || '15');
-                    setStepHeight(selectedOption.stepHeight?.toFixed(2) || '20');
-                    setTreadDepth(selectedOption.treadDepth?.toFixed(2) || '25');
+                    setStepHeight(Number(selectedOption.stepHeight || 20).toFixed(2));
+                    setTreadDepth(Number(selectedOption.treadDepth || 25).toFixed(2));
                     setTotalLength(selectedOption.totalLength?.toString() || '300');
                     setDampers(inputData.dampers?.toString() || '4');
                     setStairDirection(inputData.stairDirection || 'standard');
                     setWallFixation(inputData.wallFixation || 'left');
                     setTreadMaterial(inputData.treadMaterial);
                     
-                    if (selectedOption.landings && selectedOption.landings.length > 0) {
+                    if (selectedOption.landings && Array.isArray(selectedOption.landings) && selectedOption.landings.length > 0) {
                         setLandings(selectedOption.landings);
                     } else {
                         setLandings([]);
@@ -233,8 +233,10 @@ const Contract = () => {
                     setStairPrice(data.finalStairPrice ? Number(data.finalStairPrice).toFixed(2) : '0');
                     setLandingsPrice(data.finalLandingsPrice ? Number(data.finalLandingsPrice).toFixed(2) : '0');
                     
-                    if (inputData.optionalItems && inputData.optionalItems.length > 0) {
+                    if (inputData.optionalItems && Array.isArray(inputData.optionalItems) && inputData.optionalItems.length > 0) {
                         setOptionalItems(inputData.optionalItems);
+                    } else {
+                        setOptionalItems([]);
                     }
 
                     setFreightPrice(data.freightCost ? Number(data.freightCost).toFixed(2) : '0');
@@ -248,14 +250,18 @@ const Contract = () => {
                 if (paymentDetails) {
                     setDiscountPercent(paymentDetails.discountPercent || 0);
                     setDiscountValue(paymentDetails.discountValue ? Number(paymentDetails.discountValue).toFixed(2) : '');
-                    setSignalPercent(paymentDetails.signalPercent || 50);
+                    setSignalPercent(Number(paymentDetails.signalPercent || 50));
                     setInstallments(paymentDetails.installments || 6);
                     setHybridSignalValue(paymentDetails.hybridSignalAmount ? Number(paymentDetails.hybridSignalAmount).toFixed(2) : '');
                     setPixTiming(paymentDetails.pixTiming || 'entry');
                     setRemainderPaymentMode(paymentDetails.remainderText || 'Link de Pagamento (Cartão de Crédito)');
                 }
 
-                if (data.additionalClauses) setCustomClauses(data.additionalClauses);
+                if (data.additionalClauses && Array.isArray(data.additionalClauses)) {
+                    setCustomClauses(data.additionalClauses);
+                } else {
+                    setCustomClauses([]);
+                }
                 if (data.finishText) setFinishText(data.finishText);
                 if (data.stepCapacityText) setStepCapacityText(data.stepCapacityText);
                 if (data.stairCapacityText) setStairCapacityText(data.stairCapacityText);
@@ -293,36 +299,38 @@ const Contract = () => {
 
                 if (selectedOption && inputData) {
                     setOriginalInputData(inputData);
-                    setTotalHeight(inputData.totalHeight.toString());
-                    setWidth(selectedOption.stairWidth.toString());
-                    setTotalSteps(selectedOption.steps.toString());
-                    setStepHeight(selectedOption.stepHeight.toFixed(2));
-                    setTreadDepth(selectedOption.treadDepth.toFixed(2));
-                    setTotalLength(selectedOption.totalLength.toString());
-                    setDampers(inputData.dampers.toString());
+                    setTotalHeight(inputData.totalHeight?.toString() || '300');
+                    setWidth(selectedOption.stairWidth?.toString() || '70');
+                    setTotalSteps(selectedOption.steps?.toString() || '15');
+                    setStepHeight(Number(selectedOption.stepHeight || 20).toFixed(2));
+                    setTreadDepth(Number(selectedOption.treadDepth || 25).toFixed(2));
+                    setTotalLength(selectedOption.totalLength?.toString() || '300');
+                    setDampers(inputData.dampers?.toString() || '4');
                     setStairDirection(inputData.stairDirection || 'standard');
                     setWallFixation(inputData.wallFixation || 'left');
                     setTreadMaterial(inputData.treadMaterial);
                     
-                    if (selectedOption.landings && selectedOption.landings.length > 0) {
+                    if (selectedOption.landings && Array.isArray(selectedOption.landings) && selectedOption.landings.length > 0) {
                         setLandings(selectedOption.landings);
                         
                         // SEPARA O PREÇO: LANDINGS VS ESCADA
-                        const totalL = selectedOption.landings.reduce((acc: number, l: LandingInfo) => acc + l.price, 0);
+                        const totalL = selectedOption.landings.reduce((acc: number, l: LandingInfo) => acc + Number(l.price || 0), 0);
                         setLandingsPrice(totalL.toFixed(2));
-                        setStairPrice((selectedOption.totalPrice - totalL).toFixed(2));
+                        setStairPrice((Number(selectedOption.totalPrice || 0) - totalL).toFixed(2));
                     } else {
                         setLandings([]);
                         setLandingsPrice('0');
-                        setStairPrice(selectedOption.totalPrice.toFixed(2));
+                        setStairPrice(Number(selectedOption.totalPrice || 0).toFixed(2));
                     }
                     
-                    if (inputData.optionalItems && inputData.optionalItems.length > 0) {
+                    if (inputData.optionalItems && Array.isArray(inputData.optionalItems) && inputData.optionalItems.length > 0) {
                         setOptionalItems(inputData.optionalItems);
+                    } else {
+                        setOptionalItems([]);
                     }
 
-                    setFreightPrice(((freightCost || 0) + (tollCost || 0)).toFixed(2));
-                    setInstallationPrice((installationCost || 0).toFixed(2));
+                    setFreightPrice(((Number(freightCost) || 0) + (Number(tollCost) || 0)).toFixed(2));
+                    setInstallationPrice((Number(installationCost) || 0).toFixed(2));
                 }
             }
         }
@@ -1158,7 +1166,7 @@ const Contract = () => {
                                 <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded space-y-3">
                                     <div className="flex items-center justify-between">
                                         <label className="block text-xs font-bold text-blue-800 dark:text-blue-300 uppercase">
-                                            Valor em Dinheiro/Pix ({signalPercent.toFixed(1)}%)
+                                            Valor em Dinheiro/Pix ({Number(signalPercent).toFixed(1)}%)
                                         </label>
                                     </div>
                                     

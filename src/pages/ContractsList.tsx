@@ -55,11 +55,26 @@ export const ContractsList: React.FC = () => {
             }
         }
 
+        let dateString = '';
+        try {
+            if (contract.createdAt) {
+                if (typeof (contract.createdAt as any).toDate === 'function') {
+                    dateString = (contract.createdAt as any).toDate().toISOString().split('T')[0];
+                } else {
+                    dateString = new Date(contract.createdAt).toISOString().split('T')[0];
+                }
+            } else {
+                dateString = new Date().toISOString().split('T')[0];
+            }
+        } catch (e) {
+            dateString = new Date().toISOString().split('T')[0];
+        }
+
         setFormData({
-            clientName: contract.clientName,
-            totalValue: contract.totalValue,
-            createdAt: new Date(contract.createdAt).toISOString().split('T')[0],
-            status: contract.status,
+            clientName: contract.clientName || '',
+            totalValue: contract.totalValue || 0,
+            createdAt: dateString,
+            status: contract.status || 'pendente',
             paymentStatus: contract.paymentStatus || 'a_receber',
             deliveryStatus: contract.deliveryStatus || 'em_producao',
             contractDataString: dataString
@@ -79,10 +94,19 @@ export const ContractsList: React.FC = () => {
                 }
             }
 
+            let finalDate = new Date().toISOString();
+            try {
+                if (formData.createdAt) {
+                    finalDate = new Date(formData.createdAt).toISOString();
+                }
+            } catch (e) {
+                console.error("Data inválida", e);
+            }
+
             const dataToSave: any = {
                 clientName: formData.clientName,
                 totalValue: Number(formData.totalValue),
-                createdAt: new Date(formData.createdAt).toISOString(),
+                createdAt: finalDate,
                 status: formData.status,
             };
             if (formData.paymentStatus !== undefined) dataToSave.paymentStatus = formData.paymentStatus;
@@ -121,7 +145,14 @@ export const ContractsList: React.FC = () => {
                 loadedContracts.push({ id: doc.id, ...doc.data() } as SavedContract);
             });
             // Sort by createdAt descending
-            loadedContracts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+            loadedContracts.sort((a, b) => {
+                const getTime = (date: any) => {
+                    if (!date) return 0;
+                    if (typeof date.toDate === 'function') return date.toDate().getTime();
+                    return new Date(date).getTime() || 0;
+                };
+                return getTime(b.createdAt) - getTime(a.createdAt);
+            });
             setContracts(loadedContracts);
         }, (error) => {
             console.error("Firestore Error: ", error);
@@ -283,7 +314,17 @@ export const ContractsList: React.FC = () => {
                                 </div>
                                 
                                 <div className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-                                    <p>Criado em: {new Date(contract.createdAt).toLocaleDateString('pt-BR')}</p>
+                                    <p>Criado em: {(() => {
+                                        try {
+                                            if (!contract.createdAt) return 'Data não disponível';
+                                            if (typeof (contract.createdAt as any).toDate === 'function') {
+                                                return (contract.createdAt as any).toDate().toLocaleDateString('pt-BR');
+                                            }
+                                            return new Date(contract.createdAt).toLocaleDateString('pt-BR');
+                                        } catch (e) {
+                                            return 'Data inválida';
+                                        }
+                                    })()}</p>
                                     <p className="font-semibold text-highlight mt-1">{formatCurrencyBRL(contract.totalValue)}</p>
                                 </div>
 
