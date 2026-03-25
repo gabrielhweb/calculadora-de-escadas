@@ -48,7 +48,10 @@ export const ContractsList: React.FC = () => {
         let dataString = '';
         if (contract.contractData) {
             try {
-                const parsed = typeof contract.contractData === 'string' ? JSON.parse(contract.contractData) : contract.contractData;
+                let parsed = typeof contract.contractData === 'string' ? JSON.parse(contract.contractData) : contract.contractData;
+                while (typeof parsed === 'string') {
+                    parsed = JSON.parse(parsed);
+                }
                 dataString = JSON.stringify(parsed, null, 2);
             } catch (e) {
                 console.error("Erro ao formatar dados do contrato:", e);
@@ -105,7 +108,7 @@ export const ContractsList: React.FC = () => {
 
             const dataToSave: any = {
                 clientName: formData.clientName,
-                totalValue: Number(formData.totalValue),
+                totalValue: Number(formData.totalValue) || 0,
                 createdAt: finalDate,
                 status: formData.status,
             };
@@ -193,7 +196,7 @@ export const ContractsList: React.FC = () => {
     const handleDownload = (contractData: any) => {
         try {
             let parsedData = typeof contractData === 'string' ? JSON.parse(contractData) : contractData;
-            if (typeof parsedData === 'string') {
+            while (typeof parsedData === 'string') {
                 parsedData = JSON.parse(parsedData);
             }
             generateContractPDF(parsedData);
@@ -206,7 +209,7 @@ export const ContractsList: React.FC = () => {
     const handleDownloadTechnical = (contractData: any) => {
         try {
             let parsedData = typeof contractData === 'string' ? JSON.parse(contractData) : contractData;
-            if (typeof parsedData === 'string') {
+            while (typeof parsedData === 'string') {
                 parsedData = JSON.parse(parsedData);
             }
             const technicalProps = {
@@ -539,17 +542,18 @@ export const ContractsList: React.FC = () => {
                         </div>
 
                         <div className="mt-6 flex justify-between items-center">
-                            {editingContract && editingContract.contractData ? (
+                            {editingContract && (editingContract.contractData || formData.contractDataString) ? (
                                 <button
                                     onClick={() => {
                                         setIsModalOpen(false);
                                         let parsedData = {};
                                         try {
-                                            parsedData = typeof editingContract.contractData === 'string' 
-                                                ? JSON.parse(editingContract.contractData) 
-                                                : editingContract.contractData;
+                                            const dataToParse = formData.contractDataString || editingContract.contractData;
+                                            parsedData = typeof dataToParse === 'string' 
+                                                ? JSON.parse(dataToParse) 
+                                                : dataToParse;
                                             
-                                            if (typeof parsedData === 'string') {
+                                            while (typeof parsedData === 'string') {
                                                 parsedData = JSON.parse(parsedData);
                                             }
                                         } catch (e) {

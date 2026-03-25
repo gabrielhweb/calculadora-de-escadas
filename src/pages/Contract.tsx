@@ -647,7 +647,7 @@ const Contract = () => {
             clientName: clientName,
             totalValue: paymentMethod === 'pix' ? pixTotal : totalGeralFinal,
             status: 'falta_assinar' as const,
-            contractData: JSON.stringify(contractData),
+            contractData: JSON.parse(JSON.stringify(contractData)),
             userId: user.uid
         };
 
