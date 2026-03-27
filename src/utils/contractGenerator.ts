@@ -394,12 +394,14 @@ export const generateContractPDF = (data: ContractData) => {
       }
   }
 
-  addText('.', 11, false, 'left');
-  currentY += 5;
+// Deixei apenas +5 porque a sua função addText já dá um espaço automático. 
+  // Se quiser o texto mais colado ainda, é só apagar essa linha do currentY += 5;
+  currentY += 5; 
 
   addText('6.2 Caso o pagamento da parcela final não seja realizado em até 2 (dois) dias corridos após a entrega, será aplicada multa de 4% sobre o valor em aberto, além de juros de 1% ao mês até a regularização.', 11, false, 'justify');
   
-  currentY += 10;
+  // Reduzi aqui de 10 para 5 também para não empurrar demais a Cláusula 7 para baixo
+  currentY += 5;
 
   if (data.additionalClauses && data.additionalClauses.length > 0) {
       addText('7. Cláusulas Adicionais.', 11, true, 'left');
