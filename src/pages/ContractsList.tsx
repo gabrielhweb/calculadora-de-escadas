@@ -4,9 +4,61 @@ import { SavedContract, ContractStatus } from '../types';
 import { formatCurrencyBRL } from '../utils';
 import { generateContractPDF } from '../utils/contractGenerator';
 import { generateUnifiedTechnicalPDF } from '../utils/technicalPdfGenerator';
-import { db } from '../firebase';
 import { collection, query, where, onSnapshot, doc, updateDoc, deleteDoc, getDocs, addDoc } from 'firebase/firestore';
+import { db, auth } from '../firebase';
 import { useAuth } from '../components/AuthProvider';
+
+enum OperationType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LIST = 'list',
+  GET = 'get',
+  WRITE = 'write',
+}
+
+interface FirestoreErrorInfo {
+  error: string;
+  operationType: OperationType;
+  path: string | null;
+  authInfo: {
+    userId: string | undefined;
+    email: string | null | undefined;
+    emailVerified: boolean | undefined;
+    isAnonymous: boolean | undefined;
+    tenantId: string | null | undefined;
+    providerInfo: {
+      providerId: string;
+      displayName: string | null;
+      email: string | null;
+      photoUrl: string | null;
+    }[];
+  }
+}
+
+function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const errInfo: FirestoreErrorInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    authInfo: {
+      userId: auth.currentUser?.uid,
+      email: auth.currentUser?.email,
+      emailVerified: auth.currentUser?.emailVerified,
+      isAnonymous: auth.currentUser?.isAnonymous,
+      tenantId: auth.currentUser?.tenantId,
+      providerInfo: auth.currentUser?.providerData.map(provider => ({
+        providerId: provider.providerId,
+        displayName: provider.displayName,
+        email: provider.email,
+        photoUrl: provider.photoURL
+      })) || []
+    },
+    operationType,
+    path
+  }
+  console.error('Firestore Error: ', JSON.stringify(errInfo));
+  alert(`Erro ao salvar no banco de dados: ${errInfo.error}`);
+  throw new Error(JSON.stringify(errInfo));
+}
 
 export const ContractsList: React.FC = () => {
     const [contracts, setContracts] = useState<SavedContract[]>([]);
@@ -130,8 +182,7 @@ export const ContractsList: React.FC = () => {
             }
             setIsModalOpen(false);
         } catch (error) {
-            console.error("Erro ao salvar contrato:", error);
-            alert("Erro ao salvar o contrato.");
+            handleFirestoreError(error, editingContract ? OperationType.UPDATE : OperationType.CREATE, 'contracts');
         }
     };
 
@@ -158,7 +209,7 @@ export const ContractsList: React.FC = () => {
             });
             setContracts(loadedContracts);
         }, (error) => {
-            console.error("Firestore Error: ", error);
+            handleFirestoreError(error, OperationType.LIST, 'contracts');
         });
 
         return () => unsubscribe();
@@ -169,8 +220,7 @@ export const ContractsList: React.FC = () => {
             const contractRef = doc(db, 'contracts', id);
             await updateDoc(contractRef, { status: newStatus });
         } catch (error) {
-            console.error("Erro ao atualizar contrato:", error);
-            alert("Erro ao atualizar o status do contrato.");
+            handleFirestoreError(error, OperationType.UPDATE, `contracts/${id}`);
         }
     };
 
@@ -182,13 +232,16 @@ export const ContractsList: React.FC = () => {
                 
                 // Excluir também da fila de produção
                 const q = query(collection(db, 'production_queue'), where('contractId', '==', id));
-                const querySnapshot = await getDocs(q);
-                querySnapshot.forEach(async (docSnap) => {
-                    await deleteDoc(doc(db, 'production_queue', docSnap.id));
-                });
+                try {
+                    const querySnapshot = await getDocs(q);
+                    querySnapshot.forEach(async (docSnap) => {
+                        await deleteDoc(doc(db, 'production_queue', docSnap.id));
+                    });
+                } catch (error) {
+                    handleFirestoreError(error, OperationType.GET, 'production_queue');
+                }
             } catch (error) {
-                console.error("Erro ao excluir contrato:", error);
-                alert("Erro ao excluir o contrato.");
+                handleFirestoreError(error, OperationType.DELETE, `contracts/${id}`);
             }
         }
     };
@@ -561,7 +614,7 @@ export const ContractsList: React.FC = () => {
                                             alert("Erro ao ler os dados do contrato. O formato pode estar corrompido.");
                                             return;
                                         }
-                                        navigate('/contract', { 
+                                        navigate('/contrato', { 
                                             state: { 
                                                 isEditing: true, 
                                                 editingContractId: editingContract.id,

@@ -1,9 +1,61 @@
 import React, { useState, useEffect } from 'react';
-import { db } from '../firebase';
-import { collection, query, where, onSnapshot, doc, updateDoc, deleteDoc, getDocs } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { db, auth } from '../firebase';
 import { ProductionOrder } from '../types';
 import { formatCurrencyBRL } from '../utils';
 import { useAuth } from '../components/AuthProvider';
+
+enum OperationType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LIST = 'list',
+  GET = 'get',
+  WRITE = 'write',
+}
+
+interface FirestoreErrorInfo {
+  error: string;
+  operationType: OperationType;
+  path: string | null;
+  authInfo: {
+    userId: string | undefined;
+    email: string | null | undefined;
+    emailVerified: boolean | undefined;
+    isAnonymous: boolean | undefined;
+    tenantId: string | null | undefined;
+    providerInfo: {
+      providerId: string;
+      displayName: string | null;
+      email: string | null;
+      photoUrl: string | null;
+    }[];
+  }
+}
+
+function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const errInfo: FirestoreErrorInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    authInfo: {
+      userId: auth.currentUser?.uid,
+      email: auth.currentUser?.email,
+      emailVerified: auth.currentUser?.emailVerified,
+      isAnonymous: auth.currentUser?.isAnonymous,
+      tenantId: auth.currentUser?.tenantId,
+      providerInfo: auth.currentUser?.providerData.map(provider => ({
+        providerId: provider.providerId,
+        displayName: provider.displayName,
+        email: provider.email,
+        photoUrl: provider.photoURL
+      })) || []
+    },
+    operationType,
+    path
+  }
+  console.error('Firestore Error: ', JSON.stringify(errInfo));
+  alert(`Erro ao salvar no banco de dados: ${errInfo.error}`);
+  throw new Error(JSON.stringify(errInfo));
+}
 
 export default function ProductionQueue() {
     const [orders, setOrders] = useState<ProductionOrder[]>([]);
@@ -22,7 +74,7 @@ export default function ProductionQueue() {
             loaded.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
             setOrders(loaded);
         }, (error) => {
-            console.error("Firestore Error: ", error);
+            handleFirestoreError(error, OperationType.LIST, 'production_queue');
         });
         
         return () => unsubscribe();
@@ -33,8 +85,7 @@ export default function ProductionQueue() {
             try {
                 await updateDoc(doc(db, 'production_queue', id), { status: 'completed' });
             } catch (error) {
-                console.error("Erro ao dar baixa:", error);
-                alert("Erro ao atualizar o pedido.");
+                handleFirestoreError(error, OperationType.UPDATE, `production_queue/${id}`);
             }
         }
     };
@@ -50,8 +101,7 @@ export default function ProductionQueue() {
                     await deleteDoc(doc(db, 'contracts', contractId));
                 }
             } catch (error) {
-                console.error("Erro ao excluir pedido:", error);
-                alert("Erro ao excluir o pedido.");
+                handleFirestoreError(error, OperationType.DELETE, `production_queue/${id}`);
             }
         }
     };
@@ -61,8 +111,7 @@ export default function ProductionQueue() {
         try {
             await updateDoc(doc(db, 'production_queue', id), { [field]: newStatus });
         } catch (error) {
-            console.error("Erro ao atualizar status:", error);
-            alert("Erro ao atualizar o status do pagamento.");
+            handleFirestoreError(error, OperationType.UPDATE, `production_queue/${id}`);
         }
     };
 
@@ -74,8 +123,7 @@ export default function ProductionQueue() {
         try {
             await updateDoc(doc(db, 'production_queue', id), { paidInstallments: newPaid });
         } catch (error) {
-            console.error("Erro ao atualizar parcelas:", error);
-            alert("Erro ao atualizar as parcelas.");
+            handleFirestoreError(error, OperationType.UPDATE, `production_queue/${id}`);
         }
     };
 

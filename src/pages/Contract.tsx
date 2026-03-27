@@ -6,9 +6,61 @@ import { generateContractPDF } from '../utils/contractGenerator';
 import { LandingInfo, OptionalItem } from '../types';
 import { formatCurrencyBRL } from '../utils';
 import { TechnicalBudget } from '../components/TechnicalBudget';
-import { db } from '../firebase';
+import { db, auth } from '../firebase';
 import { doc, setDoc, updateDoc } from 'firebase/firestore';
 import { useAuth } from '../components/AuthProvider';
+
+enum OperationType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LIST = 'list',
+  GET = 'get',
+  WRITE = 'write',
+}
+
+interface FirestoreErrorInfo {
+  error: string;
+  operationType: OperationType;
+  path: string | null;
+  authInfo: {
+    userId: string | undefined;
+    email: string | null | undefined;
+    emailVerified: boolean | undefined;
+    isAnonymous: boolean | undefined;
+    tenantId: string | null | undefined;
+    providerInfo: {
+      providerId: string;
+      displayName: string | null;
+      email: string | null;
+      photoUrl: string | null;
+    }[];
+  }
+}
+
+function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const errInfo: FirestoreErrorInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    authInfo: {
+      userId: auth.currentUser?.uid,
+      email: auth.currentUser?.email,
+      emailVerified: auth.currentUser?.emailVerified,
+      isAnonymous: auth.currentUser?.isAnonymous,
+      tenantId: auth.currentUser?.tenantId,
+      providerInfo: auth.currentUser?.providerData.map(provider => ({
+        providerId: provider.providerId,
+        displayName: provider.displayName,
+        email: provider.email,
+        photoUrl: provider.photoURL
+      })) || []
+    },
+    operationType,
+    path
+  }
+  console.error('Firestore Error: ', JSON.stringify(errInfo));
+  alert(`Erro ao salvar no banco de dados: ${errInfo.error}`);
+  throw new Error(JSON.stringify(errInfo));
+}
 
 // Declaração global para SpeechRecognition (API do Navegador)
 declare global {
@@ -230,8 +282,14 @@ const Contract = () => {
                         setLandings([]);
                     }
                     
-                    setStairPrice(data.finalStairPrice ? Number(data.finalStairPrice).toFixed(2) : '0');
-                    setLandingsPrice(data.finalLandingsPrice ? Number(data.finalLandingsPrice).toFixed(2) : '0');
+                    if (data.finalStairPrice !== undefined) {
+                        setStairPrice(Number(data.finalStairPrice).toFixed(2));
+                        setLandingsPrice(Number(data.finalLandingsPrice || 0).toFixed(2));
+                    } else {
+                        const totalL = (selectedOption.landings || []).reduce((acc: number, l: LandingInfo) => acc + Number(l.price || 0), 0);
+                        setLandingsPrice(totalL.toFixed(2));
+                        setStairPrice((Number(selectedOption.totalPrice || 0) - totalL).toFixed(2));
+                    }
                     
                     if (inputData.optionalItems && Array.isArray(inputData.optionalItems) && inputData.optionalItems.length > 0) {
                         setOptionalItems(inputData.optionalItems.map((item: any) => ({
@@ -661,7 +719,7 @@ const Contract = () => {
                 const { id, createdAt, status, ...updateData } = newSavedContract;
                 await updateDoc(doc(db, 'contracts', editingContractId), updateData);
                 alert("Contrato atualizado com sucesso!");
-                navigate('/contracts');
+                navigate('/contratos');
                 return;
             } else {
                 await setDoc(doc(db, 'contracts', newSavedContract.id), newSavedContract);
@@ -712,8 +770,7 @@ const Contract = () => {
 
             alert("Contrato salvo com sucesso na sua Timeline na Nuvem!");
         } catch (error) {
-            console.error("Erro ao salvar contrato:", error);
-            alert("Erro ao salvar o contrato na nuvem.");
+            handleFirestoreError(error, isEditing ? OperationType.UPDATE : OperationType.CREATE, 'contracts');
         }
     };
 

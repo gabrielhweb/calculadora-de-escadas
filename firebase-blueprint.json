@@ -37,6 +37,62 @@
         }
       },
       "required": ["id", "createdAt", "clientName", "totalValue", "status", "contractData", "userId"]
+    },
+    "ProductionOrder": {
+      "title": "ProductionOrder",
+      "description": "A production order in the queue",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "contractId": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "clientName": {
+          "type": "string"
+        },
+        "deliveryDate": {
+          "type": "string"
+        },
+        "downPayment": {
+          "type": "number"
+        },
+        "balanceDue": {
+          "type": "number"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["in_queue", "completed"]
+        },
+        "downPaymentStatus": {
+          "type": "string",
+          "enum": ["pending", "paid"]
+        },
+        "balanceStatus": {
+          "type": "string",
+          "enum": ["pending", "paid"]
+        },
+        "paymentMethod": {
+          "type": "string",
+          "enum": ["pix", "card", "hybrid"]
+        },
+        "pixTiming": {
+          "type": "string",
+          "enum": ["entry", "delivery"]
+        },
+        "installments": {
+          "type": "number"
+        },
+        "paidInstallments": {
+          "type": "number"
+        }
+      },
+      "required": ["id", "createdAt", "clientName", "deliveryDate", "downPayment", "balanceDue", "status"]
     }
   },
   "firestore": {
@@ -45,6 +101,12 @@
         "$ref": "#/entities/SavedContract"
       },
       "description": "Contracts saved by users"
+    },
+    "/production_queue/{orderId}": {
+      "schema": {
+        "$ref": "#/entities/ProductionOrder"
+      },
+      "description": "Production orders"
     }
   }
 }

@@ -29,6 +29,10 @@ service cloud.firestore {
     // ===============================================================
     // Rules
     // ===============================================================
+    match /test/connection {
+      allow read: if isAuthenticated();
+    }
+
     match /contracts/{contractId} {
       allow read, write: if isAllowedUser();
     }
