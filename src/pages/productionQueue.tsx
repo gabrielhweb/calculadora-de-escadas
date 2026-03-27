@@ -57,39 +57,41 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
   throw new Error(JSON.stringify(errInfo));
 }
 
-const calculateLateFee = (deliveryDate: string, openBalance: number) => {
-    if (!deliveryDate || openBalance <= 0) return null;
+const calculateLateFee = (deliveryDate: string, openBalance: number, isLateManual: boolean = false) => {
+    if (!isLateManual || openBalance <= 0) return null;
     
-    const [year, month, day] = deliveryDate.split('-').map(Number);
-    if (!year || !month || !day) return null;
+    let daysLate = 0;
     
-    const delivery = new Date(year, month - 1, day);
-    const today = new Date();
-    
-    delivery.setHours(0, 0, 0, 0);
-    today.setHours(0, 0, 0, 0);
-    
-    const dueDate = new Date(delivery);
-    dueDate.setDate(dueDate.getDate() + 2);
-    
-    if (today > dueDate) {
-        const diffTime = Math.abs(today.getTime() - dueDate.getTime());
-        const daysLate = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
-        const fine = openBalance * 0.04;
-        const interest = openBalance * (0.01 / 30) * daysLate;
-        
-        return {
-            isLate: true,
-            fine,
-            interest,
-            totalLateFee: fine + interest,
-            totalWithLateFee: openBalance + fine + interest,
-            daysLate
-        };
+    if (deliveryDate) {
+        const [year, month, day] = deliveryDate.split('-').map(Number);
+        if (year && month && day) {
+            const delivery = new Date(year, month - 1, day);
+            const today = new Date();
+            
+            delivery.setHours(0, 0, 0, 0);
+            today.setHours(0, 0, 0, 0);
+            
+            const dueDate = new Date(delivery);
+            dueDate.setDate(dueDate.getDate() + 2);
+            
+            if (today > dueDate) {
+                const diffTime = Math.abs(today.getTime() - dueDate.getTime());
+                daysLate = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            }
+        }
     }
     
-    return null;
+    const fine = openBalance * 0.04;
+    const interest = openBalance * (0.01 / 30) * daysLate;
+    
+    return {
+        isLate: true,
+        fine,
+        interest,
+        totalLateFee: fine + interest,
+        totalWithLateFee: openBalance + fine + interest,
+        daysLate
+    };
 };
 
 export default function ProductionQueue() {
@@ -145,6 +147,14 @@ export default function ProductionQueue() {
         const newStatus = currentStatus === 'paid' ? 'pending' : 'paid';
         try {
             await updateDoc(doc(db, 'production_queue', id), { [field]: newStatus });
+        } catch (error) {
+            handleFirestoreError(error, OperationType.UPDATE, `production_queue/${id}`);
+        }
+    };
+
+    const toggleLateStatus = async (id: string, currentStatus: boolean | undefined) => {
+        try {
+            await updateDoc(doc(db, 'production_queue', id), { isLateManual: !currentStatus });
         } catch (error) {
             handleFirestoreError(error, OperationType.UPDATE, `production_queue/${id}`);
         }
@@ -220,7 +230,7 @@ export default function ProductionQueue() {
                             }
                         }
 
-                        const lateFeeInfo = openBalance > 0 ? calculateLateFee(order.deliveryDate, openBalance) : null;
+                        const lateFeeInfo = openBalance > 0 ? calculateLateFee(order.deliveryDate, openBalance, order.isLateManual) : null;
 
                         return (
                         <div key={order.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all hover:shadow-md">
@@ -356,6 +366,15 @@ export default function ProductionQueue() {
                                                 </button>
                                             )}
                                             
+                                            {openBalance > 0 && (
+                                                <button
+                                                    onClick={() => toggleLateStatus(order.id, order.isLateManual)}
+                                                    className={`mt-2 text-xs font-bold px-2 py-1 rounded-full transition-colors ${order.isLateManual ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50' : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'}`}
+                                                >
+                                                    {order.isLateManual ? '❌ Remover Atraso' : '⚠️ Marcar Atraso'}
+                                                </button>
+                                            )}
+
                                             {lateFeeInfo && (
                                                 <div className="mt-2 text-xs bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 p-2 rounded-lg border border-red-100 dark:border-red-900/50">
                                                     <p className="font-bold flex items-center gap-1">

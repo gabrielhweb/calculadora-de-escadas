@@ -128,6 +128,7 @@ export interface ProductionOrder {
   pixTiming?: 'entry' | 'delivery';
   installments?: number;
   paidInstallments?: number;
+  isLateManual?: boolean;
 }
 
 export interface ProjectFile {
