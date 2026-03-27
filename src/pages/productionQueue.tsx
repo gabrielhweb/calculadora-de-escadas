@@ -57,6 +57,41 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
   throw new Error(JSON.stringify(errInfo));
 }
 
+const calculateLateFee = (deliveryDate: string, openBalance: number) => {
+    if (!deliveryDate || openBalance <= 0) return null;
+    
+    const [year, month, day] = deliveryDate.split('-').map(Number);
+    if (!year || !month || !day) return null;
+    
+    const delivery = new Date(year, month - 1, day);
+    const today = new Date();
+    
+    delivery.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    
+    const dueDate = new Date(delivery);
+    dueDate.setDate(dueDate.getDate() + 2);
+    
+    if (today > dueDate) {
+        const diffTime = Math.abs(today.getTime() - dueDate.getTime());
+        const daysLate = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        const fine = openBalance * 0.04;
+        const interest = openBalance * (0.01 / 30) * daysLate;
+        
+        return {
+            isLate: true,
+            fine,
+            interest,
+            totalLateFee: fine + interest,
+            totalWithLateFee: openBalance + fine + interest,
+            daysLate
+        };
+    }
+    
+    return null;
+};
+
 export default function ProductionQueue() {
     const [orders, setOrders] = useState<ProductionOrder[]>([]);
     const { user } = useAuth();
@@ -171,6 +206,21 @@ export default function ProductionQueue() {
                         const installmentValue = hasInstallments ? installmentBaseValue / (order.installments || 1) : 0;
                         const totalPaidInstallments = installmentValue * (order.paidInstallments || 0);
                         const totalRemainingInstallments = installmentBaseValue - totalPaidInstallments;
+
+                        let openBalance = 0;
+                        const isInstallmentBalance = hasInstallments && (order.paymentMethod === 'card' || (order.paymentMethod === 'hybrid' && order.pixTiming !== 'delivery'));
+                        
+                        if (isInstallmentBalance) {
+                            if ((order.paidInstallments || 0) < (order.installments || 1)) {
+                                openBalance = totalRemainingInstallments;
+                            }
+                        } else {
+                            if (order.balanceStatus !== 'paid') {
+                                openBalance = order.balanceDue;
+                            }
+                        }
+
+                        const lateFeeInfo = openBalance > 0 ? calculateLateFee(order.deliveryDate, openBalance) : null;
 
                         return (
                         <div key={order.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all hover:shadow-md">
@@ -304,6 +354,24 @@ export default function ProductionQueue() {
                                                 >
                                                     {order.balanceStatus === 'paid' ? '✅ Pago' : '⏳ Pendente'}
                                                 </button>
+                                            )}
+                                            
+                                            {lateFeeInfo && (
+                                                <div className="mt-2 text-xs bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 p-2 rounded-lg border border-red-100 dark:border-red-900/50">
+                                                    <p className="font-bold flex items-center gap-1">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                        </svg>
+                                                        Atraso: {lateFeeInfo.daysLate} dia(s)
+                                                    </p>
+                                                    <div className="mt-1 space-y-0.5">
+                                                        <p>Multa (4%): {formatCurrencyBRL(lateFeeInfo.fine)}</p>
+                                                        <p>Juros: {formatCurrencyBRL(lateFeeInfo.interest)}</p>
+                                                        <p className="font-bold pt-1 border-t border-red-200 dark:border-red-800/50 mt-1">
+                                                            Total a cobrar: {formatCurrencyBRL(lateFeeInfo.totalWithLateFee)}
+                                                        </p>
+                                                    </div>
+                                                </div>
                                             )}
                                         </>
                                     )}
