@@ -278,18 +278,15 @@ export const generateContractPDF = (data: ContractData) => {
   currentY += 5;
 
   const isTransportadora = data.inputData.logistics?.freightMode === 'transportadora';
-  addText(isTransportadora ? '4. Do prazo de fabricação e entrega.' : '4. Do prazo de entrega.', 11, true, 'left');
-  const formattedDate = data.deadlineDate ? data.deadlineDate.split('-').reverse().join('/') : '';
+  addText('4. Do prazo de entrega.', 11, true, 'left');
   
-  let defaultDeliveryText = 'A combinar';
-  if (formattedDate) {
-      if (isTransportadora) {
-          defaultDeliveryText = `A fabricação da escada deve ser feita até dia ${formattedDate}, após o pagamento do sinal, acrescido do prazo de entrega da transportadora.`;
-      } else {
-          defaultDeliveryText = `Deve ser feita até dia ${formattedDate}, após o pagamento do sinal`;
-      }
+  if (isTransportadora) {
+      addText(`4.1 A escada deverá ser entregue no prazo de 20 (vinte) dias úteis, contados a partir da data de confirmação do pagamento do sinal.`, 11, false, 'justify');
+      addText('4.2 Nos casos em que o envio for realizado por transportadora, o prazo acima refere-se exclusivamente à finalização da produção e entrega da mercadoria à empresa responsável pelo transporte.', 11, false, 'justify');
+  } else {
+      let defaultDeliveryText = 'A escada deverá ser entregue no prazo de 20 (vinte) dias úteis, contados a partir da data de confirmação do pagamento do sinal.';
+      addText(`4.1 ${data.deliveryText || defaultDeliveryText}`, 11, false, 'justify');
   }
-  addText(`4.1 ${data.deliveryText || defaultDeliveryText}`, 11, false, 'left');
   currentY += 5;
 
   addText('5. Da garantia.', 11, true, 'left');
@@ -394,14 +391,12 @@ export const generateContractPDF = (data: ContractData) => {
       }
   }
 
-// Deixei apenas +5 porque a sua função addText já dá um espaço automático. 
-  // Se quiser o texto mais colado ainda, é só apagar essa linha do currentY += 5;
-  currentY += 5; 
+  addText('.', 11, false, 'left');
+  currentY += 5;
 
   addText('6.2 Caso o pagamento da parcela final não seja realizado em até 2 (dois) dias corridos após a entrega, será aplicada multa de 4% sobre o valor em aberto, além de juros de 1% ao mês até a regularização.', 11, false, 'justify');
   
-  // Reduzi aqui de 10 para 5 também para não empurrar demais a Cláusula 7 para baixo
-  currentY += 5;
+  currentY += 10;
 
   if (data.additionalClauses && data.additionalClauses.length > 0) {
       addText('7. Cláusulas Adicionais.', 11, true, 'left');

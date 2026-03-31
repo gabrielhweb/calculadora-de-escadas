@@ -107,18 +107,6 @@ const maskCNPJ = (value: string) => value.replace(/\D/g, '').replace(/(\d{2})(\d
 const maskRG = (value: string) => value.replace(/\D/g, '').replace(/(\d{2})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1})$/, '$1-$2');
 const maskCEP = (value: string) => value.replace(/\D/g, '').replace(/(\d{5})(\d)/, '$1-$2').replace(/(-\d{3})\d+?$/, '$1');
 
-const addBusinessDays = (startDate: Date, days: number) => {
-    let count = 0;
-    let currentDate = new Date(startDate);
-    while (count < days) {
-        currentDate.setDate(currentDate.getDate() + 1);
-        const dayOfWeek = currentDate.getDay();
-        if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-            count++;
-        }
-    }
-    return currentDate;
-};
 
 const Contract = () => {
     const location = useLocation();
@@ -169,11 +157,11 @@ const Contract = () => {
     const [landingsPrice, setLandingsPrice] = useState('0'); // Preço total dos patamares
     
     const [freightPrice, setFreightPrice] = useState('0');
+    const [freightMode, setFreightMode] = useState<'empresa' | 'transportadora'>('empresa');
     const [installationPrice, setInstallationPrice] = useState('0');
     const [extrasPrice, setExtrasPrice] = useState('0');
     
     // Configurações do Contrato
-    const [deadlineDate, setDeadlineDate] = useState('');
     const [paymentMethod, setPaymentMethod] = useState<'pix' | 'card' | 'hybrid'>('pix');
     
     // Pagamento
@@ -239,12 +227,6 @@ const Contract = () => {
     }, [discountedBase, paymentMethod]); 
 
     useEffect(() => {
-        const targetDate = addBusinessDays(new Date(), 20);
-        const year = targetDate.getFullYear();
-        const month = String(targetDate.getMonth() + 1).padStart(2, '0');
-        const day = String(targetDate.getDate()).padStart(2, '0');
-        setDeadlineDate(`${year}-${month}-${day}`);
-
         if (location.state) {
             if (location.state.isEditing && location.state.savedContractData) {
                 const data = location.state.savedContractData;
@@ -277,7 +259,7 @@ const Contract = () => {
                     setTreadMaterial(String(inputData.treadMaterial || 'wood') as any);
                     
                     if (selectedOption.landings && Array.isArray(selectedOption.landings) && selectedOption.landings.length > 0) {
-                        setLandings(selectedOption.landings);
+                        setLandings(selectedOption.landings.filter(Boolean));
                     } else {
                         setLandings([]);
                     }
@@ -286,13 +268,14 @@ const Contract = () => {
                         setStairPrice(Number(data.finalStairPrice).toFixed(2));
                         setLandingsPrice(Number(data.finalLandingsPrice || 0).toFixed(2));
                     } else {
-                        const totalL = (selectedOption.landings || []).reduce((acc: number, l: LandingInfo) => acc + Number(l.price || 0), 0);
+                        const safeLandings = Array.isArray(selectedOption.landings) ? selectedOption.landings.filter(Boolean) : [];
+                        const totalL = safeLandings.reduce((acc: number, l: LandingInfo) => acc + Number(l.price || 0), 0);
                         setLandingsPrice(totalL.toFixed(2));
                         setStairPrice((Number(selectedOption.totalPrice || 0) - totalL).toFixed(2));
                     }
                     
                     if (inputData.optionalItems && Array.isArray(inputData.optionalItems) && inputData.optionalItems.length > 0) {
-                        setOptionalItems(inputData.optionalItems.map((item: any) => ({
+                        setOptionalItems(inputData.optionalItems.filter(Boolean).map((item: any) => ({
                             id: String(item.id || Date.now()),
                             name: String(item.name || ''),
                             price: Number(item.price || 0)
@@ -302,11 +285,13 @@ const Contract = () => {
                     }
 
                     setFreightPrice(data.freightCost ? Number(data.freightCost).toFixed(2) : '0');
+                    if (inputData.logistics?.freightMode) {
+                        setFreightMode(inputData.logistics.freightMode);
+                    }
                     setInstallationPrice(data.installationCost ? Number(data.installationCost).toFixed(2) : '0');
                     setExtrasPrice(data.extrasCost ? Number(data.extrasCost).toFixed(2) : '0');
                 }
 
-                if (data.deadlineDate) setDeadlineDate(String(data.deadlineDate));
                 if (data.paymentMethod) setPaymentMethod(String(data.paymentMethod) as any);
 
                 if (paymentDetails) {
@@ -373,10 +358,11 @@ const Contract = () => {
                     setTreadMaterial(String(inputData.treadMaterial || 'wood') as any);
                     
                     if (selectedOption.landings && Array.isArray(selectedOption.landings) && selectedOption.landings.length > 0) {
-                        setLandings(selectedOption.landings);
+                        const validLandings = selectedOption.landings.filter(Boolean);
+                        setLandings(validLandings);
                         
                         // SEPARA O PREÇO: LANDINGS VS ESCADA
-                        const totalL = selectedOption.landings.reduce((acc: number, l: LandingInfo) => acc + Number(l.price || 0), 0);
+                        const totalL = validLandings.reduce((acc: number, l: LandingInfo) => acc + Number(l.price || 0), 0);
                         setLandingsPrice(totalL.toFixed(2));
                         setStairPrice((Number(selectedOption.totalPrice || 0) - totalL).toFixed(2));
                     } else {
@@ -386,7 +372,7 @@ const Contract = () => {
                     }
                     
                     if (inputData.optionalItems && Array.isArray(inputData.optionalItems) && inputData.optionalItems.length > 0) {
-                        setOptionalItems(inputData.optionalItems.map((item: any) => ({
+                        setOptionalItems(inputData.optionalItems.filter(Boolean).map((item: any) => ({
                             id: String(item.id || Date.now()),
                             name: String(item.name || ''),
                             price: Number(item.price || 0)
@@ -396,6 +382,9 @@ const Contract = () => {
                     }
 
                     setFreightPrice(((Number(freightCost) || 0) + (Number(tollCost) || 0)).toFixed(2));
+                    if (inputData.logistics?.freightMode) {
+                        setFreightMode(inputData.logistics.freightMode);
+                    }
                     setInstallationPrice((Number(installationCost) || 0).toFixed(2));
                 }
             }
@@ -670,13 +659,17 @@ const Contract = () => {
                 landings: landings,
                 treadMaterial: treadMaterial,
                 stairDirection: stairDirection,
-                wallFixation: wallFixation
+                wallFixation: wallFixation,
+                logistics: {
+                    ...(originalInputData?.logistics || {}),
+                    freightMode: freightMode
+                }
             },
             freightCost: parseFloat(freightPrice) || 0,
             tollCost: 0,
             installationCost: parseFloat(installationPrice) || 0,
             extrasCost: parseFloat(extrasPrice) || 0,
-            deadlineDate, 
+            deadlineDate: '', 
             paymentMethod,
             paymentDetails: {
                 discountPercent, 
@@ -750,7 +743,7 @@ const Contract = () => {
                     contractId: newSavedContract.id,
                     createdAt: new Date().toISOString(),
                     clientName: clientName,
-                    deliveryDate: deadlineDate,
+                    deliveryDate: '',
                     downPayment: downPayment,
                     balanceDue: balanceDue,
                     status: 'in_queue' as const,
@@ -819,13 +812,17 @@ const Contract = () => {
                 landings: landings,
                 treadMaterial: treadMaterial,
                 stairDirection: stairDirection,
-                wallFixation: wallFixation
+                wallFixation: wallFixation,
+                logistics: {
+                    ...(originalInputData?.logistics || {}),
+                    freightMode: freightMode
+                }
             },
             freightCost: parseFloat(freightPrice) || 0,
             tollCost: 0,
             installationCost: parseFloat(installationPrice) || 0,
             extrasCost: parseFloat(extrasPrice) || 0,
-            deadlineDate, 
+            deadlineDate: '', 
             paymentMethod,
             paymentDetails: {
                 discountPercent, 
@@ -1134,6 +1131,18 @@ const Contract = () => {
                                 />
                             </div>
                             
+                            <div className="col-span-2 sm:col-span-1">
+                                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Tipo de Frete</label>
+                                <select
+                                    value={freightMode}
+                                    onChange={(e) => setFreightMode(e.target.value as 'empresa' | 'transportadora')}
+                                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-highlight focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                >
+                                    <option value="empresa">Pela Empresa</option>
+                                    <option value="transportadora">Transportadora</option>
+                                </select>
+                            </div>
+
                             <ContractInput label="Frete + Pedágio (R$)" value={freightPrice} onChange={(e: any) => setFreightPrice(e.target.value)} type="number" />
                             
                             {/* Instalação Customizada */}
@@ -1173,17 +1182,6 @@ const Contract = () => {
                                         : "Valor personalizado (manual)."}
                                 </p>
                             </div>
-                        </div>
-                        
-                        <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
-                             <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Data Limite de Entrega (Item 4)</label>
-                             <input 
-                                type="date" 
-                                value={deadlineDate} 
-                                onChange={(e) => setDeadlineDate(e.target.value)}
-                                className="w-full bg-white dark:bg-gray-700 text-black dark:text-white p-3 rounded border border-gray-300 dark:border-gray-600 font-medium"
-                             />
-                             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Calculado: 20 dias úteis (sem sáb/dom)</p>
                         </div>
                     </div>
 

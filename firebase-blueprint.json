@@ -90,6 +90,9 @@
         },
         "paidInstallments": {
           "type": "number"
+        },
+        "isLateManual": {
+          "type": "boolean"
         }
       },
       "required": ["id", "createdAt", "clientName", "deliveryDate", "downPayment", "balanceDue", "status"]
