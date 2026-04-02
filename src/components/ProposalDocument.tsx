@@ -364,37 +364,50 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
     doc.text('-Capacidade máxima da escada: 360 quilos', pageMargin, currentY);
     currentY += 10;
 
-    doc.text('Formas de pagamento:', pageMargin, currentY);
-    currentY += 6;
-    
-    doc.setFont('helvetica', 'bold');
-    doc.text('À vista: 5% de desconto, sendo 50% sinal restante e restante no dia da entrega', pageMargin, currentY);
-    currentY += 6;
-
-    doc.text('À prazo em até 12x via Link de Pagamento no Cartão de Crédito (juros conforme quantidade de vezes', pageMargin, currentY);
-    currentY += 5;
-    doc.text('e operadora)', pageMargin, currentY);
-    currentY += 8;
-
-    // --- NOTAS DE RODAPÉ ---
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'italic');
-    doc.setTextColor(100, 100, 100);
-    
-    currentY += 3;
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(0, 0, 0);
+    doc.text('Formas de Pagamento', pageMargin, currentY);
+    currentY += 6;
+    
+    doc.setFont('helvetica', 'normal');
+    const paymentText1 = '• À vista: 5% de desconto sobre o valor total, sendo 50% de entrada no fechamento e 50% no dia da entrega/instalação.';
+    const splitPayment1 = doc.splitTextToSize(paymentText1, pageWidth - (pageMargin * 2));
+    doc.text(splitPayment1, pageMargin, currentY);
+    currentY += (splitPayment1.length * 5) + 2;
 
-    const obsText = 'OBSERVAÇÃO: o prumo da parede é essencial que esteja correta pois pode atrapalhar a instalação e o bom funcionamento da escada.';
-    const splitObs = doc.splitTextToSize(obsText, pageWidth - (pageMargin * 2));
-    doc.text(splitObs, pageMargin, currentY);
-    currentY += (splitObs.length * 5) + 8;
+    const paymentText2 = '• Parcelado: em até 12x no cartão de crédito via link de pagamento, com incidência de juros conforme a quantidade de parcelas e a operadora do cartão.';
+    const splitPayment2 = doc.splitTextToSize(paymentText2, pageWidth - (pageMargin * 2));
+    doc.text(splitPayment2, pageMargin, currentY);
+    currentY += (splitPayment2.length * 5) + 4;
 
-    doc.text('Prazo de entrega: 20 dias úteis após pagamento do sinal.', pageMargin, currentY);
-    currentY += 8;
+    doc.setFont('helvetica', 'bold');
+    doc.text('Prazo de Entrega', pageMargin, currentY);
+    currentY += 6;
 
-    doc.text('Transferência via pix chave Cnpj: 28.869.537/0001-01 P G Zilinski ME', pageMargin, currentY);
+    doc.setFont('helvetica', 'normal');
+    const deliveryText = '• 20 dias úteis, contados a partir da confirmação do pagamento do sinal.';
+    const splitDelivery = doc.splitTextToSize(deliveryText, pageWidth - (pageMargin * 2));
+    doc.text(splitDelivery, pageMargin, currentY);
+    currentY += (splitDelivery.length * 5) + 4;
+
+    doc.setFont('helvetica', 'bold');
+    doc.text('Condições para Instalação', pageMargin, currentY);
+    currentY += 6;
+
+    doc.setFont('helvetica', 'normal');
+    const installText = '• É fundamental que o prumo da parede esteja correto, pois irregularidades podem comprometer a instalação e o perfeito funcionamento da escada.';
+    const splitInstall = doc.splitTextToSize(installText, pageWidth - (pageMargin * 2));
+    doc.text(splitInstall, pageMargin, currentY);
+    currentY += (splitInstall.length * 5) + 4;
+
+    doc.setFont('helvetica', 'bold');
+    doc.text('Dados para Pagamento via Pix', pageMargin, currentY);
+    currentY += 6;
+
+    doc.setFont('helvetica', 'normal');
+    doc.text('• Chave CNPJ: 28.869.537/0001-01', pageMargin, currentY);
+    currentY += 5;
+    doc.text('• Razão Social: P G Zilinski ME', pageMargin, currentY);
 
     return doc;
   }, [options, userData, inputData, freightCost, tollCost, installationCost, selectedOptionIndices]);
