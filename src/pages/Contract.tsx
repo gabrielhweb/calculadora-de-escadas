@@ -192,6 +192,7 @@ const Contract = () => {
     const [stairCapacityText, setStairCapacityText] = useState('360 quilos');
     const [warrantyText, setWarrantyText] = useState('um ano');
     const [deliveryText, setDeliveryText] = useState(''); // Se vazio, usa o default com a data
+    const [deliveryDays, setDeliveryDays] = useState<number>(20);
 
     // Estados para Refinamento (Chatzinho)
     const [refiningIndex, setRefiningIndex] = useState<number | null>(null);
@@ -314,6 +315,7 @@ const Contract = () => {
                 if (data.stairCapacityText) setStairCapacityText(String(data.stairCapacityText));
                 if (data.warrantyText) setWarrantyText(String(data.warrantyText));
                 if (data.deliveryText) setDeliveryText(String(data.deliveryText));
+                if (data.deliveryDays !== undefined) setDeliveryDays(Number(data.deliveryDays));
 
             } else {
                 const { 
@@ -686,7 +688,8 @@ const Contract = () => {
             stepCapacityText,
             stairCapacityText,
             warrantyText,
-            deliveryText
+            deliveryText,
+            deliveryDays
         };
 
         const isEditing = location.state?.isEditing;
@@ -839,7 +842,8 @@ const Contract = () => {
             stepCapacityText,
             stairCapacityText,
             warrantyText,
-            deliveryText
+            deliveryText,
+            deliveryDays
         });
     };
 
@@ -1438,6 +1442,17 @@ const Contract = () => {
                             value={stairCapacityText} 
                             onChange={(e: any) => setStairCapacityText(e.target.value)} 
                         />
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">
+                                Dias Úteis para Entrega
+                            </label>
+                            <input 
+                                type="number" 
+                                value={deliveryDays} 
+                                onChange={(e: any) => setDeliveryDays(Number(e.target.value))} 
+                                className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:border-highlight focus:ring-1 focus:ring-highlight outline-none"
+                            />
+                        </div>
                         <div className="md:col-span-2">
                             <ContractInput 
                                 label="Texto do Prazo de Entrega (Deixe vazio para usar a data calculada)" 

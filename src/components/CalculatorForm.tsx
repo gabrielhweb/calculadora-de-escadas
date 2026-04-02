@@ -95,7 +95,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
   const [slabThickness, setSlabThickness] = useState<string>('15');
   const [slabOpening, setSlabOpening] = useState<string>('');
   const [openingUnit, setOpeningUnit] = useState<'cm' | 'm'>('cm');
-  const [customStepPrice, setCustomStepPrice] = useState<string>('440');
+  const [customStepPrice, setCustomStepPrice] = useState<string>('460');
   const [customTotalLength, setCustomTotalLength] = useState<string>('');
   const [customTotalLengthOption, setCustomTotalLengthOption] = useState<'all' | '1' | '2' | '3'>('all');
   const [lengthUnit, setLengthUnit] = useState<'cm' | 'm'>('cm');
