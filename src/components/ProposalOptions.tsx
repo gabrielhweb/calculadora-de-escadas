@@ -20,6 +20,8 @@ interface ProposalOptionsProps {
   setInstallationCost: (cost: number) => void;
   freightMode: 'auto' | 'manual' | 'fixed' | 'transportadora';
   setFreightMode: (mode: 'auto' | 'manual' | 'fixed' | 'transportadora') => void;
+  deliveryDays?: number;
+  setDeliveryDays?: (days: number) => void;
 }
 
 const BRAZIL_STATES = [
@@ -365,7 +367,9 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
     installationCost,
     setInstallationCost,
     freightMode,
-    setFreightMode
+    setFreightMode,
+    deliveryDays,
+    setDeliveryDays
 }) => {
     
   // --- INICIALIZAÇÃO COM DADOS DA CALCULADORA ANTERIOR ---
@@ -1164,7 +1168,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
         )}
       
         <div className="mt-6 bg-gray-100 dark:bg-gray-700 p-4 rounded-md border border-gray-200 dark:border-gray-600">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-4">
             <label htmlFor="installation" className="flex items-center cursor-pointer select-none">
               <input id="installation" type="checkbox" checked={isInstallationIncluded} onChange={e => setIsInstallationIncluded(e.target.checked)} className="h-5 w-5 text-highlight rounded focus:ring-highlight border-gray-300"/>
               <span className="ml-2 text-gray-900 dark:text-white font-bold uppercase">Incluir Instalação?</span>
@@ -1172,6 +1176,15 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
             <div className="flex items-center gap-2">
                 <span className="text-xs font-bold text-gray-500 dark:text-gray-400">R$</span>
                 <input type="number" value={installationCost} onChange={e => setInstallationCost(parseFloat(e.target.value) || 0)} disabled={!isInstallationIncluded} className="w-24 bg-white dark:bg-gray-800 text-black dark:text-white p-2 rounded-md border-2 border-gray-300 dark:border-gray-600 font-bold disabled:bg-gray-100 disabled:text-gray-400" step="10" min="0"/>
+            </div>
+          </div>
+          <div className="flex items-center justify-between border-t border-gray-200 dark:border-gray-600 pt-4">
+            <label htmlFor="deliveryDays" className="flex items-center select-none">
+              <span className="text-gray-900 dark:text-white font-bold uppercase">Dias Úteis para Entrega:</span>
+            </label>
+            <div className="flex items-center gap-2">
+                <input id="deliveryDays" type="number" value={deliveryDays} onChange={e => setDeliveryDays && setDeliveryDays(parseInt(e.target.value) || 0)} className="w-24 bg-white dark:bg-gray-800 text-black dark:text-white p-2 rounded-md border-2 border-gray-300 dark:border-gray-600 font-bold" min="1"/>
+                <span className="text-xs font-bold text-gray-500 dark:text-gray-400">dias</span>
             </div>
           </div>
         </div>

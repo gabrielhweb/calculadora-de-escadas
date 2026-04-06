@@ -16,6 +16,7 @@ function Calculator() {
   const [tollCost, setTollCost] = useState(0);
   const [isInstallationIncluded, setIsInstallationIncluded] = useState(true);
   const [installationCost, setInstallationCost] = useState(310);
+  const [deliveryDays, setDeliveryDays] = useState(20);
   const [freightMode, setFreightMode] = useState<'auto' | 'manual' | 'fixed' | 'transportadora'>('auto');
   const [isSaving, setIsSaving] = useState(false);
 
@@ -31,6 +32,7 @@ function Calculator() {
         setTollCost(saved.tollCost);
         setInstallationCost(saved.installationCost);
         setIsInstallationIncluded(saved.isInstallationIncluded);
+        if (saved.deliveryDays) setDeliveryDays(saved.deliveryDays);
         if (saved.inputData.logistics?.freightMode) {
             setFreightMode(saved.inputData.logistics.freightMode);
         }
@@ -195,7 +197,8 @@ function Calculator() {
         freightCost,
         tollCost,
         installationCost,
-        isInstallationIncluded
+        isInstallationIncluded,
+        deliveryDays
     });
     setIsSaving(false);
 
@@ -236,6 +239,7 @@ function Calculator() {
               options={options} userData={userData} inputData={inputData}
               freightCost={freightCost} tollCost={tollCost} installationCost={finalInstallationCost}
               isTransportadora={freightMode === 'transportadora'}
+              deliveryDays={deliveryDays}
               onBack={() => setUserData(null)}
             />
           ) : options.length > 0 && inputData ? (
@@ -246,6 +250,7 @@ function Calculator() {
               isInstallationIncluded={isInstallationIncluded} setIsInstallationIncluded={setIsInstallationIncluded}
               installationCost={installationCost} setInstallationCost={setInstallationCost}
               freightMode={freightMode} setFreightMode={setFreightMode}
+              deliveryDays={deliveryDays} setDeliveryDays={setDeliveryDays}
             />
           ) : (
             <div className="bg-white dark:bg-gray-800 p-6 rounded-lg text-center shadow-sm border border-gray-100 dark:border-gray-700">

@@ -159,6 +159,7 @@ export interface SavedQuote {
     tollCost: number;
     installationCost: number;
     isInstallationIncluded: boolean;
+    deliveryDays?: number;
     status?: QuoteStatus;
     attachments?: ProjectFile[];
 }
