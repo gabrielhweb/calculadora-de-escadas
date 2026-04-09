@@ -29,6 +29,13 @@ const BRAZIL_STATES = [
     "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"
 ];
 
+const COMMON_FREIGHTS = [
+  { state: 'Minas Gerais', cost: 570 },
+  { state: 'Goiás', cost: 790 },
+  { state: 'Bahia', cost: 830 },
+  { state: 'Rio de Janeiro', cost: 640 }
+];
+
 // Funções de Máscara
 const maskCPF = (value: string) => {
   return value
@@ -387,6 +394,9 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
   const [manualTollCost, setManualTollCost] = useState('');
   const [fixedFreightValue, setFixedFreightValue] = useState('');
   const [isFreightIncluded, setIsFreightIncluded] = useState(true);
+  
+  const [freightSearch, setFreightSearch] = useState('');
+  const [showFreightSuggestions, setShowFreightSuggestions] = useState(false);
 
   // Novo estado para o visualizador modal (apenas visualização)
   const [selectedVisualizerOption, setSelectedVisualizerOption] = useState<ProposalOption | null>(null);
@@ -1045,6 +1055,44 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
         
         {isFreightIncluded ? (
             <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
+                <div className="mb-4 relative">
+                    <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">Pesquisar Fretes Comuns</label>
+                    <input 
+                        type="text" 
+                        value={freightSearch}
+                        onChange={e => {
+                            setFreightSearch(e.target.value);
+                            setShowFreightSuggestions(true);
+                        }}
+                        onFocus={() => setShowFreightSuggestions(true)}
+                        onBlur={() => setTimeout(() => setShowFreightSuggestions(false), 200)}
+                        placeholder="Ex: Minas Gerais, Goiás..." 
+                        className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-md border-2 border-gray-300 dark:border-gray-600 font-medium"
+                    />
+                    {showFreightSuggestions && freightSearch && (
+                        <ul className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-h-60 overflow-auto">
+                            {COMMON_FREIGHTS.filter(f => f.state.toLowerCase().includes(freightSearch.toLowerCase())).map((freight, idx) => (
+                                <li 
+                                    key={idx} 
+                                    className="p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex justify-between items-center text-gray-800 dark:text-gray-200"
+                                    onClick={() => {
+                                        setFreightMode('fixed');
+                                        setFixedFreightValue(freight.cost.toString());
+                                        setFreightSearch(freight.state);
+                                        setShowFreightSuggestions(false);
+                                    }}
+                                >
+                                    <span className="font-bold">{freight.state}</span>
+                                    <span className="text-highlight font-bold">{formatCurrencyBRL(freight.cost)}</span>
+                                </li>
+                            ))}
+                            {COMMON_FREIGHTS.filter(f => f.state.toLowerCase().includes(freightSearch.toLowerCase())).length === 0 && (
+                                <li className="p-3 text-gray-500 dark:text-gray-400 text-center">Nenhum frete encontrado</li>
+                            )}
+                        </ul>
+                    )}
+                </div>
+
                 <div className="grid grid-cols-2 sm:grid-cols-4 bg-gray-200 dark:bg-gray-600 rounded-lg p-1 mb-4 gap-1">
                     <button 
                         onClick={() => setFreightMode('auto')}
