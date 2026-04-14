@@ -94,9 +94,13 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
     currentY += 6; // Menos espaço
 
     doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Av. Maria Luiza Americano 1954, São Paulo –SP Tel.:019 992237714', pageWidth / 2, currentY, { align: 'center' });
-    currentY += 12; // Menos espaço
+    doc.setFont('helvetica', 'normal');
+    doc.text('Sede: Av. Maria Luiza Americano, 1954 – São Paulo/SP', pageWidth / 2, currentY, { align: 'center' });
+    currentY += 5;
+    doc.text('Fábrica: Rua dos Expedicionários, 446 – Sousas – Campinas/SP', pageWidth / 2, currentY, { align: 'center' });
+    currentY += 5;
+    doc.text('Tel.: (19) 99223-7714', pageWidth / 2, currentY, { align: 'center' });
+    currentY += 10;
 
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');

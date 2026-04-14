@@ -117,7 +117,7 @@ export const generateContractPDF = (data: ContractData) => {
   // --- DAS PARTES ---
   addText('Das partes:', 11, true, 'left');
   
-  addText('VENDEDORA: Zilinski Distribuidora, pessoa jurídica de direito privado, inscrita no CNPJ sob o nº 28.869.537/0001-01, com sede na Av. Maria Luiza Americano, nº 1954, bairro Cidade Líder, na cidade de São Paulo/SP, CEP 08275-000, neste ato devidamente representada por seu representante legal, Paulo Gatto Zilinski, sendo a fabricação dos produtos realizada em sua unidade fabril localizada na Rua dos Expedicionários, nº 446, Sousas, Campinas/SP, CEP 13106-006.', 11, false, 'justify');
+  addText('Vendedor(a): Zilinski Distribuidora, pessoa jurídica de direito privado, inscrita no CNPJ sob o nº 28.869.537/0001-01, com sede na Av. Maria Luiza Americano, nº 1954, bairro Cidade Líder, na cidade de São Paulo/SP, CEP 08275-000, neste ato devidamente representada por seu representante legal, Paulo Gatto Zilinski, sendo a fabricação dos produtos realizada em sua unidade fabril localizada na Rua dos Expedicionários, nº 446, Sousas, Campinas/SP, CEP 13106-006.', 11, false, 'justify');
   currentY += 2;
 
   const cpf = data.userData?.cpf || '';
