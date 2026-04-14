@@ -157,7 +157,7 @@ const Contract = () => {
     const [landingsPrice, setLandingsPrice] = useState('0'); // Preço total dos patamares
     
     const [freightPrice, setFreightPrice] = useState('0');
-    const [freightMode, setFreightMode] = useState<'empresa' | 'transportadora'>('empresa');
+    const [freightMode, setFreightMode] = useState<'empresa' | 'transportadora' | 'auto' | 'manual' | 'fixed'>('empresa');
     const [installationPrice, setInstallationPrice] = useState('0');
     const [extrasPrice, setExtrasPrice] = useState('0');
     
@@ -287,7 +287,7 @@ const Contract = () => {
 
                     setFreightPrice(data.freightCost ? Number(data.freightCost).toFixed(2) : '0');
                     if (inputData.logistics?.freightMode) {
-                        setFreightMode(inputData.logistics.freightMode);
+                        setFreightMode(inputData.logistics.freightMode as 'empresa' | 'transportadora' | 'auto' | 'manual' | 'fixed');
                     }
                     setInstallationPrice(data.installationCost ? Number(data.installationCost).toFixed(2) : '0');
                     setExtrasPrice(data.extrasCost ? Number(data.extrasCost).toFixed(2) : '0');
@@ -1139,11 +1139,14 @@ const Contract = () => {
                                 <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Tipo de Frete</label>
                                 <select
                                     value={freightMode}
-                                    onChange={(e) => setFreightMode(e.target.value as 'empresa' | 'transportadora')}
+                                    onChange={(e) => setFreightMode(e.target.value as 'empresa' | 'transportadora' | 'auto' | 'manual' | 'fixed')}
                                     className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-highlight focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                 >
                                     <option value="empresa">Pela Empresa</option>
                                     <option value="transportadora">Transportadora</option>
+                                    <option value="auto">Automático</option>
+                                    <option value="manual">Manual</option>
+                                    <option value="fixed">Fixo</option>
                                 </select>
                             </div>
 

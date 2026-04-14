@@ -101,18 +101,23 @@ export const generateContractPDF = (data: ContractData) => {
   currentY += 7;
 
   doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Av. Maria Luiza Americano 1954, São Paulo – São Paulo. Telefone: 019 992237714', pageWidth / 2, currentY, { align: 'center' });
+  doc.setFont('helvetica', 'normal');
+  doc.text('Sede: Av. Maria Luiza Americano, 1954 – São Paulo/SP', pageWidth / 2, currentY, { align: 'center' });
+  currentY += 5;
+  doc.text('Fábrica: Rua dos Expedicionários, 446 – Sousas – Campinas/SP', pageWidth / 2, currentY, { align: 'center' });
+  currentY += 5;
+  doc.text('Tel.: (19) 99223-7714', pageWidth / 2, currentY, { align: 'center' });
   currentY += 10;
 
   doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
   doc.text('CONTRATO DE VENDA', pageWidth / 2, currentY, { align: 'center' });
   currentY += 15;
 
   // --- DAS PARTES ---
   addText('Das partes:', 11, true, 'left');
   
-  addText('Vendedor(a): Zilinski Distribuidora, pessoa jurídica de direito privado, inscrita no CNPJ sob o nº28.869.537/0001-01, com sede na Av. Maria Luiza Americano 1954, bairro Cidade lider, na cidade de Sâo Paulo/SP, CEP 08275-000, neste ato devidamente constituída por seu representante legal Paulo Gatto ZIlinski.', 11, false, 'justify');
+  addText('VENDEDORA: Zilinski Distribuidora, pessoa jurídica de direito privado, inscrita no CNPJ sob o nº 28.869.537/0001-01, com sede na Av. Maria Luiza Americano, nº 1954, bairro Cidade Líder, na cidade de São Paulo/SP, CEP 08275-000, neste ato devidamente representada por seu representante legal, Paulo Gatto Zilinski, sendo a fabricação dos produtos realizada em sua unidade fabril localizada na Rua dos Expedicionários, nº 446, Sousas, Campinas/SP, CEP 13106-006.', 11, false, 'justify');
   currentY += 2;
 
   const cpf = data.userData?.cpf || '';
@@ -326,95 +331,113 @@ export const generateContractPDF = (data: ContractData) => {
       ? `menos ${discountP.toFixed(2).replace('.00', '')}% de desconto`
       : `menos desconto de ${formatCurrencyBRL(discountVal)}`;
 
-  if (data.paymentMethod === 'pix') {
+  if (isTransportadora) {
+      if (discountVal > 0) {
+          addText(`Total: ${formatCurrencyBRL(totalGeral)} ${discountText} = ${formatCurrencyBRL(totalComDesconto)}`, 11, false, 'left');
+      } else {
+          addText(`Total: ${formatCurrencyBRL(totalGeral)}`, 11, false, 'left');
+      }
+      
       const signalP = data.paymentDetails.signalPercent || 50;
       const valorSinal = totalComDesconto * (signalP / 100);
-      const valorEntrega = totalComDesconto - valorSinal;
+      const valorRestante = totalComDesconto - valorSinal;
       
-      if (discountVal > 0) {
-          addText(`Total ${formatCurrencyBRL(totalGeral)} ${discountText} = ${formatCurrencyBRL(totalComDesconto)}`, 11, false, 'left');
-      } else {
-          addText(`Total ${formatCurrencyBRL(totalGeral)}`, 11, false, 'left');
-      }
-      addText(`Sendo pago ${formatCurrencyBRL(valorSinal)} via pix de sinal e ${formatCurrencyBRL(valorEntrega)} no dia entrega e instalação`, 11, false, 'left');
-  
-  } else if (data.paymentMethod === 'hybrid') {
-      // Usa o valor manual se disponível, senão calcula pela %
-      const valorPixFinal = data.paymentDetails.hybridSignalAmount !== undefined 
-          ? data.paymentDetails.hybridSignalAmount 
-          : totalComDesconto * ((data.paymentDetails.signalPercent || 20) / 100);
-      
-      // Restante vai pro cartão
-      const restanteBase = totalComDesconto - valorPixFinal;
-      
-      const installments = data.paymentDetails.installments || 1;
-      const installmentValue = data.paymentDetails.installmentValue || 0;
-      // O total no cartão é parcela * qtd_parcelas (o installmentValue já vem com juros embutidos da tela anterior se houver)
-      const totalNoCartao = installmentValue * installments; 
-      
-      // Determina o texto baseado no momento do pagamento (Timing)
-      const isPixOnDelivery = data.paymentDetails.pixTiming === 'delivery';
-      const timingText = isPixOnDelivery
-          ? "via pix/dinheiro no ato da entrega/retirada" 
-          : "via pix de entrada";
+      addText(`Sendo pago: ${formatCurrencyBRL(valorSinal)} via PIX a título de sinal e ${formatCurrencyBRL(valorRestante)} restantes a serem pagos após a emissão da nota fiscal e no dia do envio do produto à transportadora, para liberação do despacho.`, 11, false, 'justify');
 
-      // Texto flexível do restante
-      const remainderMethodName = data.paymentDetails.remainderText || "Link de Pagamento (Cartão de Crédito)";
-      
-      let deliveryText = "";
-      if (!isPixOnDelivery) {
-          deliveryText = data.installationCost > 0 ? " no dia da entrega e instalação" : " no dia da entrega";
-      } else {
-          deliveryText = " no ato do fechamento (sinal)";
-      }
-
-      if (discountVal > 0) {
-          addText(`Total ${formatCurrencyBRL(totalGeral)} ${discountText} = ${formatCurrencyBRL(totalComDesconto)}`, 11, false, 'left');
-      } else {
-          addText(`Total R$ ${formatCurrencyBRL(totalGeral)}`, 11, false, 'left');
-      }
-
-      if (isPixOnDelivery) {
-          // Cartão é o sinal
-          if (totalNoCartao > restanteBase + 1) {
-              addText(`Sendo pago ${formatCurrencyBRL(restanteBase)} mais juros totalizando ${formatCurrencyBRL(totalNoCartao)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}.`, 11, false, 'justify');
-          } else {
-              addText(`Sendo pago ${formatCurrencyBRL(restanteBase)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}.`, 11, false, 'justify');
-          }
-          addText(`E o restante de ${formatCurrencyBRL(valorPixFinal)} ${timingText}.`, 11, false, 'left');
-      } else {
-          // PIX é o sinal
-          addText(`Sendo pago ${formatCurrencyBRL(valorPixFinal)} ${timingText}.`, 11, false, 'left');
-          if (totalNoCartao > restanteBase + 1) {
-              addText(`E o restante de ${formatCurrencyBRL(restanteBase)} mais juros totalizando ${formatCurrencyBRL(totalNoCartao)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}`, 11, false, 'justify');
-          } else {
-              addText(`E o restante de ${formatCurrencyBRL(restanteBase)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}`, 11, false, 'justify');
-          }
-      }
-
+      currentY += 5;
+      addText('6.2 Antes do envio, a CONTRATADA encaminhará vídeos ao cliente demonstrando o funcionamento da escada.', 11, false, 'justify');
+      addText('6.3 Após a emissão da nota fiscal, o pagamento do saldo permite o devido despacho do produto na transportadora.', 11, false, 'justify');
   } else {
-      // CARTÃO PURO
-      const installments = data.paymentDetails.installments || 1;
-      const installmentValue = data.paymentDetails.installmentValue || 0;
-      const totalCartao = installmentValue * installments;
+      if (data.paymentMethod === 'pix') {
+          const signalP = data.paymentDetails.signalPercent || 50;
+          const valorSinal = totalComDesconto * (signalP / 100);
+          const valorEntrega = totalComDesconto - valorSinal;
+          
+          if (discountVal > 0) {
+              addText(`Total ${formatCurrencyBRL(totalGeral)} ${discountText} = ${formatCurrencyBRL(totalComDesconto)}`, 11, false, 'left');
+          } else {
+              addText(`Total ${formatCurrencyBRL(totalGeral)}`, 11, false, 'left');
+          }
+          addText(`Sendo pago ${formatCurrencyBRL(valorSinal)} via pix de sinal e ${formatCurrencyBRL(valorEntrega)} no dia entrega e instalação`, 11, false, 'left');
       
-      if (discountVal > 0) {
-          addText(`Total ${formatCurrencyBRL(totalGeral)} ${discountText} = ${formatCurrencyBRL(totalComDesconto)}`, 11, false, 'left');
+      } else if (data.paymentMethod === 'hybrid') {
+          // Usa o valor manual se disponível, senão calcula pela %
+          const valorPixFinal = data.paymentDetails.hybridSignalAmount !== undefined 
+              ? data.paymentDetails.hybridSignalAmount 
+              : totalComDesconto * ((data.paymentDetails.signalPercent || 20) / 100);
+          
+          // Restante vai pro cartão
+          const restanteBase = totalComDesconto - valorPixFinal;
+          
+          const installments = data.paymentDetails.installments || 1;
+          const installmentValue = data.paymentDetails.installmentValue || 0;
+          // O total no cartão é parcela * qtd_parcelas (o installmentValue já vem com juros embutidos da tela anterior se houver)
+          const totalNoCartao = installmentValue * installments; 
+          
+          // Determina o texto baseado no momento do pagamento (Timing)
+          const isPixOnDelivery = data.paymentDetails.pixTiming === 'delivery';
+          const timingText = isPixOnDelivery
+              ? "via pix/dinheiro no ato da entrega/retirada" 
+              : "via pix de entrada";
+
+          // Texto flexível do restante
+          const remainderMethodName = data.paymentDetails.remainderText || "Link de Pagamento (Cartão de Crédito)";
+          
+          let deliveryText = "";
+          if (!isPixOnDelivery) {
+              deliveryText = data.installationCost > 0 ? " no dia da entrega e instalação" : " no dia da entrega";
+          } else {
+              deliveryText = " no ato do fechamento (sinal)";
+          }
+
+          if (discountVal > 0) {
+              addText(`Total ${formatCurrencyBRL(totalGeral)} ${discountText} = ${formatCurrencyBRL(totalComDesconto)}`, 11, false, 'left');
+          } else {
+              addText(`Total R$ ${formatCurrencyBRL(totalGeral)}`, 11, false, 'left');
+          }
+
+          if (isPixOnDelivery) {
+              // Cartão é o sinal
+              if (totalNoCartao > restanteBase + 1) {
+                  addText(`Sendo pago ${formatCurrencyBRL(restanteBase)} mais juros totalizando ${formatCurrencyBRL(totalNoCartao)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}.`, 11, false, 'justify');
+              } else {
+                  addText(`Sendo pago ${formatCurrencyBRL(restanteBase)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}.`, 11, false, 'justify');
+              }
+              addText(`E o restante de ${formatCurrencyBRL(valorPixFinal)} ${timingText}.`, 11, false, 'left');
+          } else {
+              // PIX é o sinal
+              addText(`Sendo pago ${formatCurrencyBRL(valorPixFinal)} ${timingText}.`, 11, false, 'left');
+              if (totalNoCartao > restanteBase + 1) {
+                  addText(`E o restante de ${formatCurrencyBRL(restanteBase)} mais juros totalizando ${formatCurrencyBRL(totalNoCartao)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}`, 11, false, 'justify');
+              } else {
+                  addText(`E o restante de ${formatCurrencyBRL(restanteBase)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}`, 11, false, 'justify');
+              }
+          }
+
       } else {
-          addText(`Total R$ ${formatCurrencyBRL(totalGeral)}`, 11, false, 'left');
+          // CARTÃO PURO
+          const installments = data.paymentDetails.installments || 1;
+          const installmentValue = data.paymentDetails.installmentValue || 0;
+          const totalCartao = installmentValue * installments;
+          
+          if (discountVal > 0) {
+              addText(`Total ${formatCurrencyBRL(totalGeral)} ${discountText} = ${formatCurrencyBRL(totalComDesconto)}`, 11, false, 'left');
+          } else {
+              addText(`Total R$ ${formatCurrencyBRL(totalGeral)}`, 11, false, 'left');
+          }
+
+          if (totalCartao > totalComDesconto + 1) {
+              addText(`Sendo pago o total de ${formatCurrencyBRL(totalComDesconto)} mais juros totalizando ${formatCurrencyBRL(totalCartao)} via Link de Pagamento (Cartão de Crédito) em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}`, 11, false, 'justify');
+          } else {
+              addText(`Sendo pago o total de ${formatCurrencyBRL(totalComDesconto)} via Link de Pagamento (Cartão de Crédito) em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}`, 11, false, 'justify');
+          }
       }
 
-      if (totalCartao > totalComDesconto + 1) {
-          addText(`Sendo pago o total de ${formatCurrencyBRL(totalComDesconto)} mais juros totalizando ${formatCurrencyBRL(totalCartao)} via Link de Pagamento (Cartão de Crédito) em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}`, 11, false, 'justify');
-      } else {
-          addText(`Sendo pago o total de ${formatCurrencyBRL(totalComDesconto)} via Link de Pagamento (Cartão de Crédito) em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}`, 11, false, 'justify');
-      }
+      addText('.', 11, false, 'left');
+      currentY += 5;
+
+      addText('6.2 Caso o pagamento da parcela final não seja realizado em até 2 (dois) dias corridos após a entrega, será aplicada multa de 4% sobre o valor em aberto, além de juros de 1% ao mês até a regularização.', 11, false, 'justify');
   }
-
-  addText('.', 11, false, 'left');
-  currentY += 5;
-
-  addText('6.2 Caso o pagamento da parcela final não seja realizado em até 2 (dois) dias corridos após a entrega, será aplicada multa de 4% sobre o valor em aberto, além de juros de 1% ao mês até a regularização.', 11, false, 'justify');
   
   currentY += 10;
 
