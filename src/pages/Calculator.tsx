@@ -104,7 +104,7 @@ function Calculator() {
       
       const optionNumber = index + 1;
       const applyLimiter = data.customTotalLength && data.customTotalLength > 0 && 
-                           (!data.customTotalLengthOption || data.customTotalLengthOption === 'all' || data.customTotalLengthOption === optionNumber.toString());
+                           (!data.customTotalLengthOption || data.customTotalLengthOption === 'all' || data.customTotalLengthOption.includes(optionNumber.toString()));
 
       if (applyLimiter) {
           totalLength = data.customTotalLength!;

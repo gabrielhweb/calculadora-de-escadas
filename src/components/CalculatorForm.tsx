@@ -97,7 +97,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
   const [openingUnit, setOpeningUnit] = useState<'cm' | 'm'>('cm');
   const [customStepPrice, setCustomStepPrice] = useState<string>('460');
   const [customTotalLength, setCustomTotalLength] = useState<string>('');
-  const [customTotalLengthOption, setCustomTotalLengthOption] = useState<'all' | '1' | '2' | '3'>('all');
+  const [customTotalLengthOption, setCustomTotalLengthOption] = useState<'all' | '1' | '2' | '3' | '1_2' | '1_3' | '2_3'>('all');
   const [lengthUnit, setLengthUnit] = useState<'cm' | 'm'>('cm');
   const [landings, setLandings] = useState<LandingInfo[]>([]);
   const [optionalItems, setOptionalItems] = useState<OptionalItem[]>([]);
@@ -593,6 +593,9 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                     <option value="1">Apenas na Opção 1</option>
                     <option value="2">Apenas na Opção 2</option>
                     <option value="3">Apenas na Opção 3</option>
+                    <option value="1_2">Opções 1 e 2</option>
+                    <option value="1_3">Opções 1 e 3</option>
+                    <option value="2_3">Opções 2 e 3</option>
                 </select>
                 <p className="text-xs text-gray-500 mt-1">
                     Escolha em qual opção do orçamento o limite será aplicado.
