@@ -39,6 +39,8 @@ export default function VisitReceipt() {
   const [visitDate, setVisitDate] = useState('');
   const [visitTime, setVisitTime] = useState('');
   const [visitValue, setVisitValue] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('');
+  const [otherPaymentMethod, setOtherPaymentMethod] = useState('');
 
   const handleGeneratePDF = () => {
     const doc = new jsPDF();
@@ -46,60 +48,70 @@ export default function VisitReceipt() {
     let yPos = margin;
 
     // Helper functions
-    const addText = (text: string, x: number, y: number, font: 'helvetica', style: 'normal' | 'bold', size: number) => {
-      doc.setFont(font, style);
-      doc.setFontSize(size);
-      doc.text(text, x, y);
-    };
-
     const addLine = (y: number) => {
       doc.setLineWidth(0.5);
       doc.line(margin, y, 190, y);
     }
 
     // Header
-    addText('RECIBO / TERMO DE VISITA TÉCNICA', 105, yPos, 'helvetica', 'bold', 16);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
     doc.text('RECIBO / TERMO DE VISITA TÉCNICA', 105, yPos, { align: 'center' });
     yPos += 15;
 
     // Company Info
-    addText('Zilinski Escadas / Zilinski Distribuidora', margin, yPos, 'helvetica', 'bold', 10);
-    yPos += 6;
-    addText('CNPJ: 28.869.537/0001-01', margin, yPos, 'helvetica', 'normal', 10);
-    yPos += 6;
-    addText('Sede: São Paulo/SP | Fabricação: Campinas/SP', margin, yPos, 'helvetica', 'normal', 10);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.text('ZILINSKI DISTRIBUIDORA', margin, yPos);
+    yPos += 5;
+    
+    doc.setFont('helvetica', 'normal');
+    doc.text('CNPJ: 28.869.537/0001-01', margin, yPos);
+    yPos += 5;
+    doc.text('Sede: São Paulo/SP | Fabricação: Campinas/SP', margin, yPos);
     yPos += 15;
 
     // Receipt Number
-    addText(`Recibo nº: ${receiptNumber}`, margin, yPos, 'helvetica', 'bold', 12);
-    yPos += 12;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.text(`Recibo nº: ${receiptNumber}`, margin, yPos);
+    yPos += 15;
 
     // Client Info Form
-    addText(`Cliente: ${clientName}`, margin, yPos, 'helvetica', 'normal', 11);
-    addLine(yPos + 2);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    
+    doc.text(`Cliente: ${clientName}`, margin, yPos);
+    yPos += 2;
+    addLine(yPos);
     yPos += 8;
 
-    addText(`CPF/CNPJ: ${cpfCnpj}`, margin, yPos, 'helvetica', 'normal', 11);
-    addLine(yPos + 2);
+    doc.text(`CPF/CNPJ: ${cpfCnpj}`, margin, yPos);
+    yPos += 2;
+    addLine(yPos);
     yPos += 8;
 
-    addText(`Endereço da visita: ${address}`, margin, yPos, 'helvetica', 'normal', 11);
-    addLine(yPos + 2);
+    doc.text(`Endereço da visita: ${address}`, margin, yPos);
+    yPos += 2;
+    addLine(yPos);
     yPos += 8;
 
-    addText(`Data da visita: ${visitDate}              Horário: ${visitTime}`, margin, yPos, 'helvetica', 'normal', 11);
-    addLine(yPos + 2);
+    doc.text(`Data da visita: ${visitDate}`, margin, yPos);
+    doc.text(`Horário: ${visitTime}`, 90, yPos);
+    yPos += 2;
+    addLine(yPos);
     yPos += 15;
 
     // Body Text
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
-    const bodyText = "Recebi nesta data a visita técnica realizada pela Zilinski Escadas, referente à análise de medidas, viabilidade\ntécnica, orientações e estudo preliminar para possível fabricação de escada sob medida.";
+    const bodyText = "Recebi nesta data a visita técnica realizada pela ZILINSKI DISTRIBUIDORA, referente à análise de medidas, viabilidade\ntécnica, orientações e estudo preliminar para possível fabricação de escada sob medida.";
     doc.text(bodyText, margin, yPos);
     yPos += 15;
 
     // Conditions
-    addText('Condições:', margin, yPos, 'helvetica', 'bold', 11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Condições:', margin, yPos);
     yPos += 7;
 
     doc.setFont('helvetica', 'normal');
@@ -107,37 +119,45 @@ export default function VisitReceipt() {
     const formattedValue = formatCurrencyBRL(parseFloat(visitValue) || 0);
 
     const conditions = [
-      `1. O valor da visita técnica é de ${formattedValue}.`,
-      `2. Caso o cliente não dê continuidade ao projeto no prazo de até 14 dias corridos após a visita, o valor deverá ser\npago integralmente.`,
-      `3. Caso o cliente feche o projeto dentro do prazo de 14 dias corridos, o valor de ${formattedValue} será abatido do valor\ntotal contratado.`,
-      `4. Após esse prazo, eventual contratação futura poderá ser considerada novo orçamento, sem obrigação de\nabatimento.`,
-      `5. A visita técnica não obriga nenhuma das partes à contratação final.`
+      { num: '1.', text: `O valor da visita técnica é de ${formattedValue}.` },
+      { num: '2.', text: `Caso o cliente não dê continuidade ao projeto no prazo de até 14 dias corridos após a visita, o valor deverá ser pago integralmente.` },
+      { num: '3.', text: `Caso o cliente feche o projeto dentro do prazo de 14 dias corridos, o valor de ${formattedValue} será abatido do valor total contratado.` },
+      { num: '4.', text: `Após esse prazo, eventual contratação futura poderá ser considerada novo orçamento, sem obrigação de abatimento.` },
+      { num: '5.', text: `A visita técnica não obriga nenhuma das partes à contratação final.` }
     ];
 
     conditions.forEach(condition => {
-      const splitText = doc.splitTextToSize(condition, 170);
-      doc.text(splitText, margin, yPos);
+      doc.text(condition.num, margin, yPos);
+      const splitText = doc.splitTextToSize(condition.text, 165);
+      doc.text(splitText, margin + 5, yPos);
       yPos += (splitText.length * 5) + 2; 
     });
 
     yPos += 10;
 
     // Payment Method
-    addText('Forma de pagamento (se aplicável): PIX ( )  Dinheiro ( )  Transferência ( )  Outro: __________', margin, yPos, 'helvetica', 'bold', 10);
+    doc.setFont('helvetica', 'bold');
+    const pixChecked = paymentMethod === 'PIX' ? '(X)' : '( )';
+    const moneyChecked = paymentMethod === 'Dinheiro' ? '(X)' : '( )';
+    const transferChecked = paymentMethod === 'Transferência' ? '(X)' : '( )';
+    const otherText = paymentMethod === 'Outro' ? `  ${otherPaymentMethod || '                  '}  ` : '_________________';
+    
+    doc.text(`Forma de pagamento (se aplicável): PIX ${pixChecked}  Dinheiro ${moneyChecked}  Transferência ${transferChecked}  Outro: ${otherText}`, margin, yPos);
     yPos += 30;
 
     // Signatures
     addLine(yPos);
     yPos += 5;
-    addText('Assinatura do Cliente', margin, yPos, 'helvetica', 'normal', 10);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Assinatura do Cliente', margin, yPos);
     yPos += 20;
 
     addLine(yPos);
     yPos += 5;
-    addText('Representante Zilinski Escadas', margin, yPos, 'helvetica', 'normal', 10);
+    doc.text('Representante ZILINSKI DISTRIBUIDORA', margin, yPos);
     yPos += 15;
 
-    addText('Data: ____/____/______', margin, yPos, 'helvetica', 'normal', 10);
+    doc.text('Data: ____/____/______', margin, yPos);
 
     doc.save(`Recibo_Visita_${clientName.replace(/[^a-zA-Z0-9]/g, '_') || 'Cliente'}.pdf`);
   };
@@ -198,6 +218,28 @@ export default function VisitReceipt() {
               placeholder="Ex: 380"
               helperText="Padrão R$ 380,00. Informe apenas números."
             />
+            <div>
+              <label className="block text-sm font-black text-gray-900 dark:text-gray-100 mb-1">Forma de Pagamento</label>
+              <select
+                value={paymentMethod}
+                onChange={(e) => setPaymentMethod(e.target.value)}
+                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-black dark:text-white outline-none focus-within:ring-2 focus-within:ring-highlight"
+              >
+                <option value="">Nenhuma / Deixar em Branco</option>
+                <option value="PIX">PIX</option>
+                <option value="Dinheiro">Dinheiro</option>
+                <option value="Transferência">Transferência</option>
+                <option value="Outro">Outro</option>
+              </select>
+            </div>
+            {paymentMethod === 'Outro' && (
+              <InputField 
+                label="Qual outra forma de pagamento?" 
+                value={otherPaymentMethod} 
+                onChange={(e) => setOtherPaymentMethod(e.target.value)} 
+                placeholder="Ex: Cartão de Crédito"
+              />
+            )}
           </div>
 
           <div className="mt-8 flex justify-end">
