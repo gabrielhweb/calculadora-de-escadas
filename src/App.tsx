@@ -5,7 +5,7 @@ import Calculator from './pages/Calculator';
 import Contract from './pages/Contract';
 import SavedQuotes from './pages/SavedQuotes';
 import { ContractsList } from './pages/ContractsList';
-import ProductionQueue from './pages/ProductionQueue';
+import ProductionQueuePage from './pages/ProductionQueuePage';
 import VisitReceipt from './pages/VisitReceipt';
 import { AuthProvider } from './components/AuthProvider';
 import { useEffect } from 'react';
@@ -35,7 +35,7 @@ function App() {
             <Route path="contrato" element={<Contract />} />
             <Route path="salvos" element={<SavedQuotes />} />
             <Route path="contratos" element={<ContractsList />} />
-            <Route path="fila" element={<ProductionQueue />} />
+            <Route path="fila" element={<ProductionQueuePage />} />
             <Route path="recibo-visita" element={<VisitReceipt />} />
           </Route>
         </Routes>
