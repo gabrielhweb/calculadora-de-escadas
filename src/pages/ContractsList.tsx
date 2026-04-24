@@ -4,6 +4,7 @@ import { SavedContract, ContractStatus } from '../types';
 import { formatCurrencyBRL } from '../utils';
 import { generateContractPDF } from '../utils/contractGenerator';
 import { generateUnifiedTechnicalPDF } from '../utils/technicalPdfGenerator';
+import { generatePaymentReceiptPDF } from '../utils/paymentReceiptGenerator';
 import { collection, query, where, onSnapshot, doc, updateDoc, deleteDoc, getDocs, addDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { useAuth } from '../components/AuthProvider';
@@ -68,6 +69,8 @@ export const ContractsList: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [editingContract, setEditingContract] = useState<SavedContract | null>(null);
+    const [receiptModalOpen, setReceiptModalOpen] = useState(false);
+    const [selectedContractForReceipt, setSelectedContractForReceipt] = useState<SavedContract | null>(null);
     const [formData, setFormData] = useState({
         clientName: '',
         totalValue: 0,
@@ -418,6 +421,16 @@ export const ContractsList: React.FC = () => {
                                             >
                                                 ⚙️ Ficha Técnica
                                             </button>
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedContractForReceipt(contract);
+                                                    setReceiptModalOpen(true);
+                                                }}
+                                                className="flex-1 bg-green-100 hover:bg-green-200 dark:bg-green-900 dark:hover:bg-green-800 text-green-700 dark:text-green-200 text-xs py-1.5 rounded font-medium transition-colors"
+                                                title="Gerar Recibo de Pagamento"
+                                            >
+                                                💰 Recibo
+                                            </button>
                                         </>
                                     )}
 
@@ -644,6 +657,49 @@ export const ContractsList: React.FC = () => {
                                     Salvar
                                 </button>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal de Seleção de Recibo */}
+            {receiptModalOpen && selectedContractForReceipt && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-sm p-6 overflow-hidden">
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 text-center">
+                            Gerar Recibo
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 mb-6 text-center">
+                            Qual tipo de recibo deseja gerar para <strong>{selectedContractForReceipt.clientName}</strong>?
+                        </p>
+                        
+                        <div className="flex flex-col gap-3">
+                            <button
+                                onClick={() => {
+                                    generatePaymentReceiptPDF(selectedContractForReceipt, 50);
+                                    setReceiptModalOpen(false);
+                                }}
+                                className="w-full py-3 bg-blue-100 hover:bg-blue-200 text-blue-700 dark:bg-blue-900 dark:hover:bg-blue-800 dark:text-blue-200 rounded-lg font-bold transition-colors"
+                            >
+                                Recibo de Sinal (50%)
+                            </button>
+                            
+                            <button
+                                onClick={() => {
+                                    generatePaymentReceiptPDF(selectedContractForReceipt, 100);
+                                    setReceiptModalOpen(false);
+                                }}
+                                className="w-full py-3 bg-green-100 hover:bg-green-200 text-green-700 dark:bg-green-900 dark:hover:bg-green-800 dark:text-green-200 rounded-lg font-bold transition-colors"
+                            >
+                                Recibo Integral (100%)
+                            </button>
+                            
+                            <button
+                                onClick={() => setReceiptModalOpen(false)}
+                                className="mt-4 w-full py-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                            >
+                                Cancelar
+                            </button>
                         </div>
                     </div>
                 </div>

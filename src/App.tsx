@@ -5,10 +5,27 @@ import Calculator from './pages/Calculator';
 import Contract from './pages/Contract';
 import SavedQuotes from './pages/SavedQuotes';
 import { ContractsList } from './pages/ContractsList';
-import ProductionQueue from './pages/productionQueue';
+import ProductionQueue from './pages/ProductionQueue';
+import VisitReceipt from './pages/VisitReceipt';
 import { AuthProvider } from './components/AuthProvider';
+import { useEffect } from 'react';
+import { getDocFromServer, doc } from 'firebase/firestore';
+import { db } from './firebase';
 
 function App() {
+  useEffect(() => {
+    async function testConnection() {
+      try {
+        await getDocFromServer(doc(db, 'test', 'connection'));
+      } catch (error) {
+        if(error instanceof Error && error.message.includes('the client is offline')) {
+          console.error("Please check your Firebase configuration. ");
+        }
+      }
+    }
+    testConnection();
+  }, []);
+
   return (
     <AuthProvider>
       <BrowserRouter>
@@ -19,6 +36,7 @@ function App() {
             <Route path="salvos" element={<SavedQuotes />} />
             <Route path="contratos" element={<ContractsList />} />
             <Route path="fila" element={<ProductionQueue />} />
+            <Route path="recibo-visita" element={<VisitReceipt />} />
           </Route>
         </Routes>
       </BrowserRouter>
