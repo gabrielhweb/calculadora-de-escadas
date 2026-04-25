@@ -101,10 +101,16 @@ const Layout: React.FC = () => {
                   Fila de Produção
                 </Link>
                 <Link 
+                  to="/recibo-pagamento" 
+                  className={`${isActive('/recibo-pagamento') ? 'text-highlight font-bold border-b-4 border-highlight' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'} px-2 pt-1 text-sm uppercase tracking-wide transition-all duration-200 h-full flex items-center font-bold`}
+                >
+                  Recibo Pagamento
+                </Link>
+                <Link 
                   to="/recibo-visita" 
                   className={`${isActive('/recibo-visita') ? 'text-highlight font-bold border-b-4 border-highlight' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'} px-2 pt-1 text-sm uppercase tracking-wide transition-all duration-200 h-full flex items-center font-bold`}
                 >
-                  Recibo de Visita
+                  Recibo Visita
                 </Link>
                 <Link 
                   to="/salvos" 

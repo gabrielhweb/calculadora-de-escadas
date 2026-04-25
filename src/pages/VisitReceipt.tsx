@@ -42,7 +42,46 @@ export default function VisitReceipt() {
   const [paymentMethod, setPaymentMethod] = useState('');
   const [otherPaymentMethod, setOtherPaymentMethod] = useState('');
 
+  const handleCpfCnpjChange = (v: string) => {
+    let unmasked = v.replace(/\D/g, '');
+    if (unmasked.length <= 11) {
+      unmasked = unmasked.replace(/(\d{3})(\d)/, '$1.$2');
+      unmasked = unmasked.replace(/(\d{3})(\d)/, '$1.$2');
+      unmasked = unmasked.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    } else {
+      unmasked = unmasked.slice(0, 14);
+      unmasked = unmasked.replace(/^(\d{2})(\d)/, '$1.$2');
+      unmasked = unmasked.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+      unmasked = unmasked.replace(/\.(\d{3})(\d)/, '.$1/$2');
+      unmasked = unmasked.replace(/(\d{4})(\d)/, '$1-$2');
+    }
+    setCpfCnpj(unmasked);
+  };
+
+  const handleDateChange = (v: string) => {
+    let unmasked = v.replace(/\D/g, '').slice(0, 8);
+    if (unmasked.length >= 5) {
+      unmasked = `${unmasked.slice(0, 2)}/${unmasked.slice(2, 4)}/${unmasked.slice(4)}`;
+    } else if (unmasked.length >= 3) {
+      unmasked = `${unmasked.slice(0, 2)}/${unmasked.slice(2)}`;
+    }
+    setVisitDate(unmasked);
+  };
+
+  const handleTimeChange = (v: string) => {
+    let unmasked = v.replace(/\D/g, '').slice(0, 4);
+    if (unmasked.length >= 3) {
+      unmasked = `${unmasked.slice(0, 2)}:${unmasked.slice(2)}`;
+    }
+    setVisitTime(unmasked);
+  };
+
   const handleGeneratePDF = () => {
+    if (!receiptNumber || !clientName || !cpfCnpj || !address || !visitDate || !visitTime || !visitValue || !paymentMethod) {
+      alert('Por favor, preencha todos os campos obrigatórios.');
+      return;
+    }
+
     const doc = new jsPDF();
     const margin = 20;
     let yPos = margin;
@@ -177,7 +216,7 @@ export default function VisitReceipt() {
             <InputField 
               label="Número do Recibo" 
               value={receiptNumber} 
-              onChange={(e) => setReceiptNumber(e.target.value)} 
+              onChange={(e) => setReceiptNumber(e.target.value.replace(/\D/g, ''))} 
               placeholder="Ex: 001"
             />
              <InputField 
@@ -189,7 +228,7 @@ export default function VisitReceipt() {
             <InputField 
               label="CPF/CNPJ" 
               value={cpfCnpj} 
-              onChange={(e) => setCpfCnpj(e.target.value)} 
+              onChange={(e) => handleCpfCnpjChange(e.target.value)} 
               placeholder="000.000.000-00 ou 00.000.000/0000-00"
             />
             <InputField 
@@ -201,21 +240,21 @@ export default function VisitReceipt() {
              <InputField 
               label="Data da Visita" 
               value={visitDate} 
-              onChange={(e) => setVisitDate(e.target.value)} 
+              onChange={(e) => handleDateChange(e.target.value)} 
               placeholder="DD/MM/AAAA"
             />
             <InputField 
               label="Horário" 
               value={visitTime} 
-              onChange={(e) => setVisitTime(e.target.value)} 
+              onChange={(e) => handleTimeChange(e.target.value)} 
               placeholder="HH:MM"
             />
              <InputField 
               label="Valor da Visita" 
               value={visitValue} 
-              onChange={(e) => setVisitValue(e.target.value)} 
+              onChange={(e) => setVisitValue(e.target.value.replace(/[^0-9.,]/g, '').replace(',', '.'))} 
               unit="R$"
-              placeholder="Ex: 380"
+              placeholder="Ex: 380.00"
               helperText="Padrão R$ 380,00. Informe apenas números."
             />
             <div>

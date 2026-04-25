@@ -7,6 +7,7 @@ import SavedQuotes from './pages/SavedQuotes';
 import { ContractsList } from './pages/ContractsList';
 import ProductionQueuePage from './pages/ProductionQueuePage';
 import VisitReceipt from './pages/VisitReceipt';
+import CustomPaymentReceipt from './pages/CustomPaymentReceipt';
 import { AuthProvider } from './components/AuthProvider';
 import { useEffect } from 'react';
 import { getDocFromServer, doc } from 'firebase/firestore';
@@ -35,6 +36,7 @@ function App() {
             <Route path="contrato" element={<Contract />} />
             <Route path="salvos" element={<SavedQuotes />} />
             <Route path="contratos" element={<ContractsList />} />
+            <Route path="recibo-pagamento" element={<CustomPaymentReceipt />} />
             <Route path="fila" element={<ProductionQueuePage />} />
             <Route path="recibo-visita" element={<VisitReceipt />} />
           </Route>
