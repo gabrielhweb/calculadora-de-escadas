@@ -1,14 +1,18 @@
 import React, { useState } from 'react';
 import { generateCustomReceiptPDF, CustomReceiptData } from '../utils/customReceiptGenerator';
+// @ts-ignore
+import extenso from 'extenso';
 
-const InputField = ({ label, value, onChange, placeholder, type = 'text', helperText }: any) => (
+const InputField = ({ label, value, onChange, placeholder, type = 'text', helperText, readOnly, disabled }: any) => (
   <div>
     <label className="block text-sm font-black text-gray-900 dark:text-gray-100 mb-1">{label}</label>
     <input
       type={type}
       value={value}
       onChange={onChange}
-      className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-black dark:text-white outline-none focus-within:ring-2 focus-within:ring-highlight"
+      readOnly={readOnly}
+      disabled={disabled}
+      className={`w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white outline-none focus-within:ring-2 focus-within:ring-highlight ${disabled || readOnly ? 'bg-gray-100 dark:bg-gray-700 cursor-not-allowed opacity-80' : 'bg-white dark:bg-gray-800'}`}
       placeholder={placeholder}
     />
     {helperText && <p className="text-xs text-gray-500 mt-1">{helperText}</p>}
@@ -50,6 +54,23 @@ export default function CustomPaymentReceipt() {
       unmasked = unmasked.replace(/(\d{4})(\d)/, '$1-$2');
     }
     setFormData({ ...formData, cpfCnpj: unmasked });
+  };
+
+  const handleAmountChange = (e: any) => {
+    const valueStr = e.target.value.replace(/[^0-9.]/g, '');
+    const amountReceived = parseFloat(valueStr) || 0;
+    
+    let amountText = '';
+    if (amountReceived > 0) {
+       try {
+           const formattedForExtenso = amountReceived.toFixed(2).replace('.', ',');
+           amountText = extenso(formattedForExtenso, { mode: 'currency' });
+       } catch(err) {
+           amountText = '';
+       }
+    }
+
+    setFormData({ ...formData, amountReceived, amountText });
   };
 
   const handleDateTimeChange = (e: any) => {
@@ -117,15 +138,17 @@ export default function CustomPaymentReceipt() {
             label="Valor Recebido (R$)"
             type="number"
             value={formData.amountReceived || ''}
-            onChange={(e: any) => setFormData({ ...formData, amountReceived: parseFloat(e.target.value.replace(/[^0-9.]/g, '')) || 0 })}
+            onChange={handleAmountChange}
             placeholder="Ex: 2540.00"
           />
 
           <InputField
             label="Valor por Extenso"
             value={formData.amountText}
-            onChange={(e: any) => setFormData({ ...formData, amountText: e.target.value })}
-            placeholder="Ex: dois mil quinhentos e quarenta reais"
+            onChange={() => {}}
+            readOnly={true}
+            placeholder="Preenchimento automático"
+            helperText="Preenchido automaticamente ao digitar o valor acima"
           />
 
           <div className="md:col-span-2">

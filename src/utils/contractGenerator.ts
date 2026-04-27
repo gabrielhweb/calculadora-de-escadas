@@ -125,13 +125,13 @@ export const generateContractPDF = (data: ContractData) => {
   let buyerText = "";
   
   if (isPJ) {
-      buyerText = `Comprador: ${data.userData?.name || ''}, pessoa jurídica inscrita no CNPJ sob o nº ${cpf}, com endereço na ${data.userData?.address || ''}.`;
+      buyerText = `Comprador(a): ${data.userData?.name || ''}, pessoa jurídica inscrita no CNPJ sob o nº ${cpf}, com endereço na ${data.userData?.address || ''}.`;
   } else {
-      let docInfo = cpf ? `portador do CPF ${cpf}` : `documento não informado`;
+      let docInfo = cpf ? `portador(a) do CPF ${cpf}` : `documento não informado`;
       if (data.userData?.rg) {
           docInfo += ` e RG ${data.userData.rg}`;
       }
-      buyerText = `Comprador: ${data.userData?.name || ''}, ${docInfo}, residente na ${data.userData?.address || ''}.`;
+      buyerText = `Comprador(a): ${data.userData?.name || ''}, ${docInfo}, residente na ${data.userData?.address || ''}.`;
   }
   
   addText(buyerText, 11, false, 'justify');

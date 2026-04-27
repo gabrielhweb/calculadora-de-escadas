@@ -182,9 +182,9 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
       let isSolutionFound = false;
       let bestClearance = -999;
 
-      // ATUALIZAÇÃO: Loop agora vai até 10cm (antes parava em 18cm)
+      // ATUALIZAÇÃO: Loop agora vai até 6cm (antes parava em 10cm)
       // Isso permite encontrar solução geométrica mesmo em vãos de 100cm
-      for (let t = option.treadDepth; t >= 10; t -= 0.05) {
+      for (let t = option.treadDepth; t >= 6; t -= 0.05) {
           const tryLength = (stairsOnlySteps * (t + 0.5)) + landingsLen;
           const check = calculateHeadroom(t, tryLength);
 
@@ -1202,6 +1202,11 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
                                                     {simulatedValues.tread < 18 && (
                                                         <div className="text-red-600 font-bold mb-2 flex items-center gap-1 bg-red-100 p-1 rounded border border-red-200">
                                                             ⚠️ Pisante muito curto (&lt;18cm)! Ficará íngreme.
+                                                        </div>
+                                                    )}
+                                                    {simulatedValues.tread < 6 && (
+                                                        <div className="text-red-600 font-bold mb-2 flex items-center gap-1 bg-red-100 p-1 rounded border border-red-200">
+                                                            ⚠️ Pisante menor que 6cm! Geometria Extrema.
                                                         </div>
                                                     )}
 

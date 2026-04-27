@@ -12,6 +12,7 @@
     "@emailjs/browser": "^3.11.0",
     "@google/genai": "^1.29.0",
     "@supabase/supabase-js": "^2.39.0",
+    "extenso": "^2.1.0",
     "firebase": "^12.10.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^2.5.1",
