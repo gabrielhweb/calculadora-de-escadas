@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { GoogleGenAI } from "@google/genai";
 import { generateContractPDF } from '../utils/contractGenerator';
+import { generateAceiteObraPDF } from '../utils/aceiteObraGenerator';
 import { LandingInfo, OptionalItem } from '../types';
 import { formatCurrencyBRL } from '../utils';
 import { TechnicalBudget } from '../components/TechnicalBudget';
@@ -847,6 +848,84 @@ const Contract = () => {
         });
     };
 
+    const handleGenerateAceiteObra = () => {
+        if (!clientName || !street || !number || !city) {
+            alert("Por favor, preencha Nome e Endereço Completo do cliente.");
+            return;
+        }
+
+        const numLandings = landings.length;
+        const totalStepsNum = parseFloat(totalSteps) || 0;
+        const structureStepsNum = totalStepsNum - numLandings;
+        const fullAddress = `${street}, ${number} - ${neighborhood}, ${city} - ${state}, ${zip}`;
+
+        const finalHybridSignal = parseFloat(hybridSignalValue) || (discountedBase * (signalPercent/100));
+
+        generateAceiteObraPDF({
+            userData: { 
+                name: clientName, cpf: clientDoc, rg: clientRG, address: fullAddress, 
+                zip, street, number, neighborhood, city, state 
+            },
+            selectedOption: {
+                optionNumber: 1,
+                steps: totalStepsNum,
+                structureSteps: structureStepsNum,
+                stepHeight: parseFloat(stepHeight) || 0,
+                totalLength: parseFloat(totalLength) || 0,
+                totalPrice: totalStructure,
+                stairWidth: parseFloat(width) || 0,
+                treadDepth: parseFloat(treadDepth) || 0,
+                landings: landings
+            },
+            finalStairPrice: parseFloat(stairPrice) || 0,
+            finalLandingsPrice: parseFloat(landingsPrice) || 0,
+            inputData: {
+                ...(originalInputData || {}),
+                type: originalInputData?.type || 'straight',
+                straightLength: originalInputData?.straightLength || 0,
+                straightHeight: originalInputData?.straightHeight || 0,
+                width: parseFloat(width) || 0,
+                totalHeight: parseFloat(totalHeight) || 0,
+                desiredSteps: totalStepsNum,
+                stairWidth: parseFloat(width) || 0,
+                treadDepth: parseFloat(treadDepth) || 0,
+                dampers: parseFloat(dampers) || 4,
+                optionalItems: optionalItems, 
+                landings: landings,
+                treadMaterial: treadMaterial,
+                stairDirection: stairDirection,
+                wallFixation: wallFixation,
+                logistics: {
+                    ...(originalInputData?.logistics || {}),
+                    freightMode: freightMode
+                }
+            },
+            freightCost: parseFloat(freightPrice) || 0,
+            tollCost: 0,
+            installationCost: parseFloat(installationPrice) || 0,
+            extrasCost: parseFloat(extrasPrice) || 0,
+            deadlineDate: '', 
+            paymentMethod,
+            paymentDetails: {
+                discountPercent, 
+                discountValue: discountMoney,
+                signalPercent, 
+                installments, 
+                installmentValue: finalInstallmentVal,
+                hybridSignalAmount: finalHybridSignal,
+                pixTiming: pixTiming,
+                remainderText: remainderPaymentMode
+            },
+            additionalClauses: [],
+            finishText,
+            stepCapacityText,
+            stairCapacityText,
+            warrantyText,
+            deliveryText,
+            deliveryDays
+        });
+    };
+
     const handleDocChange = (e: any) => {
         const val = e.target.value;
         if (personType === 'pf') setClientDoc(maskCPF(val));
@@ -1390,12 +1469,17 @@ const Contract = () => {
                             </div>
                         )}
 
-                        <div className="flex gap-4 mt-2">
-                            <button onClick={handleSaveContract} className="flex-1 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white font-black py-4 rounded-lg shadow-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2">
-                                <span>💾</span> {location.state?.isEditing ? 'Salvar Alterações' : 'Salvar na Timeline'}
-                            </button>
-                            <button onClick={handleGeneratePDF} className="flex-1 bg-highlight text-white font-black py-4 rounded-lg shadow-lg hover:bg-yellow-600 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2">
-                                 <span>📄</span> Gerar PDF
+                        <div className="flex flex-col gap-4 mt-2">
+                            <div className="flex gap-4">
+                                <button onClick={handleSaveContract} className="flex-1 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white font-black py-4 rounded-lg shadow-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2">
+                                    <span>💾</span> {location.state?.isEditing ? 'Salvar Alterações' : 'Salvar na Timeline'}
+                                </button>
+                                <button onClick={handleGeneratePDF} className="flex-1 bg-highlight text-white font-black py-4 rounded-lg shadow-lg hover:bg-yellow-600 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2">
+                                     <span>📄</span> Gerar Contrato PDF
+                                </button>
+                            </div>
+                            <button onClick={handleGenerateAceiteObra} className="w-full bg-blue-600 text-white font-black py-4 rounded-lg shadow-lg hover:bg-blue-700 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2">
+                                <span>🏗️</span> Gerar Aceite de Obra
                             </button>
                         </div>
                     </div>

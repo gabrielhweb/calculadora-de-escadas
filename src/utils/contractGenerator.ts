@@ -3,7 +3,7 @@ import jsPDF from 'jspdf';
 import { UserData, ProposalOption, CalculatorInput } from '../types';
 import { formatCurrencyBRL } from '../utils';
 
-interface ContractData {
+export interface ContractData {
   userData: UserData;
   selectedOption: ProposalOption;
   inputData: CalculatorInput;
@@ -309,9 +309,19 @@ export const generateContractPDF = (data: ContractData) => {
   } else {
       let defaultDeliveryText = `A escada deverá ser entregue no prazo de ${days} (${daysWord}) dias úteis, contados a partir da data de confirmação do pagamento do sinal.`;
       addText(`4.1 ${data.deliveryText || defaultDeliveryText}`, 11, false, 'justify');
-      addText('4.2 O prazo estabelecido poderá ser prorrogado em casos de força maior ou caso fortuito, tais como, mas não se limitando a: chuvas intensas, enchentes, desastres naturais, greves, paralisações em rodovias ou quaisquer outros eventos alheios à vontade da CONTRATADA.', 11, false, 'justify');
-      addText('4.3 Nesses casos, a CONTRATADA compromete-se a comunicar o CONTRATANTE sobre eventual atraso, não sendo responsabilizada por prazos adicionais decorrentes dessas situações.', 11, false, 'justify');
   }
+
+  let indexOffset = isTransportadora ? 2 : 1;
+  const clause = (text: string) => addText(`4.${++indexOffset} ${text}`, 11, false, 'justify');
+
+  clause('O prazo estabelecido poderá ser prorrogado em casos de força maior ou caso fortuito, tais como, mas não se limitando a: chuvas intensas, enchentes, desastres naturais, greves, paralisações em rodovias ou quaisquer outros eventos alheios à vontade da CONTRATADA.');
+  clause('Nesses casos, a CONTRATADA compromete-se a comunicar o CONTRATANTE sobre eventual atraso, não sendo responsabilizada por prazos adicionais decorrentes dessas situações.');
+  clause('Da extensão do prazo de entrega/instalação por solicitação do comprador(a): Caso o(a) comprador(a), após o pagamento inicial de 50% do valor total, solicite a extensão do prazo de entrega, envio ou instalação para data posterior à prevista neste contrato, a contratada poderá realizar o reagendamento conforme disponibilidade de agenda.');
+  clause('O(a) comprador(a) terá o prazo máximo de 06 (seis) meses, contados da data inicialmente prevista para entrega, para definir e agendar a nova data.');
+  clause('Não havendo agendamento dentro do prazo de 06 (seis) meses, ficará automaticamente devido o pagamento do saldo final de 50%, independentemente da efetiva entrega ou instalação naquele momento, permanecendo a escada reservada ao comprador(a).');
+  clause('Caso o(a) comprador(a) solicite a entrega ou instalação após esse período, a contratada poderá cobrar valores adicionais referentes a frete, instalação, deslocamento, armazenagem, reajuste de materiais e demais custos operacionais vigentes na data do novo agendamento.');
+  clause('A escada permanecerá vinculada ao comprador(a), sendo a entrega e/ou instalação realizada mediante quitação integral dos valores pendentes e adicionais eventualmente aplicáveis.');
+
   currentY += 5;
 
   addText('5. Da garantia.', 11, true, 'left');
