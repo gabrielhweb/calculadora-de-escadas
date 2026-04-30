@@ -848,6 +848,49 @@ const Contract = () => {
         });
     };
 
+    const handleCopyCotacaoFrete = async () => {
+        if (!clientName || !zip || !clientDoc) {
+            alert("Por favor, preencha o Nome, CEP e CPF/CNPJ do cliente antes de gerar a cotação.");
+            return;
+        }
+
+        const cleanZip = zip.replace(/\D/g, '');
+        const cleanDoc = clientDoc.replace(/\D/g, '');
+
+        // VALOR DA NOTA = Total - Descontos - Frete
+        const valorTotalSemFrete = Math.max(0, discountedBase - (parseFloat(freightPrice) || 0));
+
+        const text = `Olá, tudo bem?
+
+Poderia fazer esta cotação levando na base de Campinas
+
+DADOS PARA COTAÇÃO:
+
+CNPJ REMETENTE: 28.869.537/0001-01
+CEP REMETENTE: 13104096
+CEP DESTINO: ${cleanZip}
+CPF/CNPJ: ${cleanDoc}
+NOME: ${clientName}
+VALOR DA NOTA: R$ ${valorTotalSemFrete.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+QUANTIDADE DE VOLUME: 2
+Volumes 1
+Medidas
+PESO
+Volumes 2
+Medidas
+PESO
+MERCADORIA: escada
+TELEFONE FIXO E WHATSAPP: 19992337714`;
+
+        try {
+            await navigator.clipboard.writeText(text);
+            alert("Cotação estruturada copiada para a área de transferência com sucesso!");
+        } catch (err) {
+            console.error("Erro ao copiar o texto: ", err);
+            prompt("Seu navegador bloqueou a cópia automática. Copie o texto abaixo:", text);
+        }
+    };
+
     const handleGenerateAceiteObra = () => {
         if (!clientName || !street || !number || !city) {
             alert("Por favor, preencha Nome e Endereço Completo do cliente.");
@@ -1474,13 +1517,18 @@ const Contract = () => {
                                 <button onClick={handleSaveContract} className="flex-1 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white font-black py-4 rounded-lg shadow-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2">
                                     <span>💾</span> {location.state?.isEditing ? 'Salvar Alterações' : 'Salvar na Timeline'}
                                 </button>
+                                <button onClick={handleCopyCotacaoFrete} className="flex-1 bg-indigo-600 text-white font-black py-4 rounded-lg shadow-lg hover:bg-indigo-700 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2">
+                                    <span>📋</span> Cotação de Frete
+                                </button>
+                            </div>
+                            <div className="flex gap-4">
                                 <button onClick={handleGeneratePDF} className="flex-1 bg-highlight text-white font-black py-4 rounded-lg shadow-lg hover:bg-yellow-600 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2">
                                      <span>📄</span> Gerar Contrato PDF
                                 </button>
+                                <button onClick={handleGenerateAceiteObra} className="flex-1 bg-blue-600 text-white font-black py-4 rounded-lg shadow-lg hover:bg-blue-700 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2">
+                                    <span>🏗️</span> Gerar Aceite de Obra
+                                </button>
                             </div>
-                            <button onClick={handleGenerateAceiteObra} className="w-full bg-blue-600 text-white font-black py-4 rounded-lg shadow-lg hover:bg-blue-700 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2">
-                                <span>🏗️</span> Gerar Aceite de Obra
-                            </button>
                         </div>
                     </div>
 

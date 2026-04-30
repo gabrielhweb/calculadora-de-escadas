@@ -42,6 +42,37 @@ export default function VisitReceipt() {
   const [paymentMethod, setPaymentMethod] = useState('');
   const [otherPaymentMethod, setOtherPaymentMethod] = useState('');
 
+  const [cep, setCep] = useState('');
+  const [isLoadingCep, setIsLoadingCep] = useState(false);
+
+  const fetchAddressByCep = async (cepValue: string) => {
+    const cleanZip = cepValue.replace(/\D/g, '');
+    if (cleanZip.length === 8) {
+        setIsLoadingCep(true);
+        try {
+            const response = await fetch(`https://viacep.com.br/ws/${cleanZip}/json/`);
+            const data = await response.json();
+            if (!data.erro) {
+                const fetchedAddress = `${data.logradouro},  - ${data.bairro}, ${data.localidade} (${data.uf})`;
+                setAddress(fetchedAddress);
+            }
+        } catch (e) {
+            console.error("Erro ao buscar CEP", e);
+        } finally {
+            setIsLoadingCep(false);
+        }
+    }
+  };
+
+  const handleCepChange = (v: string) => {
+    const masked = v.replace(/\D/g, '').replace(/(\d{5})(\d)/, '$1-$2').replace(/(-\d{3})\d+?$/, '$1');
+    setCep(masked);
+  };
+
+  const handleCepBlur = () => {
+    fetchAddressByCep(cep);
+  };
+
   const handleCpfCnpjChange = (v: string) => {
     let unmasked = v.replace(/\D/g, '');
     if (unmasked.length <= 11) {
@@ -77,7 +108,7 @@ export default function VisitReceipt() {
   };
 
   const handleGeneratePDF = () => {
-    if (!receiptNumber || !clientName || !cpfCnpj || !address || !visitDate || !visitTime || !visitValue || !paymentMethod) {
+    if (!receiptNumber || !clientName || !address || !visitDate || !visitTime || !visitValue) {
       alert('Por favor, preencha todos os campos obrigatórios.');
       return;
     }
@@ -226,13 +257,22 @@ export default function VisitReceipt() {
               placeholder="Nome completo ou Razão Social"
             />
             <InputField 
-              label="CPF/CNPJ" 
+              label="CPF/CNPJ (Opcional)" 
               value={cpfCnpj} 
               onChange={(e) => handleCpfCnpjChange(e.target.value)} 
               placeholder="000.000.000-00 ou 00.000.000/0000-00"
             />
+            <div onBlur={handleCepBlur}>
+              <InputField 
+                label="CEP" 
+                value={cep} 
+                onChange={(e) => handleCepChange(e.target.value)} 
+                placeholder="00000-000"
+                helperText={isLoadingCep ? "Buscando endereço..." : "Preenche o endereço automaticamente."}
+              />
+            </div>
             <InputField 
-              label="Endereço da Visita" 
+              label="Endereço da Visita *" 
               value={address} 
               onChange={(e) => setAddress(e.target.value)} 
               placeholder="Rua, Número, Bairro, Cidade"
