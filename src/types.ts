@@ -140,6 +140,15 @@ export interface ProjectFile {
   uploadedAt: string;
 }
 
+export interface Carrier {
+  id: string;
+  name: string;
+  contact: string;
+  baseLocation: string;
+  statesServed: string[];
+  averagePrice: number;
+}
+
 export interface LocalUser {
   id: string;
   username: string;

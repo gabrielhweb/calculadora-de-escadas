@@ -8,7 +8,7 @@ import { LandingInfo, OptionalItem } from '../types';
 import { formatCurrencyBRL } from '../utils';
 import { TechnicalBudget } from '../components/TechnicalBudget';
 import { db, auth } from '../firebase';
-import { doc, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, setDoc, updateDoc, collection, query, getDocs } from 'firebase/firestore';
 import { useAuth } from '../components/AuthProvider';
 
 enum OperationType {
@@ -849,8 +849,8 @@ const Contract = () => {
     };
 
     const handleCopyCotacaoFrete = async () => {
-        if (!clientName || !zip || !clientDoc) {
-            alert("Por favor, preencha o Nome, CEP e CPF/CNPJ do cliente antes de gerar a cotação.");
+        if (!clientName || !zip || !clientDoc || !state) {
+            alert("Por favor, preencha o Nome, CEP com Estado e CPF/CNPJ do cliente antes de gerar a cotação.");
             return;
         }
 
@@ -860,7 +860,27 @@ const Contract = () => {
         // VALOR DA NOTA = Total - Descontos - Frete
         const valorTotalSemFrete = Math.max(0, discountedBase - (parseFloat(freightPrice) || 0));
 
-        const text = `Olá, tudo bem?
+        let transportadorasText = '';
+        try {
+            const q = query(collection(db, 'transportadoras'));
+            const snapshot = await getDocs(q);
+            const possiveis: string[] = [];
+            
+            snapshot.forEach(docSnap => {
+                const data = docSnap.data();
+                if (data.statesServed && data.statesServed.includes(state)) {
+                     possiveis.push(`${data.name}\n*Base mais próxima em ${data.baseLocation || 'Não informada'}*\n${data.contact || 'Sem contato'}`);
+                }
+            });
+
+            if (possiveis.length > 0) {
+                transportadorasText = `Possíveis Transportadoras:\n${possiveis.join('\n\n')}\n\n`;
+            }
+        } catch (err) {
+            console.error("Erro ao buscar transportadoras:", err);
+        }
+
+        const text = `${transportadorasText}Olá, tudo bem?
 
 Poderia fazer esta cotação levando na base de Campinas
 

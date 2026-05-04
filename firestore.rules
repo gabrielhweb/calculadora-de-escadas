@@ -40,5 +40,8 @@ service cloud.firestore {
     match /production_queue/{orderId} {
       allow read, write: if isAllowedUser();
     }
+    match /transportadoras/{transportadoraId} {
+      allow read, write: if isAllowedUser();
+    }
   }
 }
