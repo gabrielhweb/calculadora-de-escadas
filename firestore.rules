@@ -43,5 +43,8 @@ service cloud.firestore {
     match /transportadoras/{transportadoraId} {
       allow read, write: if isAllowedUser();
     }
+    match /state_prices/{uf} {
+      allow read, write: if isAllowedUser();
+    }
   }
 }

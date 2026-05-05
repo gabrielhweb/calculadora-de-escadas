@@ -146,7 +146,11 @@ export interface Carrier {
   contact: string;
   baseLocation: string;
   statesServed: string[];
-  averagePrice: number;
+}
+
+export interface StatePrice {
+  id: string; // The UF, like 'SP', 'RJ'
+  price: number;
 }
 
 export interface LocalUser {
