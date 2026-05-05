@@ -5,6 +5,7 @@ import { formatCurrencyBRL, calculateFreightCost, getRouteInfoFromGemini, calcul
 import StaircaseVisualizer from './StaircaseVisualizer';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { useCarriers } from '../hooks/useCarriers';
 
 interface ProposalOptionsProps {
   options: ProposalOption[];
@@ -29,12 +30,15 @@ const BRAZIL_STATES = [
     "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"
 ];
 
-const COMMON_FREIGHTS = [
-  { state: 'Minas Gerais', cost: 570 },
-  { state: 'Goiás', cost: 790 },
-  { state: 'Bahia', cost: 830 },
-  { state: 'Rio de Janeiro', cost: 640 }
-];
+const UF_TO_NAME: Record<string, string> = {
+  'AC': 'Acre', 'AL': 'Alagoas', 'AP': 'Amapá', 'AM': 'Amazonas', 'BA': 'Bahia',
+  'CE': 'Ceará', 'DF': 'Distrito Federal', 'ES': 'Espírito Santo', 'GO': 'Goiás',
+  'MA': 'Maranhão', 'MT': 'Mato Grosso', 'MS': 'Mato Grosso do Sul', 'MG': 'Minas Gerais',
+  'PA': 'Pará', 'PB': 'Paraíba', 'PR': 'Paraná', 'PE': 'Pernambuco', 'PI': 'Piauí',
+  'RJ': 'Rio de Janeiro', 'RN': 'Rio Grande do Norte', 'RS': 'Rio Grande do Sul',
+  'RO': 'Rondônia', 'RR': 'Roraima', 'SC': 'Santa Catarina', 'SP': 'São Paulo',
+  'SE': 'Sergipe', 'TO': 'Tocantins'
+};
 
 // Funções de Máscara
 const maskCPF = (value: string) => {
@@ -382,6 +386,8 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
   // --- INICIALIZAÇÃO COM DADOS DA CALCULADORA ANTERIOR ---
   const [originCep, setOriginCep] = useState(inputData?.logistics?.originCep || '13104-096');
   const [destinationCep, setDestinationCep] = useState(inputData?.logistics?.destinationCep || '');
+  const [destinationState, setDestinationState] = useState('');
+  const { getAveragePriceForState, carriers, statePrices } = useCarriers();
   const [fuelPrice, setFuelPrice] = useState(inputData?.logistics?.fuelPrice.toString() || '6.20');
   const [consumption, setConsumption] = useState(inputData?.logistics?.consumption.toString() || '7');
   const [distance, setDistance] = useState(inputData?.logistics?.distance || 0);
@@ -446,6 +452,28 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
     }
     setCep(value);
   };
+
+  useEffect(() => {
+    const cleanZip = destinationCep.replace(/\D/g, '');
+    if (cleanZip.length === 8) {
+      fetch(`https://viacep.com.br/ws/${cleanZip}/json/`)
+        .then(res => res.json())
+        .then(data => {
+            if (!data.erro) {
+                setDestinationState(data.uf);
+            }
+        }).catch(err => console.error("Erro viacep:", err));
+    }
+  }, [destinationCep]);
+
+  useEffect(() => {
+      if (freightMode === 'transportadora' && destinationState) {
+          const avgPrice = getAveragePriceForState(destinationState);
+          if (avgPrice > 0) {
+              setFixedFreightValue(avgPrice.toString());
+          }
+      }
+  }, [freightMode, destinationState, carriers]);
 
   const handleApplyCorrection = (optionNum: number, newTread: number, newLength: number) => {
       const original = options.find(o => o.optionNumber === optionNum);
@@ -1071,22 +1099,22 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                     />
                     {showFreightSuggestions && freightSearch && (
                         <ul className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-h-60 overflow-auto">
-                            {COMMON_FREIGHTS.filter(f => f.state.toLowerCase().includes(freightSearch.toLowerCase())).map((freight, idx) => (
+                            {statePrices.filter(f => (UF_TO_NAME[f.id] || f.id).toLowerCase().includes(freightSearch.toLowerCase())).map((freight, idx) => (
                                 <li 
                                     key={idx} 
                                     className="p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex justify-between items-center text-gray-800 dark:text-gray-200"
                                     onClick={() => {
                                         setFreightMode('fixed');
-                                        setFixedFreightValue(freight.cost.toString());
-                                        setFreightSearch(freight.state);
+                                        setFixedFreightValue(freight.price.toString());
+                                        setFreightSearch(UF_TO_NAME[freight.id] || freight.id);
                                         setShowFreightSuggestions(false);
                                     }}
                                 >
-                                    <span className="font-bold">{freight.state}</span>
-                                    <span className="text-highlight font-bold">{formatCurrencyBRL(freight.cost)}</span>
+                                    <span className="font-bold">{UF_TO_NAME[freight.id] || freight.id}</span>
+                                    <span className="text-highlight font-bold">{formatCurrencyBRL(freight.price)}</span>
                                 </li>
                             ))}
-                            {COMMON_FREIGHTS.filter(f => f.state.toLowerCase().includes(freightSearch.toLowerCase())).length === 0 && (
+                            {statePrices.filter(f => (UF_TO_NAME[f.id] || f.id).toLowerCase().includes(freightSearch.toLowerCase())).length === 0 && (
                                 <li className="p-3 text-gray-500 dark:text-gray-400 text-center">Nenhum frete encontrado</li>
                             )}
                         </ul>
