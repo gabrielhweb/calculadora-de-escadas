@@ -147,7 +147,16 @@ const Contract = () => {
     const [optionalItems, setOptionalItems] = useState<OptionalItem[]>([]);
     const [stairDirection, setStairDirection] = useState<'standard' | 'mirrored'>('standard');
     const [wallFixation, setWallFixation] = useState<'left' | 'right' | 'frontal'>('left');
+    const [hasWheels, setHasWheels] = useState<boolean>(false);
+    const [handrailSide, setHandrailSide] = useState<'left' | 'right' | 'both'>('both');
     const [treadMaterial, setTreadMaterial] = useState<'metal' | 'wood' | undefined>(undefined);
+    
+    // Efeito para zerar amortecedores caso rodinhas sejam selecionadas
+    useEffect(() => {
+        if (hasWheels) {
+            setDampers('0');
+        }
+    }, [hasWheels]);
     
     // Inputs para adicionar novo item
     const [newItemName, setNewItemName] = useState('');
@@ -258,6 +267,8 @@ const Contract = () => {
                     setDampers(String(inputData.dampers || '4'));
                     setStairDirection(String(inputData.stairDirection || 'standard') as any);
                     setWallFixation(String(inputData.wallFixation || 'left') as any);
+                    setHasWheels(Boolean(inputData.hasWheels));
+                    setHandrailSide(String(inputData.handrailSide || 'both') as 'left'|'right'|'both');
                     setTreadMaterial(String(inputData.treadMaterial || 'wood') as any);
                     
                     if (selectedOption.landings && Array.isArray(selectedOption.landings) && selectedOption.landings.length > 0) {
@@ -358,6 +369,8 @@ const Contract = () => {
                     setDampers(String(inputData.dampers || '4'));
                     setStairDirection(String(inputData.stairDirection || 'standard') as any);
                     setWallFixation(String(inputData.wallFixation || 'left') as any);
+                    setHasWheels(Boolean(inputData.hasWheels));
+                    setHandrailSide(String(inputData.handrailSide || 'both') as 'left'|'right'|'both');
                     setTreadMaterial(String(inputData.treadMaterial || 'wood') as any);
                     
                     if (selectedOption.landings && Array.isArray(selectedOption.landings) && selectedOption.landings.length > 0) {
@@ -663,6 +676,8 @@ const Contract = () => {
                 treadMaterial: treadMaterial,
                 stairDirection: stairDirection,
                 wallFixation: wallFixation,
+                hasWheels: hasWheels,
+                handrailSide: handrailSide,
                 logistics: {
                     ...(originalInputData?.logistics || {}),
                     freightMode: freightMode
@@ -817,6 +832,8 @@ const Contract = () => {
                 treadMaterial: treadMaterial,
                 stairDirection: stairDirection,
                 wallFixation: wallFixation,
+                hasWheels: hasWheels,
+                handrailSide: handrailSide,
                 logistics: {
                     ...(originalInputData?.logistics || {}),
                     freightMode: freightMode
@@ -958,6 +975,8 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                 treadMaterial: treadMaterial,
                 stairDirection: stairDirection,
                 wallFixation: wallFixation,
+                hasWheels: hasWheels,
+                handrailSide: handrailSide,
                 logistics: {
                     ...(originalInputData?.logistics || {}),
                     freightMode: freightMode
@@ -1248,7 +1267,39 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                     value={dampers} 
                                     onChange={(e: any) => setDampers(e.target.value)} 
                                     type="number"
+                                    disabled={hasWheels}
                                 />
+                            </div>
+                            
+                            {/* Opções de Rodinhas */}
+                            <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 items-end mt-2">
+                                <label className="flex items-center gap-2 cursor-pointer bg-gray-50 dark:bg-gray-700 p-2 rounded border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition h-14">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={hasWheels} 
+                                        onChange={(e) => setHasWheels(e.target.checked)}
+                                        className="w-5 h-5 accent-highlight"
+                                    />
+                                    <div className="flex flex-col">
+                                        <span className="font-bold text-gray-900 dark:text-white">Com Rodinhas?</span>
+                                        <span className="text-[10px] text-gray-500 dark:text-gray-400">Zera amortecedores</span>
+                                    </div>
+                                </label>
+
+                                {hasWheels && (
+                                    <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded border border-blue-100 dark:border-blue-800">
+                                        <label className="block text-xs font-bold text-blue-900 dark:text-blue-200 mb-1">Posição Corrimão (Rodinhas):</label>
+                                        <select 
+                                            value={handrailSide} 
+                                            onChange={(e) => setHandrailSide(e.target.value as 'left'|'right'|'both')}
+                                            className="w-full text-xs font-bold p-1 rounded bg-white dark:bg-gray-700 text-black dark:text-white border border-blue-200 dark:border-blue-700 outline-none focus:ring-1 focus:ring-highlight"
+                                        >
+                                            <option value="left">Só Esquerdo</option>
+                                            <option value="right">Só Direito</option>
+                                            <option value="both">Nos Dois Lados</option>
+                                        </select>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
