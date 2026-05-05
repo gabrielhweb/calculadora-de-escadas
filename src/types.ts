@@ -17,6 +17,7 @@ export interface LandingInfo {
   direction?: 'straight' | 'left' | 'right'; // Direção da curva
   hasSideGuardrail?: boolean; // Barra Lateral
   hasFrontGuardrail?: boolean; // Barra Frontal
+  frenchBrackets?: 0 | 1 | 2; // Quantidade de Mãos Francesas
 }
 
 export interface LogisticsInfo {
@@ -43,7 +44,7 @@ export interface CalculatorInput {
   desiredSteps: number;
   stairWidth: number; // in cm
   treadDepth: number; // in cm
-  treadMaterial?: 'metal' | 'wood'; // NOVO: Material do pisante
+  treadMaterial?: 'metal' | 'wood' | 'chapa_xadrez' | 'chapa_vazada'; // NOVO: Material do pisante
   dampers: number; // Quantidade de amortecedores
   hasWheels?: boolean; // Opção com Rodinhas
   handrailSide?: 'left' | 'right' | 'both'; // Lado do corrimão (apenas se hasWheels=true)

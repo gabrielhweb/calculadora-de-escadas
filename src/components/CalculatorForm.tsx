@@ -86,7 +86,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
   const [widthUnit, setWidthUnit] = useState<'cm' | 'm'>('cm');
   const [treadDepth, setTreadDepth] = useState<string>('20');
   const [depthUnit, setDepthUnit] = useState<'cm' | 'm'>('cm');
-  const [treadMaterial, setTreadMaterial] = useState<'metal' | 'wood'>('metal'); // NOVO ESTADO
+  const [treadMaterial, setTreadMaterial] = useState<'metal' | 'wood' | 'chapa_xadrez' | 'chapa_vazada'>('metal'); // NOVO ESTADO
   
   const [dampers, setDampers] = useState<string>('4');
   const [hasWheels, setHasWheels] = useState(false);
@@ -357,20 +357,34 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
         {/* NOVO: MATERIAL DO PISANTE */}
         <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded border border-gray-300 dark:border-gray-600">
             <label className="block text-sm font-black text-gray-900 dark:text-gray-100 mb-2">Material dos Degraus</label>
-            <div className="flex gap-2">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
                 <button
                     type="button"
                     onClick={() => setTreadMaterial('metal')}
-                    className={`flex-1 py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === 'metal' ? 'bg-gray-800 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
+                    className={`py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === 'metal' ? 'bg-gray-800 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
                 >
                     Metal (Ferro)
                 </button>
                 <button
                     type="button"
                     onClick={() => setTreadMaterial('wood')}
-                    className={`flex-1 py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === 'wood' ? 'bg-orange-700 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
+                    className={`py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === 'wood' ? 'bg-orange-700 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
                 >
                     Madeira
+                </button>
+                <button
+                    type="button"
+                    onClick={() => setTreadMaterial('chapa_xadrez')}
+                    className={`py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === 'chapa_xadrez' ? 'bg-gray-800 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
+                >
+                    Chapa Xadrez
+                </button>
+                <button
+                    type="button"
+                    onClick={() => setTreadMaterial('chapa_vazada')}
+                    className={`py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === 'chapa_vazada' ? 'bg-gray-800 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
+                >
+                    Chapa Vazada
                 </button>
             </div>
         </div>
@@ -706,6 +720,19 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                             Fixo
                                         </button>
                                     </div>
+                                </div>
+
+                                <div className="col-span-2">
+                                    <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Qtd. Mãos Francesas:</label>
+                                    <select
+                                        value={landing.frenchBrackets || 0}
+                                        onChange={(e) => updateLanding(landing.id, { frenchBrackets: parseInt(e.target.value) as 0 | 1 | 2 })}
+                                        className="w-full text-xs font-bold p-2 text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 rounded border border-gray-300 dark:border-gray-600 outline-none focus:border-highlight"
+                                    >
+                                        <option value={0}>Sem mão francesa</option>
+                                        <option value={1}>Com uma mão francesa</option>
+                                        <option value={2}>Com duas mãos francesas</option>
+                                    </select>
                                 </div>
 
                                 <div className="col-span-2 bg-gray-50 dark:bg-gray-700/50 p-2 rounded border border-gray-100 dark:border-gray-700">

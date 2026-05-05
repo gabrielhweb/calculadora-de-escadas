@@ -196,7 +196,14 @@ export const generateContractPDF = (data: ContractData) => {
   
   addText(objText, 11, false, 'left');
   
-  const materialText = (data.inputData.treadMaterial === 'wood' || (data.inputData.treadMaterial as string) === 'Madeira') ? 'de MADEIRA' : 'de METAL';
+  let materialText = 'de METAL';
+  if (data.inputData.treadMaterial === 'wood' || (data.inputData.treadMaterial as string) === 'Madeira') {
+      materialText = 'de MADEIRA';
+  } else if (data.inputData.treadMaterial === 'chapa_xadrez') {
+      materialText = 'de CHAPA XADREZ';
+  } else if (data.inputData.treadMaterial === 'chapa_vazada') {
+      materialText = 'de CHAPA VAZADA';
+  }
   let stepsText = `-Com ${data.selectedOption.structureSteps} degraus articulados com dimensões de ${stepH}cm de altura e pisante ${materialText} de ${tread}cm${dampersText}`;
   addText(stepsText, 11, false, 'left');
 
@@ -217,7 +224,12 @@ export const generateContractPDF = (data: ContractData) => {
 
           const lM = ((landing.length || 0)/100).toFixed(2);
           const wM = ((landing.width || 0)/100).toFixed(2);
-          addText(`-Patamar ${idx+1} (${typeText} - ${dirText}): Medidas ${lM}m x ${wM}m`, 11, false, 'left');
+          
+          let bracketText = '';
+          if (landing.frenchBrackets === 1) bracketText = ' (1 mão francesa)';
+          else if (landing.frenchBrackets === 2) bracketText = ' (2 mãos francesas)';
+          
+          addText(`-Patamar ${idx+1} (${typeText} - ${dirText})${bracketText}: Medidas ${lM}m x ${wM}m`, 11, false, 'left');
       });
   }
 

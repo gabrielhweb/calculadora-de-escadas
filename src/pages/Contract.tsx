@@ -149,7 +149,7 @@ const Contract = () => {
     const [wallFixation, setWallFixation] = useState<'left' | 'right' | 'frontal'>('left');
     const [hasWheels, setHasWheels] = useState<boolean>(false);
     const [handrailSide, setHandrailSide] = useState<'left' | 'right' | 'both'>('both');
-    const [treadMaterial, setTreadMaterial] = useState<'metal' | 'wood' | undefined>(undefined);
+    const [treadMaterial, setTreadMaterial] = useState<'metal' | 'wood' | 'chapa_xadrez' | 'chapa_vazada' | undefined>(undefined);
     
     // Efeito para zerar amortecedores caso rodinhas sejam selecionadas
     useEffect(() => {
@@ -1184,18 +1184,30 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                             {/* Material */}
                             <div>
                                 <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Material dos Degraus</label>
-                                <div className="flex gap-2">
+                                <div className="grid grid-cols-2 gap-2">
                                     <button
                                         onClick={() => setTreadMaterial('metal')}
-                                        className={`flex-1 py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === 'metal' ? 'bg-gray-800 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-100'}`}
+                                        className={`py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === 'metal' ? 'bg-gray-800 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-100'}`}
                                     >
                                         Metal
                                     </button>
                                     <button
                                         onClick={() => setTreadMaterial('wood')}
-                                        className={`flex-1 py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === 'wood' ? 'bg-orange-700 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-100'}`}
+                                        className={`py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === 'wood' ? 'bg-orange-700 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-100'}`}
                                     >
                                         Madeira
+                                    </button>
+                                    <button
+                                        onClick={() => setTreadMaterial('chapa_xadrez')}
+                                        className={`py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === 'chapa_xadrez' ? 'bg-gray-800 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-100'}`}
+                                    >
+                                        Chapa Xadrez
+                                    </button>
+                                    <button
+                                        onClick={() => setTreadMaterial('chapa_vazada')}
+                                        className={`py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === 'chapa_vazada' ? 'bg-gray-800 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-100'}`}
+                                    >
+                                        Chapa Vazada
                                     </button>
                                 </div>
                             </div>

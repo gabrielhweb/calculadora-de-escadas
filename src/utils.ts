@@ -234,7 +234,14 @@ export const generateProposalDescription = (inputData: any, opt: any): string =>
     const stepH = opt.stepHeight.toFixed(2).replace('.', ',');
     const tread = opt.treadDepth.toFixed(2).replace('.', ',');
     
-    const materialText = inputData.treadMaterial === 'wood' ? 'de Madeira' : 'de Metal';
+    let materialText = 'de Metal';
+    if (inputData.treadMaterial === 'wood') {
+        materialText = 'de Madeira';
+    } else if (inputData.treadMaterial === 'chapa_xadrez') {
+        materialText = 'de Chapa Xadrez';
+    } else if (inputData.treadMaterial === 'chapa_vazada') {
+        materialText = 'de Chapa Vazada';
+    }
     
     const text2 = `-Com ${opt.structureSteps} degraus articulados com dimensões de ${stepH} centímetros de altura e pisante ${materialText} de ${tread} centímetros${damperDesc}.`;
     

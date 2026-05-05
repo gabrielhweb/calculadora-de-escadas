@@ -14,7 +14,7 @@ interface TechnicalBudgetProps {
   landings: LandingInfo[];
   stairDirection?: 'standard' | 'mirrored';
   wallFixation?: 'left' | 'right' | 'frontal';
-  treadMaterial?: 'metal' | 'wood';
+  treadMaterial?: 'metal' | 'wood' | 'chapa_xadrez' | 'chapa_vazada';
   address?: string;
   zip?: string;
   optionalItems?: { id: string; name: string; price: number }[];

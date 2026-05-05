@@ -11,7 +11,7 @@ interface TechnicalDataProps {
   landings: LandingInfo[];
   stairDirection?: 'standard' | 'mirrored';
   wallFixation?: 'left' | 'right' | 'frontal';
-  treadMaterial?: 'metal' | 'wood';
+  treadMaterial?: 'metal' | 'wood' | 'chapa_xadrez' | 'chapa_vazada';
   address?: string;
   zip?: string;
   optionalItems?: { id: string; name: string; price: number }[];
@@ -57,9 +57,13 @@ export const generateTechnicalDataText = (props: TechnicalDataProps) => {
   report += `2 corpo de escada com\n`;
   report += `${structureSteps} degraus com medidas de: ${stepHeightMM}mm de altura e pisante ${bodyTreadStr}mm\n`;
   
-  // ADIÇÃO SOLICITADA: VAZADO PARA MADEIRA
+  // ADIÇÃO SOLICITADA: VAZADO PARA MADEIRA E CHAPAS
   if (treadMaterial === 'wood') {
       report += `*** VAZADO PARA MADEIRA ***\n`;
+  } else if (treadMaterial === 'chapa_vazada') {
+      report += `*** CHAPA VAZADA ***\n`;
+  } else if (treadMaterial === 'chapa_xadrez') {
+      report += `*** CHAPA XADREZ ***\n`;
   }
 
   report += `${structureSteps} degraus de ${stepTreadStr}mm x ${widthMM}mm\n`;
@@ -161,6 +165,14 @@ export const generateMaterialDataText = (props: TechnicalDataProps) => {
       report += `- Largura do Degrau: ${(widthCm - 0.6).toFixed(2)} cm\n`;
       report += `- Comprimento do Degrau: ${(treadDepthCm - 0.6).toFixed(2)} cm\n`;
       report += `- Altura do Degrau: 2.3 cm\n\n`;
+  } else if (treadMaterial === 'chapa_xadrez') {
+      report += `DEGRAUS EM CHAPA XADREZ:\n`;
+      report += `- Largura do Degrau: ${(widthCm).toFixed(2)} cm\n`;
+      report += `- Comprimento do Degrau: ${(treadDepthCm).toFixed(2)} cm\n\n`;
+  } else if (treadMaterial === 'chapa_vazada') {
+      report += `DEGRAUS EM CHAPA VAZADA:\n`;
+      report += `- Largura do Degrau: ${(widthCm).toFixed(2)} cm\n`;
+      report += `- Comprimento do Degrau: ${(treadDepthCm).toFixed(2)} cm\n\n`;
   }
 
   if (landings.length > 0) {
@@ -170,11 +182,15 @@ export const generateMaterialDataText = (props: TechnicalDataProps) => {
           const lLen = (l.length ? l.length * 10 : 0).toFixed(0);
           const lWidth = (l.width ? l.width * 10 : 0).toFixed(0);
           
+          let bracketText = '';
+          if (l.frenchBrackets === 1) bracketText = ' + 1 Mão Francesa';
+          else if (l.frenchBrackets === 2) bracketText = ' + 2 Mãos Francesas';
+
           if (l.type === 'fixed') {
-              report += `1 patamar em chapa xadrez em 3mm com dobras de 100mm\n`;
+              report += `1 patamar em chapa xadrez em 3mm com dobras de 100mm${bracketText}\n`;
               report += `Com medidas de ${lLen}mm x ${lWidth}mm\n`;
           } else {
-              report += `1 patamar articulado\n`;
+              report += `1 patamar articulado${bracketText}\n`;
               report += `Com medidas de ${lLen}mm x ${lWidth}mm\n`;
           }
       });
