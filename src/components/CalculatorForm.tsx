@@ -87,6 +87,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
   const [treadDepth, setTreadDepth] = useState<string>('20');
   const [depthUnit, setDepthUnit] = useState<'cm' | 'm'>('cm');
   const [treadMaterial, setTreadMaterial] = useState<'metal' | 'wood' | 'chapa_xadrez' | 'chapa_vazada'>('metal'); // NOVO ESTADO
+  const [woodType, setWoodType] = useState<'garapeira' | 'muiracatiara'>('garapeira');
   
   const [dampers, setDampers] = useState<string>('4');
   const [hasWheels, setHasWheels] = useState(false);
@@ -232,6 +233,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
       stairWidth: widthInCm,
       treadDepth: depthInCm,
       treadMaterial: treadMaterial,
+      woodType: treadMaterial === 'wood' ? woodType : undefined,
       dampers: finalDampers,
       hasWheels: hasWheels,
       handrailSide: hasWheels ? handrailSide : undefined, 
@@ -387,6 +389,28 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                     Chapa Vazada
                 </button>
             </div>
+            
+            {treadMaterial === 'wood' && (
+                <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
+                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-2">Tipo de Madeira</label>
+                    <div className="grid grid-cols-2 gap-2">
+                        <button
+                            type="button"
+                            onClick={() => setWoodType('garapeira')}
+                            className={`py-2 px-3 rounded font-bold text-xs transition ${woodType === 'garapeira' ? 'bg-orange-600 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
+                        >
+                            Garapeira
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setWoodType('muiracatiara')}
+                            className={`py-2 px-3 rounded font-bold text-xs transition ${woodType === 'muiracatiara' ? 'bg-orange-600 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
+                        >
+                            Muiracatiara
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
         
         {/* VISUALIZAÇÃO AVANÇADA */}

@@ -236,7 +236,8 @@ export const generateProposalDescription = (inputData: any, opt: any): string =>
     
     let materialText = 'de Metal';
     if (inputData.treadMaterial === 'wood') {
-        materialText = 'de Madeira';
+        const typeStr = inputData.woodType === 'muiracatiara' ? 'Muiracatiara' : 'Garapeira';
+        materialText = `de Madeira (${typeStr})`;
     } else if (inputData.treadMaterial === 'chapa_xadrez') {
         materialText = 'de Chapa Xadrez';
     } else if (inputData.treadMaterial === 'chapa_vazada') {

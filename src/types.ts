@@ -45,6 +45,7 @@ export interface CalculatorInput {
   stairWidth: number; // in cm
   treadDepth: number; // in cm
   treadMaterial?: 'metal' | 'wood' | 'chapa_xadrez' | 'chapa_vazada'; // NOVO: Material do pisante
+  woodType?: 'garapeira' | 'muiracatiara'; // Tipo de madeira selecionada
   dampers: number; // Quantidade de amortecedores
   hasWheels?: boolean; // Opção com Rodinhas
   handrailSide?: 'left' | 'right' | 'both'; // Lado do corrimão (apenas se hasWheels=true)
