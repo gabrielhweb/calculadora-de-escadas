@@ -236,8 +236,7 @@ export const generateProposalDescription = (inputData: any, opt: any): string =>
     
     let materialText = 'de Metal';
     if (inputData.treadMaterial === 'wood') {
-        const typeStr = inputData.woodType === 'muiracatiara' ? 'Muiracatiara' : 'Garapeira';
-        materialText = `de Madeira (${typeStr})`;
+        materialText = `de Madeira (garapeira ou muiracatiara)`;
     } else if (inputData.treadMaterial === 'chapa_xadrez') {
         materialText = 'de Chapa Xadrez';
     } else if (inputData.treadMaterial === 'chapa_vazada') {
@@ -246,7 +245,26 @@ export const generateProposalDescription = (inputData: any, opt: any): string =>
     
     const text2 = `-Com ${opt.structureSteps} degraus articulados com dimensões de ${stepH} centímetros de altura e pisante ${materialText} de ${tread} centímetros${damperDesc}.`;
     
-    let fullText = `${text1}\n${text2}`;
+    let landingsText = "";
+    if (opt.landings && opt.landings.length > 0) {
+        const landingLines = opt.landings.map((landing: any) => {
+            const lM = ((landing.length || 0)/100).toFixed(2).replace('.', ',');
+            const wM = ((landing.width || 0)/100).toFixed(2).replace('.', ',');
+            const typeText = landing.type === 'fixed' ? 'Fixo' : 'Articulado';
+            
+            let guardText = "";
+            if (landing.hasSideGuardrail && landing.hasFrontGuardrail) guardText = " com guarda-corpo lateral e frontal";
+            else if (landing.hasSideGuardrail) guardText = " com guarda-corpo lateral";
+            else if (landing.hasFrontGuardrail) guardText = " com guarda-corpo frontal";
+
+            let flushText = landing.isFlushWithSlab ? " (rente à laje)" : "";
+            
+            return `- Patamar ${typeText} de ${lM}m x ${wM}m${guardText}${flushText}.`;
+        });
+        landingsText = "\n" + landingLines.join("\n");
+    }
+
+    let fullText = `${text1}\n${text2}${landingsText}`;
 
     if (inputData.referenceDoor && inputData.referenceDoor.isActive) {
         fullText += "\nNOTA: Portas/Janelas exibidas nos desenhos técnicos são apenas ilustrativas para referência de espaço. NÃO FABRICAMOS OU FORNECEMOS PORTAS.";

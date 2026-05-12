@@ -214,8 +214,8 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
                 
                 // LÓGICA DO TIPO DE PATAMAR (FIXO ou ARTICULADO)
                 // Se não estiver definido, assume ARTICULADO por segurança/padrão
-                let typeText = " ARTICULADO"; 
-                if (landing.type === 'fixed') typeText = " FIXO";
+                let typeText = "Articulado"; 
+                if (landing.type === 'fixed') typeText = "Fixo";
                 
                 let guardText = "";
                 if (landing.hasSideGuardrail && landing.hasFrontGuardrail) guardText = " + GC Lat/Front";
@@ -226,7 +226,7 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
 
                 // Monta a linha com o tipo explícito
                 // CORREÇÃO: Removemos a indentação (espaços) do início da string
-                const description = `- Patamar${typeText}: ${lM}m x ${wM}m${guardText}${flushText}`;
+                const description = `- Patamar ${typeText} de ${lM}m x ${wM}m${guardText}${flushText}`;
                 const price = formatCurrencyBRL(landing.price);
                 
                 // Calcula espaço disponível para o texto (total - margens - espaço pro preço - folga)
@@ -409,10 +409,20 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
     currentY += 6;
 
     doc.setFont('helvetica', 'normal');
-    const installText = '• É fundamental que o prumo da parede esteja correto, pois irregularidades podem comprometer a instalação e o perfeito funcionamento da escada.';
-    const splitInstall = doc.splitTextToSize(installText, pageWidth - (pageMargin * 2));
-    doc.text(splitInstall, pageMargin, currentY);
-    currentY += (splitInstall.length * 5) + 4;
+    const installText1 = '• É fundamental que o prumo e esquadro da parede estejam corretos, pois irregularidades podem comprometer a instalação e o perfeito funcionamento da escada.';
+    const splitInstall1 = doc.splitTextToSize(installText1, pageWidth - (pageMargin * 2));
+    doc.text(splitInstall1, pageMargin, currentY);
+    currentY += (splitInstall1.length * 5) + 2;
+
+    const installText2 = '• O cliente deve informar previamente a existência de canos, eletrodutos, fiações ou qualquer item embutido no local onde serão realizadas fixações e perfurações.';
+    const splitInstall2 = doc.splitTextToSize(installText2, pageWidth - (pageMargin * 2));
+    doc.text(splitInstall2, pageMargin, currentY);
+    currentY += (splitInstall2.length * 5) + 2;
+
+    const installText3 = '• A parede deve ser sólida; não recomendamos bloco inteiro, drywall ou cerâmico. O ideal é bloco estrutural de concreto, tijolo maciço, viga ou coluna.';
+    const splitInstall3 = doc.splitTextToSize(installText3, pageWidth - (pageMargin * 2));
+    doc.text(splitInstall3, pageMargin, currentY);
+    currentY += (splitInstall3.length * 5) + 4;
 
     doc.setFont('helvetica', 'bold');
     doc.text('Dados para Pagamento via Pix', pageMargin, currentY);

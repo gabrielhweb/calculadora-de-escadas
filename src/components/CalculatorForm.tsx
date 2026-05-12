@@ -356,62 +356,40 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
             />
         </div>
 
-        {/* NOVO: MATERIAL DO PISANTE */}
-        <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded border border-gray-300 dark:border-gray-600">
-            <label className="block text-sm font-black text-gray-900 dark:text-gray-100 mb-2">Material dos Degraus</label>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-                <button
-                    type="button"
-                    onClick={() => setTreadMaterial('metal')}
-                    className={`py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === 'metal' ? 'bg-gray-800 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
-                >
-                    Metal (Ferro)
-                </button>
-                <button
-                    type="button"
-                    onClick={() => setTreadMaterial('wood')}
-                    className={`py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === 'wood' ? 'bg-orange-700 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
-                >
-                    Madeira
-                </button>
-                <button
-                    type="button"
-                    onClick={() => setTreadMaterial('chapa_xadrez')}
-                    className={`py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === 'chapa_xadrez' ? 'bg-gray-800 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
-                >
-                    Chapa Xadrez
-                </button>
-                <button
-                    type="button"
-                    onClick={() => setTreadMaterial('chapa_vazada')}
-                    className={`py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === 'chapa_vazada' ? 'bg-gray-800 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
-                >
-                    Chapa Vazada
-                </button>
-            </div>
-            
-            {treadMaterial === 'wood' && (
-                <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
-                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-2">Tipo de Madeira</label>
-                    <div className="grid grid-cols-2 gap-2">
-                        <button
-                            type="button"
-                            onClick={() => setWoodType('garapeira')}
-                            className={`py-2 px-3 rounded font-bold text-xs transition ${woodType === 'garapeira' ? 'bg-orange-600 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
-                        >
-                            Garapeira
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setWoodType('muiracatiara')}
-                            className={`py-2 px-3 rounded font-bold text-xs transition ${woodType === 'muiracatiara' ? 'bg-orange-600 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
-                        >
-                            Muiracatiara
-                        </button>
-                    </div>
+            {/* NOVO: MATERIAL DO PISANTE */}
+            <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded border border-gray-300 dark:border-gray-600">
+                <label className="block text-sm font-black text-gray-900 dark:text-gray-100 mb-2">Material dos Degraus</label>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                    <button
+                        type="button"
+                        onClick={() => setTreadMaterial('metal')}
+                        className={`py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === 'metal' ? 'bg-gray-800 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
+                    >
+                        Metal (Ferro)
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setTreadMaterial('wood')}
+                        className={`py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === 'wood' ? 'bg-orange-700 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
+                    >
+                        Madeira
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setTreadMaterial('chapa_xadrez')}
+                        className={`py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === 'chapa_xadrez' ? 'bg-gray-800 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
+                    >
+                        Chapa Xadrez
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setTreadMaterial('chapa_vazada')}
+                        className={`py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === 'chapa_vazada' ? 'bg-gray-800 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
+                    >
+                        Chapa Vazada
+                    </button>
                 </div>
-            )}
-        </div>
+            </div>
         
         {/* VISUALIZAÇÃO AVANÇADA */}
         <div className="pt-4 border-t border-gray-100 dark:border-gray-700 bg-blue-50 dark:bg-blue-900/20 -mx-6 px-6 pb-4 mb-4">

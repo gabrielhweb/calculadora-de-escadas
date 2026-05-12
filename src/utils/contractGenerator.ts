@@ -198,8 +198,7 @@ export const generateContractPDF = (data: ContractData) => {
   
   let materialText = 'de METAL';
   if (data.inputData.treadMaterial === 'wood' || (data.inputData.treadMaterial as string) === 'Madeira') {
-      const woodStr = data.inputData.woodType === 'muiracatiara' ? 'MUIRACATIARA' : 'GARAPEIRA';
-      materialText = `de MADEIRA (${woodStr})`;
+      materialText = `de MADEIRA (GARAPEIRA OU MUIRACATIARA)`;
   } else if (data.inputData.treadMaterial === 'chapa_xadrez') {
       materialText = 'de CHAPA XADREZ';
   } else if (data.inputData.treadMaterial === 'chapa_vazada') {
