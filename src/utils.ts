@@ -236,7 +236,13 @@ export const generateProposalDescription = (inputData: any, opt: any): string =>
     
     let materialText = 'de Metal';
     if (inputData.treadMaterial === 'wood') {
-        materialText = `de Madeira (garapeira ou muiracatiara)`;
+        if (inputData.woodType === 'garapeira') {
+            materialText = 'de Madeira (Garapeira)';
+        } else if (inputData.woodType === 'muiracatiara') {
+            materialText = 'de Madeira (Muiracatiara)';
+        } else {
+            materialText = 'de Madeira (Garapeira ou Muiracatiara)';
+        }
     } else if (inputData.treadMaterial === 'chapa_xadrez') {
         materialText = 'de Chapa Xadrez';
     } else if (inputData.treadMaterial === 'chapa_vazada') {

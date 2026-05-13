@@ -198,7 +198,13 @@ export const generateContractPDF = (data: ContractData) => {
   
   let materialText = 'de METAL';
   if (data.inputData.treadMaterial === 'wood' || (data.inputData.treadMaterial as string) === 'Madeira') {
-      materialText = `de MADEIRA (GARAPEIRA OU MUIRACATIARA)`;
+      if (data.inputData.woodType === 'garapeira') {
+          materialText = 'de MADEIRA (GARAPEIRA)';
+      } else if (data.inputData.woodType === 'muiracatiara') {
+          materialText = 'de MADEIRA (MUIRACATIARA)';
+      } else {
+          materialText = 'de MADEIRA (GARAPEIRA OU MUIRACATIARA)';
+      }
   } else if (data.inputData.treadMaterial === 'chapa_xadrez') {
       materialText = 'de CHAPA XADREZ';
   } else if (data.inputData.treadMaterial === 'chapa_vazada') {
@@ -371,8 +377,12 @@ export const generateContractPDF = (data: ContractData) => {
       const signalP = data.paymentDetails.signalPercent || 50;
       const valorSinal = totalComDesconto * (signalP / 100);
       const valorRestante = totalComDesconto - valorSinal;
+      const percentRestante = 100 - signalP;
       
-      addText(`Sendo pago: ${formatCurrencyBRL(valorSinal)} via PIX a título de sinal e ${formatCurrencyBRL(valorRestante)} restantes a serem pagos após a emissão da nota fiscal e no dia do envio do produto à transportadora, para liberação do despacho.`, 11, false, 'justify');
+      addText(`Sendo pago ${signalP}% de entrada (${formatCurrencyBRL(valorSinal)}) via PIX de sinal no fechamento e ${percentRestante}% (${formatCurrencyBRL(valorRestante)}) via PIX na emissão da nota.`, 11, false, 'justify');
+      
+      currentY += 2;
+      addText(`Chave PIX (CNPJ): 28.869.537/0001-01`, 11, true, 'left');
 
       currentY += 5;
       addText('6.2 Antes do envio, a CONTRATADA encaminhará vídeos ao cliente demonstrando o funcionamento da escada.', 11, false, 'justify');
@@ -389,6 +399,8 @@ export const generateContractPDF = (data: ContractData) => {
               addText(`Total ${formatCurrencyBRL(totalGeral)}`, 11, false, 'left');
           }
           addText(`Sendo pago ${formatCurrencyBRL(valorSinal)} via pix de sinal e ${formatCurrencyBRL(valorEntrega)} no dia entrega e instalação`, 11, false, 'left');
+          currentY += 2;
+          addText(`Chave PIX (CNPJ): 28.869.537/0001-01`, 11, true, 'left');
       
       } else if (data.paymentMethod === 'hybrid') {
           // Usa o valor manual se disponível, senão calcula pela %
@@ -443,6 +455,8 @@ export const generateContractPDF = (data: ContractData) => {
                   addText(`E o restante de ${formatCurrencyBRL(restanteBase)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}`, 11, false, 'justify');
               }
           }
+          currentY += 2;
+          addText(`Chave PIX (CNPJ): 28.869.537/0001-01`, 11, true, 'left');
 
       } else {
           // CARTÃO PURO

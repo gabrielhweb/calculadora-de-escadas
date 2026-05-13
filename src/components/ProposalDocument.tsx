@@ -388,7 +388,12 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
     const splitPayment1 = doc.splitTextToSize(paymentText1, pageWidth - (pageMargin * 2));
     doc.text(splitPayment1, pageMargin, currentY);
     currentY += (splitPayment1.length * 5) + 2;
+    
+    doc.setFont('helvetica', 'bold');
+    doc.text('  Chave PIX (CNPJ): 28.869.537/0001-01', pageMargin, currentY);
+    currentY += 5;
 
+    doc.setFont('helvetica', 'normal');
     const paymentText2 = '• Parcelado: em até 12x no cartão de crédito via link de pagamento, com incidência de juros conforme a quantidade de parcelas e a operadora do cartão.';
     const splitPayment2 = doc.splitTextToSize(paymentText2, pageWidth - (pageMargin * 2));
     doc.text(splitPayment2, pageMargin, currentY);
@@ -423,15 +428,6 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
     const splitInstall3 = doc.splitTextToSize(installText3, pageWidth - (pageMargin * 2));
     doc.text(splitInstall3, pageMargin, currentY);
     currentY += (splitInstall3.length * 5) + 4;
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('Dados para Pagamento via Pix', pageMargin, currentY);
-    currentY += 6;
-
-    doc.setFont('helvetica', 'normal');
-    doc.text('• Chave CNPJ: 28.869.537/0001-01', pageMargin, currentY);
-    currentY += 5;
-    doc.text('• Razão Social: P G Zilinski ME', pageMargin, currentY);
 
     return doc;
   }, [options, userData, inputData, freightCost, tollCost, installationCost, selectedOptionIndices]);
