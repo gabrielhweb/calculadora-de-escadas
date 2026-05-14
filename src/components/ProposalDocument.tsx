@@ -422,12 +422,7 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
     const installText2 = '• O cliente deve informar previamente a existência de canos, eletrodutos, fiações ou qualquer item embutido no local onde serão realizadas fixações e perfurações.';
     const splitInstall2 = doc.splitTextToSize(installText2, pageWidth - (pageMargin * 2));
     doc.text(splitInstall2, pageMargin, currentY);
-    currentY += (splitInstall2.length * 5) + 2;
-
-    const installText3 = '• A parede deve ser sólida; não recomendamos bloco inteiro, drywall ou cerâmico. O ideal é bloco estrutural de concreto, tijolo maciço, viga ou coluna.';
-    const splitInstall3 = doc.splitTextToSize(installText3, pageWidth - (pageMargin * 2));
-    doc.text(splitInstall3, pageMargin, currentY);
-    currentY += (splitInstall3.length * 5) + 4;
+    currentY += (splitInstall2.length * 5) + 4;
 
     return doc;
   }, [options, userData, inputData, freightCost, tollCost, installationCost, selectedOptionIndices]);
