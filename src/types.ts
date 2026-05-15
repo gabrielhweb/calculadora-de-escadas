@@ -59,6 +59,10 @@ export interface CalculatorInput {
   slabThickness?: number; // Espessura da laje (cm)
   slabOpening?: number; // Tamanho do vão livre (cm)
   
+  hasCorrimao?: boolean;
+  handrailHeight?: number;
+  supportThickness?: number;
+  handrailThickness?: number;
   // Visualização Avançada e Geometria
   stairDirection?: 'standard' | 'mirrored'; // standard = sobe p/ direita, mirrored = sobe p/ esquerda
   wallFixation?: 'left' | 'right' | 'frontal'; // NOVO: Lado da fixação na parede

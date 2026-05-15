@@ -110,6 +110,12 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
   const [stairDirection, setStairDirection] = useState<'standard' | 'mirrored'>('standard');
   const [wallFixation, setWallFixation] = useState<'left' | 'right' | 'frontal'>('left'); // Novo campo
   const [stairGeometry, setStairGeometry] = useState<string>(''); // Novo campo de geometria
+
+  const [hasCorrimao, setHasCorrimao] = useState(false);
+  const [handrailHeight, setHandrailHeight] = useState('90');
+  const [supportThickness, setSupportThickness] = useState('2');
+  const [handrailThickness, setHandrailThickness] = useState('3');
+
   const [doorActive, setDoorActive] = useState(false);
   const [doorWidth, setDoorWidth] = useState('80');
   const [doorHeight, setDoorHeight] = useState('210');
@@ -247,6 +253,10 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
       stairDirection: stairDirection,
       wallFixation: wallFixation,
       stairGeometry: stairGeometry, // Novo campo
+      hasCorrimao: hasCorrimao,
+      handrailHeight: parseFloat(handrailHeight) || 0,
+      supportThickness: parseFloat(supportThickness) || 0,
+      handrailThickness: parseFloat(handrailThickness) || 0,
       referenceDoor: referenceDoorData
     };
 
@@ -488,6 +498,33 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                          <option value="Formato L (Vira Direita)">Formato L (Vira Direita)</option>
                          <option value="Formato U">Formato U</option>
                      </select>
+                 </div>
+
+                 {/* Controle de Corrimão */}
+                 <div className="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                     <div className="flex items-center gap-3 cursor-pointer" onClick={() => setHasCorrimao(!hasCorrimao)}>
+                        <input type="checkbox" checked={hasCorrimao} onChange={e => setHasCorrimao(e.target.checked)} className="accent-blue-600 w-5 h-5 cursor-pointer"/>
+                        <div className="flex flex-col">
+                            <label className="text-sm font-bold text-gray-800 dark:text-white cursor-pointer">A escada possui corrimão?</label>
+                        </div>
+                     </div>
+                     
+                     {hasCorrimao && (
+                        <div className="grid grid-cols-3 gap-3 mt-4 animate-fade-in">
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-500 dark:text-gray-300 uppercase mb-1" title="Altura do Corrimão em relação aos degraus">Altura (cm)</label>
+                                <input type="number" value={handrailHeight} onChange={e => setHandrailHeight(e.target.value)} className="w-full text-sm p-2 border rounded font-bold text-blue-700" placeholder="90" />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-500 dark:text-gray-300 uppercase mb-1" title="Espessura do Material de Apoio (hastes/torres)">Perfil Haste (cm)</label>
+                                <input type="number" value={supportThickness} onChange={e => setSupportThickness(e.target.value)} className="w-full text-sm p-2 border rounded font-bold text-blue-700" placeholder="2" />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-500 dark:text-gray-300 uppercase mb-1" title="Espessura do Corrimão Principal">Perfil Tubo (cm)</label>
+                                <input type="number" value={handrailThickness} onChange={e => setHandrailThickness(e.target.value)} className="w-full text-sm p-2 border rounded font-bold text-blue-700" placeholder="3" />
+                            </div>
+                        </div>
+                     )}
                  </div>
 
                  {/* Controle de Porta/Janela (Reformulado) */}

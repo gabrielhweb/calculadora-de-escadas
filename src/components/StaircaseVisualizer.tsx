@@ -1,12 +1,18 @@
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { ProposalOption, ReferenceDoor } from '../types';
+import { ProposalOption, ReferenceDoor, CalculatorInput } from '../types';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+
+import { Canvas, useFrame } from '@react-three/fiber';
+import { OrbitControls, Html } from '@react-three/drei';
+import * as THREE from 'three';
 
 interface StaircaseVisualizerProps {
   option: ProposalOption;
   totalHeight: number;
+  inputData?: CalculatorInput;
+  treadMaterial?: 'madeira' | 'metal';
   slabOpening?: number;
   slabThickness?: number;
   onClose?: () => void;
@@ -35,11 +41,291 @@ interface Face {
   id: string;
   opacity?: number;
   strokeDashArray?: string;
-  text?: string; // Texto opcional na face 3D
+  text?: string;
 }
 
+import { useSpring, animated } from '@react-spring/three';
+
+const StairModel: React.FC<{
+  isOpen: boolean;
+  totalHeightM: number;
+  totalLengthM: number;
+  stairWidth: number;
+  treadDepth: number;
+  stepsCount: number;
+  materialProp: 'madeira' | 'metal';
+  hasCorrimao: boolean;
+  handrailHeightM: number;
+  supportThicknessM: number;
+  handrailThicknessM: number;
+}> = ({ isOpen, totalHeightM, totalLengthM, stairWidth, treadDepth, stepsCount, materialProp, hasCorrimao, handrailHeightM, supportThicknessM, handrailThicknessM }) => {
+  const barLength = Math.sqrt(totalHeightM ** 2 + totalLengthM ** 2);
+  // Angle to tilt a Z-aligned box so it points to (0, -totalHeightM, totalLengthM)
+  const slopeAngle = Math.atan2(totalHeightM, totalLengthM); 
+
+  // Lateral parallelogram folding: 
+  // 0 = open (horizontal steps). Math.PI / 2 = closed (folded 90 deg against wall)
+  const { phi } = useSpring({
+    phi: isOpen ? 0 : Math.PI / 2,
+    config: { mass: 2, tension: 150, friction: 30 }
+  });
+
+  const stepColor = materialProp === 'madeira' ? '#8b5a2b' : '#4b5563';
+  const metallicColor = '#2f3136'; 
+
+  // The fixed wall stringer is at the left boundary.
+  const wallX = -stairWidth / 2 + 0.02; // Center of 4cm box
+  
+  // The distance between hinges is the width of the steps
+  const stairW = stairWidth - 0.04;
+  
+  // Outer stringer translates as phi changes, squeezing perfectly toward the wall!
+  const outerStringerX = phi.to(p => wallX + stairW * Math.cos(p));
+  const outerStringerY = phi.to(p => stairW * Math.sin(p));
+
+  return (
+    // Base coordinate system: pivot at top landing.
+    <group position={[0, totalHeightM, 0]}>
+      
+      {/* INNER STRINGER (Fixed rigidly to the wall at X = wallX) */}
+      <group position={[wallX, -totalHeightM / 2, totalLengthM / 2]}>
+        <mesh rotation-x={slopeAngle}>
+          <boxGeometry args={[0.04, 0.08, barLength]} />
+          <meshStandardMaterial color={metallicColor} metalness={0.7} roughness={0.3} />
+        </mesh>
+
+        {/* Chapas de Fixação na Parede (Apoios superior e inferior) */}
+        <mesh position={[-0.025, totalHeightM / 2, -totalLengthM / 2]}>
+          <boxGeometry args={[0.01, 0.30, 0.20]} />
+          <meshStandardMaterial color={metallicColor} metalness={0.7} roughness={0.3} />
+        </mesh>
+        <mesh position={[-0.025, -totalHeightM / 2, totalLengthM / 2]}>
+          <boxGeometry args={[0.01, 0.30, 0.20]} />
+          <meshStandardMaterial color={metallicColor} metalness={0.7} roughness={0.3} />
+        </mesh>
+      </group>
+
+      {/* OUTER STRINGER (Translates laterally and upwards) */}
+      <animated.group 
+        position-x={outerStringerX}
+        position-y={outerStringerY}
+        position-z={0}
+      >
+        <group position={[0, -totalHeightM / 2, totalLengthM / 2]}>
+          <mesh rotation-x={slopeAngle}>
+            <boxGeometry args={[0.04, 0.08, barLength]} />
+            <meshStandardMaterial color={metallicColor} metalness={0.7} roughness={0.3} />
+          </mesh>
+        </group>
+
+        {/* Handrail Main Tube and Supports */}
+        {hasCorrimao && (
+          <group>
+             {/* Main Tube */}
+             <group position={[0, -totalHeightM / 2 + handrailHeightM, totalLengthM / 2]}>
+               <mesh rotation-x={slopeAngle}>
+                 <boxGeometry args={[handrailThicknessM, handrailThicknessM, barLength]} />
+                 <meshStandardMaterial color={metallicColor} metalness={0.8} roughness={0.2} />
+               </mesh>
+             </group>
+             
+             {/* Vertical Supports (Torres/Hastes) */}
+             {Array.from({ length: stepsCount }).map((_, i) => {
+               const fraction = (i + 0.5) / stepsCount;
+               const hingeY = -totalHeightM * fraction;
+               const hingeZ = totalLengthM * fraction;
+               return (
+                  <mesh key={`post-${i}`} position={[0, hingeY + handrailHeightM / 2, hingeZ]}>
+                    <boxGeometry args={[supportThicknessM, handrailHeightM, supportThicknessM]} />
+                    <meshStandardMaterial color={metallicColor} metalness={0.8} roughness={0.2} />
+                  </mesh>
+               );
+             })}
+          </group>
+        )}
+      </animated.group>
+
+      {/* STEPS - They pivot at the Wall Stringer! */}
+      {Array.from({ length: stepsCount }).map((_, i) => {
+        // Find position of the hinge for this step on the wall stringer
+        // Y goes from 0 down to -totalHeightM
+        // Z goes from 0 to totalLengthM
+        const fraction = (i + 0.5) / stepsCount;
+        const hingeY = -totalHeightM * fraction;
+        const hingeZ = totalLengthM * fraction;
+
+        return (
+          <group key={i} position={[wallX, hingeY, hingeZ]}>
+            {/* The step rotates around Z so it flips up to lay flat against the wall! */}
+            <animated.group rotation-z={phi as any}>
+              {/* Offset step center to match the hinge width */}
+              <mesh position={[stairW / 2, 0, 0]}>
+                <boxGeometry args={[stairW, 0.03, treadDepth]} />
+                <meshStandardMaterial 
+                  color={stepColor} 
+                  metalness={materialProp === 'metal' ? 0.5 : 0.1}
+                  roughness={materialProp === 'metal' ? 0.4 : 0.8}
+                />
+              </mesh>
+            </animated.group>
+          </group>
+        );
+      })}
+    </group>
+  );
+};
+
+const Interactive3DStair: React.FC<{
+  option: ProposalOption;
+  totalHeight: number;
+  inputData?: CalculatorInput;
+  treadMaterial?: 'madeira' | 'metal';
+}> = ({ option, totalHeight, inputData, treadMaterial = 'madeira' }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  
+  const totalHeightM = (totalHeight || 300) / 100;
+  const totalLengthM = (option.totalLength || 300) / 100;
+  const stairWidth = (option.stairWidth || 80) / 100;
+  const treadDepth = (option.treadDepth || 25) / 100;
+  const stepsCount = option.steps > 0 ? option.steps : 10;
+  const materialProp = treadMaterial;
+
+  const stairDirection = inputData?.stairDirection || 'standard';
+  const wallFixation = inputData?.wallFixation || 'left';
+  
+  // Handrail options
+  const hasCorrimao = inputData?.hasCorrimao || false;
+  const handrailHeightM = (inputData?.handrailHeight || 90) / 100;
+  const supportThicknessM = (inputData?.supportThickness || 2) / 100;
+  const handrailThicknessM = (inputData?.handrailThickness || 3) / 100;
+
+  // Mirroring
+  const scaleX = stairDirection === 'mirrored' ? -1 : 1;
+
+  // Wall position
+  const wallPositionX = wallFixation === 'left' ? -stairWidth / 2 - 0.1 : 
+                        wallFixation === 'right' ? stairWidth / 2 + 0.1 : 
+                        0; // Frontal wall doesn't translate X
+  const wallPositionZ = wallFixation === 'frontal' ? 0 : 0; // Frontal would be back of stairs
+
+  // HUD and Dimension logic for Closed Package State
+  const sobraDoCorrimao = hasCorrimao ? 0.10 : 0;
+  const pacoteLarguraX = stairWidth + (hasCorrimao ? handrailHeightM : 0) - 0.05;
+  const pacoteComprimentoZ = Math.sqrt(
+      Math.pow(totalLengthM + sobraDoCorrimao, 2) + 
+      Math.pow(totalHeightM + sobraDoCorrimao, 2)
+  ) + 0.04;
+
+  return (
+      <Canvas camera={{ position: [5 * scaleX, totalHeightM + 1, 5], fov: 50 }} style={{ width: '100%', height: '100%', background: '#e2e8f0' }}>
+          <ambientLight intensity={0.6} />
+          <directionalLight position={[5, 10, 5]} intensity={1.5} castShadow />
+          <pointLight position={[-5, 5, -5]} intensity={0.5} />
+
+          <OrbitControls target={[0, totalHeightM / 2, 0]} />
+
+          <group scale={[scaleX, 1, 1]}>
+              <group 
+                onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }}
+                onPointerOver={() => document.body.style.cursor = 'pointer'}
+                onPointerOut={() => document.body.style.cursor = 'auto'}
+              >
+                <StairModel 
+                  isOpen={isOpen} 
+                  totalHeightM={totalHeightM} 
+                  totalLengthM={totalLengthM} 
+                  stairWidth={stairWidth} 
+                  treadDepth={treadDepth}
+                  stepsCount={stepsCount} 
+                  materialProp={materialProp}
+                  hasCorrimao={hasCorrimao}
+                  handrailHeightM={handrailHeightM}
+                  supportThicknessM={supportThicknessM}
+                  handrailThicknessM={handrailThicknessM}
+                />
+              </group>
+
+              {/* Wall */}
+              {wallFixation !== 'frontal' ? (
+                  <mesh position={[wallPositionX, totalHeightM / 2, totalLengthM / 2]}>
+                      <boxGeometry args={[0.2, totalHeightM + 2, totalLengthM + 2]} />
+                      <meshStandardMaterial color="#cbd5e1" />
+                  </mesh>
+              ) : (
+                  <mesh position={[0, totalHeightM / 2, -0.4]}>
+                      <boxGeometry args={[stairWidth + 2, totalHeightM + 2, 0.2]} />
+                      <meshStandardMaterial color="#cbd5e1" />
+                  </mesh>
+              )}
+          </group>
+
+          {/* Real-time Dimensions HUD (tied to the 3D space) */}
+          <group scale={[scaleX, 1, 1]}>
+            {isOpen ? (
+              <group>
+                {/* Altura Total */}
+                <Html position={[wallPositionX - 0.3, totalHeightM / 2, 0]} center zIndexRange={[100, 0]}>
+                  <div className="bg-black/80 text-white px-2 py-1 rounded text-xs font-mono shadow-md border border-white/10 whitespace-nowrap">
+                    ↕ H: {totalHeightM.toFixed(2)}m
+                  </div>
+                </Html>
+                {/* Avanço Total */}
+                <Html position={[0, -0.1, totalLengthM / 2]} center zIndexRange={[100, 0]}>
+                  <div className="bg-black/80 text-white px-2 py-1 rounded text-xs font-mono shadow-md border border-white/10 whitespace-nowrap">
+                    ↔ C: {totalLengthM.toFixed(2)}m
+                  </div>
+                </Html>
+                {/* Largura Degrau */}
+                <Html position={[0, totalHeightM - 0.2, totalLengthM / 2]} center zIndexRange={[100, 0]}>
+                  <div className="bg-black/80 text-white px-2 py-1 rounded text-xs font-mono shadow-md border border-white/10 whitespace-nowrap">
+                    ⟷ L: {stairWidth.toFixed(2)}m
+                  </div>
+                </Html>
+              </group>
+            ) : (
+              <Html position={[wallPositionX + 0.3, totalHeightM / 2, totalLengthM / 2]} center zIndexRange={[100, 0]}>
+                  <div className="bg-slate-900/95 border border-slate-700 text-white p-4 rounded-xl shadow-2xl flex flex-col gap-2 whitespace-nowrap backdrop-blur-md">
+                    <div className="text-sm font-black text-blue-400 border-b border-blue-900/50 pb-2 mb-1 flex items-center gap-2">
+                       📦 DIMENSÕES PARA FRETE
+                    </div>
+                    <div className="font-mono text-sm flex justify-between gap-6 items-center">
+                      <span className="text-slate-400 tracking-wider text-xs">ESPESSURA</span> 
+                      <span className="font-bold text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded">0.08m</span>
+                    </div>
+                    <div className="font-mono text-sm flex justify-between gap-6 items-center">
+                      <span className="text-slate-400 tracking-wider text-xs">LARGURA</span> 
+                      <span className="font-bold text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded">{pacoteLarguraX.toFixed(2)}m</span>
+                    </div>
+                    <div className="font-mono text-sm flex justify-between gap-6 items-center">
+                      <span className="text-slate-400 tracking-wider text-xs">DIAGONAL</span> 
+                      <span className="font-bold text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded">{pacoteComprimentoZ.toFixed(2)}m</span>
+                    </div>
+                  </div>
+              </Html>
+            )}
+          </group>
+
+          {/* Floor */}
+          <mesh position={[0, 0, totalLengthM / 2]} rotation-x={-Math.PI / 2}>
+              <planeGeometry args={[stairWidth + 4, totalLengthM + 4]} />
+              <meshStandardMaterial color="#cbd5e1" />
+          </mesh>
+
+          {/* UI Hint */}
+          <Html position={[0, totalHeightM + 0.5, 0]} center>
+              <div 
+                  className="bg-white/90 backdrop-blur text-blue-800 px-4 py-2 rounded-full font-bold shadow whitespace-nowrap cursor-pointer hover:bg-blue-50"
+                  onClick={(e: any) => { e.stopPropagation(); setIsOpen(!isOpen); }}
+              >
+                  {isOpen ? 'Clique para Fechar' : 'Clique para Abrir'}
+              </div>
+          </Html>
+      </Canvas>
+  );
+};
+
 const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({ 
-    option, totalHeight, slabOpening, slabThickness = 15, onClose, printMode = false, initialViewMode = 'side', onApplyCorrection, forcedState,
+    option, totalHeight, treadMaterial, slabOpening, slabThickness = 15, onClose, printMode = false, initialViewMode = 'side', onApplyCorrection, forcedState,
     captureRef, hideUI = false, stairDirection = 'standard', referenceDoor
 }) => {
   // --- PROTEÇÃO CONTRA DADOS NULOS ---
@@ -1045,7 +1331,7 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
         </defs>
         <g transform={`translate(${pan.x}, ${pan.y}) scale(${zoom}) translate(${svgWidth/2 - (margin + option.totalLength)/2}, 50)`}>
             {!isExporting && viewMode === 'side' && <rect x={-5000} y={-5000} width={10000} height={10000} fill="url(#grid)" />}
-            {viewMode === 'side' ? renderSideView() : renderInteractive3D()}
+            {renderSideView()}
         </g>
     </svg>
   );
@@ -1056,7 +1342,7 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
         <div ref={internalCanvasRef} className="bg-white p-4 inline-block">
              <div className="text-center font-bold text-xl mb-4 text-black">Opção {option.optionNumber}</div>
              <div style={{ width: 800, height: 600 }}>
-                <SVGContent />
+                {viewMode === 'side' ? <SVGContent /> : <Interactive3DStair option={option} totalHeight={totalHeight} treadMaterial={treadMaterial} />}
              </div>
         </div>
       );
@@ -1067,13 +1353,13 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
      return (
         <div ref={captureRef} 
              className="w-full h-full bg-white relative overflow-hidden cursor-move"
-             onMouseDown={startDrag} 
-             onMouseMove={doDrag} 
-             onMouseUp={stopDrag} 
-             onMouseLeave={stopDrag} 
-             onWheel={handleWheel}
+             onMouseDown={viewMode === 'side' ? startDrag : undefined} 
+             onMouseMove={viewMode === 'side' ? doDrag : undefined} 
+             onMouseUp={viewMode === 'side' ? stopDrag : undefined} 
+             onMouseLeave={viewMode === 'side' ? stopDrag : undefined} 
+             onWheel={viewMode === 'side' ? handleWheel : undefined}
         >
-            <SVGContent />
+            {viewMode === 'side' ? <SVGContent /> : <Interactive3DStair option={option} totalHeight={totalHeight} treadMaterial={treadMaterial} />}
         </div>
      );
   }
@@ -1122,14 +1408,14 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
 
         {/* CANVAS - OCUPA TELA TODA AGORA */}
         <div ref={internalCanvasRef} 
-             className={`absolute inset-0 w-full h-full cursor-move overflow-hidden ${isExporting ? 'bg-white' : 'bg-blueprint-grid'}`} 
-             onMouseDown={startDrag} 
-             onMouseMove={doDrag} 
-             onMouseUp={stopDrag} 
-             onMouseLeave={stopDrag} 
-             onContextMenu={(e) => e.preventDefault()}
-             onWheel={handleWheel}>
-            <SVGContent />
+             className={`absolute inset-0 w-full h-full ${viewMode === 'side' ? 'cursor-move' : ''} overflow-hidden ${isExporting ? 'bg-white' : 'bg-blueprint-grid'}`} 
+             onMouseDown={viewMode === 'side' ? startDrag : undefined} 
+             onMouseMove={viewMode === 'side' ? doDrag : undefined} 
+             onMouseUp={viewMode === 'side' ? stopDrag : undefined} 
+             onMouseLeave={viewMode === 'side' ? stopDrag : undefined} 
+             onContextMenu={(e) => viewMode === 'side' ? e.preventDefault() : undefined}
+             onWheel={viewMode === 'side' ? handleWheel : undefined}>
+            {viewMode === 'side' ? <SVGContent /> : <Interactive3DStair option={option} totalHeight={totalHeight} treadMaterial={treadMaterial} />}
         </div>
 
         {/* --- CONTROLES FLUTUANTES (MODIFICADO PARA SER CARD SOBREPOSTO) --- */}

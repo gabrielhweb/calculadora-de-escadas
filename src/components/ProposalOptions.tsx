@@ -817,6 +817,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                            <StaircaseVisualizer 
                                 captureRef={captureRef}
                                 option={item.option}
+                                inputData={inputData}
                                 totalHeight={inputData?.totalHeight || 300}
                                 slabOpening={inputData?.slabOpening}
                                 slabThickness={inputData?.slabThickness}
@@ -1296,6 +1297,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
           <StaircaseVisualizer 
              key={`${selectedVisualizerOption.optionNumber}-${inputData?.referenceDoor?.isActive ? 'door' : 'nodoor'}-${inputData?.stairDirection}`}
              option={selectedVisualizerOption} 
+             inputData={inputData}
              totalHeight={inputData?.totalHeight || 300} 
              slabOpening={inputData?.slabOpening}
              slabThickness={inputData?.slabThickness}
