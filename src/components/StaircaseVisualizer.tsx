@@ -5,7 +5,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Html } from '@react-three/drei';
+import { OrbitControls, Html, Line } from '@react-three/drei';
 import * as THREE from 'three';
 
 interface StaircaseVisualizerProps {
@@ -263,45 +263,54 @@ const Interactive3DStair: React.FC<{
           <group scale={[scaleX, 1, 1]}>
             {isOpen ? (
               <group>
-                {/* Altura Total */}
+                {/* Altura Total (Verde) */}
+                <Line points={[[wallPositionX - 0.3, 0, 0], [wallPositionX - 0.3, totalHeightM, 0]]} color="#4ade80" lineWidth={2} dashed={true} dashSize={0.1} gapSize={0.05} />
                 <Html position={[wallPositionX - 0.3, totalHeightM / 2, 0]} center zIndexRange={[100, 0]}>
-                  <div className="bg-black/80 text-white px-2 py-1 rounded text-xs font-mono shadow-md border border-white/10 whitespace-nowrap">
+                  <div className="bg-black/80 text-green-400 px-2 py-1 rounded text-xs font-mono shadow-md border border-green-400/20 whitespace-nowrap">
                     ↕ H: {totalHeightM.toFixed(2)}m
                   </div>
                 </Html>
-                {/* Avanço Total */}
+                {/* Avanço Total (Azul) */}
+                <Line points={[[0, -0.1, 0], [0, -0.1, totalLengthM]]} color="#60a5fa" lineWidth={2} dashed={true} dashSize={0.1} gapSize={0.05} />
                 <Html position={[0, -0.1, totalLengthM / 2]} center zIndexRange={[100, 0]}>
-                  <div className="bg-black/80 text-white px-2 py-1 rounded text-xs font-mono shadow-md border border-white/10 whitespace-nowrap">
+                  <div className="bg-black/80 text-blue-400 px-2 py-1 rounded text-xs font-mono shadow-md border border-blue-400/20 whitespace-nowrap">
                     ↔ C: {totalLengthM.toFixed(2)}m
                   </div>
                 </Html>
-                {/* Largura Degrau */}
-                <Html position={[0, totalHeightM - 0.2, totalLengthM / 2]} center zIndexRange={[100, 0]}>
-                  <div className="bg-black/80 text-white px-2 py-1 rounded text-xs font-mono shadow-md border border-white/10 whitespace-nowrap">
+                {/* Largura Degrau (Amarelo) */}
+                <Line points={[[-stairWidth/2, 0, totalLengthM + 0.1], [stairWidth/2, 0, totalLengthM + 0.1]]} color="#fbbf24" lineWidth={2} dashed={true} dashSize={0.1} gapSize={0.05} />
+                <Html position={[0, 0, totalLengthM + 0.1]} center zIndexRange={[100, 0]}>
+                  <div className="bg-black/80 text-yellow-400 px-2 py-1 rounded text-xs font-mono shadow-md border border-yellow-400/20 whitespace-nowrap">
                     ⟷ L: {stairWidth.toFixed(2)}m
                   </div>
                 </Html>
               </group>
             ) : (
-              <Html position={[wallPositionX + 0.3, totalHeightM / 2, totalLengthM / 2]} center zIndexRange={[100, 0]}>
-                  <div className="bg-slate-900/95 border border-slate-700 text-white p-4 rounded-xl shadow-2xl flex flex-col gap-2 whitespace-nowrap backdrop-blur-md">
-                    <div className="text-sm font-black text-blue-400 border-b border-blue-900/50 pb-2 mb-1 flex items-center gap-2">
-                       📦 DIMENSÕES PARA FRETE
+              <group>
+                {/* Largura do Pacote (Amarelo/Laranja) */}
+                <Line points={[[wallPositionX + 0.1, totalHeightM/2, totalLengthM/2], [wallPositionX + 0.1 + pacoteLarguraX, totalHeightM/2, totalLengthM/2]]} color="#fbbf24" lineWidth={2} />
+                {/* Diagonal do Pacote (Azul) */}
+                <Line points={[[wallPositionX + 0.1, totalHeightM, 0], [wallPositionX + 0.1, 0, totalLengthM]]} color="#60a5fa" lineWidth={2} />
+                <Html position={[wallPositionX + 0.3, totalHeightM / 2, totalLengthM / 2]} center zIndexRange={[100, 0]}>
+                    <div className="bg-slate-900/95 border border-slate-700 text-white p-4 rounded-xl shadow-2xl flex flex-col gap-2 whitespace-nowrap backdrop-blur-md">
+                      <div className="text-sm font-black text-blue-400 border-b border-blue-900/50 pb-2 mb-1 flex items-center gap-2">
+                         📦 DIMENSÕES PARA FRETE
+                      </div>
+                      <div className="font-mono text-sm flex justify-between gap-6 items-center">
+                        <span className="text-slate-400 tracking-wider text-xs">ESPESSURA</span> 
+                        <span className="font-bold text-green-400 bg-green-400/10 px-2 py-0.5 rounded">0.08m</span>
+                      </div>
+                      <div className="font-mono text-sm flex justify-between gap-6 items-center">
+                        <span className="text-slate-400 tracking-wider text-xs" style={{ color: '#fbbf24' }}>LARGURA</span> 
+                        <span className="font-bold text-yellow-400 bg-yellow-400/10 px-2 py-0.5 rounded">{pacoteLarguraX.toFixed(2)}m</span>
+                      </div>
+                      <div className="font-mono text-sm flex justify-between gap-6 items-center">
+                        <span className="text-slate-400 tracking-wider text-xs" style={{ color: '#60a5fa' }}>DIAGONAL</span> 
+                        <span className="font-bold text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded">{pacoteComprimentoZ.toFixed(2)}m</span>
+                      </div>
                     </div>
-                    <div className="font-mono text-sm flex justify-between gap-6 items-center">
-                      <span className="text-slate-400 tracking-wider text-xs">ESPESSURA</span> 
-                      <span className="font-bold text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded">0.08m</span>
-                    </div>
-                    <div className="font-mono text-sm flex justify-between gap-6 items-center">
-                      <span className="text-slate-400 tracking-wider text-xs">LARGURA</span> 
-                      <span className="font-bold text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded">{pacoteLarguraX.toFixed(2)}m</span>
-                    </div>
-                    <div className="font-mono text-sm flex justify-between gap-6 items-center">
-                      <span className="text-slate-400 tracking-wider text-xs">DIAGONAL</span> 
-                      <span className="font-bold text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded">{pacoteComprimentoZ.toFixed(2)}m</span>
-                    </div>
-                  </div>
-              </Html>
+                </Html>
+              </group>
             )}
           </group>
 
@@ -325,7 +334,7 @@ const Interactive3DStair: React.FC<{
 };
 
 const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({ 
-    option, totalHeight, treadMaterial, slabOpening, slabThickness = 15, onClose, printMode = false, initialViewMode = 'side', onApplyCorrection, forcedState,
+    option, totalHeight, inputData, treadMaterial, slabOpening, slabThickness = 15, onClose, printMode = false, initialViewMode = 'side', onApplyCorrection, forcedState,
     captureRef, hideUI = false, stairDirection = 'standard', referenceDoor
 }) => {
   // --- PROTEÇÃO CONTRA DADOS NULOS ---
@@ -1342,7 +1351,7 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
         <div ref={internalCanvasRef} className="bg-white p-4 inline-block">
              <div className="text-center font-bold text-xl mb-4 text-black">Opção {option.optionNumber}</div>
              <div style={{ width: 800, height: 600 }}>
-                {viewMode === 'side' ? <SVGContent /> : <Interactive3DStair option={option} totalHeight={totalHeight} treadMaterial={treadMaterial} />}
+                {viewMode === 'side' ? <SVGContent /> : <Interactive3DStair option={option} totalHeight={totalHeight} inputData={inputData} treadMaterial={treadMaterial} />}
              </div>
         </div>
       );
@@ -1359,7 +1368,7 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
              onMouseLeave={viewMode === 'side' ? stopDrag : undefined} 
              onWheel={viewMode === 'side' ? handleWheel : undefined}
         >
-            {viewMode === 'side' ? <SVGContent /> : <Interactive3DStair option={option} totalHeight={totalHeight} treadMaterial={treadMaterial} />}
+            {viewMode === 'side' ? <SVGContent /> : <Interactive3DStair option={option} totalHeight={totalHeight} inputData={inputData} treadMaterial={treadMaterial} />}
         </div>
      );
   }
@@ -1371,8 +1380,8 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
         
         {/* TOP BAR */}
         <div className="absolute top-4 left-4 z-10 flex gap-2 bg-white/90 p-2 rounded shadow-lg backdrop-blur-sm border border-gray-200 items-center">
-             <button onClick={() => setViewMode('side')} className={`px-4 py-2 rounded font-black text-lg ${viewMode === 'side' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800'}`}>Lateral 2D</button>
-             <button onClick={() => { setViewMode('3d'); setPan({x:0, y:0}); setZoom(1.1); }} className={`px-4 py-2 rounded font-black text-lg ${viewMode === '3d' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800'}`}>Visualizar 3D 🔄</button>
+             <button onClick={() => setViewMode('side')} title="Visualizar o projeto estrutural da escada em vista lateral plana (2D)" className={`px-4 py-2 rounded font-black text-lg ${viewMode === 'side' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800'}`}>Lateral 2D</button>
+             <button onClick={() => { setViewMode('3d'); setPan({x:0, y:0}); setZoom(1.1); }} title="Explorar o ambiente 3D interativo da escada" className={`px-4 py-2 rounded font-black text-lg ${viewMode === '3d' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800'}`}>Visualizar 3D 🔄</button>
              <div className="w-px bg-gray-300 mx-2 h-8"></div>
              <button onClick={() => setZoom(z => z + 0.2)} className="px-4 py-2 bg-gray-200 rounded font-black hover:bg-gray-300 text-lg">Zoom +</button>
              <button onClick={() => setZoom(z => Math.max(0.2, z - 0.2))} className="px-4 py-2 bg-gray-200 rounded font-black hover:bg-gray-300 text-lg">Zoom -</button>
@@ -1415,7 +1424,7 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
              onMouseLeave={viewMode === 'side' ? stopDrag : undefined} 
              onContextMenu={(e) => viewMode === 'side' ? e.preventDefault() : undefined}
              onWheel={viewMode === 'side' ? handleWheel : undefined}>
-            {viewMode === 'side' ? <SVGContent /> : <Interactive3DStair option={option} totalHeight={totalHeight} treadMaterial={treadMaterial} />}
+            {viewMode === 'side' ? <SVGContent /> : <Interactive3DStair option={option} totalHeight={totalHeight} inputData={inputData} treadMaterial={treadMaterial} />}
         </div>
 
         {/* --- CONTROLES FLUTUANTES (MODIFICADO PARA SER CARD SOBREPOSTO) --- */}

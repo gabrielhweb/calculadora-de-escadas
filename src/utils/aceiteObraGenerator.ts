@@ -38,7 +38,7 @@ export const generateAceiteObraPDF = (data: ContractData) => {
   addText('TERMO DE RECEBIMENTO E ACEITE DE OBRA', 12, true, 'center');
   currentY += 8;
 
-  addText('CONTRATADA: Zilinski Distribuidora, pessoa jurídica de direito privado, inscrita no CNPJ sob o nº 28.869.537/0001-01, com sede na Av. Maria Luiza Americano 1954, bairro Cidade Líder, na cidade de São Paulo/SP, CEP 08275-000, neste ato devidamente constituída por seu representante legal Paulo Gatto Zilinski.', 9, false, 'justify');
+  addText('CONTRATADA: P G ZILINSKI, pessoa jurídica de direito privado, inscrita no CNPJ sob o nº 28.869.537/0001-01, com sede na Av. Maria Luiza Americano 1954, bairro Cidade Líder, na cidade de São Paulo/SP, CEP 08275-000, neste ato devidamente constituída por seu representante legal Paulo Gatto Zilinski.', 9, false, 'justify');
   
   currentY += 4;
   const isPJ = data.userData?.cpf?.length === 18;
@@ -94,7 +94,7 @@ export const generateAceiteObraPDF = (data: ContractData) => {
   currentY += 4;
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
-  doc.text('Zilinski Distribuidora', pageWidth / 2, currentY, { align: 'center' });
+  doc.text('Zilinski Escadas', pageWidth / 2, currentY, { align: 'center' });
   currentY += 4;
   doc.setFont('helvetica', 'normal');
   doc.text('(Contratada)', pageWidth / 2, currentY, { align: 'center' });

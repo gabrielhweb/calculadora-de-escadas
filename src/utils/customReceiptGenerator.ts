@@ -136,7 +136,7 @@ export function generateCustomReceiptPDF(data: CustomReceiptData) {
     // 6. Signatures Footer
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(10);
-    doc.text('Zilinski Distribuidora', margin, yPos);
+    doc.text('Zilinski Escadas', margin, yPos);
     yPos += 5;
     doc.setFont('helvetica', 'normal');
     doc.text('Representante: Paulo Gatto Zilinski', margin, yPos);

@@ -253,7 +253,7 @@ export const generateUnifiedTechnicalPDF = (props: TechnicalDataProps) => {
       doc.setFont('helvetica', 'italic');
       doc.setFontSize(10);
       doc.setTextColor(100);
-      doc.text("Zilinski Distribuidora - Sistema de Controle de Produção", 105, 280, { align: 'center' });
+      doc.text("Zilinski Escadas - Sistema de Controle de Produção", 105, 280, { align: 'center' });
   };
 
   // Página 1: Produção Laser
