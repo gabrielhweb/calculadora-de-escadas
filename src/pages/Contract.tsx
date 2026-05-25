@@ -150,6 +150,7 @@ const Contract = () => {
     const [hasWheels, setHasWheels] = useState<boolean>(false);
     const [handrailSide, setHandrailSide] = useState<'left' | 'right' | 'both'>('both');
     const [treadMaterial, setTreadMaterial] = useState<'metal' | 'wood' | 'chapa_xadrez' | 'chapa_vazada' | undefined>(undefined);
+    const [woodType, setWoodType] = useState<'garapeira' | 'muiracatiara' | 'ambas' | undefined>(undefined);
     
     // Efeito para zerar amortecedores caso rodinhas sejam selecionadas
     useEffect(() => {
@@ -270,6 +271,7 @@ const Contract = () => {
                     setHasWheels(Boolean(inputData.hasWheels));
                     setHandrailSide(String(inputData.handrailSide || 'both') as 'left'|'right'|'both');
                     setTreadMaterial(String(inputData.treadMaterial || 'wood') as any);
+                    if (inputData.woodType) setWoodType(inputData.woodType as any);
                     
                     if (selectedOption.landings && Array.isArray(selectedOption.landings) && selectedOption.landings.length > 0) {
                         setLandings(selectedOption.landings.filter(Boolean));
@@ -372,6 +374,7 @@ const Contract = () => {
                     setHasWheels(Boolean(inputData.hasWheels));
                     setHandrailSide(String(inputData.handrailSide || 'both') as 'left'|'right'|'both');
                     setTreadMaterial(String(inputData.treadMaterial || 'wood') as any);
+                    if (inputData.woodType) setWoodType(inputData.woodType as any);
                     
                     if (selectedOption.landings && Array.isArray(selectedOption.landings) && selectedOption.landings.length > 0) {
                         const validLandings = selectedOption.landings.filter(Boolean);
@@ -674,6 +677,7 @@ const Contract = () => {
                 optionalItems: optionalItems, 
                 landings: landings,
                 treadMaterial: treadMaterial,
+                woodType: treadMaterial === 'wood' ? woodType : undefined,
                 stairDirection: stairDirection,
                 wallFixation: wallFixation,
                 hasWheels: hasWheels,
@@ -830,6 +834,7 @@ const Contract = () => {
                 optionalItems: optionalItems, 
                 landings: landings,
                 treadMaterial: treadMaterial,
+                woodType: treadMaterial === 'wood' ? woodType : undefined,
                 stairDirection: stairDirection,
                 wallFixation: wallFixation,
                 hasWheels: hasWheels,
@@ -973,6 +978,7 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                 optionalItems: optionalItems, 
                 landings: landings,
                 treadMaterial: treadMaterial,
+                woodType: treadMaterial === 'wood' ? woodType : undefined,
                 stairDirection: stairDirection,
                 wallFixation: wallFixation,
                 hasWheels: hasWheels,
@@ -1210,6 +1216,31 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                         Chapa Vazada
                                     </button>
                                 </div>
+                                {treadMaterial === 'wood' && (
+                                    <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
+                                        <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-2">Tipo de Madeira</label>
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                            <button
+                                                onClick={() => setWoodType('ambas')}
+                                                className={`py-2 px-3 rounded font-bold text-xs transition ${woodType === 'ambas' || !woodType ? 'bg-orange-600 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-100'}`}
+                                            >
+                                                Garapeira ou Muiracatiara
+                                            </button>
+                                            <button
+                                                onClick={() => setWoodType('garapeira')}
+                                                className={`py-2 px-3 rounded font-bold text-xs transition ${woodType === 'garapeira' ? 'bg-orange-600 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-100'}`}
+                                            >
+                                                Garapeira
+                                            </button>
+                                            <button
+                                                onClick={() => setWoodType('muiracatiara')}
+                                                className={`py-2 px-3 rounded font-bold text-xs transition ${woodType === 'muiracatiara' ? 'bg-orange-600 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-100'}`}
+                                            >
+                                                Muiracatiara
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Direção */}
@@ -1627,6 +1658,7 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                         stairDirection={stairDirection}
                         wallFixation={wallFixation}
                         treadMaterial={treadMaterial}
+                        woodType={treadMaterial === 'wood' ? woodType : undefined}
                         address={`${street}, ${number} - ${neighborhood}, ${city} - ${state}, ${zip}`}
                         zip={zip}
                         optionalItems={optionalItems}

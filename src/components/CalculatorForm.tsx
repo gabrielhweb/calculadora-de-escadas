@@ -87,6 +87,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
   const [treadDepth, setTreadDepth] = useState<string>('20');
   const [depthUnit, setDepthUnit] = useState<'cm' | 'm'>('cm');
   const [treadMaterial, setTreadMaterial] = useState<'metal' | 'wood' | 'chapa_xadrez' | 'chapa_vazada'>('metal'); // NOVO ESTADO
+  const [woodType, setWoodType] = useState<'garapeira' | 'muiracatiara' | 'ambas'>('ambas');
   
   const [dampers, setDampers] = useState<string>('4');
   const [hasWheels, setHasWheels] = useState(false);
@@ -109,6 +110,12 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
   const [stairDirection, setStairDirection] = useState<'standard' | 'mirrored'>('standard');
   const [wallFixation, setWallFixation] = useState<'left' | 'right' | 'frontal'>('left'); // Novo campo
   const [stairGeometry, setStairGeometry] = useState<string>(''); // Novo campo de geometria
+
+  const [hasCorrimao, setHasCorrimao] = useState(false);
+  const [handrailHeight, setHandrailHeight] = useState('90');
+  const [supportThickness, setSupportThickness] = useState('2');
+  const [handrailThickness, setHandrailThickness] = useState('3');
+
   const [doorActive, setDoorActive] = useState(false);
   const [doorWidth, setDoorWidth] = useState('80');
   const [doorHeight, setDoorHeight] = useState('210');
@@ -232,6 +239,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
       stairWidth: widthInCm,
       treadDepth: depthInCm,
       treadMaterial: treadMaterial,
+      woodType: treadMaterial === 'wood' ? woodType : undefined,
       dampers: finalDampers,
       hasWheels: hasWheels,
       handrailSide: hasWheels ? handrailSide : undefined, 
@@ -245,6 +253,10 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
       stairDirection: stairDirection,
       wallFixation: wallFixation,
       stairGeometry: stairGeometry, // Novo campo
+      hasCorrimao: hasCorrimao,
+      handrailHeight: parseFloat(handrailHeight) || 0,
+      supportThickness: parseFloat(supportThickness) || 0,
+      handrailThickness: parseFloat(handrailThickness) || 0,
       referenceDoor: referenceDoorData
     };
 
@@ -354,40 +366,69 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
             />
         </div>
 
-        {/* NOVO: MATERIAL DO PISANTE */}
-        <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded border border-gray-300 dark:border-gray-600">
-            <label className="block text-sm font-black text-gray-900 dark:text-gray-100 mb-2">Material dos Degraus</label>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-                <button
-                    type="button"
-                    onClick={() => setTreadMaterial('metal')}
-                    className={`py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === 'metal' ? 'bg-gray-800 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
-                >
-                    Metal (Ferro)
-                </button>
-                <button
-                    type="button"
-                    onClick={() => setTreadMaterial('wood')}
-                    className={`py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === 'wood' ? 'bg-orange-700 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
-                >
-                    Madeira
-                </button>
-                <button
-                    type="button"
-                    onClick={() => setTreadMaterial('chapa_xadrez')}
-                    className={`py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === 'chapa_xadrez' ? 'bg-gray-800 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
-                >
-                    Chapa Xadrez
-                </button>
-                <button
-                    type="button"
-                    onClick={() => setTreadMaterial('chapa_vazada')}
-                    className={`py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === 'chapa_vazada' ? 'bg-gray-800 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
-                >
-                    Chapa Vazada
-                </button>
+            {/* NOVO: MATERIAL DO PISANTE */}
+            <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded border border-gray-300 dark:border-gray-600">
+                <label className="block text-sm font-black text-gray-900 dark:text-gray-100 mb-2">Material dos Degraus</label>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                    <button
+                        type="button"
+                        onClick={() => setTreadMaterial('metal')}
+                        className={`py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === 'metal' ? 'bg-gray-800 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
+                    >
+                        Metal (Ferro)
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setTreadMaterial('wood')}
+                        className={`py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === 'wood' ? 'bg-orange-700 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
+                    >
+                        Madeira
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setTreadMaterial('chapa_xadrez')}
+                        className={`py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === 'chapa_xadrez' ? 'bg-gray-800 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
+                    >
+                        Chapa Xadrez
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setTreadMaterial('chapa_vazada')}
+                        className={`py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === 'chapa_vazada' ? 'bg-gray-800 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
+                    >
+                        Chapa Vazada
+                    </button>
+                </div>
+                
+                {treadMaterial === 'wood' && (
+                    <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
+                        <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-2">Tipo de Madeira</label>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setWoodType('ambas')}
+                                className={`py-2 px-3 rounded font-bold text-xs transition ${woodType === 'ambas' || !woodType ? 'bg-orange-600 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
+                            >
+                                Garapeira ou Muiracatiara
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setWoodType('garapeira')}
+                                className={`py-2 px-3 rounded font-bold text-xs transition ${woodType === 'garapeira' ? 'bg-orange-600 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
+                            >
+                                Garapeira
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setWoodType('muiracatiara')}
+                                className={`py-2 px-3 rounded font-bold text-xs transition ${woodType === 'muiracatiara' ? 'bg-orange-600 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
+                            >
+                                Muiracatiara
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
-        </div>
         
         {/* VISUALIZAÇÃO AVANÇADA */}
         <div className="pt-4 border-t border-gray-100 dark:border-gray-700 bg-blue-50 dark:bg-blue-900/20 -mx-6 px-6 pb-4 mb-4">
@@ -457,6 +498,33 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                          <option value="Formato L (Vira Direita)">Formato L (Vira Direita)</option>
                          <option value="Formato U">Formato U</option>
                      </select>
+                 </div>
+
+                 {/* Controle de Corrimão */}
+                 <div className="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                     <div className="flex items-center gap-3 cursor-pointer" onClick={() => setHasCorrimao(!hasCorrimao)}>
+                        <input type="checkbox" checked={hasCorrimao} onChange={e => setHasCorrimao(e.target.checked)} className="accent-blue-600 w-5 h-5 cursor-pointer"/>
+                        <div className="flex flex-col">
+                            <label className="text-sm font-bold text-gray-800 dark:text-white cursor-pointer">A escada possui corrimão?</label>
+                        </div>
+                     </div>
+                     
+                     {hasCorrimao && (
+                        <div className="grid grid-cols-3 gap-3 mt-4 animate-fade-in">
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-500 dark:text-gray-300 uppercase mb-1" title="Altura do Corrimão em relação aos degraus">Altura (cm)</label>
+                                <input type="number" value={handrailHeight} onChange={e => setHandrailHeight(e.target.value)} className="w-full text-sm p-2 border rounded font-bold text-blue-700" placeholder="90" />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-500 dark:text-gray-300 uppercase mb-1" title="Espessura do Material de Apoio (hastes/torres)">Perfil Haste (cm)</label>
+                                <input type="number" value={supportThickness} onChange={e => setSupportThickness(e.target.value)} className="w-full text-sm p-2 border rounded font-bold text-blue-700" placeholder="2" />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-500 dark:text-gray-300 uppercase mb-1" title="Espessura do Corrimão Principal">Perfil Tubo (cm)</label>
+                                <input type="number" value={handrailThickness} onChange={e => setHandrailThickness(e.target.value)} className="w-full text-sm p-2 border rounded font-bold text-blue-700" placeholder="3" />
+                            </div>
+                        </div>
+                     )}
                  </div>
 
                  {/* Controle de Porta/Janela (Reformulado) */}

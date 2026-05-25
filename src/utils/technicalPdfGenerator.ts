@@ -12,6 +12,7 @@ interface TechnicalDataProps {
   stairDirection?: 'standard' | 'mirrored';
   wallFixation?: 'left' | 'right' | 'frontal';
   treadMaterial?: 'metal' | 'wood' | 'chapa_xadrez' | 'chapa_vazada';
+  woodType?: 'garapeira' | 'muiracatiara' | 'ambas';
   address?: string;
   zip?: string;
   optionalItems?: { id: string; name: string; price: number }[];
@@ -28,6 +29,7 @@ export const generateTechnicalDataText = (props: TechnicalDataProps) => {
     stairDirection,
     wallFixation,
     treadMaterial,
+    woodType,
   } = props;
 
   const stepHeightMM = (stepHeightCm * 10).toFixed(1).replace('.0', '');
@@ -59,7 +61,11 @@ export const generateTechnicalDataText = (props: TechnicalDataProps) => {
   
   // ADIÇÃO SOLICITADA: VAZADO PARA MADEIRA E CHAPAS
   if (treadMaterial === 'wood') {
-      report += `*** VAZADO PARA MADEIRA ***\n`;
+      let typeLabel = 'Garapeira';
+      if (woodType === 'muiracatiara') typeLabel = 'Muiracatiara';
+      else if (woodType === 'ambas') typeLabel = 'Garapeira ou Muiracatiara';
+      
+      report += `*** VAZADO PARA MADEIRA (${typeLabel}) ***\n`;
   } else if (treadMaterial === 'chapa_vazada') {
       report += `*** CHAPA VAZADA ***\n`;
   } else if (treadMaterial === 'chapa_xadrez') {
@@ -103,6 +109,7 @@ export const generateMaterialDataText = (props: TechnicalDataProps) => {
     widthCm,
     landings,
     treadMaterial,
+    woodType,
     address,
     zip,
     optionalItems
@@ -161,7 +168,11 @@ export const generateMaterialDataText = (props: TechnicalDataProps) => {
   report += `Matéria: ${totalHinges} dobradiças de ${hingeSize} polegadas\n\n`;
 
   if (treadMaterial === 'wood') {
-      report += `DEGRAUS DE MADEIRA:\n`;
+      let typeLabel = 'GARAPEIRA';
+      if (woodType === 'muiracatiara') typeLabel = 'MUIRACATIARA';
+      else if (woodType === 'ambas') typeLabel = 'GARAPEIRA OU MUIRACATIARA';
+      
+      report += `DEGRAUS DE MADEIRA (${typeLabel}):\n`;
       report += `- Largura do Degrau: ${(widthCm - 0.6).toFixed(2)} cm\n`;
       report += `- Comprimento do Degrau: ${(treadDepthCm - 0.6).toFixed(2)} cm\n`;
       report += `- Altura do Degrau: 2.3 cm\n\n`;
@@ -242,7 +253,7 @@ export const generateUnifiedTechnicalPDF = (props: TechnicalDataProps) => {
       doc.setFont('helvetica', 'italic');
       doc.setFontSize(10);
       doc.setTextColor(100);
-      doc.text("Zilinski Distribuidora - Sistema de Controle de Produção", 105, 280, { align: 'center' });
+      doc.text("Zilinski Escadas - Sistema de Controle de Produção", 105, 280, { align: 'center' });
   };
 
   // Página 1: Produção Laser

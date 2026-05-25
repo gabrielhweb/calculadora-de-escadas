@@ -15,6 +15,7 @@ interface TechnicalBudgetProps {
   stairDirection?: 'standard' | 'mirrored';
   wallFixation?: 'left' | 'right' | 'frontal';
   treadMaterial?: 'metal' | 'wood' | 'chapa_xadrez' | 'chapa_vazada';
+  woodType?: 'garapeira' | 'muiracatiara' | 'ambas';
   address?: string;
   zip?: string;
   optionalItems?: { id: string; name: string; price: number }[];

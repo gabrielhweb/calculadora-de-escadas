@@ -676,21 +676,41 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
       setIsExportWizardOpen(true);
   };
 
+  // Captura automática quando o wizard abrir ou avançar passo
+  useEffect(() => {
+      if (isExportWizardOpen && exportQueue.length > 0 && captureRef.current) {
+          // Pequeno delay para garantir que a renderização 3D/2D foi concluída
+          const timer = setTimeout(() => {
+              // Se for a última etapa e for attach, não fecha o wizard ainda, mas roda
+              captureCurrentStepAndNext();
+          }, 800);
+          return () => clearTimeout(timer);
+      }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isExportWizardOpen, currentExportIndex]);
+
   const captureCurrentStepAndNext = async () => {
-      if (!captureRef.current) return;
+      console.log("captureCurrentStepAndNext chamado");
+      if (!captureRef.current) {
+          console.error("captureRef.current is null");
+          return;
+      }
 
       try {
+          console.log("Iniciando html2canvas...");
           // Captura a imagem exatamente como o usuário a posicionou
           const canvas = await html2canvas(captureRef.current, {
               scale: 2,
               backgroundColor: '#ffffff',
-              logging: false,
+              logging: true,
               useCORS: true,
               allowTaint: true
           });
+          console.log("html2canvas concluído. Criando Base64...");
           const imgData = canvas.toDataURL('image/png');
           const currentItem = exportQueue[currentExportIndex];
 
+          console.log("Adicionando imagem à lista...");
           setCapturedImages(prev => [...prev, {
               imgData,
               title: currentItem.title,
@@ -699,8 +719,10 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
           }]);
 
           if (currentExportIndex < exportQueue.length - 1) {
+              console.log("Avançando para o próximo step:", currentExportIndex + 1);
               setCurrentExportIndex(prev => prev + 1);
           } else {
+              console.log("Último step, finalizando...");
               finishExport();
           }
 
@@ -795,6 +817,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                            <StaircaseVisualizer 
                                 captureRef={captureRef}
                                 option={item.option}
+                                inputData={inputData}
                                 totalHeight={inputData?.totalHeight || 300}
                                 slabOpening={inputData?.slabOpening}
                                 slabThickness={inputData?.slabThickness}
@@ -1274,6 +1297,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
           <StaircaseVisualizer 
              key={`${selectedVisualizerOption.optionNumber}-${inputData?.referenceDoor?.isActive ? 'door' : 'nodoor'}-${inputData?.stairDirection}`}
              option={selectedVisualizerOption} 
+             inputData={inputData}
              totalHeight={inputData?.totalHeight || 300} 
              slabOpening={inputData?.slabOpening}
              slabThickness={inputData?.slabThickness}

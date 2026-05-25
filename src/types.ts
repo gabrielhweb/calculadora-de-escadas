@@ -45,6 +45,7 @@ export interface CalculatorInput {
   stairWidth: number; // in cm
   treadDepth: number; // in cm
   treadMaterial?: 'metal' | 'wood' | 'chapa_xadrez' | 'chapa_vazada'; // NOVO: Material do pisante
+  woodType?: 'garapeira' | 'muiracatiara' | 'ambas'; // Tipo de madeira selecionada
   dampers: number; // Quantidade de amortecedores
   hasWheels?: boolean; // Opção com Rodinhas
   handrailSide?: 'left' | 'right' | 'both'; // Lado do corrimão (apenas se hasWheels=true)
@@ -58,6 +59,10 @@ export interface CalculatorInput {
   slabThickness?: number; // Espessura da laje (cm)
   slabOpening?: number; // Tamanho do vão livre (cm)
   
+  hasCorrimao?: boolean;
+  handrailHeight?: number;
+  supportThickness?: number;
+  handrailThickness?: number;
   // Visualização Avançada e Geometria
   stairDirection?: 'standard' | 'mirrored'; // standard = sobe p/ direita, mirrored = sobe p/ esquerda
   wallFixation?: 'left' | 'right' | 'frontal'; // NOVO: Lado da fixação na parede
