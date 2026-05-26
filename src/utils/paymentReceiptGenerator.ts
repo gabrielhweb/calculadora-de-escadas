@@ -47,7 +47,7 @@ export function generatePaymentReceiptPDF(contract: SavedContract | null, percen
     // Company Info
     doc.setFont('helvetica', 'bolditalic'); // To make it like the image which looks bold and slightly italic, let's just use bolditalic or bold
     doc.setFontSize(14);
-    doc.text('ZILINSKI DISTRIBUIDORA', 105, yPos, { align: 'center' });
+    doc.text('ZILINSKI ESCADAS', 105, yPos, { align: 'center' });
     yPos += 10;
     
     doc.setFont('helvetica', 'normal');

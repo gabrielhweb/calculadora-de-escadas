@@ -111,8 +111,8 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
   const [wallFixation, setWallFixation] = useState<'left' | 'right' | 'frontal'>('left'); // Novo campo
   const [stairGeometry, setStairGeometry] = useState<string>(''); // Novo campo de geometria
 
-  const [hasCorrimao, setHasCorrimao] = useState(false);
-  const [handrailHeight, setHandrailHeight] = useState('90');
+  const [hasCorrimao, setHasCorrimao] = useState(true);
+  const [handrailHeight, setHandrailHeight] = useState('80');
   const [supportThickness, setSupportThickness] = useState('2');
   const [handrailThickness, setHandrailThickness] = useState('3');
 
@@ -199,18 +199,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
       return unit === 'm' ? num * 100 : num;
   };
 
-  const handleToggleWheels = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const isChecked = e.target.checked;
-      setHasWheels(isChecked);
-      if (isChecked) {
-          setWallFixation('frontal');
-      }
-      // O useEffect cuidará de zerar os amortecedores
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const getFormData = (): CalculatorInput | null => {
     const heightInCm = convertToCm(totalHeight, heightUnit);
     const widthInCm = convertToCm(stairWidth, widthUnit);
     const depthInCm = convertToCm(treadDepth, depthUnit);
@@ -218,7 +207,6 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
     const openingInCm = convertToCm(slabOpening, openingUnit);
     const slabThickInCm = parseFloat(slabThickness) || 0;
 
-    // Se tiver rodinhas, força amortecedores a 0 na submissão também
     let finalDampers = 0;
     if (!hasWheels) {
         const dampersInt = parseInt(dampers, 10);
@@ -252,7 +240,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
       slabOpening: openingInCm || undefined,
       stairDirection: stairDirection,
       wallFixation: wallFixation,
-      stairGeometry: stairGeometry, // Novo campo
+      stairGeometry: stairGeometry,
       hasCorrimao: hasCorrimao,
       handrailHeight: parseFloat(handrailHeight) || 0,
       supportThickness: parseFloat(supportThickness) || 0,
@@ -261,13 +249,40 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
     };
 
     if (formData.totalHeight <= 0 || formData.desiredSteps <= 0) {
+      return null;
+    }
+    return formData;
+  };
+
+  useEffect(() => {
+    // Força o estado inicial a calcular e exibir logo ao abrir a tela
+    const initialData = getFormData();
+    if (initialData) {
+       onCalculate(initialData);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleToggleWheels = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const isChecked = e.target.checked;
+      setHasWheels(isChecked);
+      if (isChecked) {
+          setWallFixation('frontal');
+      }
+      // O useEffect cuidará de zerar os amortecedores
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const formData = getFormData();
+    if (!formData) {
       setError('Altura e Número de Degraus são obrigatórios.');
       return;
     }
-
     setError('');
     onCalculate(formData);
   };
+
   
   return (
     <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 sticky top-24">
@@ -440,11 +455,12 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
              <div className="grid grid-cols-1 gap-4">
                  {/* Controle de Direção da Escada */}
                  <div className="bg-white dark:bg-gray-800 p-3 rounded border border-blue-200 dark:border-blue-800">
-                     <label className="text-xs font-bold text-gray-500 uppercase mb-2 block">Sentido da Subida</label>
+                     <label className="text-xs font-bold text-gray-500 uppercase mb-2 flex items-center gap-1">Sentido da Subida <TooltipIcon text="Define para qual lado a escada sobe quando vista de frente." /></label>
                      <div className="flex gap-1 mb-3">
                          <button 
                              type="button"
                              onClick={() => setStairDirection('standard')}
+                             title="A escada sobe da esquerda para a direita."
                              className={`flex-1 py-2 text-xs font-bold rounded border ${stairDirection === 'standard' ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-200'}`}
                          >
                              Subir p/ Direita ↗️
@@ -452,17 +468,19 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                          <button 
                              type="button"
                              onClick={() => setStairDirection('mirrored')}
+                             title="A escada sobe da direita para a esquerda."
                              className={`flex-1 py-2 text-xs font-bold rounded border ${stairDirection === 'mirrored' ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-200'}`}
                          >
                              Subir p/ Esquerda ↖️
                          </button>
                      </div>
 
-                     <label className="text-xs font-bold text-gray-500 uppercase mb-2 block">Lado da Fixação (Parede)</label>
+                     <label className="text-xs font-bold text-gray-500 uppercase mb-2 flex items-center gap-1">Lado da Fixação (Parede) <TooltipIcon text="Indica onde a escada será aparafusada (na lateral ou de frente para a parede)." /></label>
                      <div className="flex gap-1 mb-3">
                          <button 
                              type="button"
                              onClick={() => setWallFixation('left')}
+                             title="A estrutura será fixada lateralmente na parede à esquerda."
                              className={`flex-1 py-2 text-xs font-bold rounded border ${wallFixation === 'left' ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-200'}`}
                          >
                              Parede à Esquerda
@@ -470,6 +488,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                          <button 
                              type="button"
                              onClick={() => setWallFixation('right')}
+                             title="A estrutura será fixada lateralmente na parede à direita."
                              className={`flex-1 py-2 text-xs font-bold rounded border ${wallFixation === 'right' ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-200'}`}
                          >
                              Parede à Direita
@@ -477,6 +496,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                          <button 
                              type="button"
                              onClick={() => setWallFixation('frontal')}
+                             title="A estrutura ficará chapada (apoiada) de frente para a parede."
                              className={`flex-1 py-2 text-xs font-bold rounded border ${wallFixation === 'frontal' ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-200'}`}
                          >
                              Fixação Frontal
@@ -505,22 +525,22 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                      <div className="flex items-center gap-3 cursor-pointer" onClick={() => setHasCorrimao(!hasCorrimao)}>
                         <input type="checkbox" checked={hasCorrimao} onChange={e => setHasCorrimao(e.target.checked)} className="accent-blue-600 w-5 h-5 cursor-pointer"/>
                         <div className="flex flex-col">
-                            <label className="text-sm font-bold text-gray-800 dark:text-white cursor-pointer">A escada possui corrimão?</label>
+                            <label className="text-sm font-bold text-gray-800 dark:text-white cursor-pointer flex items-center gap-1">A escada possui corrimão? <TooltipIcon text="Selecione esta opção se o projeto deve incluir proteção lateral para queda." /></label>
                         </div>
                      </div>
                      
                      {hasCorrimao && (
                         <div className="grid grid-cols-3 gap-3 mt-4 animate-fade-in">
                             <div>
-                                <label className="block text-[10px] font-bold text-gray-500 dark:text-gray-300 uppercase mb-1" title="Altura do Corrimão em relação aos degraus">Altura (cm)</label>
+                                <label className="flex items-center gap-1 text-[10px] font-bold text-gray-500 dark:text-gray-300 uppercase mb-1">Altura (cm) <TooltipIcon text="Altura do Corrimão em relação aos degraus." /></label>
                                 <input type="number" value={handrailHeight} onChange={e => setHandrailHeight(e.target.value)} className="w-full text-sm p-2 border rounded font-bold text-blue-700" placeholder="90" />
                             </div>
                             <div>
-                                <label className="block text-[10px] font-bold text-gray-500 dark:text-gray-300 uppercase mb-1" title="Espessura do Material de Apoio (hastes/torres)">Perfil Haste (cm)</label>
+                                <label className="flex items-center gap-1 text-[10px] font-bold text-gray-500 dark:text-gray-300 uppercase mb-1">Perfil Haste (cm) <TooltipIcon text="Espessura do Material de Apoio (hastes/torres)." /></label>
                                 <input type="number" value={supportThickness} onChange={e => setSupportThickness(e.target.value)} className="w-full text-sm p-2 border rounded font-bold text-blue-700" placeholder="2" />
                             </div>
                             <div>
-                                <label className="block text-[10px] font-bold text-gray-500 dark:text-gray-300 uppercase mb-1" title="Espessura do Corrimão Principal">Perfil Tubo (cm)</label>
+                                <label className="flex items-center gap-1 text-[10px] font-bold text-gray-500 dark:text-gray-300 uppercase mb-1">Perfil Tubo (cm) <TooltipIcon text="Espessura do Corrimão Principal." /></label>
                                 <input type="number" value={handrailThickness} onChange={e => setHandrailThickness(e.target.value)} className="w-full text-sm p-2 border rounded font-bold text-blue-700" placeholder="3" />
                             </div>
                         </div>
@@ -532,7 +552,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                      <div className="flex items-center gap-3 mb-3 cursor-pointer" onClick={() => setDoorActive(!doorActive)}>
                         <input type="checkbox" checked={doorActive} onChange={e => setDoorActive(e.target.checked)} className="accent-blue-600 w-5 h-5 cursor-pointer"/>
                         <div className="flex flex-col">
-                            <label className="text-sm font-bold text-gray-800 dark:text-white cursor-pointer">Adicionar Porta ou Janela</label>
+                            <label className="text-sm font-bold text-gray-800 dark:text-white cursor-pointer flex items-center gap-1">Adicionar Porta ou Janela <TooltipIcon text="Adicione um vão ou um bloqueio no projeto 3D p/ evitar choque da escada c/ obstáculos." /></label>
                             <span className="text-[10px] text-gray-500">Ajuda a ver se a escada vai passar na frente de algo.</span>
                         </div>
                      </div>
@@ -607,7 +627,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                         className="w-5 h-5 accent-highlight"
                      />
                      <div className="flex flex-col">
-                        <span className="font-bold text-gray-900 dark:text-white">Com Rodinhas?</span>
+                        <span className="font-bold text-gray-900 dark:text-white flex items-center gap-1">Com Rodinhas? <TooltipIcon text="Sistema de rodízios na base. Ao ativar, os amortecedores são zerados automaticamente." /></span>
                         <span className="text-[10px] text-gray-500 dark:text-gray-400">Zera amortecedores</span>
                      </div>
                  </label>

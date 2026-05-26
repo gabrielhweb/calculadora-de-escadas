@@ -70,7 +70,7 @@ const Layout: React.FC = () => {
                 </div>
                 <div className="flex flex-col">
                     <span className="font-black text-3xl tracking-tighter text-gray-900 dark:text-white leading-none">Zilinski</span>
-                    <span className="text-xs text-highlight tracking-[0.3em] uppercase font-bold mt-1">Distribuidora</span>
+                    <span className="text-xs text-highlight tracking-[0.3em] uppercase font-bold mt-1">Escadas</span>
                 </div>
               </Link>
             </div>
