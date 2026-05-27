@@ -963,8 +963,8 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
             const rectX = isMirrored ? currentX - run : currentX;
             landingDraws.push(
                 <g key={`landing-${i}`}>
-                    <rect x={rectX} y={visualY} width={run} height={10} fill="#cbd5e1" stroke="none" opacity="0.5"/>
-                    <text x={rectX + run/2} y={visualY - 15} textAnchor="middle" fontSize="12" fontWeight="bold" fill="#475569">
+                    <rect x={rectX} y={visualY} width={run} height={10} fill="#ffffff" stroke="#000000" strokeWidth="2" />
+                    <text x={rectX + run/2} y={visualY - 15} textAnchor="middle" fontSize="12" fontWeight="bold" fill="#000000">
                         {landing.isLastStep ? 'CHEGADA (TOPO)' : (landing.type === 'fixed' ? 'FIXO' : 'ARTICULADO')}
                     </text>
                 </g>
@@ -1011,7 +1011,7 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
     // No modo Espelhado: É a laje de chegada (Piso Superior).
     const renderLeftSlab = (isArrival: boolean) => (
         <g>
-            <rect x={-2000} y={ceilingY} width={2000 + holeStartX} height={slabThickness} fill={(!isArrival && simulateSafe && correctionType === 'expand_opening') ? '#86efac' : '#cbd5e1'} stroke="none" opacity="0.8"/>
+            <rect x={-2000} y={ceilingY} width={2000 + holeStartX} height={slabThickness} fill={(!isArrival && simulateSafe && correctionType === 'expand_opening') ? '#86efac' : '#f1f5f9'} stroke="none" />
             <line x1={-2000} y1={ceilingY} x2={holeStartX} y2={ceilingY} stroke="#333" strokeWidth="3" />
             <line x1={-2000} y1={slabBottomY} x2={holeStartX} y2={slabBottomY} stroke="#333" strokeWidth="3" />
             <line x1={holeStartX} y1={ceilingY} x2={holeStartX} y2={slabBottomY} stroke="#333" strokeWidth="3"/>
@@ -1023,7 +1023,7 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
     // No modo Espelhado: É a laje de risco (antes da escada).
     const renderRightSlab = (isArrival: boolean) => (
         <g>
-            <rect x={holeEndX} y={ceilingY} width={3000} height={slabThickness} fill={(!isArrival && simulateSafe && correctionType === 'expand_opening') ? '#86efac' : '#cbd5e1'} stroke="none" opacity="0.8"/>
+            <rect x={holeEndX} y={ceilingY} width={3000} height={slabThickness} fill={(!isArrival && simulateSafe && correctionType === 'expand_opening') ? '#86efac' : '#f1f5f9'} stroke="none" />
             <line x1={holeEndX} y1={ceilingY} x2={holeEndX + 3000} y2={ceilingY} stroke="#333" strokeWidth="3" />
             <line x1={holeEndX} y1={slabBottomY} x2={holeEndX + 3000} y2={slabBottomY} stroke="#333" strokeWidth="3" />
             <line x1={holeEndX} y1={ceilingY} x2={holeEndX} y2={slabBottomY} stroke="#333" strokeWidth="3" />
@@ -1066,8 +1066,8 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
             {/* Patamares (Preenchimento) */}
             {landingDraws}
 
-            {/* Perfil da Escada (Linha Preta + Chapa Metálica) */}
-            <path d={d} fill={simulateSafe && correctionType === 'shrink_stair' ? '#dcfce7' : '#334155'} stroke={simulateSafe && correctionType === 'shrink_stair' ? '#16a34a' : '#0f172a'} strokeWidth="2" strokeLinejoin="round" />
+            {/* Perfil da Escada (Linha Vetorial Simples) */}
+            <path d={d} fill={simulateSafe && correctionType === 'shrink_stair' ? '#dcfce7' : '#ffffff'} stroke={simulateSafe && correctionType === 'shrink_stair' ? '#16a34a' : '#000000'} strokeWidth="3" strokeLinejoin="round" />
             
             {/* Indicador Último Degrau */}
             <g>
