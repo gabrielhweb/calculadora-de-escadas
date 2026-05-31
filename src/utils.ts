@@ -1,6 +1,6 @@
 
 
-import { GoogleGenAI } from "@google/genai";
+
 
 // Declaration removed to avoid conflict with global types in vite-env.d.ts
 
@@ -79,109 +79,36 @@ const getCurrentLocation = (): Promise<{ latitude: number; longitude: number } |
   });
 };
 
-// Função auxiliar aprimorada para extrair números de resposta (JSON ou Texto)
-const extractNumbers = (text: string) => {
-    let d = 0, t = 0;
 
-    // 1. Tenta encontrar e parsear um bloco JSON explícito primeiro
-    try {
-        const jsonMatch = text.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-            const jsonStr = jsonMatch[0];
-            const json = JSON.parse(jsonStr);
-            // Aceita variações de chaves
-            d = Number(json.distancia || json.distance || json.km || 0);
-            t = Number(json.pedagios || json.tolls || json.pedagio || json.cost || 0);
-            
-            if (!isNaN(d) && d > 0) return { distance: d, tolls: t };
-        }
-    } catch (e) {
-        // Falha silenciosa no JSON, tenta regex
-    }
-
-    // 2. Fallback via Regex se o JSON falhar ou não existir
-    const distMatch = text.match(/dist[a-zâ-ã]*\s*[:=]?\s*([\d.,]+)\s*(km)?/i) || text.match(/([\d.,]+)\s*km/i);
-    const tollMatch = text.match(/ped[a-zâ-ã]*\s*[:=]?\s*(R\$)?\s*([\d.,]+)/i) || text.match(/pedagios?\s*[:=]?\s*([\d.,]+)/i);
-    
-    if (distMatch) d = parseFloat(distMatch[1].replace(',', '.'));
-    if (tollMatch) t = parseFloat(tollMatch[2]?.replace(',', '.') || tollMatch[1]?.replace(',', '.') || '0');
-    
-    return { distance: d, tolls: t };
-};
 
 export const getRouteInfoFromGemini = async (origin: string, destination: string): Promise<{ distance: number; tolls: number }> => {
-  const apiKey = process.env.API_KEY;
-  if (!apiKey || apiKey.length < 10 || apiKey.includes('YOUR_API_KEY')) {
-      throw new Error(`ERRO DE CONFIGURAÇÃO: Chave de API inválida.`);
-  }
-
-  const ai = new GoogleGenAI({ apiKey: apiKey });
-
-  // TENTATIVA 1: FERRAMENTA GOOGLE MAPS (Dados Reais + Lógica Waze)
+  let userLoc = null;
   try {
-      console.log("Tentativa 1: Buscando rota precisa (Base Google Maps/Waze)...");
-      const configWithMaps: any = { tools: [{ googleMaps: {} }] };
-      
-      try {
-          const userLoc = await getCurrentLocation();
-          if (userLoc) {
-              configWithMaps.toolConfig = { retrievalConfig: { latLng: { latitude: userLoc.latitude, longitude: userLoc.longitude } } };
-          }
-      } catch(e) { console.warn("Localização ignorada", e); }
-
-      // Prompt instruindo a usar a lógica de "melhor rota" similar ao Waze
-      const promptMaps = `Atue como um sistema de GPS inteligente (estilo Waze).
-      Calcule a rota de carro mais rápida entre a origem "${origin}" e o destino "${destination}" no Brasil.
-      
-      Preciso de dois dados exatos:
-      1. A distância em quilômetros (apenas ida).
-      2. O valor total estimado dos pedágios (apenas ida).
-
-      Responda ESTRITAMENTE com um objeto JSON neste formato:
-      { "distancia": 123.5, "pedagios": 45.90 }`;
-
-      const result = await ai.models.generateContent({
-          model: "gemini-2.5-flash",
-          contents: promptMaps,
-          config: configWithMaps
-      });
-      
-      const text = result.text || "";
-      console.log("Resposta GPS:", text);
-
-      if (!text.includes("ERRO")) {
-          const data = extractNumbers(text);
-          if (data.distance > 0) return data;
-      }
-  } catch (e) {
-      console.warn("Falha na ferramenta Maps, tentando estimativa logística...", e);
+      userLoc = await getCurrentLocation();
+  } catch(e) { 
+      console.warn("Localização ignorada", e); 
   }
 
-  // TENTATIVA 2: ESTIMATIVA LOGÍSTICA (Fallback)
-  try {
-      console.log("Tentativa 2: Estimativa baseada em conhecimento...");
-      const promptEstimate = `Como especialista em logística brasileira, estime a distância rodoviária e o custo aproximado de pedágios entre CEP ${origin} e CEP ${destination}.
-      Considere as principais rodovias.
-      
-      Retorne JSON:
-      { "distancia": 00.0, "pedagios": 00.00 }`;
+  const response = await fetch('/api/gemini', {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+          origin,
+          destination,
+          latitude: userLoc?.latitude,
+          longitude: userLoc?.longitude
+      })
+  });
 
-      const result = await ai.models.generateContent({
-          model: "gemini-2.5-flash", 
-          contents: promptEstimate
-      });
-      
-      const text = result.text || "";
-      console.log("Resposta Estimativa:", text);
-      
-      const data = extractNumbers(text);
-      if (data.distance > 0) return data;
-      
-  } catch (e) {
-      console.error("Erro fatal na estimativa:", e);
+  if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || "Não foi possível traçar a rota automaticamente. Por favor, insira a distância manualmente.");
   }
 
-  throw new Error("Não foi possível traçar a rota automaticamente. Por favor, insira a distância manualmente.");
+  const data = await response.json();
+  return data;
 };
 
 export const generateProposalDescription = (inputData: any, opt: any): string => {
