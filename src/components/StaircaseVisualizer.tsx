@@ -212,12 +212,19 @@ const Interactive3DStair: React.FC<{
   // HUD and Dimension logic for Closed Package State
   const maxHandrailHeightM = hasCorrimao ? handrailHeightM : 0; 
   const espessuraEstruturaM = 0.08; // Espessura fixa exigida de 8cm (0.08m)
-  const larguraPacoteM = stairWidth + maxHandrailHeightM; // Largura do Degrau + Altura do Corrimão
-  const alturaMaximaM = totalHeightM + maxHandrailHeightM + espessuraEstruturaM;
+  
+  // A Largura do Pacote agora é a seta azul (Corrimão + Altura da Viga)
+  // Temporariamente setado como Altura do Corrimão + 0.35m (altura média da viga) até o usuário confirmar a fórmula
+  const alturaDaViga = 0.35; 
+  const larguraPacoteM = maxHandrailHeightM + alturaDaViga; 
+
   const comprimentoMaximoM = totalLengthM;
   
-  // A diagonal exata: \sqrt{comprimento^2 + altura_máxima^2}
-  const diagonalExata = Math.sqrt(Math.pow(comprimentoMaximoM, 2) + Math.pow(alturaMaximaM, 2));
+  // O Segredo do Paralelogramo Achatado: 
+  // Quando a escada articulada fecha, o corrimão deita sobre a viga. 
+  // O comprimento final é o tamanho da Viga + a altura do poste do corrimão que deitou + as pontas de metal (0.08).
+  const tamanhoViga = Math.sqrt(Math.pow(comprimentoMaximoM, 2) + Math.pow(totalHeightM, 2));
+  const diagonalExata = tamanhoViga + maxHandrailHeightM + espessuraEstruturaM;
 
   return (
     <div className="relative w-full h-full bg-slate-200">
@@ -293,8 +300,8 @@ const Interactive3DStair: React.FC<{
               <group>
                 {/* Largura do Pacote na Vertical (Amarelo) */}
                 <Line points={[[wallPositionX + 0.1, totalHeightM/2, totalLengthM/2], [wallPositionX + 0.1, totalHeightM/2 + stairWidth, totalLengthM/2]]} color="#fbbf24" lineWidth={5} />
-                {/* Diagonal do Pacote (Azul), ligando ponta superior extrema até a base inferior */}
-                <Line points={[[wallPositionX + 0.1, alturaMaximaM, 0], [wallPositionX + 0.1, 0, comprimentoMaximoM]]} color="#60a5fa" lineWidth={5} dashed={true} dashSize={0.2} gapSize={0.1} />
+                {/* Diagonal do Pacote Achatado */}
+                <Line points={[[wallPositionX + 0.1, totalHeightM + maxHandrailHeightM, 0], [wallPositionX + 0.1, 0, totalLengthM]]} color="#60a5fa" lineWidth={5} dashed={true} dashSize={0.2} gapSize={0.1} />
               </group>
             )}
           </group>
@@ -344,13 +351,13 @@ const Interactive3DStair: React.FC<{
           </div>
           <div className="font-mono text-sm flex flex-col gap-1 border-t border-slate-700 pt-2 mt-1">
             <div className="flex justify-between items-center">
-                <span className="text-slate-400 tracking-wider text-xs" style={{ color: '#60a5fa' }}>DIAGONAL EXATA</span> 
+                <span className="text-slate-400 tracking-wider text-xs" style={{ color: '#60a5fa' }}>COMPRIMENTO FECHADO</span> 
                 <span className="font-bold text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded text-lg">{diagonalExata.toFixed(2)}m</span>
             </div>
             <div className="mt-2 text-[10px] text-slate-400 font-mono text-center bg-slate-800/50 p-2 rounded leading-relaxed">
-                Cálculo: √ (Comprimento² + (Altura Escada + Corrimão + Estrutura)²)
+                Escada Fechada (Viga + Corrimão + Pontas):
                 <br />
-                √ ({comprimentoMaximoM.toFixed(2)}² + {alturaMaximaM.toFixed(2)}²) = {diagonalExata.toFixed(2)}m
+                {tamanhoViga.toFixed(2)} + {maxHandrailHeightM.toFixed(2)} + {espessuraEstruturaM.toFixed(2)} = {diagonalExata.toFixed(2)}m
             </div>
           </div>
         </div>

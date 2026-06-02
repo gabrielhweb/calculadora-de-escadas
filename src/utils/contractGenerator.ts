@@ -379,7 +379,7 @@ export const generateContractPDF = (data: ContractData) => {
       const valorRestante = totalComDesconto - valorSinal;
       const percentRestante = 100 - signalP;
       
-      addText(`Sendo pago ${signalP}% de entrada (${formatCurrencyBRL(valorSinal)}) via PIX de sinal no fechamento e ${percentRestante}% (${formatCurrencyBRL(valorRestante)}) via PIX na emissão da nota.`, 11, false, 'justify');
+      addText(`Sendo pago: ${formatCurrencyBRL(valorSinal)} via PIX a título de sinal e ${formatCurrencyBRL(valorRestante)} restantes a serem pagos após a emissão da nota fiscal e no dia do envio do produto à transportadora, para liberação do despacho.`, 11, false, 'justify');
       
       currentY += 2;
       addText(`Chave PIX (CNPJ): 28.869.537/0001-01`, 11, true, 'left');
