@@ -342,8 +342,8 @@ export const generateContractPDF = (data: ContractData) => {
   
   if (!isTransportadora) {
       clause('Da extensão do prazo de entrega/instalação por solicitação do comprador(a): Caso o(a) comprador(a), após o pagamento inicial de 50% do valor total, solicite a extensão do prazo de entrega, envio ou instalação para data posterior à prevista neste contrato, a contratada poderá realizar o reagendamento conforme disponibilidade de agenda.');
-      clause('O(a) comprador(a) terá o prazo máximo de 06 (seis) meses, contados da data inicialmente prevista para entrega, para definir e agendar a nova data.');
-      clause('Não havendo agendamento dentro do prazo de 06 (seis) meses, ficará automaticamente devido o pagamento do saldo final de 50%, independentemente da efetiva entrega ou instalação naquele momento, permanecendo a escada reservada ao comprador(a).');
+      clause('O(a) comprador(a) terá o prazo máximo de 03 (três) meses, contados da data inicialmente prevista para entrega, para definir e agendar a nova data.');
+      clause('Não havendo agendamento dentro do prazo de 03 (três) meses, ficará automaticamente devido o pagamento do saldo final de 50%, independentemente da efetiva entrega ou instalação naquele momento, permanecendo a escada reservada ao comprador(a).');
       clause('Caso o(a) comprador(a) solicite a entrega ou instalação após esse período, a contratada poderá cobrar valores adicionais referentes a frete, instalação, deslocamento, armazenagem, reajuste de materiais e demais custos operacionais vigentes na data do novo agendamento.');
       clause('A escada permanecerá vinculada ao comprador(a), sendo a entrega e/ou instalação realizada mediante quitação integral dos valores pendentes e adicionais eventualmente aplicáveis.');
   }
