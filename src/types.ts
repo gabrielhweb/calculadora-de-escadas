@@ -18,6 +18,7 @@ export interface LandingInfo {
   hasSideGuardrail?: boolean; // Barra Lateral
   hasFrontGuardrail?: boolean; // Barra Frontal
   frenchBrackets?: 0 | 1 | 2; // Quantidade de Mãos Francesas
+  isAngled?: boolean; // Patamar em ângulo
 }
 
 export interface LogisticsInfo {

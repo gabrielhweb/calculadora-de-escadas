@@ -87,11 +87,12 @@ export const generateTechnicalDataText = (props: TechnicalDataProps) => {
           const lLen = (l.length ? l.length * 10 : 0).toFixed(0);
           const lWidth = (l.width ? l.width * 10 : 0).toFixed(0);
           
+          const basePatamar = l.isAngled ? "patamar em ângulo" : "patamar";
           if (l.type === 'fixed') {
-              report += `1 patamar em chapa xadrez em 3mm com dobras de 100mm\n`;
+              report += `1 ${basePatamar} em chapa xadrez em 3mm com dobras de 100mm\n`;
               report += `Com medidas de ${lLen}mm x ${lWidth}mm\n`;
           } else {
-              report += `1 patamar articulado\n`;
+              report += `1 ${basePatamar} articulado\n`;
               report += `Com medidas de ${lLen}mm x ${lWidth}mm\n`;
           }
       });
@@ -197,15 +198,20 @@ export const generateMaterialDataText = (props: TechnicalDataProps) => {
           if (l.frenchBrackets === 1) bracketText = ' + 1 Mão Francesa';
           else if (l.frenchBrackets === 2) bracketText = ' + 2 Mãos Francesas';
 
+          const basePatamar = l.isAngled ? "patamar em ângulo" : "patamar";
           if (l.type === 'fixed') {
-              report += `1 patamar em chapa xadrez em 3mm com dobras de 100mm${bracketText}\n`;
+              report += `1 ${basePatamar} em chapa xadrez em 3mm com dobras de 100mm${bracketText}\n`;
               report += `Com medidas de ${lLen}mm x ${lWidth}mm\n`;
           } else {
-              report += `1 patamar articulado${bracketText}\n`;
+              report += `1 ${basePatamar} articulado${bracketText}\n`;
               report += `Com medidas de ${lLen}mm x ${lWidth}mm\n`;
           }
       });
       report += `\n`;
+      const totalMaoFrancesa = landings.reduce((sum, l) => sum + (l.frenchBrackets || 0), 0);
+      if (totalMaoFrancesa > 0) {
+          report += `Quantidade de Mão Francesa: ${totalMaoFrancesa}\n\n`;
+      }
   }
   
   if (optionalItems && optionalItems.length > 0) {

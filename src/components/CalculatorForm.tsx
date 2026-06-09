@@ -824,25 +824,36 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                 </div>
 
                                 <div className="col-span-2 bg-gray-50 dark:bg-gray-700/50 p-2 rounded border border-gray-100 dark:border-gray-700">
-                                    <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Barras de Proteção:</label>
-                                    <div className="flex gap-4">
-                                        <label className="flex items-center gap-1 cursor-pointer">
+                                    <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Opções Adicionais:</label>
+                                    <div className="flex flex-col gap-2">
+                                        <div className="flex gap-4">
+                                            <label className="flex items-center gap-1 cursor-pointer">
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={landing.hasSideGuardrail} 
+                                                    onChange={(e) => updateLanding(landing.id, { hasSideGuardrail: e.target.checked })} 
+                                                    className="w-4 h-4 accent-blue-600"
+                                                />
+                                                <span className="text-xs font-medium text-gray-600 dark:text-gray-300">Barra Lateral</span>
+                                            </label>
+                                            <label className="flex items-center gap-1 cursor-pointer">
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={landing.hasFrontGuardrail} 
+                                                    onChange={(e) => updateLanding(landing.id, { hasFrontGuardrail: e.target.checked })} 
+                                                    className="w-4 h-4 accent-blue-600"
+                                                />
+                                                <span className="text-xs font-medium text-gray-600 dark:text-gray-300">Barra Frontal</span>
+                                            </label>
+                                        </div>
+                                        <label className="flex items-center gap-1 cursor-pointer mt-1">
                                             <input 
                                                 type="checkbox" 
-                                                checked={landing.hasSideGuardrail} 
-                                                onChange={(e) => updateLanding(landing.id, { hasSideGuardrail: e.target.checked })} 
-                                                className="w-4 h-4 accent-blue-600"
+                                                checked={!!landing.isAngled} 
+                                                onChange={(e) => updateLanding(landing.id, { isAngled: e.target.checked })} 
+                                                className="w-4 h-4 accent-highlight"
                                             />
-                                            <span className="text-xs font-medium text-gray-600 dark:text-gray-300">Lateral</span>
-                                        </label>
-                                        <label className="flex items-center gap-1 cursor-pointer">
-                                            <input 
-                                                type="checkbox" 
-                                                checked={landing.hasFrontGuardrail} 
-                                                onChange={(e) => updateLanding(landing.id, { hasFrontGuardrail: e.target.checked })} 
-                                                className="w-4 h-4 accent-blue-600"
-                                            />
-                                            <span className="text-xs font-medium text-gray-600 dark:text-gray-300">Frontal</span>
+                                            <span className="text-xs font-bold text-gray-700 dark:text-gray-200 uppercase">Patamar em ângulo?</span>
                                         </label>
                                     </div>
                                 </div>

@@ -222,7 +222,8 @@ export const generateContractPDF = (data: ContractData) => {
   if (data.selectedOption.landings && data.selectedOption.landings.length > 0) {
       data.selectedOption.landings.forEach((landing, idx) => {
           if (!landing) return;
-          const typeText = landing.type === 'fixed' ? 'FIXO' : 'ARTICULADO';
+          const baseTypeText = landing.type === 'fixed' ? 'FIXO' : 'ARTICULADO';
+          const typeText = landing.isAngled ? `EM ÂNGULO ${baseTypeText}` : baseTypeText;
           
           let dirText = 'RETO';
           if (landing.direction === 'left') dirText = 'Curva à ESQUERDA';
@@ -237,6 +238,10 @@ export const generateContractPDF = (data: ContractData) => {
           
           addText(`-Patamar ${idx+1} (${typeText} - ${dirText})${bracketText}: Medidas ${lM}m x ${wM}m`, 11, false, 'left');
       });
+      const totalMaoFrancesa = data.selectedOption.landings.reduce((sum, l) => sum + (l.frenchBrackets || 0), 0);
+      if (totalMaoFrancesa > 0) {
+          addText(`-Quantidade de Mão Francesa: ${totalMaoFrancesa}`, 11, false, 'left');
+      }
   }
 
   // --- PRECIFICAÇÃO SEPARADA (ESCADA vs PATAMARES) ---
