@@ -993,15 +993,6 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
         d += ` L ${stepsPoints[i].x} ${stepsPoints[i].y}`;
     }
 
-    // Chapa de metal lisa por baixo (Viga central/lateral) - "Espessura" visual
-    const thicknessY = 20; // Espessura vertical do corpo da escada
-    
-    // Conecta o último ponto até a altura da espessura
-    d += ` L ${lastPointX} ${lastPointY + thicknessY}`;
-    // Liga reto ao ponto inicial no chão, gerando a reta inferior contínua perfeitamente unindo ao 1º degrau
-    d += ` L ${firstX} ${firstY}`;
-    d += ` Z`;
-
     // Definição da posição da seta de Pé Direito
     const ceilingArrowX = isMirrored ? (margin - 20) : (margin + drawTotalLength + 20);
     const ceilingTextX = isMirrored ? (ceilingArrowX - 15) : (ceilingArrowX + 15);
@@ -1074,7 +1065,7 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
             {landingDraws}
 
             {/* Perfil da Escada (Linha Vetorial Simples) */}
-            <path d={d} fill={simulateSafe && correctionType === 'shrink_stair' ? '#dcfce7' : '#ffffff'} stroke={simulateSafe && correctionType === 'shrink_stair' ? '#16a34a' : '#000000'} strokeWidth="3" strokeLinejoin="round" />
+            <path d={d} fill={simulateSafe && correctionType === 'shrink_stair' ? '#dcfce7' : 'none'} stroke={simulateSafe && correctionType === 'shrink_stair' ? '#16a34a' : '#000000'} strokeWidth="3" strokeLinejoin="round" />
             
             {/* Indicador Último Degrau */}
             <g>
