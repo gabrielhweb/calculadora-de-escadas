@@ -151,6 +151,56 @@ const Contract = () => {
     const [handrailSide, setHandrailSide] = useState<'left' | 'right' | 'both'>('both');
     const [treadMaterial, setTreadMaterial] = useState<'metal' | 'wood' | 'chapa_xadrez' | 'chapa_vazada' | undefined>(undefined);
     const [woodType, setWoodType] = useState<'garapeira' | 'muiracatiara' | 'ambas' | undefined>(undefined);
+    const [cutStepType, setCutStepType] = useState<'left' | 'right' | 'hollow'>('left');
+
+    const handleAddLanding = () => {
+        const newLanding: LandingInfo = {
+            id: Math.random().toString(36).substr(2, 9),
+            step: totalSteps ? parseInt(totalSteps) / 2 : 1,
+            price: 0,
+            width: width ? parseFloat(width) : 70,
+            length: width ? parseFloat(width) : 70,
+            type: 'articulated',
+            hasSideGuardrail: false,
+            hasFrontGuardrail: false,
+            direction: 'straight',
+            frenchBrackets: 0,
+            isAngled: false
+        };
+        setLandings([...landings, newLanding]);
+    };
+
+    const handleAddTopLanding = () => {
+        const newLanding: LandingInfo = {
+            id: Math.random().toString(36).substr(2, 9),
+            step: totalSteps ? parseInt(totalSteps) : 15,
+            price: 0,
+            width: width ? parseFloat(width) : 70,
+            length: width ? parseFloat(width) : 70,
+            type: 'articulated',
+            hasSideGuardrail: false,
+            hasFrontGuardrail: false,
+            direction: 'straight',
+            isLastStep: true,
+            isFlushWithSlab: false,
+            frenchBrackets: 0,
+            isAngled: false
+        };
+        setLandings([...landings, newLanding]);
+    };
+
+    const handleRemoveLanding = (id: string) => {
+        setLandings(landings.filter(l => l.id !== id));
+    };
+
+    const updateLanding = (id: string, updates: Partial<LandingInfo>) => {
+        setLandings(prev => prev.map(l => {
+            if (l.id === id) {
+                return { ...l, ...updates };
+            }
+            return l;
+        }));
+    };
     
     // Efeito para zerar amortecedores caso rodinhas sejam selecionadas
     useEffect(() => {
@@ -933,6 +983,18 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
         }
     };
 
+    const handleGenerateProductionSheet = () => {
+        import('../utils/productionPdfGenerator').then(({ generateProductionPDF }) => {
+            generateProductionPDF({
+                totalSteps: parseFloat(totalSteps) || 0,
+                stepHeightCm: parseFloat(stepHeight) || 0,
+                treadDepthCm: parseFloat(treadDepth) || 0,
+                widthCm: parseFloat(width) || 0,
+                cutStepType
+            });
+        });
+    };
+
     const handleGenerateAceiteObra = () => {
         if (!clientName || !street || !number || !city) {
             alert("Por favor, preencha Nome e Endereço Completo do cliente.");
@@ -1124,6 +1186,200 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                             <ContractInput label="Pisante" value={treadDepth} onChange={(e: any) => setTreadDepth(e.target.value)} type="number" />
                             <ContractInput label="Comprimento" value={totalLength} onChange={(e: any) => setTotalLength(e.target.value)} type="number" />
                         </div>
+
+                        <div className="flex items-center justify-between mb-4 mt-4">
+                            <h3 className="text-sm font-black text-gray-900 dark:text-gray-100 uppercase flex items-center gap-2">
+                                <span className="bg-highlight text-white w-6 h-6 flex items-center justify-center rounded-full text-xs">P</span>
+                                Patamares ({landings.length})
+                            </h3>
+                            <div className="flex gap-2">
+                                <button type="button" onClick={handleAddTopLanding} className="text-xs bg-orange-600 text-white px-2 py-1 rounded font-bold hover:bg-orange-700 transition" title="Patamar no Topo (Acesso Lateral)">
+                                    + Chegada
+                                </button>
+                                <button type="button" onClick={handleAddLanding} className="text-xs bg-gray-800 dark:bg-gray-700 text-white px-3 py-1 rounded font-bold hover:bg-black dark:hover:bg-gray-600 transition">
+                                    + Meio
+                                </button>
+                            </div>
+                        </div>
+                        
+                        {landings.length === 0 ? (
+                            <p className="text-xs text-gray-500 dark:text-gray-400 italic mb-2">Nenhum patamar adicionado.</p>
+                        ) : (
+                            <div className="space-y-3">
+                                <p className="text-[10px] text-orange-800 dark:text-orange-300 font-bold mb-2">* Cada patamar substitui 1 degrau.</p>
+                                {landings.map((landing, index) => (
+                                    <div key={landing.id} className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-orange-200 dark:border-orange-800 shadow-sm relative">
+                                        <button 
+                                            onClick={() => handleRemoveLanding(landing.id)}
+                                            type="button"
+                                            className="absolute -top-2 -right-2 bg-red-500 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shadow hover:bg-red-700"
+                                        >
+                                            x
+                                        </button>
+                                        <span className="text-xs font-bold text-gray-400 absolute top-1 left-2">#{index + 1}</span>
+                                        
+                                        <div className="grid grid-cols-2 gap-2 mt-2">
+                                            <div className="mb-0 col-span-2">
+                                                <div className="flex justify-between items-center mb-1">
+                                                     <label className="text-sm font-black text-gray-900 dark:text-gray-100 mr-1">Posição</label>
+                                                </div>
+                                                <div className="flex gap-4 items-center bg-gray-100 dark:bg-gray-700 p-2 rounded mb-2">
+                                                    <label className="flex items-center gap-1 cursor-pointer select-none">
+                                                         <input 
+                                                            type="checkbox" 
+                                                            checked={!!landing.isLastStep} 
+                                                            onChange={(e) => {
+                                                                updateLanding(landing.id, {
+                                                                    isLastStep: e.target.checked,
+                                                                    isFlushWithSlab: e.target.checked ? landing.isFlushWithSlab : false
+                                                                });
+                                                            }} 
+                                                            className="w-4 h-4 accent-highlight"
+                                                         />
+                                                         <span className="text-xs font-bold text-gray-700 dark:text-gray-200 uppercase">Topo (Chegada)?</span>
+                                                    </label>
+                                                    
+                                                    {landing.isLastStep && (
+                                                        <label className="flex items-center gap-1 cursor-pointer select-none" title="Para porta nivelada com o piso superior">
+                                                            <input 
+                                                                type="checkbox" 
+                                                                checked={!!landing.isFlushWithSlab} 
+                                                                onChange={(e) => {
+                                                                    const isChecked = e.target.checked;
+                                                                    updateLanding(landing.id, {
+                                                                        isFlushWithSlab: isChecked,
+                                                                        isLastStep: isChecked ? true : landing.isLastStep 
+                                                                    });
+                                                                }} 
+                                                                className="w-4 h-4 accent-highlight"
+                                                            />
+                                                            <span className="text-xs font-bold text-gray-700 dark:text-gray-200 uppercase">Rente à Laje?</span>
+                                                        </label>
+                                                    )}
+                                                </div>
+
+                                                <input
+                                                    type="number"
+                                                    value={landing.isLastStep ? "" : landing.step.toString()}
+                                                    disabled={landing.isLastStep}
+                                                    onChange={e => updateLanding(landing.id, { step: parseFloat(e.target.value) })}
+                                                    className={`w-full p-2 rounded border-2 focus:outline-none transition font-bold ${landing.isLastStep ? 'bg-gray-200 dark:bg-gray-600 border-gray-300 dark:border-gray-500 text-gray-400 dark:text-gray-300' : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 focus:border-highlight text-black dark:text-white'}`}
+                                                    placeholder={landing.isLastStep ? "Automático (Último Degrau)" : "Nº do Degrau (Ex: 5)"}
+                                                />
+                                            </div>
+
+                                            <div className="col-span-2">
+                                                <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Tipo de Fixação:</label>
+                                                <div className="flex bg-gray-100 dark:bg-gray-700 p-1 rounded">
+                                                    <button 
+                                                        type="button" 
+                                                        onClick={() => updateLanding(landing.id, { type: 'articulated' })}
+                                                        className={`flex-1 py-1 text-xs font-bold rounded ${(!landing.type || landing.type === 'articulated') ? 'bg-white dark:bg-gray-600 shadow text-highlight' : 'text-gray-500'}`}
+                                                    >
+                                                        Articulado
+                                                    </button>
+                                                    <button 
+                                                        type="button" 
+                                                        onClick={() => updateLanding(landing.id, { type: 'fixed' })}
+                                                        className={`flex-1 py-1 text-xs font-bold rounded ${landing.type === 'fixed' ? 'bg-white dark:bg-gray-600 shadow text-blue-600' : 'text-gray-500'}`}
+                                                    >
+                                                        Fixo
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div className="col-span-2">
+                                                <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Qtd. Mãos Francesas:</label>
+                                                <select
+                                                    value={landing.frenchBrackets || 0}
+                                                    onChange={(e) => updateLanding(landing.id, { frenchBrackets: parseInt(e.target.value) as 0 | 1 | 2 })}
+                                                    className="w-full text-xs font-bold p-2 text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 rounded border border-gray-300 dark:border-gray-600 outline-none focus:border-highlight"
+                                                >
+                                                    <option value={0}>Sem mão francesa</option>
+                                                    <option value={1}>Com uma mão francesa</option>
+                                                    <option value={2}>Com duas mãos francesas</option>
+                                                </select>
+                                            </div>
+
+                                            <div className="col-span-2 bg-gray-50 dark:bg-gray-700/50 p-2 rounded border border-gray-100 dark:border-gray-700">
+                                                <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Opções Adicionais:</label>
+                                                <div className="flex flex-col gap-2">
+                                                    <div className="flex gap-4">
+                                                        <label className="flex items-center gap-1 cursor-pointer">
+                                                            <input 
+                                                                type="checkbox" 
+                                                                checked={landing.hasSideGuardrail} 
+                                                                onChange={(e) => updateLanding(landing.id, { hasSideGuardrail: e.target.checked })} 
+                                                                className="w-4 h-4 accent-blue-600"
+                                                            />
+                                                            <span className="text-xs font-medium text-gray-600 dark:text-gray-300">Barra Lateral</span>
+                                                        </label>
+                                                        <label className="flex items-center gap-1 cursor-pointer">
+                                                            <input 
+                                                                type="checkbox" 
+                                                                checked={landing.hasFrontGuardrail} 
+                                                                onChange={(e) => updateLanding(landing.id, { hasFrontGuardrail: e.target.checked })} 
+                                                                className="w-4 h-4 accent-blue-600"
+                                                            />
+                                                            <span className="text-xs font-medium text-gray-600 dark:text-gray-300">Barra Frontal</span>
+                                                        </label>
+                                                    </div>
+                                                    <label className="flex items-center gap-1 cursor-pointer mt-1">
+                                                        <input 
+                                                            type="checkbox" 
+                                                            checked={!!landing.isAngled} 
+                                                            onChange={(e) => updateLanding(landing.id, { isAngled: e.target.checked })} 
+                                                            className="w-4 h-4 accent-highlight"
+                                                        />
+                                                        <span className="text-xs font-bold text-gray-700 dark:text-gray-200 uppercase">Patamar em ângulo?</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+
+                                            <div className="col-span-2 mb-2 bg-gray-50 dark:bg-gray-700/50 p-2 rounded border border-gray-100 dark:border-gray-700">
+                                                <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Direção / Curva:</label>
+                                                <div className="flex gap-1">
+                                                    <button 
+                                                        type="button"
+                                                        onClick={() => updateLanding(landing.id, { direction: 'left' })}
+                                                        className={`flex-1 py-1 rounded text-xs font-bold transition flex items-center justify-center gap-1 ${landing.direction === 'left' ? 'bg-blue-600 text-white shadow' : 'bg-white dark:bg-gray-600 border dark:border-gray-500 text-gray-600 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500'}`}
+                                                    >
+                                                        ⬅️ Esq
+                                                    </button>
+                                                    <button 
+                                                        type="button"
+                                                        onClick={() => updateLanding(landing.id, { direction: 'straight' })}
+                                                        className={`flex-1 py-1 rounded text-xs font-bold transition flex items-center justify-center gap-1 ${(!landing.direction || landing.direction === 'straight') ? 'bg-blue-600 text-white shadow' : 'bg-white dark:bg-gray-600 border dark:border-gray-500 text-gray-600 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500'}`}
+                                                    >
+                                                        ⬆️ Reto
+                                                    </button>
+                                                    <button 
+                                                        type="button"
+                                                        onClick={() => updateLanding(landing.id, { direction: 'right' })}
+                                                        className={`flex-1 py-1 rounded text-xs font-bold transition flex items-center justify-center gap-1 ${landing.direction === 'right' ? 'bg-blue-600 text-white shadow' : 'bg-white dark:bg-gray-600 border dark:border-gray-500 text-gray-600 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500'}`}
+                                                    >
+                                                        Dir ➡️
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <ContractInput 
+                                                label="Comp. (cm)" 
+                                                value={landing.length.toString()} 
+                                                onChange={(e: any) => updateLanding(landing.id, { length: parseFloat(e.target.value) })} 
+                                                type="number"
+                                            />
+                                            <ContractInput 
+                                                label="Larg. (cm)" 
+                                                value={landing.width.toString()} 
+                                                onChange={(e: any) => updateLanding(landing.id, { width: parseFloat(e.target.value) })} 
+                                                type="number"
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
                         
                         {/* LISTA DE ITENS ADICIONAIS EDITÁVEL E COM ADIÇÃO */}
                         <div className="col-span-full mt-4 bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded border border-yellow-200 dark:border-yellow-700">
@@ -1640,6 +1896,29 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                 </label>
                             </div>
                         )}
+
+                        <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 mb-4 mt-4">
+                            <h3 className="text-sm font-black text-gray-900 dark:text-gray-100 uppercase mb-3 border-b border-gray-200 dark:border-gray-700 pb-1">
+                                Ficha de Produção (Corte a Laser)
+                            </h3>
+                            <div className="flex gap-4 mb-4">
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="cutStepType" value="left" checked={cutStepType === 'left'} onChange={() => setCutStepType('left')} className="w-4 h-4 accent-highlight" />
+                                    <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Furo lado esquerdo</span>
+                                </label>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="cutStepType" value="right" checked={cutStepType === 'right'} onChange={() => setCutStepType('right')} className="w-4 h-4 accent-highlight" />
+                                    <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Furo lado direito</span>
+                                </label>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="cutStepType" value="hollow" checked={cutStepType === 'hollow'} onChange={() => setCutStepType('hollow')} className="w-4 h-4 accent-highlight" />
+                                    <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Degrau vazado</span>
+                                </label>
+                            </div>
+                            <button onClick={handleGenerateProductionSheet} className="w-full bg-purple-600 text-white font-black py-3 rounded-lg shadow-lg hover:bg-purple-700 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2">
+                                <span>⚙️</span> Gerar Ficha de Produção
+                            </button>
+                        </div>
 
                         <div className="flex flex-col gap-4 mt-2">
                             <div className="flex gap-4">
