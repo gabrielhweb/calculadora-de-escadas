@@ -314,7 +314,7 @@ export const generateContractPDF = (data: ContractData) => {
 
   addText('4. DO PRAZO DE ENTREGA', 11, true, 'left');
   
-  const days = data.deliveryDays !== undefined ? data.deliveryDays : 20;
+  const days = data.deliveryDays !== undefined ? data.deliveryDays : 30;
   
   const numberToWords = (num: number): string => {
       const units = ['zero', 'um', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove'];
@@ -372,7 +372,7 @@ export const generateContractPDF = (data: ContractData) => {
       ? `menos ${discountP.toFixed(2).replace('.00', '')}% de desconto`
       : `menos desconto de ${formatCurrencyBRL(discountVal)}`;
 
-  if (isTransportadora && data.paymentMethod === 'hybrid') {
+  if (isTransportadora && (data.paymentMethod === 'hybrid' || data.paymentMethod === 'pix')) {
       if (discountVal > 0) {
           addText(`Total: ${formatCurrencyBRL(totalGeral)} ${discountText} = ${formatCurrencyBRL(totalComDesconto)}`, 11, false, 'left');
       } else {

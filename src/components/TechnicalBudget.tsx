@@ -14,6 +14,7 @@ interface TechnicalBudgetProps {
   landings: LandingInfo[];
   stairDirection?: 'standard' | 'mirrored';
   wallFixation?: 'left' | 'right' | 'frontal';
+  cutStepType: 'left' | 'right' | 'hollow';
   treadMaterial?: 'metal' | 'wood' | 'chapa_xadrez' | 'chapa_vazada';
   woodType?: 'garapeira' | 'muiracatiara' | 'ambas';
   address?: string;
@@ -32,6 +33,7 @@ export const TechnicalBudget: React.FC<TechnicalBudgetProps> = (props) => {
     landings,
     stairDirection,
     wallFixation,
+    cutStepType,
     treadMaterial,
     address,
     zip,

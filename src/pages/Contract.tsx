@@ -253,7 +253,7 @@ const Contract = () => {
     const [stairCapacityText, setStairCapacityText] = useState('360 quilos');
     const [warrantyText, setWarrantyText] = useState('um ano');
     const [deliveryText, setDeliveryText] = useState(''); // Se vazio, usa o default com a data
-    const [deliveryDays, setDeliveryDays] = useState<number>(20);
+    const [deliveryDays, setDeliveryDays] = useState<number>(30);
 
     // Estados para Refinamento (Chatzinho)
     const [refiningIndex, setRefiningIndex] = useState<number | null>(null);
@@ -990,7 +990,8 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                 stepHeightCm: parseFloat(stepHeight) || 0,
                 treadDepthCm: parseFloat(treadDepth) || 0,
                 widthCm: parseFloat(width) || 0,
-                cutStepType
+                cutStepType,
+                clientName: clientName || ''
             });
         });
     };
@@ -1951,6 +1952,7 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                         landings={landings}
                         stairDirection={stairDirection}
                         wallFixation={wallFixation}
+                        cutStepType={cutStepType}
                         treadMaterial={treadMaterial}
                         woodType={treadMaterial === 'wood' ? woodType : undefined}
                         address={`${street}, ${number} - ${neighborhood}, ${city} - ${state}, ${zip}`}
