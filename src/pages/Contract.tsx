@@ -2004,7 +2004,7 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                 label="Texto do Prazo de Entrega (Deixe vazio para usar a data calculada)" 
                                 value={deliveryText} 
                                 onChange={(e: any) => setDeliveryText(e.target.value)} 
-                                placeholder="Ex: Deve ser feita em até 20 dias úteis após o pagamento do sinal"
+                                placeholder="Ex: Deve ser feita em até 30 dias úteis após o pagamento do sinal"
                             />
                         </div>
                     </div>
