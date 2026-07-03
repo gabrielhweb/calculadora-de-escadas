@@ -150,67 +150,13 @@ export const generateContractPDF = (data: ContractData) => {
   const tread = data.selectedOption.treadDepth.toFixed(2);
   
   // LÓGICA DE FIXAÇÃO E DESENHO
-  let fixationText = "";
-  if (data.inputData.stairGeometry === 'hide') {
-      fixationText = ""; 
-  } else if (data.inputData.stairGeometry && data.inputData.stairGeometry.includes('Fixação')) {
-      fixationText = data.inputData.stairGeometry; 
-  } else {
-      if (data.inputData.wallFixation === 'frontal') {
-          fixationText = "Fixação FRONTAL";
-      } else {
-          fixationText = data.inputData.wallFixation === 'left' 
-              ? "Fixação na Parede ESQUERDA" 
-              : "Fixação na Parede DIREITA";
-      }
-  }
-
-  // Geometria (L / U)
-  const geometryText = (data.inputData.stairGeometry && !data.inputData.stairGeometry.includes('Fixação') && data.inputData.stairGeometry !== 'hide')
-    ? `, modelo ${data.inputData.stairGeometry}` 
-    : "";
-
-  // --- LÓGICA DE RODINHAS ---
-  let baseDescription = `Escada articulada lateral em aço carbono`;
-  let handrailText = "e com corrimão de 70cm";
-  let dampersText = ` com ${data.inputData.dampers} amortecedores de alívio.`;
-
-  if (data.inputData.hasWheels) {
-      baseDescription = `Escada articulada com rodinhas em aço carbono`;
-      dampersText = "."; // Remove amortecedores
-      
-      const sideMap: Record<string, string> = { 
-          left: 'apenas no lado esquerdo', 
-          right: 'apenas no lado direito', 
-          both: 'nos dois lados' 
-      };
-      const sideText = sideMap[data.inputData.handrailSide || 'both'] || 'nos dois lados';
-      handrailText = `e com corrimão articulado ${sideText}`;
-  }
-
-  // Constrói objeto com formatação correta de vírgulas
-  let objText = `${baseDescription} com corte à laser`;
-  if (fixationText) objText += `, ${fixationText}`;
-  if (geometryText) objText += `${geometryText}`;
-  objText += `, com medidas de: ${alturaM}m de altura, ${compM}m de comprimento, ${widthM}m de largura ${handrailText}.`;
+  // A pedido do usuário, alguns textos como 'Fixação na Parede DIREITA', '80cm' de corrimão, 'MADEIRA (GARAPEIRA OU MUIRACATIARA)' 
+  // e '4 amortecedores' estão estáticos por enquanto para seguir um novo padrão de produto.
   
+  const objText = `Escada articulada lateral em aço carbono com corte à laser, Fixação na Parede DIREITA, com medidas de: ${alturaM}m de altura, ${compM}m de comprimento, ${widthM}m de largura e com corrimão de 80cm.`;
   addText(objText, 11, false, 'left');
   
-  let materialText = 'de METAL';
-  if (data.inputData.treadMaterial === 'wood' || (data.inputData.treadMaterial as string) === 'Madeira') {
-      if (data.inputData.woodType === 'garapeira') {
-          materialText = 'de MADEIRA (GARAPEIRA)';
-      } else if (data.inputData.woodType === 'muiracatiara') {
-          materialText = 'de MADEIRA (MUIRACATIARA)';
-      } else {
-          materialText = 'de MADEIRA (GARAPEIRA OU MUIRACATIARA)';
-      }
-  } else if (data.inputData.treadMaterial === 'chapa_xadrez') {
-      materialText = 'de CHAPA XADREZ';
-  } else if (data.inputData.treadMaterial === 'chapa_vazada') {
-      materialText = 'de CHAPA VAZADA';
-  }
-  let stepsText = `-Com ${data.selectedOption.structureSteps} degraus articulados com dimensões de ${stepH}cm de altura e pisante ${materialText} de ${tread}cm${dampersText}`;
+  const stepsText = `-Com ${data.selectedOption.structureSteps} degraus articulados com dimensões de ${stepH}cm de altura e pisante de MADEIRA (GARAPEIRA OU MUIRACATIARA) de ${tread}cm com 4 amortecedores de alívio.`;
   addText(stepsText, 11, false, 'left');
 
   // Adiciona a nota de exclusão se houver porta configurada nos desenhos

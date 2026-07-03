@@ -11,7 +11,7 @@ interface TechnicalDataProps {
   landings: LandingInfo[];
   stairDirection?: 'standard' | 'mirrored';
   wallFixation?: 'left' | 'right' | 'frontal';
-  cutStepType: 'left' | 'right' | 'hollow';
+  cutStepType: 'left' | 'right' | 'hollow_left' | 'hollow_right';
   treadMaterial?: 'metal' | 'wood' | 'chapa_xadrez' | 'chapa_vazada';
   woodType?: 'garapeira' | 'muiracatiara' | 'ambas';
   address?: string;
@@ -326,7 +326,7 @@ export const drawPristineTechnicalPage = (doc: jsPDF, props: TechnicalDataProps)
     doc.text(`Peso Total Aproximado: ${totalWeightKg} kg`, leftMargin, cursorY); cursorY += 15;
     
     // 4. SEÇÃO DE COMPONENTES (Canto Superior Direito)
-    const rightMargin = 120;
+    const rightMargin = 135;
     let rightY = 80;
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(14);
@@ -336,7 +336,9 @@ export const drawPristineTechnicalPage = (doc: jsPDF, props: TechnicalDataProps)
     const corText = doc.splitTextToSize("Corrimão: Sim (Cravado em 80cm de altura)", 70);
     doc.text(corText, rightMargin, rightY); rightY += 15;
     
-    const maoText = doc.splitTextToSize("Mão Francesa: Sim (Quantidades e posições conforme desenho)", 70);
+    const totalBrackets = landings?.reduce((sum, l) => sum + (Number(l.frenchBrackets) || 0), 0) || 0;
+    const bracketMsg = totalBrackets > 0 ? `Sim (Quantidades e posições conforme desenho)` : `Não`;
+    const maoText = doc.splitTextToSize(`Mão Francesa: ${bracketMsg}`, 70);
     doc.text(maoText, rightMargin, rightY); rightY += 20;
     
     // 5. SEÇÃO DE PAGAMENTO E ENTREGA (Canto Inferior Direito)

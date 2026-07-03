@@ -151,7 +151,7 @@ const Contract = () => {
     const [handrailSide, setHandrailSide] = useState<'left' | 'right' | 'both'>('both');
     const [treadMaterial, setTreadMaterial] = useState<'metal' | 'wood' | 'chapa_xadrez' | 'chapa_vazada' | undefined>(undefined);
     const [woodType, setWoodType] = useState<'garapeira' | 'muiracatiara' | 'ambas' | undefined>(undefined);
-    const [cutStepType, setCutStepType] = useState<'left' | 'right' | 'hollow'>('left');
+    const [cutStepType, setCutStepType] = useState<'left' | 'right' | 'hollow_left' | 'hollow_right'>('left');
 
     const handleAddLanding = () => {
         const newLanding: LandingInfo = {
@@ -1905,15 +1905,19 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                             <div className="flex gap-4 mb-4">
                                 <label className="flex items-center gap-2 cursor-pointer">
                                     <input type="radio" name="cutStepType" value="left" checked={cutStepType === 'left'} onChange={() => setCutStepType('left')} className="w-4 h-4 accent-highlight" />
-                                    <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Furo lado esquerdo</span>
+                                    <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Chapa Lisa (Furo Esquerdo)</span>
                                 </label>
                                 <label className="flex items-center gap-2 cursor-pointer">
                                     <input type="radio" name="cutStepType" value="right" checked={cutStepType === 'right'} onChange={() => setCutStepType('right')} className="w-4 h-4 accent-highlight" />
-                                    <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Furo lado direito</span>
+                                    <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Chapa Lisa (Furo Direito)</span>
                                 </label>
                                 <label className="flex items-center gap-2 cursor-pointer">
-                                    <input type="radio" name="cutStepType" value="hollow" checked={cutStepType === 'hollow'} onChange={() => setCutStepType('hollow')} className="w-4 h-4 accent-highlight" />
-                                    <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Degrau vazado</span>
+                                    <input type="radio" name="cutStepType" value="hollow_left" checked={cutStepType === 'hollow_left'} onChange={() => setCutStepType('hollow_left')} className="w-4 h-4 accent-highlight" />
+                                    <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Chapa Vazada (Furo Esquerdo)</span>
+                                </label>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="cutStepType" value="hollow_right" checked={cutStepType === 'hollow_right'} onChange={() => setCutStepType('hollow_right')} className="w-4 h-4 accent-highlight" />
+                                    <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Chapa Vazada (Furo Direito)</span>
                                 </label>
                             </div>
                             <button onClick={handleGenerateProductionSheet} className="w-full bg-purple-600 text-white font-black py-3 rounded-lg shadow-lg hover:bg-purple-700 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2">

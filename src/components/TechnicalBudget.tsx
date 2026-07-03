@@ -14,7 +14,7 @@ interface TechnicalBudgetProps {
   landings: LandingInfo[];
   stairDirection?: 'standard' | 'mirrored';
   wallFixation?: 'left' | 'right' | 'frontal';
-  cutStepType: 'left' | 'right' | 'hollow';
+  cutStepType: 'left' | 'right' | 'hollow_left' | 'hollow_right';
   treadMaterial?: 'metal' | 'wood' | 'chapa_xadrez' | 'chapa_vazada';
   woodType?: 'garapeira' | 'muiracatiara' | 'ambas';
   address?: string;
