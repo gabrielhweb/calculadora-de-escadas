@@ -86,20 +86,20 @@ export const drawProductionPage = (doc: jsPDF, props: ProductionPdfProps) => {
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     const pisadaText = 'pisada';
-    doc.text(pisadaText, 85, 80);
+    doc.text(pisadaText, 130, 80);
     const pisadaWidth = doc.getTextWidth(pisadaText);
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.text(`${treadDepthMm + 10}mm`, 85 + pisadaWidth + 2, 80);
+    doc.text(`${treadDepthMm + 10}mm`, 130 + pisadaWidth + 2, 80);
     
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     const alturaText = 'altura';
-    doc.text(alturaText, 85, 115);
+    doc.text(alturaText, 130, 115);
     const alturaWidth = doc.getTextWidth(alturaText);
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.text(`${stepHeightMm}mm`, 85 + alturaWidth + 2, 115);
+    doc.text(`${stepHeightMm}mm`, 130 + alturaWidth + 2, 115);
     
     // Lado Direito
     if (!isHollow) {
