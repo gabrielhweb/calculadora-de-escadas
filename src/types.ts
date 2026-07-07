@@ -100,6 +100,9 @@ export interface UserData {
   city?: string;
   state?: string;
   
+  // Parcelamento
+  installments?: number;
+  
   // Array de strings Base64 das imagens capturadas (Desenhos 2D/3D)
   drawingImages?: { title: string; imgData: string; width?: number; height?: number }[];
 }

@@ -282,8 +282,16 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
         currentY += 2;
         const totalGeral = opt.totalPrice + freightCost + tollCost + installationCost + extrasCost;
         doc.setFont('helvetica', 'bold');
-        doc.text(`Total:`, pageMargin, currentY);
-        doc.text(formatCurrencyBRL(totalGeral), pageWidth - pageMargin, currentY, { align: 'right' });
+        
+        if (userData.installments && userData.installments > 1) {
+            doc.text(`Total (Parcelado):`, pageMargin, currentY);
+            const valParcela = formatCurrencyBRL(totalGeral / userData.installments);
+            doc.text(`${userData.installments}x sem juros de ${valParcela}`, pageWidth - pageMargin, currentY, { align: 'right' });
+        } else {
+            doc.text(`Total:`, pageMargin, currentY);
+            doc.text(formatCurrencyBRL(totalGeral), pageWidth - pageMargin, currentY, { align: 'right' });
+        }
+        
         doc.setFont('helvetica', 'normal');
         
         currentY += 6; 
