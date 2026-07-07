@@ -75,7 +75,7 @@ const maskCEP = (value: string) => {
     .replace(/(-\d{3})\d+?$/, '$1');
 };
 
-const UserDataForm: React.FC<{ onSubmit: (data: UserData, includeDrawings: boolean) => void; initialZip?: string }> = ({ onSubmit, initialZip }) => {
+const UserDataForm: React.FC<{ onSubmit: (data: UserData, includeDrawings: boolean) => void; initialZip?: string; baseTotal?: number }> = ({ onSubmit, initialZip, baseTotal }) => {
   const [personType, setPersonType] = useState<'pf' | 'pj'>('pf');
   const [name, setName] = useState('');
   const [docMain, setDocMain] = useState(''); // CPF ou CNPJ
@@ -92,7 +92,34 @@ const UserDataForm: React.FC<{ onSubmit: (data: UserData, includeDrawings: boole
   
   // Parcelamento e Juros
   const [installments, setInstallments] = useState(1);
-  const [interestValue, setInterestValue] = useState(0);
+  const [interestValue, setInterestValue] = useState<number | ''>('');
+  const [interestPercent, setInterestPercent] = useState<number | ''>('');
+
+  const handleInterestPercentChange = (val: string) => {
+      const p = parseFloat(val);
+      if (isNaN(p)) {
+          setInterestPercent('');
+          setInterestValue('');
+      } else {
+          setInterestPercent(p);
+          if (baseTotal) {
+              setInterestValue(parseFloat(((baseTotal * p) / 100).toFixed(2)));
+          }
+      }
+  };
+
+  const handleInterestValueChange = (val: string) => {
+      const v = parseFloat(val);
+      if (isNaN(v)) {
+          setInterestValue('');
+          setInterestPercent('');
+      } else {
+          setInterestValue(v);
+          if (baseTotal && baseTotal > 0) {
+              setInterestPercent(parseFloat(((v / baseTotal) * 100).toFixed(2)));
+          }
+      }
+  };
 
   const [error, setError] = useState('');
   const [isLoadingCep, setIsLoadingCep] = useState(false);
@@ -180,7 +207,7 @@ const UserDataForm: React.FC<{ onSubmit: (data: UserData, includeDrawings: boole
           // Salva campos estruturados
           zip, street, number, neighborhood, city, state,
           installments,
-          interestValue
+          interestValue: typeof interestValue === 'number' ? interestValue : undefined
       }, includeDrawings);
     } else {
         setError('Por favor, preencha o Nome do Cliente.');
@@ -319,9 +346,9 @@ const UserDataForm: React.FC<{ onSubmit: (data: UserData, includeDrawings: boole
          
          {/* PARCELAMENTO E JUROS */}
          <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg border border-gray-200 dark:border-gray-700 mt-4">
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                  <div>
-                     <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-2">Opção de Parcelamento no Orçamento</label>
+                     <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-2">Parcelamento</label>
                      <select 
                          value={installments}
                          onChange={(e) => setInstallments(Number(e.target.value))}
@@ -335,19 +362,32 @@ const UserDataForm: React.FC<{ onSubmit: (data: UserData, includeDrawings: boole
                  </div>
                  
                  <div>
-                     <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-2">Acréscimo de Juros (R$)</label>
+                     <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-2">Juros (%)</label>
+                     <input 
+                         type="number" 
+                         min="0"
+                         step="0.01"
+                         value={interestPercent} 
+                         onChange={(e) => handleInterestPercentChange(e.target.value)} 
+                         placeholder="Ex: 10"
+                         className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight font-medium"
+                     />
+                 </div>
+
+                 <div>
+                     <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-2">Juros (R$)</label>
                      <input 
                          type="number" 
                          min="0"
                          step="0.01"
                          value={interestValue} 
-                         onChange={(e) => setInterestValue(Number(e.target.value))} 
+                         onChange={(e) => handleInterestValueChange(e.target.value)} 
                          placeholder="Ex: 570.00"
-                         className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight font-medium"
+                         className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight font-medium text-orange-600 dark:text-orange-400"
                      />
                  </div>
              </div>
-             <p className="text-xs text-gray-500 mt-2">Selecione para exibir o valor com juros e parcelado no PDF do orçamento. Se não houver juros, deixe 0.</p>
+             <p className="text-xs text-gray-500 mt-2">Você pode preencher a % ou o valor em R$. Se não houver juros, deixe em branco.</p>
          </div>
          
          <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg border border-blue-200 dark:border-blue-800 mt-4">
@@ -1328,8 +1368,28 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
         </div>
       </div>
       
-      {/* Agora passamos o CEP de destino (digitado na área de frete) para o formulário do cliente */}
-      <UserDataForm onSubmit={handleProposalSubmit} initialZip={destinationCep} />
+      {/* Agora passamos o CEP de destino e o baseTotal (da primeira opção) para o formulário do cliente */}
+      <UserDataForm 
+          onSubmit={handleProposalSubmit} 
+          initialZip={destinationCep} 
+          baseTotal={(() => {
+              if (options.length === 0) return 0;
+              const firstOpt = options[0];
+              const activeFirst = overriddenOptions[firstOpt.optionNumber] || firstOpt;
+              
+              const basePrice = getBasePrice(activeFirst.stairWidth);
+              const multiplier = getMultiplier(activeFirst.treadDepth);
+              const calculatedUnitPrice = basePrice * multiplier;
+              const landingsPrice = activeFirst.landings.reduce((acc, l) => acc + l.price, 0);
+              const structureStepsPrice = calculatedUnitPrice * activeFirst.structureSteps;
+              const hasCustomPrice = inputData?.customStepPrice && inputData.customStepPrice > 0;
+              
+              // Recalcula o totalPrice real (mesma lógica usada na renderização)
+              const realTotalPrice = hasCustomPrice ? (inputData.customStepPrice! * activeFirst.structureSteps) + landingsPrice : activeFirst.totalPrice;
+
+              return realTotalPrice + freightCost + tollCost + finalInstallationCost + extrasCost;
+          })()} 
+      />
 
       {/* RENDERIZAÇÃO DO MODAL DE VISUALIZAÇÃO PADRÃO */}
       {selectedVisualizerOption && (
