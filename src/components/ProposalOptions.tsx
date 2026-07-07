@@ -90,8 +90,9 @@ const UserDataForm: React.FC<{ onSubmit: (data: UserData, includeDrawings: boole
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
   
-  // Parcelamento
+  // Parcelamento e Juros
   const [installments, setInstallments] = useState(1);
+  const [interestRate, setInterestRate] = useState(0);
 
   const [error, setError] = useState('');
   const [isLoadingCep, setIsLoadingCep] = useState(false);
@@ -178,7 +179,8 @@ const UserDataForm: React.FC<{ onSubmit: (data: UserData, includeDrawings: boole
           address: fullAddress,
           // Salva campos estruturados
           zip, street, number, neighborhood, city, state,
-          installments
+          installments,
+          interestRate
       }, includeDrawings);
     } else {
         setError('Por favor, preencha o Nome do Cliente.');
@@ -315,20 +317,37 @@ const UserDataForm: React.FC<{ onSubmit: (data: UserData, includeDrawings: boole
             </div>
          </div>
          
-         {/* PARCELAMENTO */}
+         {/* PARCELAMENTO E JUROS */}
          <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg border border-gray-200 dark:border-gray-700 mt-4">
-             <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-2">Opção de Parcelamento no Orçamento</label>
-             <select 
-                 value={installments}
-                 onChange={(e) => setInstallments(Number(e.target.value))}
-                 className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight font-medium appearance-none"
-             >
-                 <option value={1}>À vista (Valor Total)</option>
-                 {[2,3,4,5,6,7,8,9,10,11,12].map(num => (
-                     <option key={num} value={num}>{num}x sem juros</option>
-                 ))}
-             </select>
-             <p className="text-xs text-gray-500 mt-1">Selecione para exibir o valor parcelado no PDF do orçamento.</p>
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                 <div>
+                     <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-2">Opção de Parcelamento no Orçamento</label>
+                     <select 
+                         value={installments}
+                         onChange={(e) => setInstallments(Number(e.target.value))}
+                         className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight font-medium appearance-none"
+                     >
+                         <option value={1}>À vista (Valor Total)</option>
+                         {[2,3,4,5,6,7,8,9,10,11,12].map(num => (
+                             <option key={num} value={num}>{num}x parcelado</option>
+                         ))}
+                     </select>
+                 </div>
+                 
+                 <div>
+                     <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-2">Taxa de Juros (%)</label>
+                     <input 
+                         type="number" 
+                         min="0"
+                         step="0.01"
+                         value={interestRate} 
+                         onChange={(e) => setInterestRate(Number(e.target.value))} 
+                         placeholder="Ex: 10"
+                         className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight font-medium"
+                     />
+                 </div>
+             </div>
+             <p className="text-xs text-gray-500 mt-2">Selecione para exibir o valor com juros e parcelado no PDF do orçamento. Se não houver juros, deixe 0.</p>
          </div>
          
          <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg border border-blue-200 dark:border-blue-800 mt-4">

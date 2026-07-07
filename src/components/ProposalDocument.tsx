@@ -280,13 +280,20 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
 
         // TOTAL
         currentY += 2;
-        const totalGeral = opt.totalPrice + freightCost + tollCost + installationCost + extrasCost;
+        let totalGeral = opt.totalPrice + freightCost + tollCost + installationCost + extrasCost;
+        
+        // Aplica Juros se houver
+        if (userData.interestRate && userData.interestRate > 0) {
+            totalGeral = totalGeral * (1 + (userData.interestRate / 100));
+        }
+        
         doc.setFont('helvetica', 'bold');
         
         if (userData.installments && userData.installments > 1) {
             doc.text(`Total (Parcelado):`, pageMargin, currentY);
             const valParcela = formatCurrencyBRL(totalGeral / userData.installments);
-            doc.text(`${userData.installments}x sem juros de ${valParcela}`, pageWidth - pageMargin, currentY, { align: 'right' });
+            const jurosText = userData.interestRate && userData.interestRate > 0 ? "com juros" : "sem juros";
+            doc.text(`${userData.installments}x ${jurosText} de ${valParcela}`, pageWidth - pageMargin, currentY, { align: 'right' });
         } else {
             doc.text(`Total:`, pageMargin, currentY);
             doc.text(formatCurrencyBRL(totalGeral), pageWidth - pageMargin, currentY, { align: 'right' });
