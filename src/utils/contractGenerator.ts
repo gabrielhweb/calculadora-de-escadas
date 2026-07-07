@@ -156,7 +156,7 @@ export const generateContractPDF = (data: ContractData) => {
   const objText = `Escada articulada lateral em aço carbono com corte à laser, Fixação na Parede DIREITA, com medidas de: ${alturaM}m de altura, ${compM}m de comprimento, ${widthM}m de largura e com corrimão de 80cm.`;
   addText(objText, 11, false, 'left');
   let treadMaterialStr = 'MADEIRA (GARAPEIRA OU MUIRACATIARA)';
-  const mat = data.selectedOption.treadMaterial;
+  const mat = data.inputData.treadMaterial;
   if (mat === 'metal') treadMaterialStr = 'METAL';
   else if (mat === 'chapa_xadrez') treadMaterialStr = 'CHAPA XADREZ';
   else if (mat === 'chapa_vazada') treadMaterialStr = 'CHAPA VAZADA';
