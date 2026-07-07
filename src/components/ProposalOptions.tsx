@@ -92,7 +92,7 @@ const UserDataForm: React.FC<{ onSubmit: (data: UserData, includeDrawings: boole
   
   // Parcelamento e Juros
   const [installments, setInstallments] = useState(1);
-  const [interestRate, setInterestRate] = useState(0);
+  const [interestValue, setInterestValue] = useState(0);
 
   const [error, setError] = useState('');
   const [isLoadingCep, setIsLoadingCep] = useState(false);
@@ -180,7 +180,7 @@ const UserDataForm: React.FC<{ onSubmit: (data: UserData, includeDrawings: boole
           // Salva campos estruturados
           zip, street, number, neighborhood, city, state,
           installments,
-          interestRate
+          interestValue
       }, includeDrawings);
     } else {
         setError('Por favor, preencha o Nome do Cliente.');
@@ -335,14 +335,14 @@ const UserDataForm: React.FC<{ onSubmit: (data: UserData, includeDrawings: boole
                  </div>
                  
                  <div>
-                     <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-2">Taxa de Juros (%)</label>
+                     <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-2">Acréscimo de Juros (R$)</label>
                      <input 
                          type="number" 
                          min="0"
                          step="0.01"
-                         value={interestRate} 
-                         onChange={(e) => setInterestRate(Number(e.target.value))} 
-                         placeholder="Ex: 10"
+                         value={interestValue} 
+                         onChange={(e) => setInterestValue(Number(e.target.value))} 
+                         placeholder="Ex: 570.00"
                          className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-3 rounded-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight font-medium"
                      />
                  </div>

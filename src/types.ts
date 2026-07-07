@@ -102,7 +102,7 @@ export interface UserData {
   
   // Parcelamento
   installments?: number;
-  interestRate?: number; // Juros em %
+  interestValue?: number; // Juros em R$ fixo
   
   // Array de strings Base64 das imagens capturadas (Desenhos 2D/3D)
   drawingImages?: { title: string; imgData: string; width?: number; height?: number }[];
