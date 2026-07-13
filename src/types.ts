@@ -103,6 +103,7 @@ export interface UserData {
   // Parcelamento
   installments?: number;
   interestValue?: number; // Juros em R$ fixo
+  hideInterestLabel?: boolean; // Ocultar palavra "com juros" nos PDFs
   
   // Array de strings Base64 das imagens capturadas (Desenhos 2D/3D)
   drawingImages?: { title: string; imgData: string; width?: number; height?: number }[];

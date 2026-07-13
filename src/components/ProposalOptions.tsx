@@ -94,6 +94,7 @@ const UserDataForm: React.FC<{ onSubmit: (data: UserData, includeDrawings: boole
   const [installments, setInstallments] = useState(1);
   const [interestValue, setInterestValue] = useState<number | ''>('');
   const [interestPercent, setInterestPercent] = useState<number | ''>('');
+  const [hideInterestLabel, setHideInterestLabel] = useState(false);
 
   const handleInterestPercentChange = (val: string) => {
       const p = parseFloat(val);
@@ -207,7 +208,8 @@ const UserDataForm: React.FC<{ onSubmit: (data: UserData, includeDrawings: boole
           // Salva campos estruturados
           zip, street, number, neighborhood, city, state,
           installments,
-          interestValue: typeof interestValue === 'number' ? interestValue : undefined
+          interestValue: typeof interestValue === 'number' ? interestValue : undefined,
+          hideInterestLabel
       }, includeDrawings);
     } else {
         setError('Por favor, preencha o Nome do Cliente.');
@@ -387,6 +389,20 @@ const UserDataForm: React.FC<{ onSubmit: (data: UserData, includeDrawings: boole
                      />
                  </div>
              </div>
+             
+             <div className="mt-4 flex items-center">
+                 <input 
+                     type="checkbox" 
+                     id="hideInterestLabel" 
+                     checked={hideInterestLabel} 
+                     onChange={(e) => setHideInterestLabel(e.target.checked)} 
+                     className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                 />
+                 <label htmlFor="hideInterestLabel" className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+                     Ocultar a palavra "com juros" no PDF
+                 </label>
+             </div>
+             
              <p className="text-xs text-gray-500 mt-2">Você pode preencher a % ou o valor em R$. Se não houver juros, deixe em branco.</p>
          </div>
          

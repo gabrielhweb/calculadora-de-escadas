@@ -292,7 +292,7 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
         if (userData.installments && userData.installments > 1) {
             doc.text(`Total (Parcelado):`, pageMargin, currentY);
             const valParcela = formatCurrencyBRL(totalGeral / userData.installments);
-            const jurosText = userData.interestValue && userData.interestValue > 0 ? "com juros" : "sem juros";
+            const jurosText = (userData.interestValue && userData.interestValue > 0 && !userData.hideInterestLabel) ? "com juros" : "sem juros";
             doc.text(`${userData.installments}x ${jurosText} de ${valParcela}`, pageWidth - pageMargin, currentY, { align: 'right' });
         } else {
             doc.text(`Total:`, pageMargin, currentY);

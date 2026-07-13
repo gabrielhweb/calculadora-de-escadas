@@ -241,6 +241,7 @@ const Contract = () => {
     // --- LÓGICA DE JUROS/TAXAS NO CARTÃO ---
     const [enableInterest, setEnableInterest] = useState(false);
     const [interestValue, setInterestValue] = useState(''); // Valor monetário (R$)
+    const [hideInterestLabel, setHideInterestLabel] = useState(false); // Ocultar aviso de juros no PDF
 
     // --- IA JURÍDICA & REFINAMENTO ---
     const [customClauses, setCustomClauses] = useState<string[]>([]);
@@ -398,6 +399,7 @@ const Contract = () => {
                     if (userData.neighborhood) setNeighborhood(String(userData.neighborhood));
                     if (userData.city) setCity(String(userData.city));
                     if (userData.state) setState(String(userData.state));
+                    if (userData.hideInterestLabel !== undefined) setHideInterestLabel(Boolean(userData.hideInterestLabel));
                     
                     if (!userData.street && userData.address) {
                         setStreet(String(userData.address));
@@ -1834,7 +1836,13 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                     </div>
 
                                     {enableInterest && (
-                                        <input type="number" placeholder="Valor total dos juros (R$)" value={interestValue} onChange={e => setInterestValue(e.target.value)} className="w-full p-2 border border-orange-300 rounded mb-2 text-sm bg-white dark:bg-gray-600 text-black dark:text-white"/>
+                                        <>
+                                            <input type="number" placeholder="Valor total dos juros (R$)" value={interestValue} onChange={e => setInterestValue(e.target.value)} className="w-full p-2 border border-orange-300 rounded mb-2 text-sm bg-white dark:bg-gray-600 text-black dark:text-white"/>
+                                            <label className="flex items-center gap-2 cursor-pointer mb-2">
+                                                <input type="checkbox" checked={hideInterestLabel} onChange={e => setHideInterestLabel(e.target.checked)} className="w-4 h-4 rounded text-highlight"/>
+                                                <span className="text-xs font-bold text-gray-500 dark:text-gray-400">Ocultar palavra "com juros" no PDF</span>
+                                            </label>
+                                        </>
                                     )}
                                     <div className="flex gap-2 items-center mt-2">
                                         <div className="flex-1">
@@ -1861,7 +1869,13 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                         </label>
                                     </div>
                                     {enableInterest && (
-                                        <input type="number" placeholder="Valor total dos juros (R$)" value={interestValue} onChange={e => setInterestValue(e.target.value)} className="w-full p-2 border border-orange-300 rounded mb-2 text-sm bg-white dark:bg-gray-600 text-black dark:text-white"/>
+                                        <>
+                                            <input type="number" placeholder="Valor total dos juros (R$)" value={interestValue} onChange={e => setInterestValue(e.target.value)} className="w-full p-2 border border-orange-300 rounded mb-2 text-sm bg-white dark:bg-gray-600 text-black dark:text-white"/>
+                                            <label className="flex items-center gap-2 cursor-pointer mb-2">
+                                                <input type="checkbox" checked={hideInterestLabel} onChange={e => setHideInterestLabel(e.target.checked)} className="w-4 h-4 rounded text-highlight"/>
+                                                <span className="text-xs font-bold text-gray-500 dark:text-gray-400">Ocultar palavra "com juros" no PDF</span>
+                                            </label>
+                                        </>
                                     )}
                                     <div className="flex gap-2 items-center">
                                         <div className="flex-1">

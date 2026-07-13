@@ -395,27 +395,30 @@ export const generateContractPDF = (data: ContractData) => {
           }
 
           if (isPixOnDelivery) {
-              // Cartão é o sinal
-              if (totalNoCartao > restanteBase + 1) {
+              const printInterestText = totalNoCartao > restanteBase + 1 && !data.userData?.hideInterestLabel;
+              const finalAmount = (totalNoCartao > restanteBase + 1) ? totalNoCartao : restanteBase;
+              
+              if (printInterestText) {
                   addText(`Sendo pago ${formatCurrencyBRL(restanteBase)} mais juros totalizando ${formatCurrencyBRL(totalNoCartao)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}.`, 11, false, 'justify');
               } else {
-                  addText(`Sendo pago ${formatCurrencyBRL(restanteBase)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}.`, 11, false, 'justify');
+                  addText(`Sendo pago ${formatCurrencyBRL(finalAmount)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}.`, 11, false, 'justify');
               }
               addText(`E o restante de ${formatCurrencyBRL(valorPixFinal)} ${timingText}.`, 11, false, 'left');
           } else {
-              // PIX é o sinal
               addText(`Sendo pago ${formatCurrencyBRL(valorPixFinal)} ${timingText}.`, 11, false, 'left');
-              if (totalNoCartao > restanteBase + 1) {
+              const printInterestText = totalNoCartao > restanteBase + 1 && !data.userData?.hideInterestLabel;
+              const finalAmount = (totalNoCartao > restanteBase + 1) ? totalNoCartao : restanteBase;
+              
+              if (printInterestText) {
                   addText(`E o restante de ${formatCurrencyBRL(restanteBase)} mais juros totalizando ${formatCurrencyBRL(totalNoCartao)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}`, 11, false, 'justify');
               } else {
-                  addText(`E o restante de ${formatCurrencyBRL(restanteBase)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}`, 11, false, 'justify');
+                  addText(`E o restante de ${formatCurrencyBRL(finalAmount)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}`, 11, false, 'justify');
               }
           }
           currentY += 2;
           addText(`Chave PIX (CNPJ): 28.869.537/0001-01`, 11, true, 'left');
 
       } else {
-          // CARTÃO PURO
           const installments = data.paymentDetails.installments || 1;
           const installmentValue = data.paymentDetails.installmentValue || 0;
           const totalCartao = installmentValue * installments;
@@ -426,10 +429,13 @@ export const generateContractPDF = (data: ContractData) => {
               addText(`Total R$ ${formatCurrencyBRL(totalGeral)}`, 11, false, 'left');
           }
 
-          if (totalCartao > totalComDesconto + 1) {
+          const printInterestText = totalCartao > totalComDesconto + 1 && !data.userData?.hideInterestLabel;
+          const finalAmount = (totalCartao > totalComDesconto + 1) ? totalCartao : totalComDesconto;
+          
+          if (printInterestText) {
               addText(`Sendo pago o total de ${formatCurrencyBRL(totalComDesconto)} mais juros totalizando ${formatCurrencyBRL(totalCartao)} via Link de Pagamento (Cartão de Crédito) em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}`, 11, false, 'justify');
           } else {
-              addText(`Sendo pago o total de ${formatCurrencyBRL(totalComDesconto)} via Link de Pagamento (Cartão de Crédito) em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}`, 11, false, 'justify');
+              addText(`Sendo pago o total de ${formatCurrencyBRL(finalAmount)} via Link de Pagamento (Cartão de Crédito) em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}`, 11, false, 'justify');
           }
       }
 
