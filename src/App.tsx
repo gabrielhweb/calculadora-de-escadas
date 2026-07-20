@@ -7,6 +7,7 @@ import SavedQuotes from './pages/SavedQuotes';
 import { ContractsList } from './pages/ContractsList';
 import ProductionQueuePage from './pages/ProductionQueuePage';
 import VisitReceipt from './pages/VisitReceipt';
+import InstallationReceipt from './pages/InstallationReceipt';
 import CustomPaymentReceipt from './pages/CustomPaymentReceipt';
 import Carriers from './pages/Carriers';
 import { AuthProvider } from './components/AuthProvider';
@@ -37,8 +38,9 @@ function App() {
             <Route path="contrato" element={<Contract />} />
             <Route path="salvos" element={<SavedQuotes />} />
             <Route path="contratos" element={<ContractsList />} />
-            <Route path="recibo-pagamento" element={<CustomPaymentReceipt />} />
             <Route path="fila" element={<ProductionQueuePage />} />
+            <Route path="recibo-pagamento" element={<CustomPaymentReceipt />} />
+            <Route path="recibo-instalacao" element={<InstallationReceipt />} />
             <Route path="recibo-visita" element={<VisitReceipt />} />
             <Route path="transportadoras" element={<Carriers />} />
           </Route>

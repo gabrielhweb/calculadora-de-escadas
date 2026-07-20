@@ -119,6 +119,12 @@ const Layout: React.FC = () => {
                   Recibo Visita
                 </Link>
                 <Link 
+                  to="/recibo-instalacao" 
+                  className={`${isActive('/recibo-instalacao') ? 'text-highlight font-bold border-b-4 border-highlight' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'} px-2 pt-1 text-sm uppercase tracking-wide transition-all duration-200 h-full flex items-center font-bold`}
+                >
+                  Recibo Instalação
+                </Link>
+                <Link 
                   to="/salvos" 
                   className={`${isActive('/salvos') ? 'text-highlight font-bold border-b-4 border-highlight' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'} px-2 pt-1 text-sm uppercase tracking-wide transition-all duration-200 h-full flex items-center font-bold`}
                 >
