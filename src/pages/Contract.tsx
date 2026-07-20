@@ -152,6 +152,18 @@ const Contract = () => {
     const [treadMaterial, setTreadMaterial] = useState<'metal' | 'wood' | 'chapa_xadrez' | 'chapa_vazada' | undefined>(undefined);
     const [woodType, setWoodType] = useState<'garapeira' | 'muiracatiara' | 'ambas' | undefined>(undefined);
     const [cutStepType, setCutStepType] = useState<'left' | 'right' | 'hollow_left' | 'hollow_right'>('left');
+    const [userManuallyChangedCut, setUserManuallyChangedCut] = useState(false);
+
+    // Sincroniza automaticamente os furos (cutStepType) com a Parede escolhida, caso não tenha sido alterado manualmente
+    useEffect(() => {
+        if (userManuallyChangedCut) return;
+        const isHollow = treadMaterial === 'chapa_vazada';
+        if (wallFixation === 'right') {
+            setCutStepType(isHollow ? 'hollow_right' : 'right');
+        } else {
+            setCutStepType(isHollow ? 'hollow_left' : 'left');
+        }
+    }, [wallFixation, treadMaterial, userManuallyChangedCut]);
 
     const handleAddLanding = () => {
         const newLanding: LandingInfo = {
@@ -324,6 +336,11 @@ const Contract = () => {
                     setTreadMaterial(String(inputData.treadMaterial || 'wood') as any);
                     if (inputData.woodType) setWoodType(inputData.woodType as any);
                     
+                    if (inputData.cutStepType) {
+                        setCutStepType(inputData.cutStepType as any);
+                        setUserManuallyChangedCut(true);
+                    }
+                    
                     if (selectedOption.landings && Array.isArray(selectedOption.landings) && selectedOption.landings.length > 0) {
                         setLandings(selectedOption.landings.filter(Boolean));
                     } else {
@@ -427,6 +444,11 @@ const Contract = () => {
                     setHandrailSide(String(inputData.handrailSide || 'both') as 'left'|'right'|'both');
                     setTreadMaterial(String(inputData.treadMaterial || 'wood') as any);
                     if (inputData.woodType) setWoodType(inputData.woodType as any);
+                    
+                    if (inputData.cutStepType) {
+                        setCutStepType(inputData.cutStepType as any);
+                        setUserManuallyChangedCut(true);
+                    }
                     
                     if (selectedOption.landings && Array.isArray(selectedOption.landings) && selectedOption.landings.length > 0) {
                         const validLandings = selectedOption.landings.filter(Boolean);
@@ -732,6 +754,7 @@ const Contract = () => {
                 woodType: treadMaterial === 'wood' ? woodType : undefined,
                 stairDirection: stairDirection,
                 wallFixation: wallFixation,
+                cutStepType,
                 hasWheels: hasWheels,
                 handrailSide: handrailSide,
                 logistics: {
@@ -889,6 +912,7 @@ const Contract = () => {
                 woodType: treadMaterial === 'wood' ? woodType : undefined,
                 stairDirection: stairDirection,
                 wallFixation: wallFixation,
+                cutStepType,
                 hasWheels: hasWheels,
                 handrailSide: handrailSide,
                 logistics: {
@@ -1046,6 +1070,7 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                 woodType: treadMaterial === 'wood' ? woodType : undefined,
                 stairDirection: stairDirection,
                 wallFixation: wallFixation,
+                cutStepType,
                 hasWheels: hasWheels,
                 handrailSide: handrailSide,
                 logistics: {
@@ -1918,19 +1943,19 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                             </h3>
                             <div className="flex gap-4 mb-4">
                                 <label className="flex items-center gap-2 cursor-pointer">
-                                    <input type="radio" name="cutStepType" value="left" checked={cutStepType === 'left'} onChange={() => setCutStepType('left')} className="w-4 h-4 accent-highlight" />
+                                    <input type="radio" name="cutStepType" value="left" checked={cutStepType === 'left'} onChange={() => { setCutStepType('left'); setUserManuallyChangedCut(true); }} className="w-4 h-4 accent-highlight" />
                                     <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Chapa Lisa (Furo Esquerdo)</span>
                                 </label>
                                 <label className="flex items-center gap-2 cursor-pointer">
-                                    <input type="radio" name="cutStepType" value="right" checked={cutStepType === 'right'} onChange={() => setCutStepType('right')} className="w-4 h-4 accent-highlight" />
+                                    <input type="radio" name="cutStepType" value="right" checked={cutStepType === 'right'} onChange={() => { setCutStepType('right'); setUserManuallyChangedCut(true); }} className="w-4 h-4 accent-highlight" />
                                     <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Chapa Lisa (Furo Direito)</span>
                                 </label>
                                 <label className="flex items-center gap-2 cursor-pointer">
-                                    <input type="radio" name="cutStepType" value="hollow_left" checked={cutStepType === 'hollow_left'} onChange={() => setCutStepType('hollow_left')} className="w-4 h-4 accent-highlight" />
+                                    <input type="radio" name="cutStepType" value="hollow_left" checked={cutStepType === 'hollow_left'} onChange={() => { setCutStepType('hollow_left'); setUserManuallyChangedCut(true); }} className="w-4 h-4 accent-highlight" />
                                     <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Chapa Vazada (Furo Esquerdo)</span>
                                 </label>
                                 <label className="flex items-center gap-2 cursor-pointer">
-                                    <input type="radio" name="cutStepType" value="hollow_right" checked={cutStepType === 'hollow_right'} onChange={() => setCutStepType('hollow_right')} className="w-4 h-4 accent-highlight" />
+                                    <input type="radio" name="cutStepType" value="hollow_right" checked={cutStepType === 'hollow_right'} onChange={() => { setCutStepType('hollow_right'); setUserManuallyChangedCut(true); }} className="w-4 h-4 accent-highlight" />
                                     <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Chapa Vazada (Furo Direito)</span>
                                 </label>
                             </div>
