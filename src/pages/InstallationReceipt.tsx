@@ -194,9 +194,9 @@ export default function InstallationReceipt() {
 
     doc.setFont('helvetica', 'normal');
     const isQuitado = paymentStatus === 'quitado';
-    doc.text(`${isQuitado ? '( X )' : '(   )'} Saldo final quitado nesta data.`, margin + 5, yPos);
+    doc.text(`(   ) Saldo final quitado nesta data.`, margin + 5, yPos);
     yPos += 6;
-    doc.text(`${!isQuitado ? '( X )' : '(   )'} Saldo final pendente de pagamento.`, margin + 5, yPos);
+    doc.text(`(   ) Saldo final pendente de pagamento.`, margin + 5, yPos);
     yPos += 12;
 
     // Observations
