@@ -91,6 +91,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
   
   const [dampers, setDampers] = useState<string>('4');
   const [hasWheels, setHasWheels] = useState(false);
+  const [isFixedStair, setIsFixedStair] = useState(false);
   const [handrailSide, setHandrailSide] = useState<'left' | 'right' | 'both'>('both'); 
   
   const [slabThickness, setSlabThickness] = useState<string>('15');
@@ -122,12 +123,12 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
   const [doorDistance, setDoorDistance] = useState('100'); // Distância do início da escada
   const [doorPosition, setDoorPosition] = useState<'ground' | 'upper'>('upper'); // Padrão: Laje
 
-  // Efeito para garantir que amortecedores sejam 0 se tiver rodinhas
+  // Efeito para garantir que amortecedores sejam 0 se tiver rodinhas ou for escada fixa
   useEffect(() => {
-      if (hasWheels) {
+      if (hasWheels || isFixedStair) {
           setDampers('0');
       }
-  }, [hasWheels]);
+  }, [hasWheels, isFixedStair]);
 
   // Handlers para Itens Extras e Patamares
   const handleAddItem = () => {
@@ -228,9 +229,10 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
       treadDepth: depthInCm,
       treadMaterial: treadMaterial,
       woodType: treadMaterial === 'wood' ? woodType : undefined,
-      dampers: finalDampers,
+      dampers: Number(dampers) || 0,
       hasWheels: hasWheels,
-      handrailSide: hasWheels ? handrailSide : undefined, 
+      isFixedStair: isFixedStair,
+      handrailSide: hasWheels ? handrailSide : undefined,
       customStepPrice: customStepPrice ? parseFloat(customStepPrice) : undefined,
       customTotalLength: lengthInCm || undefined,
       customTotalLengthOption: customTotalLengthOption,
@@ -617,20 +619,32 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-             {/* Opção Com Rodinhas */}
+             {/* Modelo de Escada */}
              <div className="flex flex-col gap-2">
-                 <label className="flex items-center gap-2 cursor-pointer bg-gray-50 dark:bg-gray-700 p-2 rounded border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition h-14">
-                     <input 
-                        type="checkbox" 
-                        checked={hasWheels} 
-                        onChange={handleToggleWheels}
-                        className="w-5 h-5 accent-highlight"
-                     />
-                     <div className="flex flex-col">
-                        <span className="font-bold text-gray-900 dark:text-white flex items-center gap-1">Com Rodinhas? <TooltipIcon text="Sistema de rodízios na base. Ao ativar, os amortecedores são zerados automaticamente." /></span>
-                        <span className="text-[10px] text-gray-500 dark:text-gray-400">Zera amortecedores</span>
-                     </div>
+                 <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
+                    Modelo de Escada <TooltipIcon text="Escolha entre Articulada (Lateral), Avanço Frontal (Rodinhas) ou Escada Fixa." />
                  </label>
+                 <select
+                    value={isFixedStair ? 'fixed' : (hasWheels ? 'wheels' : 'dampers')}
+                    onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === 'fixed') {
+                            setIsFixedStair(true);
+                            setHasWheels(false);
+                        } else if (val === 'wheels') {
+                            setIsFixedStair(false);
+                            setHasWheels(true);
+                        } else {
+                            setIsFixedStair(false);
+                            setHasWheels(false);
+                        }
+                    }}
+                    className="w-full text-sm font-bold p-3 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 h-14"
+                 >
+                     <option value="dampers">Articulada Lateral / Amortecedor</option>
+                     <option value="wheels">Avanço Frontal / Rodinha</option>
+                     <option value="fixed">Escada Fixa</option>
+                 </select>
 
                  {/* Sub-opção: Lado do Corrimão (Só aparece se hasWheels) */}
                  {hasWheels && (
@@ -654,9 +668,9 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                 value={dampers} 
                 onChange={e => setDampers(e.target.value)} 
                 unit="un"
-                helperText={hasWheels ? "Desativado (Rodinhas)" : "Aceita 0"}
-                tooltip="Borrachas instaladas entre a estrutura da escada e a parede. Se 'Com Rodinhas' estiver ativo, deve ser 0."
-                disabled={hasWheels}
+                helperText={(hasWheels || isFixedStair) ? "Desativado" : "Aceita 0"}
+                tooltip="Borrachas instaladas entre a estrutura da escada e a parede."
+                disabled={hasWheels || isFixedStair}
             />
             <InputField 
                 label="Preço/Degrau" 

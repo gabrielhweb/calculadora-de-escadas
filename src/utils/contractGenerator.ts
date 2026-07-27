@@ -153,15 +153,23 @@ export const generateContractPDF = (data: ContractData) => {
   // A pedido do usuário, alguns textos como 'Fixação na Parede DIREITA', '80cm' de corrimão, 'MADEIRA (GARAPEIRA OU MUIRACATIARA)' 
   // e '4 amortecedores' estão estáticos por enquanto para seguir um novo padrão de produto.
   
-  const objText = `Escada articulada lateral em aço carbono com corte à laser, Fixação na Parede DIREITA, com medidas de: ${alturaM}m de altura, ${compM}m de comprimento, ${widthM}m de largura e com corrimão de 80cm.`;
-  addText(objText, 11, false, 'left');
   let treadMaterialStr = 'MADEIRA (GARAPEIRA OU MUIRACATIARA)';
   const mat = data.inputData.treadMaterial;
   if (mat === 'metal') treadMaterialStr = 'METAL';
   else if (mat === 'chapa_xadrez') treadMaterialStr = 'CHAPA XADREZ';
   else if (mat === 'chapa_vazada') treadMaterialStr = 'CHAPA VAZADA';
 
-  const stepsText = `-Com ${data.selectedOption.structureSteps} degraus articulados com dimensões de ${stepH}cm de altura e pisante de ${treadMaterialStr} de ${tread}cm com 4 amortecedores de alívio.`;
+  let objText = '';
+  let stepsText = '';
+  if (data.inputData.isFixedStair) {
+      objText = `Escada fixa em aço carbono, sem fixação na parede, com degraus fixos, com medidas de: ${alturaM}m de altura, ${compM}m de comprimento, ${widthM}m de largura e com corrimão de 80cm.`;
+      stepsText = `- Com ${data.selectedOption.structureSteps} degraus com dimensões de ${stepH}cm de altura e pisante de ${treadMaterialStr} de ${tread}cm.`;
+  } else {
+      objText = `Escada articulada lateral em aço carbono com corte à laser, Fixação na Parede DIREITA, com medidas de: ${alturaM}m de altura, ${compM}m de comprimento, ${widthM}m de largura e com corrimão de 80cm.`;
+      stepsText = `-Com ${data.selectedOption.structureSteps} degraus articulados com dimensões de ${stepH}cm de altura e pisante de ${treadMaterialStr} de ${tread}cm com 4 amortecedores de alívio.`;
+  }
+  
+  addText(objText, 11, false, 'left');
   addText(stepsText, 11, false, 'left');
 
   // Adiciona a nota de exclusão se houver porta configurada nos desenhos

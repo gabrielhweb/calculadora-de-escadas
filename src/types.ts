@@ -49,6 +49,7 @@ export interface CalculatorInput {
   woodType?: 'garapeira' | 'muiracatiara' | 'ambas'; // Tipo de madeira selecionada
   dampers: number; // Quantidade de amortecedores
   hasWheels?: boolean; // Opção com Rodinhas
+  isFixedStair?: boolean; // Opção de Escada Fixa
   handrailSide?: 'left' | 'right' | 'both'; // Lado do corrimão (apenas se hasWheels=true)
   customStepPrice?: number; // Optional manual price per step
   customTotalLength?: number; // Optional manual total length
