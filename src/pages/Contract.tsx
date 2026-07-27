@@ -148,6 +148,7 @@ const Contract = () => {
     const [stairDirection, setStairDirection] = useState<'standard' | 'mirrored'>('standard');
     const [wallFixation, setWallFixation] = useState<'left' | 'right' | 'frontal'>('left');
     const [hasWheels, setHasWheels] = useState<boolean>(false);
+    const [isFixedStair, setIsFixedStair] = useState<boolean>(false);
     const [handrailSide, setHandrailSide] = useState<'left' | 'right' | 'both'>('both');
     const [treadMaterial, setTreadMaterial] = useState<'metal' | 'wood' | 'chapa_xadrez' | 'chapa_vazada' | undefined>(undefined);
     const [woodType, setWoodType] = useState<'garapeira' | 'muiracatiara' | 'ambas' | undefined>(undefined);
@@ -214,12 +215,12 @@ const Contract = () => {
         }));
     };
     
-    // Efeito para zerar amortecedores caso rodinhas sejam selecionadas
+    // Efeito para zerar amortecedores caso rodinhas sejam selecionadas ou seja fixa
     useEffect(() => {
-        if (hasWheels) {
+        if (hasWheels || isFixedStair) {
             setDampers('0');
         }
-    }, [hasWheels]);
+    }, [hasWheels, isFixedStair]);
     
     // Inputs para adicionar novo item
     const [newItemName, setNewItemName] = useState('');
@@ -332,6 +333,7 @@ const Contract = () => {
                     setStairDirection(String(inputData.stairDirection || 'standard') as any);
                     setWallFixation(String(inputData.wallFixation || 'left') as any);
                     setHasWheels(Boolean(inputData.hasWheels));
+                    setIsFixedStair(Boolean(inputData.isFixedStair));
                     setHandrailSide(String(inputData.handrailSide || 'both') as 'left'|'right'|'both');
                     setTreadMaterial(String(inputData.treadMaterial || 'wood') as any);
                     if (inputData.woodType) setWoodType(inputData.woodType as any);
@@ -441,6 +443,7 @@ const Contract = () => {
                     setStairDirection(String(inputData.stairDirection || 'standard') as any);
                     setWallFixation(String(inputData.wallFixation || 'left') as any);
                     setHasWheels(Boolean(inputData.hasWheels));
+                    setIsFixedStair(Boolean(inputData.isFixedStair));
                     setHandrailSide(String(inputData.handrailSide || 'both') as 'left'|'right'|'both');
                     setTreadMaterial(String(inputData.treadMaterial || 'wood') as any);
                     if (inputData.woodType) setWoodType(inputData.woodType as any);
@@ -756,6 +759,7 @@ const Contract = () => {
                 wallFixation: wallFixation,
                 cutStepType,
                 hasWheels: hasWheels,
+                isFixedStair: isFixedStair,
                 handrailSide: handrailSide,
                 logistics: {
                     ...(originalInputData?.logistics || {}),
@@ -914,6 +918,7 @@ const Contract = () => {
                 wallFixation: wallFixation,
                 cutStepType,
                 hasWheels: hasWheels,
+                isFixedStair: isFixedStair,
                 handrailSide: handrailSide,
                 logistics: {
                     ...(originalInputData?.logistics || {}),
@@ -1072,6 +1077,7 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                 wallFixation: wallFixation,
                 cutStepType,
                 hasWheels: hasWheels,
+                isFixedStair: isFixedStair,
                 handrailSide: handrailSide,
                 logistics: {
                     ...(originalInputData?.logistics || {}),
@@ -1590,11 +1596,11 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                             </div>
                             <div>
                                 <ContractInput 
-                                    label="Qtd. Amortecedores" 
+                                    label="Amortecedores" 
                                     value={dampers} 
                                     onChange={(e: any) => setDampers(e.target.value)} 
                                     type="number"
-                                    disabled={hasWheels}
+                                    disabled={hasWheels || isFixedStair}
                                 />
                             </div>
                             
@@ -1602,7 +1608,7 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                             <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 items-end mt-2">
                                 <div className="flex flex-col gap-2">
                                     <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
-                                        Modelo de Escada <TooltipIcon text="Escolha entre Articulada (Lateral), Avanço Frontal (Rodinhas) ou Escada Fixa." />
+                                        Modelo de Escada
                                     </label>
                                     <select
                                         value={isFixedStair ? 'fixed' : (hasWheels ? 'wheels' : 'dampers')}
