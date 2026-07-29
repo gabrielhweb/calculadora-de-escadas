@@ -266,6 +266,7 @@ export const generateContractPDF = (data: ContractData) => {
   addText('3.5 É responsabilidade do(a) comprador(a) garantir que a parede e/ou estrutura onde será realizada a instalação esteja com prumo e esquadro adequados para a correta fixação e funcionamento da escada.', 11, false, 'justify');
   addText('3.6 O(a) comprador(a) deverá informar previamente a existência de canos, eletrodutos, fiações ou qualquer item embutido no local onde serão realizadas as perfurações e fixações.', 11, false, 'justify');
   addText('3.7 Caso sejam necessários ajustes técnicos adicionais durante a instalação em razão das condições da parede ou estrutura do local, poderá haver acréscimo referente aos materiais e serviços complementares necessários.', 11, false, 'justify');
+  addText('3.8 Este contrato terá validade de 15 (quinze) dias corridos, contados da data de seu envio ao(à) comprador(a). Caso não haja o pagamento inicial dentro desse período, será necessária a emissão de um novo contrato, podendo haver atualização dos valores, prazos e demais condições.', 11, false, 'justify');
   currentY += 5;
 
   const freightModeStr = String(data.inputData?.logistics?.freightMode || '').toLowerCase().trim();
