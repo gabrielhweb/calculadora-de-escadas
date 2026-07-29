@@ -450,7 +450,7 @@ export const generateContractPDF = (data: ContractData) => {
       addText('.', 11, false, 'left');
       currentY += 5;
 
-      addText('6.2 Caso o pagamento da parcela final não seja realizado em até 2 (dois) dias corridos após a entrega, será aplicada multa de 4% sobre o valor em aberto, além de juros de 1% ao mês até a regularização.', 11, false, 'justify');
+      addText('6.2 O pagamento da parcela final deverá ser realizado no dia da entrega. Caso não seja efetuado nessa data, será aplicada multa de 4% sobre o valor em aberto, além de juros de 1% ao mês, calculados até a efetiva regularização do pagamento.', 11, false, 'justify');
   }
   
   currentY += 10;
