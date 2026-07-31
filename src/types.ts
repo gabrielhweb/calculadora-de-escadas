@@ -124,6 +124,9 @@ export interface SavedContract {
   userId?: string; // ID do usuário do Firebase
   paymentStatus?: 'a_receber' | 'recebido';
   deliveryStatus?: 'em_producao' | 'a_entregar';
+  deliveryDate?: string;
+  deliveryNotes?: string;
+  hingesQty?: string;
 }
 
 export interface ProductionOrder {

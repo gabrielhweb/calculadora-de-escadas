@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import { db, auth } from '../firebase';
+import { collection, query, where, onSnapshot, doc, updateDoc } from 'firebase/firestore';
+import { db } from '../firebase';
 import { useAuth } from '../components/AuthProvider';
 import { SavedContract } from '../types';
+import { startOfWeek, endOfWeek, isBefore, isWithinInterval, parseISO, startOfDay } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { format as formatTZ } from 'date-fns-tz';
 
 export const DeliveriesTable: React.FC = () => {
     const [contracts, setContracts] = useState<SavedContract[]>([]);
@@ -19,11 +22,16 @@ export const DeliveriesTable: React.FC = () => {
         const q = query(collection(db, 'contracts'), where('status', '==', 'producao'));
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const loadedContracts: SavedContract[] = [];
-            snapshot.forEach((doc) => {
-                loadedContracts.push({ id: doc.id, ...doc.data() } as SavedContract);
+            snapshot.forEach((d) => {
+                loadedContracts.push({ id: d.id, ...d.data() } as SavedContract);
             });
-            // Sort by createdAt ascending (oldest first for deliveries)
+            // Ordenar pela data de entrega, depois pela data de criação
             loadedContracts.sort((a, b) => {
+                if (a.deliveryDate && !b.deliveryDate) return -1;
+                if (!a.deliveryDate && b.deliveryDate) return 1;
+                if (a.deliveryDate && b.deliveryDate) {
+                    return a.deliveryDate.localeCompare(b.deliveryDate);
+                }
                 const getTime = (date: any) => {
                     if (!date) return 0;
                     if (typeof date.toDate === 'function') return date.toDate().getTime();
@@ -59,7 +67,7 @@ export const DeliveriesTable: React.FC = () => {
 
     const getFullAddress = (userData: any) => {
         if (!userData) return '';
-        if (userData.address && !userData.street) return userData.address; // Fallback
+        if (userData.address && !userData.street) return userData.address;
         const parts = [
             userData.street,
             userData.number,
@@ -93,7 +101,7 @@ export const DeliveriesTable: React.FC = () => {
         return med;
     };
 
-    const getAttention = (parsedData: any) => {
+    const getDefaultAttention = (parsedData: any) => {
         if (!parsedData || !parsedData.inputData) return '';
         const { inputData, selectedOption } = parsedData;
         let att = [];
@@ -116,7 +124,7 @@ export const DeliveriesTable: React.FC = () => {
         return att.join(' - ');
     };
 
-    const getHinges = (parsedData: any) => {
+    const getDefaultHinges = (parsedData: any) => {
         if (!parsedData || !parsedData.selectedOption) return '';
         const landings = parsedData.selectedOption.landings || [];
         const articulatedCount = landings.filter((l:any) => l.type === 'articulated').length;
@@ -138,6 +146,57 @@ export const DeliveriesTable: React.FC = () => {
         }
     };
 
+    const formatDeliveryDate = (dateString?: string) => {
+        if (!dateString) return 'Selecionar Data';
+        try {
+            const date = parseISO(dateString);
+            const formatted = formatTZ(date, "dd/MM/yyyy (EEEE)", { locale: ptBR, timeZone: 'UTC' });
+            return formatted;
+        } catch (e) {
+            return dateString;
+        }
+    };
+
+    const getDateColorClass = (dateString?: string) => {
+        if (!dateString) return 'bg-gray-100 text-gray-500 hover:bg-gray-200';
+        try {
+            const date = parseISO(dateString);
+            const today = startOfDay(new Date());
+            const weekStart = startOfWeek(today, { weekStartsOn: 0 }); // Domingo
+            const weekEnd = endOfWeek(today, { weekStartsOn: 0 }); // Sábado
+
+            if (isBefore(date, today)) {
+                return 'bg-red-100 text-red-800 border-red-300 font-bold'; // Atrasado
+            } else if (isWithinInterval(date, { start: weekStart, end: weekEnd })) {
+                return 'bg-orange-100 text-orange-800 border-orange-300 font-bold'; // Semana atual
+            } else {
+                return 'bg-green-50 text-green-700 border-green-200'; // Normal / Futuro
+            }
+        } catch (e) {
+            return 'bg-gray-100 text-gray-700';
+        }
+    };
+
+    const handleUpdateContract = async (id: string, field: string, value: string) => {
+        try {
+            const docRef = doc(db, 'contracts', id);
+            await updateDoc(docRef, { [field]: value });
+        } catch (error) {
+            console.error("Erro ao atualizar:", error);
+        }
+    };
+
+    const handleMarkAsDelivered = async (id: string) => {
+        if (window.confirm('Tem certeza que deseja marcar como ENTREGUE? O contrato sairá desta lista.')) {
+            try {
+                const docRef = doc(db, 'contracts', id);
+                await updateDoc(docRef, { status: 'entregue' });
+            } catch (error) {
+                console.error("Erro ao marcar como entregue:", error);
+            }
+        }
+    };
+
     return (
         <div className="max-w-[1400px] mx-auto p-4 sm:p-6 print:p-0">
             <style>
@@ -150,11 +209,12 @@ export const DeliveriesTable: React.FC = () => {
                     .print-table th, .print-table td { border: 1px solid #000 !important; padding: 4px !important; color: #000 !important; }
                     .print-table th { background-color: #f3f4f6 !important; font-weight: bold !important; text-align: left; }
                     
-                    /* Oculta layout principal para imprimir só a tabela */
                     nav, header, footer { display: none !important; }
                     main { padding: 0 !important; margin: 0 !important; }
                     
                     .editable-cell { border: none !important; outline: none !important; min-height: 20px; white-space: pre-wrap; word-break: break-word; }
+                    .date-picker-wrapper input[type="date"] { display: none !important; }
+                    .date-display { background: transparent !important; color: black !important; border: none !important; padding: 0 !important; font-weight: bold; }
                 }
                 .editable-cell {
                     min-height: 40px;
@@ -169,19 +229,30 @@ export const DeliveriesTable: React.FC = () => {
                     outline: none;
                     background-color: rgba(59, 130, 246, 0.05);
                 }
+                .date-picker-wrapper {
+                    position: relative;
+                    display: inline-block;
+                    width: 100%;
+                }
+                .date-picker-wrapper input[type="date"] {
+                    position: absolute;
+                    top: 0; left: 0; width: 100%; height: 100%;
+                    opacity: 0;
+                    cursor: pointer;
+                }
                 `}
             </style>
 
             <div className="flex justify-between items-center mb-6 print-hidden">
                 <div>
                     <h1 className="text-2xl font-black text-gray-900 dark:text-white">Tabela de Entregas</h1>
-                    <p className="text-gray-500 dark:text-gray-400">Edite os campos pontilhados antes de imprimir.</p>
+                    <p className="text-gray-500 dark:text-gray-400">Clique nas observações ou nas datas para alterar. O sistema salvará automaticamente.</p>
                 </div>
                 <button 
                     onClick={handlePrint}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-bold shadow-md flex items-center gap-2 transition-colors"
                 >
-                    🖨️ Imprimir Tabela
+                    🖨️ Imprimir
                 </button>
             </div>
 
@@ -192,13 +263,13 @@ export const DeliveriesTable: React.FC = () => {
                     <table className="w-full text-left print-table">
                         <thead className="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700">
                             <tr>
-                                <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[12%]">CLIENTE</th>
+                                <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[15%]">CLIENTE</th>
                                 <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[20%]">LOCALIZAÇÃO</th>
-                                <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[10%]">DATA ENTREGA</th>
-                                <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[10%]">DATA CONTRATO</th>
+                                <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[12%]">DATA ENTREGA</th>
                                 <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[8%]">QTD DOBRADIÇAS</th>
-                                <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[20%]">ATENÇÃO</th>
+                                <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[18%]">ATENÇÃO</th>
                                 <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[20%]">MEDIDAS</th>
+                                <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[7%] print-hidden">AÇÃO</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -212,47 +283,80 @@ export const DeliveriesTable: React.FC = () => {
                                 contracts.map(contract => {
                                     const data = parseContractData(contract.contractData);
                                     const address = getFullAddress(data?.userData);
-                                    const attention = getAttention(data);
+                                    
+                                    const attention = contract.deliveryNotes !== undefined ? contract.deliveryNotes : getDefaultAttention(data);
+                                    const hinges = contract.hingesQty !== undefined ? contract.hingesQty : getDefaultHinges(data);
                                     const measurements = getMeasurements(data);
-                                    const hinges = getHinges(data);
-                                    const dateContract = formatDate(contract.createdAt);
+                                    
+                                    const dateColor = getDateColorClass(contract.deliveryDate);
                                     
                                     return (
                                         <tr key={contract.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors print:hover:bg-white text-gray-800 dark:text-gray-300">
                                             <td className="p-2 align-top">
-                                                <div className="editable-cell font-bold" contentEditable suppressContentEditableWarning>
+                                                <div className="font-bold px-2 py-1">
                                                     {contract.clientName}
+                                                    <div className="text-xs font-normal text-gray-400">Contrato: {formatDate(contract.createdAt)}</div>
                                                 </div>
                                             </td>
                                             <td className="p-2 align-top text-sm">
-                                                <div className="editable-cell" contentEditable suppressContentEditableWarning>
+                                                <div className="editable-cell">
                                                     {address}
                                                 </div>
                                             </td>
                                             <td className="p-2 align-top text-sm font-semibold">
-                                                <div className="editable-cell" contentEditable suppressContentEditableWarning>
-                                                    {/* Espaço para data de entrega */}
-                                                </div>
-                                            </td>
-                                            <td className="p-2 align-top text-sm">
-                                                <div className="editable-cell" contentEditable suppressContentEditableWarning>
-                                                    {dateContract}
+                                                <div className="date-picker-wrapper">
+                                                    <div className={`date-display px-3 py-2 rounded border border-transparent transition-colors ${dateColor}`}>
+                                                        {formatDeliveryDate(contract.deliveryDate)}
+                                                    </div>
+                                                    <input 
+                                                        type="date" 
+                                                        className="print-hidden"
+                                                        value={contract.deliveryDate || ''}
+                                                        onChange={(e) => handleUpdateContract(contract.id, 'deliveryDate', e.target.value)}
+                                                    />
                                                 </div>
                                             </td>
                                             <td className="p-2 align-top text-sm font-bold text-center">
-                                                <div className="editable-cell" contentEditable suppressContentEditableWarning>
+                                                <div 
+                                                    className="editable-cell" 
+                                                    contentEditable 
+                                                    suppressContentEditableWarning
+                                                    onBlur={(e) => {
+                                                        if (e.target.innerText !== hinges) {
+                                                            handleUpdateContract(contract.id, 'hingesQty', e.target.innerText);
+                                                        }
+                                                    }}
+                                                >
                                                     {hinges}
                                                 </div>
                                             </td>
                                             <td className="p-2 align-top text-sm text-red-600 dark:text-red-400 print:text-black font-semibold">
-                                                <div className="editable-cell" contentEditable suppressContentEditableWarning>
+                                                <div 
+                                                    className="editable-cell" 
+                                                    contentEditable 
+                                                    suppressContentEditableWarning
+                                                    onBlur={(e) => {
+                                                        if (e.target.innerText !== attention) {
+                                                            handleUpdateContract(contract.id, 'deliveryNotes', e.target.innerText);
+                                                        }
+                                                    }}
+                                                >
                                                     {attention}
                                                 </div>
                                             </td>
                                             <td className="p-2 align-top text-xs font-mono">
-                                                <div className="editable-cell" contentEditable suppressContentEditableWarning>
+                                                <div className="px-2 py-1 whitespace-pre-wrap">
                                                     {measurements}
                                                 </div>
+                                            </td>
+                                            <td className="p-2 align-middle print-hidden">
+                                                <button 
+                                                    onClick={() => handleMarkAsDelivered(contract.id)}
+                                                    className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-2 rounded text-xs transition-colors shadow-sm"
+                                                    title="Marcar como entregue"
+                                                >
+                                                    Entregue ✓
+                                                </button>
                                             </td>
                                         </tr>
                                     );
