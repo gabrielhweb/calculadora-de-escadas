@@ -50,4 +50,14 @@ Quando o botão "Imprimir Tabela" é acionado, as seguintes propriedades CSS for
   3. Adicione a `<td>` correspondente e vincule com o evento `onBlur` chamando `handleUpdateContract`.
 - Se o Vercel apresentar problemas de build relacionados a datas, verifique se as bibliotecas `date-fns` e `date-fns-tz` estão instaladas via `npm install`.
 
+## 5. Histórico de Atualizações Recentes (Log)
+**Sincronização com Pipeline:**
+- A ordem de classificação da Tabela de Entregas foi revertida para seguir a ordem exata da aba "Meus Contratos" (do mais recente ao mais antigo).
+- A Data de Entrega escolhida na tabela agora aparece impressa em laranja no cartão do cliente na aba "Meus Contratos".
+
+**Refinamento de Dados:**
+- **Medidas:** O campo foi aprimorado e agora puxa automaticamente o local de fixação na parede (ex: "Fixação na Parede DIREITA"). O material "Metalon" foi alterado profissionalmente para "AÇO CARBONO". Além disso, todos os Itens Extras agora aparecem listados no final da coluna.
+- **Atenção:** O aviso padrão de "COM CORRIMÃO" foi removido (já que é o padrão). Ele só será avisado se for selecionado "CORRIMÃO DOS DOIS LADOS". O tipo de material foi movido para a aba de Medidas.
+- **Dobradiças:** O cálculo agora utiliza a mesma matemática da ficha de produção técnica do PDF.
+
 *Última atualização: Julho de 2026 - Antigravity AI*
