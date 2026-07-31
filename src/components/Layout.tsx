@@ -70,7 +70,7 @@ const Layout: React.FC = () => {
                 </div>
                 <div className="flex flex-col">
                     <span className="font-black text-3xl tracking-tighter text-gray-900 dark:text-white leading-none">Zilinski</span>
-                    <span className="text-xs text-highlight tracking-[0.3em] uppercase font-bold mt-1">Distribuidora</span>
+                    <span className="text-xs text-highlight tracking-[0.3em] uppercase font-bold mt-1">Escadas</span>
                 </div>
               </Link>
             </div>
@@ -117,6 +117,12 @@ const Layout: React.FC = () => {
                   className={`${isActive('/recibo-visita') ? 'text-highlight font-bold border-b-4 border-highlight' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'} px-2 pt-1 text-sm uppercase tracking-wide transition-all duration-200 h-full flex items-center font-bold`}
                 >
                   Recibo Visita
+                </Link>
+                <Link 
+                  to="/recibo-instalacao" 
+                  className={`${isActive('/recibo-instalacao') ? 'text-highlight font-bold border-b-4 border-highlight' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'} px-2 pt-1 text-sm uppercase tracking-wide transition-all duration-200 h-full flex items-center font-bold`}
+                >
+                  Recibo Instalação
                 </Link>
                 <Link 
                   to="/salvos" 

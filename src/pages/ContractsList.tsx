@@ -278,6 +278,7 @@ export const ContractsList: React.FC = () => {
                 landings: parsedData.selectedOption?.landings || [],
                 stairDirection: parsedData.inputData?.stairDirection || 'standard',
                 wallFixation: parsedData.inputData?.wallFixation || 'left',
+                cutStepType: parsedData.inputData?.cutStepType || 'left',
                 treadMaterial: parsedData.inputData?.treadMaterial || 'wood',
                 address: parsedData.userData?.address || '',
                 zip: parsedData.userData?.zip || '',

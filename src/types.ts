@@ -18,6 +18,7 @@ export interface LandingInfo {
   hasSideGuardrail?: boolean; // Barra Lateral
   hasFrontGuardrail?: boolean; // Barra Frontal
   frenchBrackets?: 0 | 1 | 2; // Quantidade de Mãos Francesas
+  isAngled?: boolean; // Patamar em ângulo
 }
 
 export interface LogisticsInfo {
@@ -48,6 +49,7 @@ export interface CalculatorInput {
   woodType?: 'garapeira' | 'muiracatiara' | 'ambas'; // Tipo de madeira selecionada
   dampers: number; // Quantidade de amortecedores
   hasWheels?: boolean; // Opção com Rodinhas
+  isFixedStair?: boolean; // Opção de Escada Fixa
   handrailSide?: 'left' | 'right' | 'both'; // Lado do corrimão (apenas se hasWheels=true)
   customStepPrice?: number; // Optional manual price per step
   customTotalLength?: number; // Optional manual total length
@@ -98,6 +100,11 @@ export interface UserData {
   neighborhood?: string;
   city?: string;
   state?: string;
+  
+  // Parcelamento
+  installments?: number;
+  interestValue?: number; // Juros em R$ fixo
+  hideInterestLabel?: boolean; // Ocultar palavra "com juros" nos PDFs
   
   // Array de strings Base64 das imagens capturadas (Desenhos 2D/3D)
   drawingImages?: { title: string; imgData: string; width?: number; height?: number }[];

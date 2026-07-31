@@ -182,6 +182,7 @@ const Interactive3DStair: React.FC<{
   treadMaterial?: 'madeira' | 'metal';
 }> = ({ option, totalHeight, inputData, treadMaterial = 'madeira' }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [hudOpacity, setHudOpacity] = useState(100);
   
   const totalHeightM = (totalHeight || 300) / 100;
   const totalLengthM = (option.totalLength || 300) / 100;
@@ -193,9 +194,9 @@ const Interactive3DStair: React.FC<{
   const stairDirection = inputData?.stairDirection || 'standard';
   const wallFixation = inputData?.wallFixation || 'left';
   
-  // Handrail options
-  const hasCorrimao = inputData?.hasCorrimao || false;
-  const handrailHeightM = (inputData?.handrailHeight || 90) / 100;
+  // Handrail options (Def padrão da prompt)
+  const hasCorrimao = inputData?.hasCorrimao ?? true;
+  const handrailHeightM = (inputData?.handrailHeight || 80) / 100;
   const supportThicknessM = (inputData?.supportThickness || 2) / 100;
   const handrailThicknessM = (inputData?.handrailThickness || 3) / 100;
 
@@ -209,14 +210,24 @@ const Interactive3DStair: React.FC<{
   const wallPositionZ = wallFixation === 'frontal' ? 0 : 0; // Frontal would be back of stairs
 
   // HUD and Dimension logic for Closed Package State
-  const sobraDoCorrimao = hasCorrimao ? 0.10 : 0;
-  const pacoteLarguraX = stairWidth + (hasCorrimao ? handrailHeightM : 0) - 0.05;
-  const pacoteComprimentoZ = Math.sqrt(
-      Math.pow(totalLengthM + sobraDoCorrimao, 2) + 
-      Math.pow(totalHeightM + sobraDoCorrimao, 2)
-  ) + 0.04;
+  const maxHandrailHeightM = hasCorrimao ? handrailHeightM : 0; 
+  const espessuraEstruturaM = 0.08; // Espessura fixa exigida de 8cm (0.08m)
+  
+  // A Largura do Pacote agora é a seta azul (Corrimão + Altura da Viga)
+  // Temporariamente setado como Altura do Corrimão + 0.35m (altura média da viga) até o usuário confirmar a fórmula
+  const alturaDaViga = 0.35; 
+  const larguraPacoteM = maxHandrailHeightM + alturaDaViga; 
+
+  const comprimentoMaximoM = totalLengthM;
+  
+  // O Segredo do Paralelogramo Achatado: 
+  // Quando a escada articulada fecha, o corrimão deita sobre a viga. 
+  // O comprimento final é o tamanho da Viga + a altura do poste do corrimão que deitou + as pontas de metal (0.08).
+  const tamanhoViga = Math.sqrt(Math.pow(comprimentoMaximoM, 2) + Math.pow(totalHeightM, 2));
+  const diagonalExata = tamanhoViga + maxHandrailHeightM + espessuraEstruturaM;
 
   return (
+    <div className="relative w-full h-full bg-slate-200">
       <Canvas camera={{ position: [5 * scaleX, totalHeightM + 1, 5], fov: 50 }} style={{ width: '100%', height: '100%', background: '#e2e8f0' }}>
           <ambientLight intensity={0.6} />
           <directionalLight position={[5, 10, 5]} intensity={1.5} castShadow />
@@ -264,21 +275,21 @@ const Interactive3DStair: React.FC<{
             {isOpen ? (
               <group>
                 {/* Altura Total (Verde) */}
-                <Line points={[[wallPositionX - 0.3, 0, 0], [wallPositionX - 0.3, totalHeightM, 0]]} color="#4ade80" lineWidth={2} dashed={true} dashSize={0.1} gapSize={0.05} />
+                <Line points={[[wallPositionX - 0.3, 0, 0], [wallPositionX - 0.3, totalHeightM, 0]]} color="#4ade80" lineWidth={5} dashed={true} dashSize={0.1} gapSize={0.05} />
                 <Html position={[wallPositionX - 0.3, totalHeightM / 2, 0]} center zIndexRange={[100, 0]}>
                   <div className="bg-black/80 text-green-400 px-2 py-1 rounded text-xs font-mono shadow-md border border-green-400/20 whitespace-nowrap">
                     ↕ H: {totalHeightM.toFixed(2)}m
                   </div>
                 </Html>
                 {/* Avanço Total (Azul) */}
-                <Line points={[[0, -0.1, 0], [0, -0.1, totalLengthM]]} color="#60a5fa" lineWidth={2} dashed={true} dashSize={0.1} gapSize={0.05} />
+                <Line points={[[0, -0.1, 0], [0, -0.1, totalLengthM]]} color="#60a5fa" lineWidth={5} dashed={true} dashSize={0.1} gapSize={0.05} />
                 <Html position={[0, -0.1, totalLengthM / 2]} center zIndexRange={[100, 0]}>
                   <div className="bg-black/80 text-blue-400 px-2 py-1 rounded text-xs font-mono shadow-md border border-blue-400/20 whitespace-nowrap">
                     ↔ C: {totalLengthM.toFixed(2)}m
                   </div>
                 </Html>
                 {/* Largura Degrau (Amarelo) */}
-                <Line points={[[-stairWidth/2, 0, totalLengthM + 0.1], [stairWidth/2, 0, totalLengthM + 0.1]]} color="#fbbf24" lineWidth={2} dashed={true} dashSize={0.1} gapSize={0.05} />
+                <Line points={[[-stairWidth/2, 0, totalLengthM + 0.1], [stairWidth/2, 0, totalLengthM + 0.1]]} color="#fbbf24" lineWidth={5} dashed={true} dashSize={0.1} gapSize={0.05} />
                 <Html position={[0, 0, totalLengthM + 0.1]} center zIndexRange={[100, 0]}>
                   <div className="bg-black/80 text-yellow-400 px-2 py-1 rounded text-xs font-mono shadow-md border border-yellow-400/20 whitespace-nowrap">
                     ⟷ L: {stairWidth.toFixed(2)}m
@@ -287,29 +298,10 @@ const Interactive3DStair: React.FC<{
               </group>
             ) : (
               <group>
-                {/* Largura do Pacote (Amarelo/Laranja) */}
-                <Line points={[[wallPositionX + 0.1, totalHeightM/2, totalLengthM/2], [wallPositionX + 0.1 + pacoteLarguraX, totalHeightM/2, totalLengthM/2]]} color="#fbbf24" lineWidth={2} />
-                {/* Diagonal do Pacote (Azul) */}
-                <Line points={[[wallPositionX + 0.1, totalHeightM, 0], [wallPositionX + 0.1, 0, totalLengthM]]} color="#60a5fa" lineWidth={2} />
-                <Html position={[wallPositionX + 0.3, totalHeightM / 2, totalLengthM / 2]} center zIndexRange={[100, 0]}>
-                    <div className="bg-slate-900/95 border border-slate-700 text-white p-4 rounded-xl shadow-2xl flex flex-col gap-2 whitespace-nowrap backdrop-blur-md">
-                      <div className="text-sm font-black text-blue-400 border-b border-blue-900/50 pb-2 mb-1 flex items-center gap-2">
-                         📦 DIMENSÕES PARA FRETE
-                      </div>
-                      <div className="font-mono text-sm flex justify-between gap-6 items-center">
-                        <span className="text-slate-400 tracking-wider text-xs">ESPESSURA</span> 
-                        <span className="font-bold text-green-400 bg-green-400/10 px-2 py-0.5 rounded">0.08m</span>
-                      </div>
-                      <div className="font-mono text-sm flex justify-between gap-6 items-center">
-                        <span className="text-slate-400 tracking-wider text-xs" style={{ color: '#fbbf24' }}>LARGURA</span> 
-                        <span className="font-bold text-yellow-400 bg-yellow-400/10 px-2 py-0.5 rounded">{pacoteLarguraX.toFixed(2)}m</span>
-                      </div>
-                      <div className="font-mono text-sm flex justify-between gap-6 items-center">
-                        <span className="text-slate-400 tracking-wider text-xs" style={{ color: '#60a5fa' }}>DIAGONAL</span> 
-                        <span className="font-bold text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded">{pacoteComprimentoZ.toFixed(2)}m</span>
-                      </div>
-                    </div>
-                </Html>
+                {/* Largura do Pacote na Vertical (Amarelo) */}
+                <Line points={[[wallPositionX + 0.1, totalHeightM/2, totalLengthM/2], [wallPositionX + 0.1, totalHeightM/2 + stairWidth, totalLengthM/2]]} color="#fbbf24" lineWidth={5} />
+                {/* Diagonal do Pacote Achatado */}
+                <Line points={[[wallPositionX + 0.1, totalHeightM + maxHandrailHeightM, 0], [wallPositionX + 0.1, 0, totalLengthM]]} color="#60a5fa" lineWidth={5} dashed={true} dashSize={0.2} gapSize={0.1} />
               </group>
             )}
           </group>
@@ -330,6 +322,47 @@ const Interactive3DStair: React.FC<{
               </div>
           </Html>
       </Canvas>
+
+      {/* Painel lateral 2D (não obstrutivo) de Dimensões para Frete */}
+      {!isOpen && (
+        <div 
+          className="absolute top-4 right-4 bg-slate-900/95 border border-slate-700 text-white p-4 rounded-xl shadow-2xl flex flex-col gap-2 whitespace-nowrap backdrop-blur-md z-10 pointer-events-auto transition-opacity duration-150"
+          style={{ opacity: hudOpacity / 100 }}
+        >
+          <div className="text-sm font-black text-blue-400 border-b border-blue-900/50 pb-2 mb-1 flex justify-between items-center gap-4">
+             <span>📦 DIMENSÕES PARA FRETE</span>
+             <input 
+                type="range" 
+                min="0" 
+                max="100" 
+                value={hudOpacity}
+                onChange={(e) => setHudOpacity(Number(e.target.value))}
+                className="w-24 accent-blue-500 cursor-pointer"
+                title="Transparência do painel"
+             />
+          </div>
+          <div className="font-mono text-sm flex justify-between gap-6 items-center">
+            <span className="text-slate-400 tracking-wider text-xs">ESPESSURA (ESTRUTURA)</span> 
+            <span className="font-bold text-green-400 bg-green-400/10 px-2 py-0.5 rounded">{espessuraEstruturaM.toFixed(2)}m</span>
+          </div>
+          <div className="font-mono text-sm flex justify-between gap-6 items-center">
+            <span className="text-slate-400 tracking-wider text-xs" style={{ color: '#fbbf24' }}>LARGURA DO PACOTE</span> 
+            <span className="font-bold text-yellow-400 bg-yellow-400/10 px-2 py-0.5 rounded">{larguraPacoteM.toFixed(2)}m</span>
+          </div>
+          <div className="font-mono text-sm flex flex-col gap-1 border-t border-slate-700 pt-2 mt-1">
+            <div className="flex justify-between items-center">
+                <span className="text-slate-400 tracking-wider text-xs" style={{ color: '#60a5fa' }}>COMPRIMENTO FECHADO</span> 
+                <span className="font-bold text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded text-lg">{diagonalExata.toFixed(2)}m</span>
+            </div>
+            <div className="mt-2 text-[10px] text-slate-400 font-mono text-center bg-slate-800/50 p-2 rounded leading-relaxed">
+                Escada Fechada (Viga + Corrimão + Pontas):
+                <br />
+                {tamanhoViga.toFixed(2)} + {maxHandrailHeightM.toFixed(2)} + {espessuraEstruturaM.toFixed(2)} = {diagonalExata.toFixed(2)}m
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
@@ -937,8 +970,8 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
             const rectX = isMirrored ? currentX - run : currentX;
             landingDraws.push(
                 <g key={`landing-${i}`}>
-                    <rect x={rectX} y={visualY} width={run} height={10} fill="#cbd5e1" stroke="none" opacity="0.5"/>
-                    <text x={rectX + run/2} y={visualY - 15} textAnchor="middle" fontSize="12" fontWeight="bold" fill="#475569">
+                    <rect x={rectX} y={visualY} width={run} height={10} fill="#ffffff" stroke="#000000" strokeWidth="2" />
+                    <text x={rectX + run/2} y={visualY - 15} textAnchor="middle" fontSize="12" fontWeight="bold" fill="#000000">
                         {landing.isLastStep ? 'CHEGADA (TOPO)' : (landing.type === 'fixed' ? 'FIXO' : 'ARTICULADO')}
                     </text>
                 </g>
@@ -950,8 +983,15 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
     }
     stepsPoints.push({x: currentX, y: floorY});
     
-    let d = `M ${stepsPoints[0].x} ${stepsPoints[0].y}`;
-    for (let p of stepsPoints) d += ` L ${p.x} ${p.y}`;
+    const firstX = stepsPoints[0].x;
+    const firstY = stepsPoints[0].y;
+    const lastPointX = stepsPoints[stepsPoints.length - 2].x;
+    const lastPointY = stepsPoints[stepsPoints.length - 2].y;
+
+    let d = `M ${firstX} ${firstY}`;
+    for (let i = 1; i < stepsPoints.length - 1; i++) {
+        d += ` L ${stepsPoints[i].x} ${stepsPoints[i].y}`;
+    }
 
     // Definição da posição da seta de Pé Direito
     const ceilingArrowX = isMirrored ? (margin - 20) : (margin + drawTotalLength + 20);
@@ -969,7 +1009,7 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
     // No modo Espelhado: É a laje de chegada (Piso Superior).
     const renderLeftSlab = (isArrival: boolean) => (
         <g>
-            <rect x={-2000} y={ceilingY} width={2000 + holeStartX} height={slabThickness} fill={(!isArrival && simulateSafe && correctionType === 'expand_opening') ? '#86efac' : '#cbd5e1'} stroke="none" opacity="0.8"/>
+            <rect x={-2000} y={ceilingY} width={2000 + holeStartX} height={slabThickness} fill={(!isArrival && simulateSafe && correctionType === 'expand_opening') ? '#86efac' : '#f1f5f9'} stroke="none" />
             <line x1={-2000} y1={ceilingY} x2={holeStartX} y2={ceilingY} stroke="#333" strokeWidth="3" />
             <line x1={-2000} y1={slabBottomY} x2={holeStartX} y2={slabBottomY} stroke="#333" strokeWidth="3" />
             <line x1={holeStartX} y1={ceilingY} x2={holeStartX} y2={slabBottomY} stroke="#333" strokeWidth="3"/>
@@ -981,7 +1021,7 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
     // No modo Espelhado: É a laje de risco (antes da escada).
     const renderRightSlab = (isArrival: boolean) => (
         <g>
-            <rect x={holeEndX} y={ceilingY} width={3000} height={slabThickness} fill={(!isArrival && simulateSafe && correctionType === 'expand_opening') ? '#86efac' : '#cbd5e1'} stroke="none" opacity="0.8"/>
+            <rect x={holeEndX} y={ceilingY} width={3000} height={slabThickness} fill={(!isArrival && simulateSafe && correctionType === 'expand_opening') ? '#86efac' : '#f1f5f9'} stroke="none" />
             <line x1={holeEndX} y1={ceilingY} x2={holeEndX + 3000} y2={ceilingY} stroke="#333" strokeWidth="3" />
             <line x1={holeEndX} y1={slabBottomY} x2={holeEndX + 3000} y2={slabBottomY} stroke="#333" strokeWidth="3" />
             <line x1={holeEndX} y1={ceilingY} x2={holeEndX} y2={slabBottomY} stroke="#333" strokeWidth="3" />
@@ -1024,8 +1064,8 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
             {/* Patamares (Preenchimento) */}
             {landingDraws}
 
-            {/* Perfil da Escada (Linha Preta) */}
-            <path d={d} fill="none" stroke={simulateSafe && correctionType === 'shrink_stair' ? '#16a34a' : 'black'} strokeWidth="2" strokeLinejoin="round" />
+            {/* Perfil da Escada (Linha Vetorial Simples) */}
+            <path d={d} fill={simulateSafe && correctionType === 'shrink_stair' ? '#dcfce7' : 'none'} stroke={simulateSafe && correctionType === 'shrink_stair' ? '#16a34a' : '#000000'} strokeWidth="3" strokeLinejoin="round" />
             
             {/* Indicador Último Degrau */}
             <g>

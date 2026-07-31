@@ -148,16 +148,79 @@ const Contract = () => {
     const [stairDirection, setStairDirection] = useState<'standard' | 'mirrored'>('standard');
     const [wallFixation, setWallFixation] = useState<'left' | 'right' | 'frontal'>('left');
     const [hasWheels, setHasWheels] = useState<boolean>(false);
+    const [isFixedStair, setIsFixedStair] = useState<boolean>(false);
     const [handrailSide, setHandrailSide] = useState<'left' | 'right' | 'both'>('both');
     const [treadMaterial, setTreadMaterial] = useState<'metal' | 'wood' | 'chapa_xadrez' | 'chapa_vazada' | undefined>(undefined);
     const [woodType, setWoodType] = useState<'garapeira' | 'muiracatiara' | 'ambas' | undefined>(undefined);
-    
-    // Efeito para zerar amortecedores caso rodinhas sejam selecionadas
+    const [cutStepType, setCutStepType] = useState<'left' | 'right' | 'hollow_left' | 'hollow_right'>('left');
+    const [userManuallyChangedCut, setUserManuallyChangedCut] = useState(false);
+
+    // Sincroniza automaticamente os furos (cutStepType) com a Parede escolhida, caso não tenha sido alterado manualmente
     useEffect(() => {
-        if (hasWheels) {
+        if (userManuallyChangedCut) return;
+        const isHollow = treadMaterial === 'chapa_vazada';
+        if (wallFixation === 'right') {
+            setCutStepType(isHollow ? 'hollow_right' : 'right');
+        } else {
+            setCutStepType(isHollow ? 'hollow_left' : 'left');
+        }
+    }, [wallFixation, treadMaterial, userManuallyChangedCut]);
+
+    const handleAddLanding = () => {
+        const newLanding: LandingInfo = {
+            id: Math.random().toString(36).substr(2, 9),
+            step: totalSteps ? parseInt(totalSteps) / 2 : 1,
+            price: 0,
+            width: width ? parseFloat(width) : 70,
+            length: width ? parseFloat(width) : 70,
+            type: 'articulated',
+            hasSideGuardrail: false,
+            hasFrontGuardrail: false,
+            direction: 'straight',
+            frenchBrackets: 0,
+            isAngled: false
+        };
+        setLandings([...landings, newLanding]);
+    };
+
+    const handleAddTopLanding = () => {
+        const newLanding: LandingInfo = {
+            id: Math.random().toString(36).substr(2, 9),
+            step: totalSteps ? parseInt(totalSteps) : 15,
+            price: 0,
+            width: width ? parseFloat(width) : 70,
+            length: width ? parseFloat(width) : 70,
+            type: 'articulated',
+            hasSideGuardrail: false,
+            hasFrontGuardrail: false,
+            direction: 'straight',
+            isLastStep: true,
+            isFlushWithSlab: false,
+            frenchBrackets: 0,
+            isAngled: false
+        };
+        setLandings([...landings, newLanding]);
+    };
+
+    const handleRemoveLanding = (id: string) => {
+        setLandings(landings.filter(l => l.id !== id));
+    };
+
+    const updateLanding = (id: string, updates: Partial<LandingInfo>) => {
+        setLandings(prev => prev.map(l => {
+            if (l.id === id) {
+                return { ...l, ...updates };
+            }
+            return l;
+        }));
+    };
+    
+    // Efeito para zerar amortecedores caso rodinhas sejam selecionadas ou seja fixa
+    useEffect(() => {
+        if (hasWheels || isFixedStair) {
             setDampers('0');
         }
-    }, [hasWheels]);
+    }, [hasWheels, isFixedStair]);
     
     // Inputs para adicionar novo item
     const [newItemName, setNewItemName] = useState('');
@@ -168,7 +231,7 @@ const Contract = () => {
     const [landingsPrice, setLandingsPrice] = useState('0'); // Preço total dos patamares
     
     const [freightPrice, setFreightPrice] = useState('0');
-    const [freightMode, setFreightMode] = useState<'empresa' | 'transportadora' | 'auto' | 'manual' | 'fixed'>('empresa');
+    const [freightMode, setFreightMode] = useState<'empresa' | 'transportadora' | 'entrega' | 'auto' | 'manual' | 'fixed'>('empresa');
     const [installationPrice, setInstallationPrice] = useState('0');
     const [extrasPrice, setExtrasPrice] = useState('0');
     
@@ -191,6 +254,7 @@ const Contract = () => {
     // --- LÓGICA DE JUROS/TAXAS NO CARTÃO ---
     const [enableInterest, setEnableInterest] = useState(false);
     const [interestValue, setInterestValue] = useState(''); // Valor monetário (R$)
+    const [hideInterestLabel, setHideInterestLabel] = useState(false); // Ocultar aviso de juros no PDF
 
     // --- IA JURÍDICA & REFINAMENTO ---
     const [customClauses, setCustomClauses] = useState<string[]>([]);
@@ -203,7 +267,7 @@ const Contract = () => {
     const [stairCapacityText, setStairCapacityText] = useState('360 quilos');
     const [warrantyText, setWarrantyText] = useState('um ano');
     const [deliveryText, setDeliveryText] = useState(''); // Se vazio, usa o default com a data
-    const [deliveryDays, setDeliveryDays] = useState<number>(20);
+    const [deliveryDays, setDeliveryDays] = useState<number>(30);
 
     // Estados para Refinamento (Chatzinho)
     const [refiningIndex, setRefiningIndex] = useState<number | null>(null);
@@ -269,9 +333,15 @@ const Contract = () => {
                     setStairDirection(String(inputData.stairDirection || 'standard') as any);
                     setWallFixation(String(inputData.wallFixation || 'left') as any);
                     setHasWheels(Boolean(inputData.hasWheels));
+                    setIsFixedStair(Boolean(inputData.isFixedStair));
                     setHandrailSide(String(inputData.handrailSide || 'both') as 'left'|'right'|'both');
                     setTreadMaterial(String(inputData.treadMaterial || 'wood') as any);
                     if (inputData.woodType) setWoodType(inputData.woodType as any);
+                    
+                    if (inputData.cutStepType) {
+                        setCutStepType(inputData.cutStepType as any);
+                        setUserManuallyChangedCut(true);
+                    }
                     
                     if (selectedOption.landings && Array.isArray(selectedOption.landings) && selectedOption.landings.length > 0) {
                         setLandings(selectedOption.landings.filter(Boolean));
@@ -301,7 +371,7 @@ const Contract = () => {
 
                     setFreightPrice(data.freightCost ? Number(data.freightCost).toFixed(2) : '0');
                     if (inputData.logistics?.freightMode) {
-                        setFreightMode(inputData.logistics.freightMode as 'empresa' | 'transportadora' | 'auto' | 'manual' | 'fixed');
+                        setFreightMode(inputData.logistics.freightMode as 'empresa' | 'transportadora' | 'entrega' | 'auto' | 'manual' | 'fixed');
                     }
                     setInstallationPrice(data.installationCost ? Number(data.installationCost).toFixed(2) : '0');
                     setExtrasPrice(data.extrasCost ? Number(data.extrasCost).toFixed(2) : '0');
@@ -348,6 +418,7 @@ const Contract = () => {
                     if (userData.neighborhood) setNeighborhood(String(userData.neighborhood));
                     if (userData.city) setCity(String(userData.city));
                     if (userData.state) setState(String(userData.state));
+                    if (userData.hideInterestLabel !== undefined) setHideInterestLabel(Boolean(userData.hideInterestLabel));
                     
                     if (!userData.street && userData.address) {
                         setStreet(String(userData.address));
@@ -372,9 +443,15 @@ const Contract = () => {
                     setStairDirection(String(inputData.stairDirection || 'standard') as any);
                     setWallFixation(String(inputData.wallFixation || 'left') as any);
                     setHasWheels(Boolean(inputData.hasWheels));
+                    setIsFixedStair(Boolean(inputData.isFixedStair));
                     setHandrailSide(String(inputData.handrailSide || 'both') as 'left'|'right'|'both');
                     setTreadMaterial(String(inputData.treadMaterial || 'wood') as any);
                     if (inputData.woodType) setWoodType(inputData.woodType as any);
+                    
+                    if (inputData.cutStepType) {
+                        setCutStepType(inputData.cutStepType as any);
+                        setUserManuallyChangedCut(true);
+                    }
                     
                     if (selectedOption.landings && Array.isArray(selectedOption.landings) && selectedOption.landings.length > 0) {
                         const validLandings = selectedOption.landings.filter(Boolean);
@@ -680,7 +757,9 @@ const Contract = () => {
                 woodType: treadMaterial === 'wood' ? woodType : undefined,
                 stairDirection: stairDirection,
                 wallFixation: wallFixation,
+                cutStepType,
                 hasWheels: hasWheels,
+                isFixedStair: isFixedStair,
                 handrailSide: handrailSide,
                 logistics: {
                     ...(originalInputData?.logistics || {}),
@@ -837,7 +916,9 @@ const Contract = () => {
                 woodType: treadMaterial === 'wood' ? woodType : undefined,
                 stairDirection: stairDirection,
                 wallFixation: wallFixation,
+                cutStepType,
                 hasWheels: hasWheels,
+                isFixedStair: isFixedStair,
                 handrailSide: handrailSide,
                 logistics: {
                     ...(originalInputData?.logistics || {}),
@@ -933,6 +1014,19 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
         }
     };
 
+    const handleGenerateProductionSheet = () => {
+        import('../utils/productionPdfGenerator').then(({ generateProductionPDF }) => {
+            generateProductionPDF({
+                totalSteps: parseFloat(totalSteps) || 0,
+                stepHeightCm: parseFloat(stepHeight) || 0,
+                treadDepthCm: parseFloat(treadDepth) || 0,
+                widthCm: parseFloat(width) || 0,
+                cutStepType,
+                clientName: clientName || ''
+            });
+        });
+    };
+
     const handleGenerateAceiteObra = () => {
         if (!clientName || !street || !number || !city) {
             alert("Por favor, preencha Nome e Endereço Completo do cliente.");
@@ -981,7 +1075,9 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                 woodType: treadMaterial === 'wood' ? woodType : undefined,
                 stairDirection: stairDirection,
                 wallFixation: wallFixation,
+                cutStepType,
                 hasWheels: hasWheels,
+                isFixedStair: isFixedStair,
                 handrailSide: handrailSide,
                 logistics: {
                     ...(originalInputData?.logistics || {}),
@@ -1124,6 +1220,200 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                             <ContractInput label="Pisante" value={treadDepth} onChange={(e: any) => setTreadDepth(e.target.value)} type="number" />
                             <ContractInput label="Comprimento" value={totalLength} onChange={(e: any) => setTotalLength(e.target.value)} type="number" />
                         </div>
+
+                        <div className="flex items-center justify-between mb-4 mt-4">
+                            <h3 className="text-sm font-black text-gray-900 dark:text-gray-100 uppercase flex items-center gap-2">
+                                <span className="bg-highlight text-white w-6 h-6 flex items-center justify-center rounded-full text-xs">P</span>
+                                Patamares ({landings.length})
+                            </h3>
+                            <div className="flex gap-2">
+                                <button type="button" onClick={handleAddTopLanding} className="text-xs bg-orange-600 text-white px-2 py-1 rounded font-bold hover:bg-orange-700 transition" title="Patamar no Topo (Acesso Lateral)">
+                                    + Chegada
+                                </button>
+                                <button type="button" onClick={handleAddLanding} className="text-xs bg-gray-800 dark:bg-gray-700 text-white px-3 py-1 rounded font-bold hover:bg-black dark:hover:bg-gray-600 transition">
+                                    + Meio
+                                </button>
+                            </div>
+                        </div>
+                        
+                        {landings.length === 0 ? (
+                            <p className="text-xs text-gray-500 dark:text-gray-400 italic mb-2">Nenhum patamar adicionado.</p>
+                        ) : (
+                            <div className="space-y-3">
+                                <p className="text-[10px] text-orange-800 dark:text-orange-300 font-bold mb-2">* Cada patamar substitui 1 degrau.</p>
+                                {landings.map((landing, index) => (
+                                    <div key={landing.id} className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-orange-200 dark:border-orange-800 shadow-sm relative">
+                                        <button 
+                                            onClick={() => handleRemoveLanding(landing.id)}
+                                            type="button"
+                                            className="absolute -top-2 -right-2 bg-red-500 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shadow hover:bg-red-700"
+                                        >
+                                            x
+                                        </button>
+                                        <span className="text-xs font-bold text-gray-400 absolute top-1 left-2">#{index + 1}</span>
+                                        
+                                        <div className="grid grid-cols-2 gap-2 mt-2">
+                                            <div className="mb-0 col-span-2">
+                                                <div className="flex justify-between items-center mb-1">
+                                                     <label className="text-sm font-black text-gray-900 dark:text-gray-100 mr-1">Posição</label>
+                                                </div>
+                                                <div className="flex gap-4 items-center bg-gray-100 dark:bg-gray-700 p-2 rounded mb-2">
+                                                    <label className="flex items-center gap-1 cursor-pointer select-none">
+                                                         <input 
+                                                            type="checkbox" 
+                                                            checked={!!landing.isLastStep} 
+                                                            onChange={(e) => {
+                                                                updateLanding(landing.id, {
+                                                                    isLastStep: e.target.checked,
+                                                                    isFlushWithSlab: e.target.checked ? landing.isFlushWithSlab : false
+                                                                });
+                                                            }} 
+                                                            className="w-4 h-4 accent-highlight"
+                                                         />
+                                                         <span className="text-xs font-bold text-gray-700 dark:text-gray-200 uppercase">Topo (Chegada)?</span>
+                                                    </label>
+                                                    
+                                                    {landing.isLastStep && (
+                                                        <label className="flex items-center gap-1 cursor-pointer select-none" title="Para porta nivelada com o piso superior">
+                                                            <input 
+                                                                type="checkbox" 
+                                                                checked={!!landing.isFlushWithSlab} 
+                                                                onChange={(e) => {
+                                                                    const isChecked = e.target.checked;
+                                                                    updateLanding(landing.id, {
+                                                                        isFlushWithSlab: isChecked,
+                                                                        isLastStep: isChecked ? true : landing.isLastStep 
+                                                                    });
+                                                                }} 
+                                                                className="w-4 h-4 accent-highlight"
+                                                            />
+                                                            <span className="text-xs font-bold text-gray-700 dark:text-gray-200 uppercase">Rente à Laje?</span>
+                                                        </label>
+                                                    )}
+                                                </div>
+
+                                                <input
+                                                    type="number"
+                                                    value={landing.isLastStep ? "" : landing.step.toString()}
+                                                    disabled={landing.isLastStep}
+                                                    onChange={e => updateLanding(landing.id, { step: parseFloat(e.target.value) })}
+                                                    className={`w-full p-2 rounded border-2 focus:outline-none transition font-bold ${landing.isLastStep ? 'bg-gray-200 dark:bg-gray-600 border-gray-300 dark:border-gray-500 text-gray-400 dark:text-gray-300' : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 focus:border-highlight text-black dark:text-white'}`}
+                                                    placeholder={landing.isLastStep ? "Automático (Último Degrau)" : "Nº do Degrau (Ex: 5)"}
+                                                />
+                                            </div>
+
+                                            <div className="col-span-2">
+                                                <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Tipo de Fixação:</label>
+                                                <div className="flex bg-gray-100 dark:bg-gray-700 p-1 rounded">
+                                                    <button 
+                                                        type="button" 
+                                                        onClick={() => updateLanding(landing.id, { type: 'articulated' })}
+                                                        className={`flex-1 py-1 text-xs font-bold rounded ${(!landing.type || landing.type === 'articulated') ? 'bg-white dark:bg-gray-600 shadow text-highlight' : 'text-gray-500'}`}
+                                                    >
+                                                        Articulado
+                                                    </button>
+                                                    <button 
+                                                        type="button" 
+                                                        onClick={() => updateLanding(landing.id, { type: 'fixed' })}
+                                                        className={`flex-1 py-1 text-xs font-bold rounded ${landing.type === 'fixed' ? 'bg-white dark:bg-gray-600 shadow text-blue-600' : 'text-gray-500'}`}
+                                                    >
+                                                        Fixo
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div className="col-span-2">
+                                                <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Qtd. Mãos Francesas:</label>
+                                                <select
+                                                    value={landing.frenchBrackets || 0}
+                                                    onChange={(e) => updateLanding(landing.id, { frenchBrackets: parseInt(e.target.value) as 0 | 1 | 2 })}
+                                                    className="w-full text-xs font-bold p-2 text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 rounded border border-gray-300 dark:border-gray-600 outline-none focus:border-highlight"
+                                                >
+                                                    <option value={0}>Sem mão francesa</option>
+                                                    <option value={1}>Com uma mão francesa</option>
+                                                    <option value={2}>Com duas mãos francesas</option>
+                                                </select>
+                                            </div>
+
+                                            <div className="col-span-2 bg-gray-50 dark:bg-gray-700/50 p-2 rounded border border-gray-100 dark:border-gray-700">
+                                                <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Opções Adicionais:</label>
+                                                <div className="flex flex-col gap-2">
+                                                    <div className="flex gap-4">
+                                                        <label className="flex items-center gap-1 cursor-pointer">
+                                                            <input 
+                                                                type="checkbox" 
+                                                                checked={landing.hasSideGuardrail} 
+                                                                onChange={(e) => updateLanding(landing.id, { hasSideGuardrail: e.target.checked })} 
+                                                                className="w-4 h-4 accent-blue-600"
+                                                            />
+                                                            <span className="text-xs font-medium text-gray-600 dark:text-gray-300">Barra Lateral</span>
+                                                        </label>
+                                                        <label className="flex items-center gap-1 cursor-pointer">
+                                                            <input 
+                                                                type="checkbox" 
+                                                                checked={landing.hasFrontGuardrail} 
+                                                                onChange={(e) => updateLanding(landing.id, { hasFrontGuardrail: e.target.checked })} 
+                                                                className="w-4 h-4 accent-blue-600"
+                                                            />
+                                                            <span className="text-xs font-medium text-gray-600 dark:text-gray-300">Barra Frontal</span>
+                                                        </label>
+                                                    </div>
+                                                    <label className="flex items-center gap-1 cursor-pointer mt-1">
+                                                        <input 
+                                                            type="checkbox" 
+                                                            checked={!!landing.isAngled} 
+                                                            onChange={(e) => updateLanding(landing.id, { isAngled: e.target.checked })} 
+                                                            className="w-4 h-4 accent-highlight"
+                                                        />
+                                                        <span className="text-xs font-bold text-gray-700 dark:text-gray-200 uppercase">Patamar em ângulo?</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+
+                                            <div className="col-span-2 mb-2 bg-gray-50 dark:bg-gray-700/50 p-2 rounded border border-gray-100 dark:border-gray-700">
+                                                <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Direção / Curva:</label>
+                                                <div className="flex gap-1">
+                                                    <button 
+                                                        type="button"
+                                                        onClick={() => updateLanding(landing.id, { direction: 'left' })}
+                                                        className={`flex-1 py-1 rounded text-xs font-bold transition flex items-center justify-center gap-1 ${landing.direction === 'left' ? 'bg-blue-600 text-white shadow' : 'bg-white dark:bg-gray-600 border dark:border-gray-500 text-gray-600 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500'}`}
+                                                    >
+                                                        ⬅️ Esq
+                                                    </button>
+                                                    <button 
+                                                        type="button"
+                                                        onClick={() => updateLanding(landing.id, { direction: 'straight' })}
+                                                        className={`flex-1 py-1 rounded text-xs font-bold transition flex items-center justify-center gap-1 ${(!landing.direction || landing.direction === 'straight') ? 'bg-blue-600 text-white shadow' : 'bg-white dark:bg-gray-600 border dark:border-gray-500 text-gray-600 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500'}`}
+                                                    >
+                                                        ⬆️ Reto
+                                                    </button>
+                                                    <button 
+                                                        type="button"
+                                                        onClick={() => updateLanding(landing.id, { direction: 'right' })}
+                                                        className={`flex-1 py-1 rounded text-xs font-bold transition flex items-center justify-center gap-1 ${landing.direction === 'right' ? 'bg-blue-600 text-white shadow' : 'bg-white dark:bg-gray-600 border dark:border-gray-500 text-gray-600 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500'}`}
+                                                    >
+                                                        Dir ➡️
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <ContractInput 
+                                                label="Comp. (cm)" 
+                                                value={landing.length.toString()} 
+                                                onChange={(e: any) => updateLanding(landing.id, { length: parseFloat(e.target.value) })} 
+                                                type="number"
+                                            />
+                                            <ContractInput 
+                                                label="Larg. (cm)" 
+                                                value={landing.width.toString()} 
+                                                onChange={(e: any) => updateLanding(landing.id, { width: parseFloat(e.target.value) })} 
+                                                type="number"
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
                         
                         {/* LISTA DE ITENS ADICIONAIS EDITÁVEL E COM ADIÇÃO */}
                         <div className="col-span-full mt-4 bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded border border-yellow-200 dark:border-yellow-700">
@@ -1306,28 +1596,42 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                             </div>
                             <div>
                                 <ContractInput 
-                                    label="Qtd. Amortecedores" 
+                                    label="Amortecedores" 
                                     value={dampers} 
                                     onChange={(e: any) => setDampers(e.target.value)} 
                                     type="number"
-                                    disabled={hasWheels}
+                                    disabled={hasWheels || isFixedStair}
                                 />
                             </div>
                             
-                            {/* Opções de Rodinhas */}
+                            {/* Opções de Modelo de Escada */}
                             <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 items-end mt-2">
-                                <label className="flex items-center gap-2 cursor-pointer bg-gray-50 dark:bg-gray-700 p-2 rounded border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition h-14">
-                                    <input 
-                                        type="checkbox" 
-                                        checked={hasWheels} 
-                                        onChange={(e) => setHasWheels(e.target.checked)}
-                                        className="w-5 h-5 accent-highlight"
-                                    />
-                                    <div className="flex flex-col">
-                                        <span className="font-bold text-gray-900 dark:text-white">Com Rodinhas?</span>
-                                        <span className="text-[10px] text-gray-500 dark:text-gray-400">Zera amortecedores</span>
-                                    </div>
-                                </label>
+                                <div className="flex flex-col gap-2">
+                                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
+                                        Modelo de Escada
+                                    </label>
+                                    <select
+                                        value={isFixedStair ? 'fixed' : (hasWheels ? 'wheels' : 'dampers')}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            if (val === 'fixed') {
+                                                setIsFixedStair(true);
+                                                setHasWheels(false);
+                                            } else if (val === 'wheels') {
+                                                setIsFixedStair(false);
+                                                setHasWheels(true);
+                                            } else {
+                                                setIsFixedStair(false);
+                                                setHasWheels(false);
+                                            }
+                                        }}
+                                        className="w-full text-sm font-bold p-3 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 h-14"
+                                    >
+                                        <option value="dampers">Articulada Lateral / Amortecedor</option>
+                                        <option value="wheels">Avanço Frontal / Rodinha</option>
+                                        <option value="fixed">Escada Fixa</option>
+                                    </select>
+                                </div>
 
                                 {hasWheels && (
                                     <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded border border-blue-100 dark:border-blue-800">
@@ -1371,19 +1675,34 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                 />
                             </div>
                             
-                            <div className="col-span-2 sm:col-span-1">
-                                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Tipo de Frete</label>
-                                <select
-                                    value={freightMode}
-                                    onChange={(e) => setFreightMode(e.target.value as 'empresa' | 'transportadora' | 'auto' | 'manual' | 'fixed')}
-                                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-highlight focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                                >
-                                    <option value="empresa">Pela Empresa</option>
-                                    <option value="transportadora">Transportadora</option>
-                                    <option value="auto">Automático</option>
-                                    <option value="manual">Manual</option>
-                                    <option value="fixed">Fixo</option>
-                                </select>
+                            <div className="col-span-2">
+                                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Forma de Entrega</label>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setFreightMode('empresa')}
+                                        className={`p-4 rounded-lg border-2 text-left transition-all flex flex-col items-start ${freightMode === 'empresa' ? 'border-highlight bg-highlight/10 dark:bg-highlight/20 shadow-md' : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 hover:border-gray-300'}`}
+                                    >
+                                        <span className="font-bold text-gray-900 dark:text-white mb-1">Entrega e Instalação</span>
+                                        <span className="text-xs text-gray-500 dark:text-gray-400">Feita pela nossa equipe especializada</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setFreightMode('entrega')}
+                                        className={`p-4 rounded-lg border-2 text-left transition-all flex flex-col items-start ${freightMode === 'entrega' ? 'border-highlight bg-highlight/10 dark:bg-highlight/20 shadow-md' : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 hover:border-gray-300'}`}
+                                    >
+                                        <span className="font-bold text-gray-900 dark:text-white mb-1">Somente Entrega</span>
+                                        <span className="text-xs text-gray-500 dark:text-gray-400">Instalação por conta do cliente</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setFreightMode('transportadora')}
+                                        className={`p-4 rounded-lg border-2 text-left transition-all flex flex-col items-start ${freightMode === 'transportadora' ? 'border-highlight bg-highlight/10 dark:bg-highlight/20 shadow-md' : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 hover:border-gray-300'}`}
+                                    >
+                                        <span className="font-bold text-gray-900 dark:text-white mb-1">Transportadora</span>
+                                        <span className="text-xs text-gray-500 dark:text-gray-400">Envio terceirizado (pacote fechado)</span>
+                                    </button>
+                                </div>
                             </div>
 
                             <ContractInput label="Frete + Pedágio (R$)" value={freightPrice} onChange={(e: any) => setFreightPrice(e.target.value)} type="number" />
@@ -1562,7 +1881,13 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                     </div>
 
                                     {enableInterest && (
-                                        <input type="number" placeholder="Valor total dos juros (R$)" value={interestValue} onChange={e => setInterestValue(e.target.value)} className="w-full p-2 border border-orange-300 rounded mb-2 text-sm bg-white dark:bg-gray-600 text-black dark:text-white"/>
+                                        <>
+                                            <input type="number" placeholder="Valor total dos juros (R$)" value={interestValue} onChange={e => setInterestValue(e.target.value)} className="w-full p-2 border border-orange-300 rounded mb-2 text-sm bg-white dark:bg-gray-600 text-black dark:text-white"/>
+                                            <label className="flex items-center gap-2 cursor-pointer mb-2">
+                                                <input type="checkbox" checked={hideInterestLabel} onChange={e => setHideInterestLabel(e.target.checked)} className="w-4 h-4 rounded text-highlight"/>
+                                                <span className="text-xs font-bold text-gray-500 dark:text-gray-400">Ocultar palavra "com juros" no PDF</span>
+                                            </label>
+                                        </>
                                     )}
                                     <div className="flex gap-2 items-center mt-2">
                                         <div className="flex-1">
@@ -1589,7 +1914,13 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                         </label>
                                     </div>
                                     {enableInterest && (
-                                        <input type="number" placeholder="Valor total dos juros (R$)" value={interestValue} onChange={e => setInterestValue(e.target.value)} className="w-full p-2 border border-orange-300 rounded mb-2 text-sm bg-white dark:bg-gray-600 text-black dark:text-white"/>
+                                        <>
+                                            <input type="number" placeholder="Valor total dos juros (R$)" value={interestValue} onChange={e => setInterestValue(e.target.value)} className="w-full p-2 border border-orange-300 rounded mb-2 text-sm bg-white dark:bg-gray-600 text-black dark:text-white"/>
+                                            <label className="flex items-center gap-2 cursor-pointer mb-2">
+                                                <input type="checkbox" checked={hideInterestLabel} onChange={e => setHideInterestLabel(e.target.checked)} className="w-4 h-4 rounded text-highlight"/>
+                                                <span className="text-xs font-bold text-gray-500 dark:text-gray-400">Ocultar palavra "com juros" no PDF</span>
+                                            </label>
+                                        </>
                                     )}
                                     <div className="flex gap-2 items-center">
                                         <div className="flex-1">
@@ -1626,6 +1957,33 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                             </div>
                         )}
 
+                        <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 mb-4 mt-4">
+                            <h3 className="text-sm font-black text-gray-900 dark:text-gray-100 uppercase mb-3 border-b border-gray-200 dark:border-gray-700 pb-1">
+                                Ficha de Produção (Corte a Laser)
+                            </h3>
+                            <div className="flex gap-4 mb-4">
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="cutStepType" value="left" checked={cutStepType === 'left'} onChange={() => { setCutStepType('left'); setUserManuallyChangedCut(true); }} className="w-4 h-4 accent-highlight" />
+                                    <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Chapa Lisa (Furo Esquerdo)</span>
+                                </label>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="cutStepType" value="right" checked={cutStepType === 'right'} onChange={() => { setCutStepType('right'); setUserManuallyChangedCut(true); }} className="w-4 h-4 accent-highlight" />
+                                    <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Chapa Lisa (Furo Direito)</span>
+                                </label>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="cutStepType" value="hollow_left" checked={cutStepType === 'hollow_left'} onChange={() => { setCutStepType('hollow_left'); setUserManuallyChangedCut(true); }} className="w-4 h-4 accent-highlight" />
+                                    <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Chapa Vazada (Furo Esquerdo)</span>
+                                </label>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="cutStepType" value="hollow_right" checked={cutStepType === 'hollow_right'} onChange={() => { setCutStepType('hollow_right'); setUserManuallyChangedCut(true); }} className="w-4 h-4 accent-highlight" />
+                                    <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Chapa Vazada (Furo Direito)</span>
+                                </label>
+                            </div>
+                            <button onClick={handleGenerateProductionSheet} className="w-full bg-purple-600 text-white font-black py-3 rounded-lg shadow-lg hover:bg-purple-700 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2">
+                                <span>⚙️</span> Gerar Ficha de Produção
+                            </button>
+                        </div>
+
                         <div className="flex flex-col gap-4 mt-2">
                             <div className="flex gap-4">
                                 <button onClick={handleSaveContract} className="flex-1 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white font-black py-4 rounded-lg shadow-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2">
@@ -1657,6 +2015,7 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                         landings={landings}
                         stairDirection={stairDirection}
                         wallFixation={wallFixation}
+                        cutStepType={cutStepType}
                         treadMaterial={treadMaterial}
                         woodType={treadMaterial === 'wood' ? woodType : undefined}
                         address={`${street}, ${number} - ${neighborhood}, ${city} - ${state}, ${zip}`}
@@ -1708,7 +2067,7 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                 label="Texto do Prazo de Entrega (Deixe vazio para usar a data calculada)" 
                                 value={deliveryText} 
                                 onChange={(e: any) => setDeliveryText(e.target.value)} 
-                                placeholder="Ex: Deve ser feita em até 20 dias úteis após o pagamento do sinal"
+                                placeholder="Ex: Deve ser feita em até 30 dias úteis após o pagamento do sinal"
                             />
                         </div>
                     </div>

@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import emailjs from '@emailjs/browser';
+
 import { LandingInfo } from '../types';
 import { generateTechnicalDataText, generateMaterialDataText, generateUnifiedTechnicalPDF } from '../utils/technicalPdfGenerator';
 
@@ -14,6 +14,7 @@ interface TechnicalBudgetProps {
   landings: LandingInfo[];
   stairDirection?: 'standard' | 'mirrored';
   wallFixation?: 'left' | 'right' | 'frontal';
+  cutStepType: 'left' | 'right' | 'hollow_left' | 'hollow_right';
   treadMaterial?: 'metal' | 'wood' | 'chapa_xadrez' | 'chapa_vazada';
   woodType?: 'garapeira' | 'muiracatiara' | 'ambas';
   address?: string;
@@ -32,6 +33,7 @@ export const TechnicalBudget: React.FC<TechnicalBudgetProps> = (props) => {
     landings,
     stairDirection,
     wallFixation,
+    cutStepType,
     treadMaterial,
     address,
     zip,
@@ -68,36 +70,27 @@ export const TechnicalBudget: React.FC<TechnicalBudgetProps> = (props) => {
 
     const technicalData = generateTechnicalData();
 
-    // DADOS DO EMAILJS
-    const SERVICE_ID = 'service_et2wtl7'; 
-    const TEMPLATE_ID: string = 'COLE_SEU_NOVO_TEMPLATE_ID_AQUI'; 
-    const PUBLIC_KEY = 'pNnojqJb7tjg3sjYV';
-
-    if (TEMPLATE_ID === 'COLE_SEU_NOVO_TEMPLATE_ID_AQUI' || TEMPLATE_ID.includes('test-mail')) {
-        setErrorDetails("Configuração de Email pendente. Use o botão de PDF acima.");
-        setStatus('error');
-        setIsSending(false);
-        return;
-    }
-
     try {
-      await emailjs.send(SERVICE_ID, TEMPLATE_ID, { 
-           to_email: email,
-           message: technicalData,
-           from_name: "Zilinski Sistema",
-           reply_to: email
-        }, PUBLIC_KEY);
+      const response = await fetch('/api/email', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+              email: email,
+              message: technicalData
+          })
+      });
+
+      if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || "Erro ao enviar e-mail pelo servidor.");
+      }
       
       setStatus('success');
     } catch (error: any) {
       console.error('Erro ao enviar e-mail:', error);
-      let msg = "Erro desconhecido.";
-      if (error && typeof error === 'object') {
-          if (error.text) msg = error.text;
-          else if (error.message) msg = error.message;
-          else msg = JSON.stringify(error);
-      }
-      setErrorDetails(msg);
+      setErrorDetails(error.message || "Erro desconhecido.");
       setStatus('error');
     } finally {
       setIsSending(false);

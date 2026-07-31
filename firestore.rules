@@ -19,11 +19,7 @@ service cloud.firestore {
     }
 
     function isAllowedUser() {
-      return isAuthenticated() && (
-        request.auth.token.email == 'gaguisilva15@gmail.com' ||
-        request.auth.token.email == 'zilinskidistribuidora@gmail.com' ||
-        request.auth.token.email == 'somarcilioz@gmail.com'
-      );
+      return isAuthenticated() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
 
     // ===============================================================

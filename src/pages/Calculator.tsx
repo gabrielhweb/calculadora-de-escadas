@@ -16,7 +16,7 @@ function Calculator() {
   const [tollCost, setTollCost] = useState(0);
   const [isInstallationIncluded, setIsInstallationIncluded] = useState(true);
   const [installationCost, setInstallationCost] = useState(310);
-  const [deliveryDays, setDeliveryDays] = useState(20);
+  const [deliveryDays, setDeliveryDays] = useState(30);
   const [freightMode, setFreightMode] = useState<'auto' | 'manual' | 'fixed' | 'transportadora'>('auto');
   const [isSaving, setIsSaving] = useState(false);
 

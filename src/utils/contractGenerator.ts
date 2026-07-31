@@ -150,67 +150,26 @@ export const generateContractPDF = (data: ContractData) => {
   const tread = data.selectedOption.treadDepth.toFixed(2);
   
   // LÓGICA DE FIXAÇÃO E DESENHO
-  let fixationText = "";
-  if (data.inputData.stairGeometry === 'hide') {
-      fixationText = ""; 
-  } else if (data.inputData.stairGeometry && data.inputData.stairGeometry.includes('Fixação')) {
-      fixationText = data.inputData.stairGeometry; 
+  // A pedido do usuário, alguns textos como 'Fixação na Parede DIREITA', '80cm' de corrimão, 'MADEIRA (GARAPEIRA OU MUIRACATIARA)' 
+  // e '4 amortecedores' estão estáticos por enquanto para seguir um novo padrão de produto.
+  
+  let treadMaterialStr = 'MADEIRA (GARAPEIRA OU MUIRACATIARA)';
+  const mat = data.inputData.treadMaterial;
+  if (mat === 'metal') treadMaterialStr = 'METAL';
+  else if (mat === 'chapa_xadrez') treadMaterialStr = 'CHAPA XADREZ';
+  else if (mat === 'chapa_vazada') treadMaterialStr = 'CHAPA VAZADA';
+
+  let objText = '';
+  let stepsText = '';
+  if (data.inputData.isFixedStair) {
+      objText = `Escada fixa em aço carbono, sem fixação na parede, com degraus fixos, com medidas de: ${alturaM}m de altura, ${compM}m de comprimento, ${widthM}m de largura e com corrimão de 80cm.`;
+      stepsText = `- Com ${data.selectedOption.structureSteps} degraus com dimensões de ${stepH}cm de altura e pisante de ${treadMaterialStr} de ${tread}cm.`;
   } else {
-      if (data.inputData.wallFixation === 'frontal') {
-          fixationText = "Fixação FRONTAL";
-      } else {
-          fixationText = data.inputData.wallFixation === 'left' 
-              ? "Fixação na Parede ESQUERDA" 
-              : "Fixação na Parede DIREITA";
-      }
+      objText = `Escada articulada lateral em aço carbono com corte à laser, Fixação na Parede DIREITA, com medidas de: ${alturaM}m de altura, ${compM}m de comprimento, ${widthM}m de largura e com corrimão de 80cm.`;
+      stepsText = `-Com ${data.selectedOption.structureSteps} degraus articulados com dimensões de ${stepH}cm de altura e pisante de ${treadMaterialStr} de ${tread}cm com 4 amortecedores de alívio.`;
   }
-
-  // Geometria (L / U)
-  const geometryText = (data.inputData.stairGeometry && !data.inputData.stairGeometry.includes('Fixação') && data.inputData.stairGeometry !== 'hide')
-    ? `, modelo ${data.inputData.stairGeometry}` 
-    : "";
-
-  // --- LÓGICA DE RODINHAS ---
-  let baseDescription = `Escada articulada lateral em aço carbono`;
-  let handrailText = "e com corrimão de 70cm";
-  let dampersText = ` com ${data.inputData.dampers} amortecedores de alívio.`;
-
-  if (data.inputData.hasWheels) {
-      baseDescription = `Escada articulada com rodinhas em aço carbono`;
-      dampersText = "."; // Remove amortecedores
-      
-      const sideMap: Record<string, string> = { 
-          left: 'apenas no lado esquerdo', 
-          right: 'apenas no lado direito', 
-          both: 'nos dois lados' 
-      };
-      const sideText = sideMap[data.inputData.handrailSide || 'both'] || 'nos dois lados';
-      handrailText = `e com corrimão articulado ${sideText}`;
-  }
-
-  // Constrói objeto com formatação correta de vírgulas
-  let objText = `${baseDescription} com corte à laser`;
-  if (fixationText) objText += `, ${fixationText}`;
-  if (geometryText) objText += `${geometryText}`;
-  objText += `, com medidas de: ${alturaM}m de altura, ${compM}m de comprimento, ${widthM}m de largura ${handrailText}.`;
   
   addText(objText, 11, false, 'left');
-  
-  let materialText = 'de METAL';
-  if (data.inputData.treadMaterial === 'wood' || (data.inputData.treadMaterial as string) === 'Madeira') {
-      if (data.inputData.woodType === 'garapeira') {
-          materialText = 'de MADEIRA (GARAPEIRA)';
-      } else if (data.inputData.woodType === 'muiracatiara') {
-          materialText = 'de MADEIRA (MUIRACATIARA)';
-      } else {
-          materialText = 'de MADEIRA (GARAPEIRA OU MUIRACATIARA)';
-      }
-  } else if (data.inputData.treadMaterial === 'chapa_xadrez') {
-      materialText = 'de CHAPA XADREZ';
-  } else if (data.inputData.treadMaterial === 'chapa_vazada') {
-      materialText = 'de CHAPA VAZADA';
-  }
-  let stepsText = `-Com ${data.selectedOption.structureSteps} degraus articulados com dimensões de ${stepH}cm de altura e pisante ${materialText} de ${tread}cm${dampersText}`;
   addText(stepsText, 11, false, 'left');
 
   // Adiciona a nota de exclusão se houver porta configurada nos desenhos
@@ -222,7 +181,8 @@ export const generateContractPDF = (data: ContractData) => {
   if (data.selectedOption.landings && data.selectedOption.landings.length > 0) {
       data.selectedOption.landings.forEach((landing, idx) => {
           if (!landing) return;
-          const typeText = landing.type === 'fixed' ? 'FIXO' : 'ARTICULADO';
+          const baseTypeText = landing.type === 'fixed' ? 'FIXO' : 'ARTICULADO';
+          const typeText = landing.isAngled ? `EM ÂNGULO ${baseTypeText}` : baseTypeText;
           
           let dirText = 'RETO';
           if (landing.direction === 'left') dirText = 'Curva à ESQUERDA';
@@ -237,6 +197,10 @@ export const generateContractPDF = (data: ContractData) => {
           
           addText(`-Patamar ${idx+1} (${typeText} - ${dirText})${bracketText}: Medidas ${lM}m x ${wM}m`, 11, false, 'left');
       });
+      const totalMaoFrancesa = data.selectedOption.landings.reduce((sum, l) => sum + (l.frenchBrackets || 0), 0);
+      if (totalMaoFrancesa > 0) {
+          addText(`-Quantidade de Mão Francesa: ${totalMaoFrancesa}`, 11, false, 'left');
+      }
   }
 
   // --- PRECIFICAÇÃO SEPARADA (ESCADA vs PATAMARES) ---
@@ -302,6 +266,7 @@ export const generateContractPDF = (data: ContractData) => {
   addText('3.5 É responsabilidade do(a) comprador(a) garantir que a parede e/ou estrutura onde será realizada a instalação esteja com prumo e esquadro adequados para a correta fixação e funcionamento da escada.', 11, false, 'justify');
   addText('3.6 O(a) comprador(a) deverá informar previamente a existência de canos, eletrodutos, fiações ou qualquer item embutido no local onde serão realizadas as perfurações e fixações.', 11, false, 'justify');
   addText('3.7 Caso sejam necessários ajustes técnicos adicionais durante a instalação em razão das condições da parede ou estrutura do local, poderá haver acréscimo referente aos materiais e serviços complementares necessários.', 11, false, 'justify');
+  addText('3.8 Este contrato terá validade de 15 (quinze) dias corridos, contados da data de seu envio ao(à) comprador(a). Caso não haja o pagamento inicial dentro desse período, será necessária a emissão de um novo contrato, podendo haver atualização dos valores, prazos e demais condições.', 11, false, 'justify');
   currentY += 5;
 
   const freightModeStr = String(data.inputData?.logistics?.freightMode || '').toLowerCase().trim();
@@ -309,7 +274,7 @@ export const generateContractPDF = (data: ContractData) => {
 
   addText('4. DO PRAZO DE ENTREGA', 11, true, 'left');
   
-  const days = data.deliveryDays !== undefined ? data.deliveryDays : 20;
+  const days = data.deliveryDays !== undefined ? data.deliveryDays : 30;
   
   const numberToWords = (num: number): string => {
       const units = ['zero', 'um', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove'];
@@ -342,8 +307,8 @@ export const generateContractPDF = (data: ContractData) => {
   
   if (!isTransportadora) {
       clause('Da extensão do prazo de entrega/instalação por solicitação do comprador(a): Caso o(a) comprador(a), após o pagamento inicial de 50% do valor total, solicite a extensão do prazo de entrega, envio ou instalação para data posterior à prevista neste contrato, a contratada poderá realizar o reagendamento conforme disponibilidade de agenda.');
-      clause('O(a) comprador(a) terá o prazo máximo de 06 (seis) meses, contados da data inicialmente prevista para entrega, para definir e agendar a nova data.');
-      clause('Não havendo agendamento dentro do prazo de 06 (seis) meses, ficará automaticamente devido o pagamento do saldo final de 50%, independentemente da efetiva entrega ou instalação naquele momento, permanecendo a escada reservada ao comprador(a).');
+      clause('O(a) comprador(a) terá o prazo máximo de 03 (três) meses, contados da data inicialmente prevista para entrega, para definir e agendar a nova data.');
+      clause('Não havendo agendamento dentro do prazo de 03 (três) meses, ficará automaticamente devido o pagamento do saldo final de 50%, independentemente da efetiva entrega ou instalação naquele momento, permanecendo a escada reservada ao comprador(a).');
       clause('Caso o(a) comprador(a) solicite a entrega ou instalação após esse período, a contratada poderá cobrar valores adicionais referentes a frete, instalação, deslocamento, armazenagem, reajuste de materiais e demais custos operacionais vigentes na data do novo agendamento.');
       clause('A escada permanecerá vinculada ao comprador(a), sendo a entrega e/ou instalação realizada mediante quitação integral dos valores pendentes e adicionais eventualmente aplicáveis.');
   }
@@ -367,7 +332,7 @@ export const generateContractPDF = (data: ContractData) => {
       ? `menos ${discountP.toFixed(2).replace('.00', '')}% de desconto`
       : `menos desconto de ${formatCurrencyBRL(discountVal)}`;
 
-  if (isTransportadora && data.paymentMethod === 'hybrid') {
+  if (isTransportadora && (data.paymentMethod === 'hybrid' || data.paymentMethod === 'pix')) {
       if (discountVal > 0) {
           addText(`Total: ${formatCurrencyBRL(totalGeral)} ${discountText} = ${formatCurrencyBRL(totalComDesconto)}`, 11, false, 'left');
       } else {
@@ -379,7 +344,7 @@ export const generateContractPDF = (data: ContractData) => {
       const valorRestante = totalComDesconto - valorSinal;
       const percentRestante = 100 - signalP;
       
-      addText(`Sendo pago ${signalP}% de entrada (${formatCurrencyBRL(valorSinal)}) via PIX de sinal no fechamento e ${percentRestante}% (${formatCurrencyBRL(valorRestante)}) via PIX na emissão da nota.`, 11, false, 'justify');
+      addText(`Sendo pago: ${formatCurrencyBRL(valorSinal)} via PIX a título de sinal e ${formatCurrencyBRL(valorRestante)} restantes a serem pagos após a emissão da nota fiscal e no dia do envio do produto à transportadora, para liberação do despacho.`, 11, false, 'justify');
       
       currentY += 2;
       addText(`Chave PIX (CNPJ): 28.869.537/0001-01`, 11, true, 'left');
@@ -439,27 +404,30 @@ export const generateContractPDF = (data: ContractData) => {
           }
 
           if (isPixOnDelivery) {
-              // Cartão é o sinal
-              if (totalNoCartao > restanteBase + 1) {
+              const printInterestText = totalNoCartao > restanteBase + 1 && !data.userData?.hideInterestLabel;
+              const finalAmount = (totalNoCartao > restanteBase + 1) ? totalNoCartao : restanteBase;
+              
+              if (printInterestText) {
                   addText(`Sendo pago ${formatCurrencyBRL(restanteBase)} mais juros totalizando ${formatCurrencyBRL(totalNoCartao)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}.`, 11, false, 'justify');
               } else {
-                  addText(`Sendo pago ${formatCurrencyBRL(restanteBase)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}.`, 11, false, 'justify');
+                  addText(`Sendo pago ${formatCurrencyBRL(finalAmount)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}.`, 11, false, 'justify');
               }
               addText(`E o restante de ${formatCurrencyBRL(valorPixFinal)} ${timingText}.`, 11, false, 'left');
           } else {
-              // PIX é o sinal
               addText(`Sendo pago ${formatCurrencyBRL(valorPixFinal)} ${timingText}.`, 11, false, 'left');
-              if (totalNoCartao > restanteBase + 1) {
+              const printInterestText = totalNoCartao > restanteBase + 1 && !data.userData?.hideInterestLabel;
+              const finalAmount = (totalNoCartao > restanteBase + 1) ? totalNoCartao : restanteBase;
+              
+              if (printInterestText) {
                   addText(`E o restante de ${formatCurrencyBRL(restanteBase)} mais juros totalizando ${formatCurrencyBRL(totalNoCartao)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}`, 11, false, 'justify');
               } else {
-                  addText(`E o restante de ${formatCurrencyBRL(restanteBase)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}`, 11, false, 'justify');
+                  addText(`E o restante de ${formatCurrencyBRL(finalAmount)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}`, 11, false, 'justify');
               }
           }
           currentY += 2;
           addText(`Chave PIX (CNPJ): 28.869.537/0001-01`, 11, true, 'left');
 
       } else {
-          // CARTÃO PURO
           const installments = data.paymentDetails.installments || 1;
           const installmentValue = data.paymentDetails.installmentValue || 0;
           const totalCartao = installmentValue * installments;
@@ -470,17 +438,25 @@ export const generateContractPDF = (data: ContractData) => {
               addText(`Total R$ ${formatCurrencyBRL(totalGeral)}`, 11, false, 'left');
           }
 
-          if (totalCartao > totalComDesconto + 1) {
+          const printInterestText = totalCartao > totalComDesconto + 1 && !data.userData?.hideInterestLabel;
+          const finalAmount = (totalCartao > totalComDesconto + 1) ? totalCartao : totalComDesconto;
+          
+          if (printInterestText) {
               addText(`Sendo pago o total de ${formatCurrencyBRL(totalComDesconto)} mais juros totalizando ${formatCurrencyBRL(totalCartao)} via Link de Pagamento (Cartão de Crédito) em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}`, 11, false, 'justify');
           } else {
-              addText(`Sendo pago o total de ${formatCurrencyBRL(totalComDesconto)} via Link de Pagamento (Cartão de Crédito) em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}`, 11, false, 'justify');
+              addText(`Sendo pago o total de ${formatCurrencyBRL(finalAmount)} via Link de Pagamento (Cartão de Crédito) em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}`, 11, false, 'justify');
           }
       }
 
       addText('.', 11, false, 'left');
       currentY += 5;
 
-      addText('6.2 Caso o pagamento da parcela final não seja realizado em até 2 (dois) dias corridos após a entrega, será aplicada multa de 4% sobre o valor em aberto, além de juros de 1% ao mês até a regularização.', 11, false, 'justify');
+      const isPix5050 = data.paymentMethod === 'pix' && (data.paymentDetails.signalPercent === 50 || !data.paymentDetails.signalPercent);
+      if (isPix5050) {
+          addText('6.2 O pagamento da parcela final deverá ser realizado no dia da entrega. Caso não seja efetuado nessa data, será aplicada multa de 4% sobre o valor em aberto, além de juros de 1% ao mês, calculados até a efetiva regularização do pagamento.', 11, false, 'justify');
+      } else {
+          addText('6.2 Caso o pagamento da parcela final não seja realizado em até 2 (dois) dias corridos após a entrega, será aplicada multa de 4% sobre o valor em aberto, além de juros de 1% ao mês até a regularização.', 11, false, 'justify');
+      }
   }
   
   currentY += 10;

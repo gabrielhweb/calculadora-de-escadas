@@ -80,10 +80,10 @@ export function generateCustomReceiptPDF(data: CustomReceiptData) {
         quitacaoText = ', dando-se assim a **quitação total** do valor acordado.';
     }
 
-    // 1. ZILINSKI DISTRIBUIDORA header (bold italic)
+    // 1. ZILINSKI ESCADAS header (bold italic)
     doc.setFont('helvetica', 'bolditalic');
     doc.setFontSize(14);
-    doc.text('ZILINSKI DISTRIBUIDORA', 105, yPos, { align: 'center' });
+    doc.text('ZILINSKI ESCADAS', 105, yPos, { align: 'center' });
     yPos += 10;
 
     // 2. CNPJ
