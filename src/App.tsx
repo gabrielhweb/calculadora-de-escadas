@@ -10,6 +10,7 @@ import VisitReceipt from './pages/VisitReceipt';
 import InstallationReceipt from './pages/InstallationReceipt';
 import CustomPaymentReceipt from './pages/CustomPaymentReceipt';
 import Carriers from './pages/Carriers';
+import { DeliveriesTable } from './pages/DeliveriesTable';
 import { AuthProvider } from './components/AuthProvider';
 import { useEffect } from 'react';
 import { getDocFromServer, doc } from 'firebase/firestore';
@@ -43,6 +44,7 @@ function App() {
             <Route path="recibo-instalacao" element={<InstallationReceipt />} />
             <Route path="recibo-visita" element={<VisitReceipt />} />
             <Route path="transportadoras" element={<Carriers />} />
+            <Route path="tabela-entregas" element={<DeliveriesTable />} />
           </Route>
         </Routes>
       </BrowserRouter>
