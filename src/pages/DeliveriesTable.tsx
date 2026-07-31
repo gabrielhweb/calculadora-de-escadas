@@ -135,9 +135,6 @@ export const DeliveriesTable: React.FC = () => {
         if (!parsedData || !parsedData.inputData) return '';
         const { inputData, selectedOption } = parsedData;
         let att = [];
-        
-        if (inputData.handrailSide === 'both') att.push('CORRIMÃO DOS DOIS LADOS');
-        
         if (selectedOption?.landings && selectedOption.landings.length > 0) {
             const hasArticulated = selectedOption.landings.some((l:any) => l.type === 'articulated');
             if (hasArticulated) att.push('PATAMAR RETRÁTIL');
