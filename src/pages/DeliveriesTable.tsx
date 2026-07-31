@@ -82,7 +82,21 @@ export const DeliveriesTable: React.FC = () => {
         const height = selectedOption?.stepHeight || (inputData.totalHeight / inputData.desiredSteps).toFixed(2);
         const width = selectedOption?.stairWidth || inputData.stairWidth;
         
-        let med = `${steps} DEGRAUS\n`;
+        let fixationText = "";
+        if (inputData.stairGeometry === 'hide') {
+            fixationText = "SEM FIXAÇÃO";
+        } else if (inputData.stairGeometry && inputData.stairGeometry.includes('Fixação')) {
+            fixationText = inputData.stairGeometry;
+        } else if (inputData.wallFixation === 'frontal') {
+            fixationText = "Fixação FRONTAL";
+        } else if (inputData.wallFixation === 'left') {
+            fixationText = "Fixação na Parede ESQUERDA";
+        } else if (inputData.wallFixation === 'right') {
+            fixationText = "Fixação na Parede DIREITA";
+        }
+        
+        let med = fixationText ? `${fixationText}\n` : '';
+        med += `${steps} DEGRAUS\n`;
         med += `PISADA: ${tread}cm\n`;
         med += `ALT: ${height}cm\n`;
         med += `LARGURA: ${width}cm\n`;
@@ -98,7 +112,7 @@ export const DeliveriesTable: React.FC = () => {
         } else if (inputData.treadMaterial === 'chapa_vazada') {
             med += `MATERIAL: CHAPA VAZADA\n`;
         } else if (inputData.treadMaterial === 'metal') {
-            med += `MATERIAL: METALON\n`;
+            med += `MATERIAL: AÇO CARBONO\n`;
         }
 
         if (selectedOption?.landings && selectedOption.landings.length > 0) {
