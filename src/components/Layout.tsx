@@ -46,8 +46,8 @@ const Layout: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-primary dark:bg-gray-900 text-gray-800 dark:text-gray-100 font-sans transition-colors duration-200">
       <nav className="bg-secondary dark:bg-gray-800 shadow-md sticky top-0 z-50 border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-24 items-center">
+        <div className="max-w-[1800px] w-full mx-auto px-2 sm:px-4 lg:px-8">
+          <div className="flex justify-between min-h-[6rem] py-2 items-center flex-wrap gap-4">
             <div className="flex-shrink-0 flex items-center">
               <Link to="/" className="flex items-center gap-4 group">
                 
@@ -75,7 +75,7 @@ const Layout: React.FC = () => {
               </Link>
             </div>
             <div className="flex items-center space-x-4 md:space-x-8">
-              <div className="hidden md:flex space-x-8 h-full">
+              <div className="hidden md:flex flex-wrap items-center justify-end gap-x-2 xl:gap-x-6 gap-y-2 h-full">
                 <Link 
                   to="/" 
                   className={`${isActive('/') ? 'text-highlight font-bold border-b-4 border-highlight' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'} px-2 pt-1 text-sm uppercase tracking-wide transition-all duration-200 h-full flex items-center font-bold`}
