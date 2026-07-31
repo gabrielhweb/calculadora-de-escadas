@@ -87,12 +87,33 @@ export const DeliveriesTable: React.FC = () => {
         med += `ALT: ${height}cm\n`;
         med += `LARGURA: ${width}cm\n`;
 
+        if (inputData.treadMaterial === 'wood') {
+            let wood = 'MADEIRA';
+            if (inputData.woodType === 'garapeira') wood += ' (GARAPEIRA)';
+            if (inputData.woodType === 'muiracatiara') wood += ' (MUIRACATIARA)';
+            if (inputData.woodType === 'ambas') wood += ' (GARAPEIRA/MUIRACATIARA)';
+            med += `MATERIAL: ${wood}\n`;
+        } else if (inputData.treadMaterial === 'chapa_xadrez') {
+            med += `MATERIAL: CHAPA XADREZ\n`;
+        } else if (inputData.treadMaterial === 'chapa_vazada') {
+            med += `MATERIAL: CHAPA VAZADA\n`;
+        } else if (inputData.treadMaterial === 'metal') {
+            med += `MATERIAL: METALON\n`;
+        }
+
         if (selectedOption?.landings && selectedOption.landings.length > 0) {
             selectedOption.landings.forEach((l: any, idx: number) => {
                 const type = l.type === 'articulated' ? 'ARTICULADO' : 'FIXO';
-                med += `Patamar ${idx + 1} (${type}): ${l.length}cm x ${l.width}cm\n`;
+                med += `PATAMAR ${idx + 1} (${type}): ${l.length}cm x ${l.width}cm\n`;
             });
         }
+        
+        if (inputData.optionalItems && inputData.optionalItems.length > 0) {
+            inputData.optionalItems.forEach((opt: any) => {
+                med += `EXTRA: ${opt.name}\n`;
+            });
+        }
+        
         return med;
     };
 
@@ -101,9 +122,6 @@ export const DeliveriesTable: React.FC = () => {
         const { inputData, selectedOption } = parsedData;
         let att = [];
         
-        if (inputData.treadMaterial === 'chapa_xadrez') att.push('CHAPA XADREZ');
-        if (inputData.treadMaterial === 'metal') att.push('METALON (PARA FORA?)');
-        if (inputData.treadMaterial === 'wood') att.push('MADEIRA');
         if (inputData.hasCorrimao) att.push('COM CORRIMÃO');
         
         if (selectedOption?.landings && selectedOption.landings.length > 0) {
