@@ -136,7 +136,7 @@ export const DeliveriesTable: React.FC = () => {
         const { inputData, selectedOption } = parsedData;
         let att = [];
         
-        if (inputData.hasCorrimao) att.push('COM CORRIMÃO');
+        if (inputData.handrailSide === 'both') att.push('CORRIMÃO DOS DOIS LADOS');
         
         if (selectedOption?.landings && selectedOption.landings.length > 0) {
             const hasArticulated = selectedOption.landings.some((l:any) => l.type === 'articulated');
