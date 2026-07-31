@@ -120,13 +120,14 @@ export const DeliveriesTable: React.FC = () => {
     };
 
     const getDefaultHinges = (parsedData: any) => {
-        if (!parsedData || !parsedData.selectedOption) return '';
-        const landings = parsedData.selectedOption.landings || [];
-        const articulatedCount = landings.filter((l:any) => l.type === 'articulated').length;
-        if (articulatedCount > 0) {
-            return `Sugerido: ${articulatedCount * 2}`;
-        }
-        return '';
+        if (!parsedData || !parsedData.inputData) return '';
+        const { inputData, selectedOption } = parsedData;
+        const numSteps = selectedOption?.steps || inputData.desiredSteps;
+        const treadDepthCm = selectedOption?.treadDepth || inputData.treadDepth;
+        
+        if (!numSteps || !treadDepthCm) return '';
+        const hingesPerStep = treadDepthCm < 16 ? 2 : 4;
+        return `${hingesPerStep * numSteps} dobradiças`;
     };
 
     const formatDate = (dateString: any) => {
@@ -142,13 +143,13 @@ export const DeliveriesTable: React.FC = () => {
     };
 
     const formatDeliveryDate = (dateString?: string) => {
-        if (!dateString) return 'Selecionar Data';
+        if (!dateString) return <span className="print-hidden text-gray-500 italic font-normal">Selecionar Data</span>;
         try {
             const date = parseISO(dateString);
             const formatted = formatTZ(date, "dd/MM/yyyy (EEEE)", { locale: ptBR, timeZone: 'UTC' });
-            return formatted;
+            return <span>{formatted}</span>;
         } catch (e) {
-            return dateString;
+            return <span>{dateString}</span>;
         }
     };
 
@@ -303,12 +304,23 @@ export const DeliveriesTable: React.FC = () => {
                                                     <div className={`date-display px-2 py-1 rounded transition-colors text-center ${dateColor}`}>
                                                         {formatDeliveryDate(contract.deliveryDate)}
                                                     </div>
-                                                    <input 
-                                                        type="date" 
-                                                        className="print-hidden border border-gray-300 rounded px-1 py-1 text-xs text-gray-700 bg-white w-full cursor-pointer"
-                                                        value={contract.deliveryDate || ''}
-                                                        onChange={(e) => handleUpdateContract(contract.id, 'deliveryDate', e.target.value)}
-                                                    />
+                                                    <div className="flex items-center gap-1 print-hidden w-full">
+                                                        <input 
+                                                            type="date" 
+                                                            className="border border-gray-300 rounded px-1 py-1 text-xs text-gray-700 bg-white flex-1 cursor-pointer"
+                                                            value={contract.deliveryDate || ''}
+                                                            onChange={(e) => handleUpdateContract(contract.id, 'deliveryDate', e.target.value)}
+                                                        />
+                                                        {contract.deliveryDate && (
+                                                            <button 
+                                                                onClick={() => handleUpdateContract(contract.id, 'deliveryDate', '')}
+                                                                className="text-red-500 hover:bg-red-50 p-1 rounded transition-colors flex-shrink-0"
+                                                                title="Remover data"
+                                                            >
+                                                                🗑️
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </td>
                                             <td className="p-2 align-top text-sm font-bold text-center">
