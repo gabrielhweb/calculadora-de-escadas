@@ -32,7 +32,7 @@ export const DeliveriesTable: React.FC = () => {
                     if (typeof date.toDate === 'function') return date.toDate().getTime();
                     return new Date(date).getTime() || 0;
                 };
-                return getTime(b.createdAt) - getTime(a.createdAt);
+                return getTime(a.createdAt) - getTime(b.createdAt);
             });
             setContracts(loadedContracts);
             setLoading(false);

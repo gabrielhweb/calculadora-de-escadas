@@ -52,12 +52,12 @@ Quando o botão "Imprimir Tabela" é acionado, as seguintes propriedades CSS for
 
 ## 5. Histórico de Atualizações Recentes (Log)
 **Sincronização com Pipeline:**
-- A ordem de classificação da Tabela de Entregas foi revertida para seguir a ordem exata da aba "Meus Contratos" (do mais recente ao mais antigo).
+- A ordem de classificação da Tabela de Entregas foi atualizada para exibir os contratos mais antigos primeiro (baseado na data de criação do contrato/número), ficando os mais novos no final.
 - A Data de Entrega escolhida na tabela agora aparece impressa em laranja no cartão do cliente na aba "Meus Contratos".
 
 **Refinamento de Dados:**
 - **Medidas:** O campo foi aprimorado e agora puxa automaticamente o local de fixação na parede (ex: "Fixação na Parede DIREITA"). O material "Metalon" foi alterado profissionalmente para "AÇO CARBONO". Além disso, todos os Itens Extras agora aparecem listados no final da coluna.
-- **Atenção:** O aviso padrão de "COM CORRIMÃO" foi removido (já que é o padrão). Ele só será avisado se for selecionado "CORRIMÃO DOS DOIS LADOS". O tipo de material foi movido para a aba de Medidas.
+- **Atenção:** A verificação automática de corrimão foi totalmente removida a pedido. Se o cliente tiver corrimão dos dois lados, a anotação deverá ser feita manualmente pelo time. O tipo de material foi movido para a aba de Medidas.
 - **Dobradiças:** O cálculo agora utiliza a mesma matemática da ficha de produção técnica do PDF.
 
 *Última atualização: Julho de 2026 - Antigravity AI*
