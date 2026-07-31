@@ -127,6 +127,7 @@ export interface SavedContract {
   deliveryDate?: string;
   deliveryNotes?: string;
   hingesQty?: string;
+  measurementsNotes?: string;
 }
 
 export interface ProductionOrder {

@@ -286,7 +286,7 @@ export const DeliveriesTable: React.FC = () => {
                                     
                                     const attention = contract.deliveryNotes !== undefined ? contract.deliveryNotes : getDefaultAttention(data);
                                     const hinges = contract.hingesQty !== undefined ? contract.hingesQty : getDefaultHinges(data);
-                                    const measurements = getMeasurements(data);
+                                    const measurements = contract.measurementsNotes !== undefined ? contract.measurementsNotes : getMeasurements(data);
                                     
                                     const dateColor = getDateColorClass(contract.deliveryDate);
                                     
@@ -304,13 +304,13 @@ export const DeliveriesTable: React.FC = () => {
                                                 </div>
                                             </td>
                                             <td className="p-2 align-top text-sm font-semibold">
-                                                <div className="date-picker-wrapper">
-                                                    <div className={`date-display px-3 py-2 rounded border border-transparent transition-colors ${dateColor}`}>
+                                                <div className="flex flex-col gap-1">
+                                                    <div className={`date-display px-2 py-1 rounded transition-colors text-center ${dateColor}`}>
                                                         {formatDeliveryDate(contract.deliveryDate)}
                                                     </div>
                                                     <input 
                                                         type="date" 
-                                                        className="print-hidden"
+                                                        className="print-hidden border border-gray-300 rounded px-1 py-1 text-xs text-gray-700 bg-white w-full cursor-pointer"
                                                         value={contract.deliveryDate || ''}
                                                         onChange={(e) => handleUpdateContract(contract.id, 'deliveryDate', e.target.value)}
                                                     />
@@ -345,7 +345,16 @@ export const DeliveriesTable: React.FC = () => {
                                                 </div>
                                             </td>
                                             <td className="p-2 align-top text-xs font-mono">
-                                                <div className="px-2 py-1 whitespace-pre-wrap">
+                                                <div 
+                                                    className="editable-cell px-2 py-1 whitespace-pre-wrap"
+                                                    contentEditable 
+                                                    suppressContentEditableWarning
+                                                    onBlur={(e) => {
+                                                        if (e.target.innerText !== measurements) {
+                                                            handleUpdateContract(contract.id, 'measurementsNotes', e.target.innerText);
+                                                        }
+                                                    }}
+                                                >
                                                     {measurements}
                                                 </div>
                                             </td>
