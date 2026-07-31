@@ -391,6 +391,11 @@ export const ContractsList: React.FC = () => {
                                             return 'Data inválida';
                                         }
                                     })()}</p>
+                                    {contract.deliveryDate && (
+                                        <p className="text-orange-600 dark:text-orange-400 font-semibold mt-1">
+                                            Entrega: {contract.deliveryDate.split('-').reverse().join('/')}
+                                        </p>
+                                    )}
                                     <p className="font-semibold text-highlight mt-1">{formatCurrencyBRL(contract.totalValue)}</p>
                                 </div>
 

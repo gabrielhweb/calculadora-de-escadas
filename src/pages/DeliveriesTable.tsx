@@ -27,17 +27,12 @@ export const DeliveriesTable: React.FC = () => {
             });
             // Ordenar pela data de entrega, depois pela data de criação
             loadedContracts.sort((a, b) => {
-                if (a.deliveryDate && !b.deliveryDate) return -1;
-                if (!a.deliveryDate && b.deliveryDate) return 1;
-                if (a.deliveryDate && b.deliveryDate) {
-                    return a.deliveryDate.localeCompare(b.deliveryDate);
-                }
                 const getTime = (date: any) => {
                     if (!date) return 0;
                     if (typeof date.toDate === 'function') return date.toDate().getTime();
                     return new Date(date).getTime() || 0;
                 };
-                return getTime(a.createdAt) - getTime(b.createdAt);
+                return getTime(b.createdAt) - getTime(a.createdAt);
             });
             setContracts(loadedContracts);
             setLoading(false);
