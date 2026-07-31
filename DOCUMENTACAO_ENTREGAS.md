@@ -52,7 +52,9 @@ Quando o botão "Imprimir Tabela" é acionado, as seguintes propriedades CSS for
 
 ## 5. Histórico de Atualizações Recentes (Log)
 **Sincronização com Pipeline:**
-- A ordem de classificação da Tabela de Entregas foi atualizada para exibir os contratos mais antigos primeiro (baseado na data de criação do contrato/número), ficando os mais novos no final.
+- A ordem de classificação da Tabela de Entregas foi atualizada com um sistema inteligente de duas etapas:
+  1. Contratos **com data de entrega** ficam no topo, ordenados do mais próximo para o mais distante.
+  2. Contratos **sem data de entrega** ficam em baixo, ordenados do contrato mais antigo para o mais novo.
 - A Data de Entrega escolhida na tabela agora aparece impressa em laranja no cartão do cliente na aba "Meus Contratos".
 
 **Refinamento de Dados:**

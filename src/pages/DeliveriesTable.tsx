@@ -25,14 +25,19 @@ export const DeliveriesTable: React.FC = () => {
             snapshot.forEach((d) => {
                 loadedContracts.push({ id: d.id, ...d.data() } as SavedContract);
             });
-            // Ordenar pela data de entrega, depois pela data de criação
+            // Ordenar pela data de entrega, depois pela data de criação (mais antigos primeiro)
             loadedContracts.sort((a, b) => {
+                if (a.deliveryDate && !b.deliveryDate) return -1; // Com data vai pro topo
+                if (!a.deliveryDate && b.deliveryDate) return 1;  // Sem data vai pro final
+                if (a.deliveryDate && b.deliveryDate) {
+                    return a.deliveryDate.localeCompare(b.deliveryDate); // Mais próximos primeiro
+                }
                 const getTime = (date: any) => {
                     if (!date) return 0;
                     if (typeof date.toDate === 'function') return date.toDate().getTime();
                     return new Date(date).getTime() || 0;
                 };
-                return getTime(a.createdAt) - getTime(b.createdAt);
+                return getTime(a.createdAt) - getTime(b.createdAt); // Mais antigos primeiro
             });
             setContracts(loadedContracts);
             setLoading(false);
