@@ -149,15 +149,32 @@ export const generateContractPDF = (data: ContractData) => {
   const stepH = data.selectedOption.stepHeight.toFixed(2);
   const tread = data.selectedOption.treadDepth.toFixed(2);
   
-  // LÓGICA DE FIXAÇÃO E DESENHO
-  // A pedido do usuário, alguns textos como 'Fixação na Parede DIREITA', '80cm' de corrimão, 'MADEIRA (GARAPEIRA OU MUIRACATIARA)' 
-  // e '4 amortecedores' estão estáticos por enquanto para seguir um novo padrão de produto.
-  
   let treadMaterialStr = 'MADEIRA (GARAPEIRA OU MUIRACATIARA)';
   const mat = data.inputData.treadMaterial;
+  const wood = data.inputData.woodType;
   if (mat === 'metal') treadMaterialStr = 'METAL';
   else if (mat === 'chapa_xadrez') treadMaterialStr = 'CHAPA XADREZ';
   else if (mat === 'chapa_vazada') treadMaterialStr = 'CHAPA VAZADA';
+  else if (mat === 'wood' || !mat) {
+      if (wood === 'garapeira') treadMaterialStr = 'MADEIRA (GARAPEIRA)';
+      else if (wood === 'muiracatiara') treadMaterialStr = 'MADEIRA (MUIRACATIARA)';
+  }
+
+  let fixationText = 'sem fixação na parede';
+  if (data.inputData.wallFixation === 'left') fixationText = 'Fixação na Parede ESQUERDA';
+  else if (data.inputData.wallFixation === 'right') fixationText = 'Fixação na Parede DIREITA';
+  else if (data.inputData.wallFixation === 'frontal') fixationText = 'Fixação FRONTAL';
+  else if (data.inputData.stairGeometry && data.inputData.stairGeometry.includes('Fixação')) {
+      fixationText = data.inputData.stairGeometry;
+  }
+
+  let dampersText = '';
+  const dampers = Number(data.inputData.dampers) || 0;
+  if (dampers > 0) {
+      dampersText = ` com ${dampers} amortecedores de alívio`;
+  } else if (data.inputData.hasWheels) {
+      dampersText = ' com rodinhas de avanço';
+  }
 
   let objText = '';
   let stepsText = '';
@@ -165,8 +182,8 @@ export const generateContractPDF = (data: ContractData) => {
       objText = `Escada fixa em aço carbono, sem fixação na parede, com degraus fixos, com medidas de: ${alturaM}m de altura, ${compM}m de comprimento, ${widthM}m de largura e com corrimão de 80cm.`;
       stepsText = `- Com ${data.selectedOption.structureSteps} degraus com dimensões de ${stepH}cm de altura e pisante de ${treadMaterialStr} de ${tread}cm.`;
   } else {
-      objText = `Escada articulada lateral em aço carbono com corte à laser, Fixação na Parede DIREITA, com medidas de: ${alturaM}m de altura, ${compM}m de comprimento, ${widthM}m de largura e com corrimão de 80cm.`;
-      stepsText = `-Com ${data.selectedOption.structureSteps} degraus articulados com dimensões de ${stepH}cm de altura e pisante de ${treadMaterialStr} de ${tread}cm com 4 amortecedores de alívio.`;
+      objText = `Escada articulada lateral em aço carbono com corte à laser, ${fixationText}, com medidas de: ${alturaM}m de altura, ${compM}m de comprimento, ${widthM}m de largura e com corrimão de 80cm.`;
+      stepsText = `- Com ${data.selectedOption.structureSteps} degraus articulados com dimensões de ${stepH}cm de altura e pisante de ${treadMaterialStr} de ${tread}cm${dampersText}.`;
   }
   
   addText(objText, 11, false, 'left');
