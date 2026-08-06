@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, where, onSnapshot, doc, updateDoc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, updateDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../components/AuthProvider';
 import { SavedContract } from '../types';
@@ -227,6 +227,23 @@ export const DeliveriesTable: React.FC = () => {
         }
     };
 
+    const handleAddManualContract = async () => {
+        try {
+            await addDoc(collection(db, 'contracts'), {
+                clientName: 'NOVO CLIENTE (Editar)',
+                status: 'producao',
+                createdAt: serverTimestamp(),
+                contractData: '{}', 
+                deliveryNotes: 'Atenção:',
+                hingesQty: '-',
+                measurementsNotes: '-'
+            });
+        } catch (error) {
+            console.error("Erro ao criar contrato manual", error);
+            alert("Erro ao criar cliente manual. Tente novamente.");
+        }
+    };
+
     return (
         <div className="max-w-[1400px] mx-auto p-4 sm:p-6 print:p-0">
             <style>
@@ -235,8 +252,8 @@ export const DeliveriesTable: React.FC = () => {
                     @page { size: landscape; margin: 10mm; }
                     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background-color: white !important; }
                     .print-hidden { display: none !important; }
-                    .print-table { width: 100% !important; border-collapse: collapse; font-size: 11px !important; }
-                    .print-table th, .print-table td { border: 1px solid #000 !important; padding: 4px !important; color: #000 !important; }
+                    .print-table { width: 100% !important; border-collapse: collapse; font-size: 11px !important; color: black; }
+                    .print-table th, .print-table td { border: 1px solid #000 !important; padding: 4px !important; }
                     .print-table th { background-color: #f3f4f6 !important; font-weight: bold !important; text-align: left; }
                     
                     nav, header, footer { display: none !important; }
@@ -278,12 +295,20 @@ export const DeliveriesTable: React.FC = () => {
                     <h1 className="text-2xl font-black text-gray-900 dark:text-white">Tabela de Entregas</h1>
                     <p className="text-gray-500 dark:text-gray-400">Clique nas observações ou nas datas para alterar. O sistema salvará automaticamente.</p>
                 </div>
-                <button 
-                    onClick={handlePrint}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-bold shadow-md flex items-center gap-2 transition-colors"
-                >
-                    🖨️ Imprimir
-                </button>
+                <div className="flex gap-2">
+                    <button 
+                        onClick={handleAddManualContract}
+                        className="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-lg font-bold shadow-md flex items-center gap-2 transition-colors"
+                    >
+                        ➕ Novo Cliente
+                    </button>
+                    <button 
+                        onClick={handlePrint}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-bold shadow-md flex items-center gap-2 transition-colors"
+                    >
+                        🖨️ Imprimir
+                    </button>
+                </div>
             </div>
 
             {loading ? (
@@ -323,9 +348,20 @@ export const DeliveriesTable: React.FC = () => {
                                     return (
                                         <tr key={contract.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors print:hover:bg-white text-gray-800 dark:text-gray-300">
                                             <td className="p-2 align-top">
-                                                <div className="font-bold px-2 py-1">
+                                                <div 
+                                                    className="font-bold px-2 py-1 text-base print:text-[16px] print:font-black editable-cell"
+                                                    contentEditable
+                                                    suppressContentEditableWarning
+                                                    onBlur={(e) => {
+                                                        if (e.target.innerText !== contract.clientName) {
+                                                            handleUpdateContract(contract.id, 'clientName', e.target.innerText);
+                                                        }
+                                                    }}
+                                                >
                                                     {contract.clientName}
-                                                    <div className="text-xs font-normal text-gray-400">Contrato: {formatDate(contract.createdAt)}</div>
+                                                </div>
+                                                <div className="text-sm font-semibold text-gray-500 print:text-[14px] print:font-bold px-2">
+                                                    Contrato: {formatDate(contract.createdAt)}
                                                 </div>
                                             </td>
                                             <td className="p-2 align-top text-sm">
@@ -371,7 +407,7 @@ export const DeliveriesTable: React.FC = () => {
                                                     {hinges}
                                                 </div>
                                             </td>
-                                            <td className="p-2 align-top text-sm text-red-600 dark:text-red-400 print:text-black font-semibold">
+                                            <td className="p-2 align-top text-sm text-red-600 dark:text-red-400 print:text-red-600 font-semibold print:!text-red-600 print:font-bold">
                                                 <div 
                                                     className="editable-cell" 
                                                     contentEditable 
