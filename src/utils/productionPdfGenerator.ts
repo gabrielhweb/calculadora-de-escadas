@@ -90,7 +90,8 @@ export const drawProductionPage = (doc: jsPDF, props: ProductionPdfProps) => {
     const pisadaWidth = doc.getTextWidth(pisadaText);
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.text(`${treadDepthMm + 10}mm`, 130 + pisadaWidth + 2, 80);
+    const displayPisada = isHollow ? treadDepthMm : treadDepthMm + 10;
+    doc.text(`${displayPisada}mm`, 130 + pisadaWidth + 2, 80);
     
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
@@ -147,7 +148,7 @@ export const drawProductionPage = (doc: jsPDF, props: ProductionPdfProps) => {
         // 180mm largura no topo da caixa
         doc.setFontSize(16);
         doc.setFont('helvetica', 'bold');
-        doc.text(`${treadDepthMm}mm`, 255, 48, { align: 'center' });
+        doc.text(`${treadDepthMm - 10}mm`, 255, 48, { align: 'center' });
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
         doc.text('largura', 255, 53, { align: 'center' });

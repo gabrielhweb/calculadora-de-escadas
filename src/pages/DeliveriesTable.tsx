@@ -160,8 +160,9 @@ export const DeliveriesTable: React.FC = () => {
         const treadDepthCm = selectedOption?.treadDepth || inputData.treadDepth;
         
         if (!numSteps || !treadDepthCm) return '';
-        const hingesPerStep = treadDepthCm < 16 ? 2 : 4;
-        return `${hingesPerStep * numSteps} dobradiças`;
+        const hingesPerStep = treadDepthCm <= 16 ? 2 : 4;
+        const hingeSize = treadDepthCm > 16 ? '3x2.5/8' : '4x3';
+        return `${hingesPerStep * numSteps} dobradiças (${hingeSize})`;
     };
 
     const formatDate = (dateString: any) => {
