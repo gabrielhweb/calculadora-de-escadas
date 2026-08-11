@@ -15,6 +15,7 @@ import { AuthProvider } from './components/AuthProvider';
 import { useEffect } from 'react';
 import { getDocFromServer, doc } from 'firebase/firestore';
 import { db } from './firebase';
+import { GlobalErrorCatcher } from './components/GlobalErrorCatcher';
 
 function App() {
   useEffect(() => {
@@ -32,6 +33,7 @@ function App() {
 
   return (
     <AuthProvider>
+      <GlobalErrorCatcher />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Layout />}>
