@@ -118,7 +118,11 @@ export const generateProposalDescription = (inputData: any, opt: any): string =>
 
     let fixationText = "";
     
-    if (inputData.stairGeometry === 'hide') {
+    if (inputData.isFixedStair) {
+        descriptionTitle = "Escada fixa em aço carbono";
+        fixationText = "";
+        damperDesc = "";
+    } else if (inputData.stairGeometry === 'hide') {
         fixationText = ""; 
     } else if (inputData.stairGeometry && inputData.stairGeometry.includes('Fixação')) {
         fixationText = inputData.stairGeometry; 
@@ -176,7 +180,8 @@ export const generateProposalDescription = (inputData: any, opt: any): string =>
         materialText = 'de Chapa Vazada';
     }
     
-    const text2 = `-Com ${opt.structureSteps} degraus articulados com dimensões de ${stepH} centímetros de altura e pisante ${materialText} de ${tread} centímetros${damperDesc}.`;
+    const degrausLabel = inputData.isFixedStair ? 'degraus fixos' : 'degraus articulados';
+    const text2 = `-Com ${opt.structureSteps} ${degrausLabel} com dimensões de ${stepH} centímetros de altura e pisante ${materialText} de ${tread} centímetros${damperDesc}.`;
     
     let fullText = `${text1}\n${text2}`;
 
