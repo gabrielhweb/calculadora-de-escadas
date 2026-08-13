@@ -130,6 +130,15 @@ export interface SavedContract {
   measurementsNotes?: string;
 }
 
+export type BoardStage = 'orcamento' | 'contrato' | 'corte' | 'pronta' | 'concluido';
+
+export interface CostSettings {
+  steelCostPerStep: number;
+  woodCostPerStep: number;
+  taxPercentage: number;
+  commissionPercentage: number;
+}
+
 export interface ProductionOrder {
   id: string;
   contractId?: string;
@@ -139,6 +148,10 @@ export interface ProductionOrder {
   downPayment: number;
   balanceDue: number;
   status: 'in_queue' | 'completed';
+  boardStage?: BoardStage; // NOVO: Para o Kanban
+  location?: string; // NOVO: Cidade/Bairro do cliente
+  profit?: number; // NOVO: Lucro estimado
+  totalCost?: number; // NOVO: Custo total de produção
   downPaymentStatus?: 'pending' | 'paid';
   balanceStatus?: 'pending' | 'paid';
   paymentMethod?: 'pix' | 'card' | 'hybrid';

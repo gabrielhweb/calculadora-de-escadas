@@ -8,7 +8,7 @@ import { LandingInfo, OptionalItem } from '../types';
 import { formatCurrencyBRL } from '../utils';
 import { TechnicalBudget } from '../components/TechnicalBudget';
 import { db, auth } from '../firebase';
-import { doc, setDoc, updateDoc, collection, query, getDocs } from 'firebase/firestore';
+import { doc, setDoc, updateDoc, collection, query, getDocs, getDoc } from 'firebase/firestore';
 import { useAuth } from '../components/AuthProvider';
 
 enum OperationType {
@@ -840,6 +840,24 @@ const Contract = () => {
                     }
                 }
 
+                let estimatedProfit = 0;
+                let estimatedTotalCost = 0;
+                try {
+                    const settingsSnap = await getDoc(doc(db, 'settings', 'production_costs'));
+                    if (settingsSnap.exists()) {
+                        const settingsData = settingsSnap.data();
+                        const steelCost = (settingsData.steelCostPerStep || 0) * totalStepsNum;
+                        const woodCost = (settingsData.woodCostPerStep || 0) * totalStepsNum;
+                        const taxCost = newSavedContract.totalValue * ((settingsData.taxPercentage || 0) / 100);
+                        const commissionCost = newSavedContract.totalValue * ((settingsData.commissionPercentage || 0) / 100);
+                        
+                        estimatedTotalCost = steelCost + woodCost + taxCost + commissionCost + parseFloat(freightPrice) + parseFloat(installationPrice);
+                        estimatedProfit = newSavedContract.totalValue - estimatedTotalCost;
+                    }
+                } catch (err) {
+                    console.error("Erro ao calcular lucro:", err);
+                }
+
                 const newOrder: any = {
                     id: Date.now().toString() + '_queue',
                     contractId: newSavedContract.id,
@@ -849,6 +867,10 @@ const Contract = () => {
                     downPayment: downPayment,
                     balanceDue: balanceDue,
                     status: 'in_queue' as const,
+                    boardStage: 'contrato' as const,
+                    location: `${neighborhood || ''} - ${city || ''}`,
+                    profit: estimatedProfit,
+                    totalCost: estimatedTotalCost,
                     downPaymentStatus: 'pending' as const,
                     balanceStatus: 'pending' as const,
                     paymentMethod: paymentMethod,

@@ -136,6 +136,12 @@ const Layout: React.FC = () => {
                 >
                   Orçamentos Salvos
                 </Link>
+                <Link 
+                  to="/custos" 
+                  className={`${isActive('/custos') ? 'text-highlight font-bold border-b-4 border-highlight' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'} px-2 pt-1 text-sm uppercase tracking-wide transition-all duration-200 h-full flex items-center font-bold`}
+                >
+                  💰 Custos
+                </Link>
               </div>
 
               {/* User Login/Logout */}
