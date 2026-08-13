@@ -56,9 +56,21 @@ export default function ProductionQueue() {
         let loadedQuotes: DashboardItem[] = [];
         let loadedContracts: DashboardItem[] = [];
         let loadedQueue: DashboardItem[] = [];
+        let rawContractsData: Record<string, any> = {};
 
         const updateItems = () => {
-            const all = [...loadedQuotes, ...loadedContracts, ...loadedQueue];
+            const queueWithSyncedDates = loadedQueue.map(q => {
+                if (q.originalData.contractId && rawContractsData[q.originalData.contractId]) {
+                    const contractData = rawContractsData[q.originalData.contractId];
+                    if (contractData.deliveryDate) {
+                        q.originalData.deliveryDate = contractData.deliveryDate;
+                        q.subtitle = q.originalData.location || `Data de Entrega: ${contractData.deliveryDate}`;
+                    }
+                }
+                return q;
+            });
+
+            const all = [...loadedQuotes, ...loadedContracts, ...queueWithSyncedDates];
             all.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
             setItems(all);
         };
@@ -83,8 +95,10 @@ export default function ProductionQueue() {
 
         const unSubContracts = onSnapshot(query(collection(db, 'contracts')), (snapshot) => {
             loadedContracts = [];
+            rawContractsData = {};
             snapshot.forEach(docSnap => {
                 const data = docSnap.data() as SavedContract;
+                rawContractsData[docSnap.id] = data;
                 if (data.status === 'falta_assinar') {
                     loadedContracts.push({
                         id: docSnap.id,
