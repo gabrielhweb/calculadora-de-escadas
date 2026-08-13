@@ -42,6 +42,7 @@ const STAGES: { id: BoardStage, label: string, color: string }[] = [
 export default function ProductionQueue() {
     const [items, setItems] = useState<DashboardItem[]>([]);
     const [timeFilter, setTimeFilter] = useState<'all' | 'month' | 'week'>('month');
+    const [stageFilter, setStageFilter] = useState<'all' | BoardStage>('all');
     const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
     const { user } = useAuth();
     
@@ -133,6 +134,12 @@ export default function ProductionQueue() {
 
     // Filtering Logic
     const filteredItems = items.filter(item => {
+        // Stage filter
+        if (stageFilter !== 'all' && item.stage !== stageFilter) {
+            return false;
+        }
+
+        // Time filter
         if (timeFilter === 'all') return true;
         
         const itemDate = new Date(item.createdAt);
@@ -223,6 +230,19 @@ export default function ProductionQueue() {
         }
     };
 
+    const handleUpdateDeliveryDate = async (item: DashboardItem, newDate: string) => {
+        try {
+            // Update in production_queue
+            await updateDoc(doc(db, 'production_queue', item.id), { deliveryDate: newDate });
+            // Sync with contracts collection so it shows in DeliveriesTable
+            if (item.originalData.contractId) {
+                await updateDoc(doc(db, 'contracts', item.originalData.contractId), { deliveryDate: newDate });
+            }
+        } catch (error) {
+            handleFirestoreError(error, OperationType.UPDATE, 'sync_delivery_date');
+        }
+    };
+
     if (!user) {
         return (
             <div className="max-w-7xl mx-auto p-4 sm:p-6 flex flex-col items-center justify-center h-[50vh]">
@@ -240,6 +260,14 @@ export default function ProductionQueue() {
                 </h1>
                 
                 <div className="flex gap-2">
+                    <select 
+                        value={stageFilter}
+                        onChange={(e) => setStageFilter(e.target.value as any)}
+                        className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-sm font-bold text-gray-700 dark:text-gray-200 outline-none focus:ring-2 focus:ring-highlight"
+                    >
+                        <option value="all">Todas as Etapas</option>
+                        {STAGES.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
+                    </select>
                     <select 
                         value={timeFilter}
                         onChange={(e) => setTimeFilter(e.target.value as any)}
@@ -302,7 +330,19 @@ export default function ProductionQueue() {
                                         <div className="flex-1 flex flex-col sm:flex-row gap-4 sm:items-center">
                                             <div className="w-full sm:w-1/3">
                                                 <h3 className="font-bold text-gray-900 dark:text-white">{item.title}</h3>
-                                                <p className="text-xs text-gray-500 dark:text-gray-400">{item.subtitle}</p>
+                                                <div className="flex items-center gap-2 mt-1" onClick={e => e.stopPropagation()}>
+                                                    <span className="text-xs font-bold text-gray-400">ENTREGA:</span>
+                                                    {item.source === 'queue' ? (
+                                                        <input 
+                                                            type="date"
+                                                            value={item.originalData.deliveryDate || ''}
+                                                            onChange={(e) => handleUpdateDeliveryDate(item, e.target.value)}
+                                                            className="text-xs bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded px-2 py-1 text-gray-700 dark:text-gray-200 outline-none"
+                                                        />
+                                                    ) : (
+                                                        <span className="text-xs text-gray-500 dark:text-gray-400">N/A</span>
+                                                    )}
+                                                </div>
                                             </div>
                                             
                                             <div className="w-full sm:w-1/4">
