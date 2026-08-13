@@ -139,6 +139,12 @@ export interface CostSettings {
   commissionPercentage: number;
 }
 
+export interface CustomCost {
+  id: string;
+  name: string;
+  value: number;
+}
+
 export interface ProductionOrder {
   id: string;
   contractId?: string;
@@ -152,6 +158,7 @@ export interface ProductionOrder {
   location?: string; // NOVO: Cidade/Bairro do cliente
   profit?: number; // NOVO: Lucro estimado
   totalCost?: number; // NOVO: Custo total de produção
+  customCosts?: CustomCost[]; // NOVO: Custos extras manuais (instalador, dobradiças, etc)
   downPaymentStatus?: 'pending' | 'paid';
   balanceStatus?: 'pending' | 'paid';
   paymentMethod?: 'pix' | 'card' | 'hybrid';
