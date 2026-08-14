@@ -130,7 +130,7 @@ export interface SavedContract {
   measurementsNotes?: string;
 }
 
-export type BoardStage = 'orcamento' | 'contrato' | 'corte' | 'pronta' | 'concluido';
+export type BoardStage = 'orcamento' | 'contrato' | 'corte' | 'soldagem' | 'pronta' | 'concluido';
 
 export interface CostSettings {
   steelCostPerStep: number;

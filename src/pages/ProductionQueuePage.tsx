@@ -31,12 +31,24 @@ export interface DashboardItem {
   createdAt: string;
 }
 
-const STAGES: { id: BoardStage, label: string, color: string }[] = [
-    { id: 'orcamento', label: 'Orçamentos', color: 'bg-blue-100 text-blue-800' },
-    { id: 'contrato', label: 'Contratos (Assinar)', color: 'bg-purple-100 text-purple-800' },
-    { id: 'corte', label: 'Produção (Corte)', color: 'bg-orange-100 text-orange-800' },
-    { id: 'pronta', label: 'Pronta para Instalar', color: 'bg-yellow-100 text-yellow-800' },
-    { id: 'concluido', label: 'Concluído', color: 'bg-green-100 text-green-800' }
+const STAGES: { id: BoardStage, label: string, color: string, headerColor: string }[] = [
+    { id: 'orcamento', label: 'Orçamentos', color: 'bg-yellow-400 text-white', headerColor: 'border-yellow-400 text-yellow-600' },
+    { id: 'contrato', label: 'Contrato assinado e pagamento inicial feito', color: 'bg-blue-500 text-white', headerColor: 'border-blue-500 text-blue-600' },
+    { id: 'corte', label: 'Enviadas para corte a laser', color: 'bg-purple-600 text-white', headerColor: 'border-purple-600 text-purple-600' },
+    { id: 'soldagem', label: 'Etapa Soldagem', color: 'bg-pink-500 text-white', headerColor: 'border-pink-500 text-pink-600' },
+    { id: 'pronta', label: 'Escadas prontas', color: 'bg-orange-500 text-white', headerColor: 'border-orange-500 text-orange-600' },
+    { id: 'concluido', label: 'Concluído', color: 'bg-green-500 text-white', headerColor: 'border-green-500 text-green-600' }
+];
+
+const QUICK_COSTS = [
+    "Custo material (Jeferson)",
+    "Custo material extra (parafusos..)",
+    "Custo pedágio",
+    "Custo gasolina",
+    "Custo diária",
+    "Custo comissão",
+    "Custo imposto",
+    "Custo alimentação"
 ];
 
 export default function ProductionQueue() {
@@ -148,14 +160,11 @@ export default function ProductionQueue() {
 
     // Filtering Logic
     const filteredItems = items.filter(item => {
-        // Stage filter
         if (stageFilter !== 'all' && item.stage !== stageFilter) {
             return false;
         }
 
-        // Time filter
         if (timeFilter === 'all') return true;
-        
         const itemDate = new Date(item.createdAt);
         const today = new Date();
         
@@ -168,28 +177,25 @@ export default function ProductionQueue() {
         return true;
     });
 
-    // Dashboard Totals (Consider only contracts and queue items for actual revenue/profit)
     const revenueItems = filteredItems.filter(i => i.source === 'queue' || i.source === 'contract');
     const totalRevenue = revenueItems.reduce((acc, i) => acc + (i.value || 0), 0);
     const totalProfit = revenueItems.reduce((acc, i) => acc + (i.profit || 0), 0);
     const totalCost = revenueItems.reduce((acc, i) => acc + (i.cost || 0), 0);
 
-    const handleAddCost = async (item: DashboardItem) => {
-        if (!newCostName || !newCostValue) return;
-        
-        const val = parseFloat(newCostValue);
+    const handleAddCost = async (item: DashboardItem, name: string, strValue: string) => {
+        if (!name || !strValue) return;
+        const val = parseFloat(strValue);
         if (isNaN(val)) return;
 
         const newCost: CustomCost = {
             id: Date.now().toString(),
-            name: newCostName,
+            name: name,
             value: val
         };
 
         const existingCosts = item.customCosts || [];
         const updatedCosts = [...existingCosts, newCost];
         
-        // Recalculate profit and totalCost
         const oldTotalCost = item.cost || 0;
         const newTotalCost = oldTotalCost + val;
         const oldProfit = item.profit || 0;
@@ -201,8 +207,10 @@ export default function ProductionQueue() {
                 totalCost: newTotalCost,
                 profit: newProfit
             });
-            setNewCostName('');
-            setNewCostValue('');
+            if (name === newCostName) {
+                setNewCostName('');
+                setNewCostValue('');
+            }
         } catch (error) {
             handleFirestoreError(error, OperationType.UPDATE, 'production_queue');
         }
@@ -213,7 +221,6 @@ export default function ProductionQueue() {
         if (!costToRemove) return;
 
         const updatedCosts = item.customCosts?.filter(c => c.id !== costId) || [];
-        
         const val = costToRemove.value;
         const newTotalCost = (item.cost || 0) - val;
         const newProfit = (item.profit || 0) + val;
@@ -246,11 +253,11 @@ export default function ProductionQueue() {
 
     const handleUpdateDeliveryDate = async (item: DashboardItem, newDate: string) => {
         try {
-            // Update in production_queue
-            await updateDoc(doc(db, 'production_queue', item.id), { deliveryDate: newDate });
-            // Sync with contracts collection so it shows in DeliveriesTable
-            if (item.originalData.contractId) {
-                await updateDoc(doc(db, 'contracts', item.originalData.contractId), { deliveryDate: newDate });
+            if (item.source === 'queue') {
+                await updateDoc(doc(db, 'production_queue', item.id), { deliveryDate: newDate });
+                if (item.originalData.contractId) {
+                    await updateDoc(doc(db, 'contracts', item.originalData.contractId), { deliveryDate: newDate });
+                }
             }
         } catch (error) {
             handleFirestoreError(error, OperationType.UPDATE, 'sync_delivery_date');
@@ -265,12 +272,19 @@ export default function ProductionQueue() {
         );
     }
 
+    // Group items by stage
+    const groupedItems: Record<string, DashboardItem[]> = {};
+    STAGES.forEach(s => groupedItems[s.id] = []);
+    filteredItems.forEach(item => {
+        if (groupedItems[item.stage]) groupedItems[item.stage].push(item);
+    });
+
     return (
-        <div className="max-w-7xl mx-auto p-4 sm:p-6 pb-20">
+        <div className="max-w-[1400px] mx-auto p-4 sm:p-6 pb-20">
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                    📊 Dashboard Gerencial
+                    Fila de Produção
                 </h1>
                 
                 <div className="flex gap-2">
@@ -291,9 +305,6 @@ export default function ProductionQueue() {
                         <option value="month">Este Mês</option>
                         <option value="all">Período Geral</option>
                     </select>
-                    <Link to="/custos" className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white px-4 py-2 rounded-lg font-bold hover:bg-gray-200 transition-colors text-sm flex items-center">
-                        ⚙️ Custos Base
-                    </Link>
                 </div>
             </div>
 
@@ -317,189 +328,232 @@ export default function ProductionQueue() {
                 </div>
             </div>
 
-            {/* List Header */}
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
-                Andamento de Obras
-            </h2>
+            {/* Board Layout */}
+            <div className="flex flex-col gap-8">
+                {STAGES.map(stageGroup => {
+                    const groupItems = groupedItems[stageGroup.id];
+                    if (groupItems.length === 0 && stageFilter !== 'all') return null;
 
-            {/* Data Grid / List */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-                {filteredItems.length === 0 ? (
-                    <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-                        Nenhum pedido encontrado para o período selecionado.
-                    </div>
-                ) : (
-                    <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                        {filteredItems.map(item => {
-                            const stageConfig = STAGES.find(s => s.id === item.stage) || STAGES[0];
-                            const isExpanded = expandedItemId === item.id;
+                    return (
+                        <div key={stageGroup.id} className="flex flex-col">
+                            {/* Group Header */}
+                            <div className="flex items-center gap-2 mb-2 px-2">
+                                <div className={`w-3 h-3 rounded-full border-2 border-white dark:border-gray-900 ${stageGroup.color.split(' ')[0]}`}></div>
+                                <h3 className={`text-lg font-bold ${stageGroup.headerColor.split(' ')[1]}`}>
+                                    {stageGroup.label} <span className="text-gray-400 dark:text-gray-500 text-sm font-normal ml-2">{groupItems.length} Tarefa{groupItems.length !== 1 && 's'}</span>
+                                </h3>
+                            </div>
 
-                            return (
-                                <div key={item.id} className="flex flex-col transition-colors hover:bg-gray-50 dark:hover:bg-gray-750">
-                                    {/* Main Row */}
-                                    <div 
-                                        className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 cursor-pointer"
-                                        onClick={() => setExpandedItemId(isExpanded ? null : item.id)}
-                                    >
-                                        <div className="flex-1 flex flex-col sm:flex-row gap-4 sm:items-center">
-                                            <div className="w-full sm:w-1/3">
-                                                <h3 className="font-bold text-gray-900 dark:text-white">{item.title}</h3>
-                                                <div className="flex items-center gap-2 mt-1" onClick={e => e.stopPropagation()}>
-                                                    <span className="text-xs font-bold text-gray-400">ENTREGA:</span>
-                                                    {item.source === 'queue' ? (
-                                                        <input 
-                                                            type="date"
-                                                            value={item.originalData.deliveryDate || ''}
-                                                            onChange={(e) => handleUpdateDeliveryDate(item, e.target.value)}
-                                                            className="text-xs bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded px-2 py-1 text-gray-700 dark:text-gray-200 outline-none"
-                                                        />
-                                                    ) : (
-                                                        <span className="text-xs text-gray-500 dark:text-gray-400">N/A</span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            
-                                            <div className="w-full sm:w-1/4">
-                                                <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${stageConfig.color}`}>
-                                                    {stageConfig.label}
-                                                </span>
-                                            </div>
+                            {/* Table */}
+                            <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-sm border-l-4 ${stageGroup.headerColor.split(' ')[0]} border-y border-r border-y-gray-200 border-r-gray-200 dark:border-y-gray-700 dark:border-r-gray-700 overflow-x-auto`}>
+                                <table className="w-full text-sm text-left">
+                                    <thead className="text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
+                                        <tr>
+                                            <th className="px-4 py-3 font-normal w-10"></th>
+                                            <th className="px-4 py-3 font-normal min-w-[200px]">Tarefa</th>
+                                            <th className="px-4 py-3 font-normal w-40 text-center">Status</th>
+                                            <th className="px-4 py-3 font-normal">Local</th>
+                                            <th className="px-4 py-3 font-normal w-32">Data entrega</th>
+                                            <th className="px-4 py-3 font-normal text-right">Valor venda</th>
+                                            <th className="px-4 py-3 font-normal w-32 text-center">PAGO</th>
+                                            <th className="px-4 py-3 font-normal text-center">Lucro</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-100 dark:divide-gray-700/50">
+                                        {groupItems.length === 0 ? (
+                                            <tr>
+                                                <td colSpan={8} className="px-4 py-8 text-center text-gray-400">
+                                                    Nenhuma tarefa nesta etapa.
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            groupItems.map(item => {
+                                                const isExpanded = expandedItemId === item.id;
+                                                
+                                                // Compute PAGO percentage
+                                                let percentPaid = 0;
+                                                if (item.source === 'quote') percentPaid = 0;
+                                                else if (item.source === 'queue' && item.originalData) {
+                                                    const paid = (item.originalData.downPayment || 0) + 
+                                                                 (item.originalData.balanceStatus === 'paid' ? item.originalData.balanceDue : 0);
+                                                    percentPaid = item.value > 0 ? (paid / item.value) * 100 : 0;
+                                                }
 
-                                            <div className="w-full sm:w-1/4 flex flex-col">
-                                                <span className="text-xs text-gray-400 font-bold uppercase">Faturamento</span>
-                                                <span className="font-bold text-gray-800 dark:text-gray-200">{formatCurrencyBRL(item.value)}</span>
-                                            </div>
+                                                return (
+                                                    <React.Fragment key={item.id}>
+                                                        {/* Row */}
+                                                        <tr className="hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors group">
+                                                            <td className="px-4 py-3">
+                                                                <div className="w-4 h-4 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800"></div>
+                                                            </td>
+                                                            <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">
+                                                                {item.title}
+                                                            </td>
+                                                            <td className="px-4 py-3">
+                                                                {item.source === 'queue' ? (
+                                                                    <select 
+                                                                        value={item.stage}
+                                                                        onChange={(e) => moveItem(item, e.target.value as BoardStage)}
+                                                                        className={`w-full py-1.5 px-2 rounded text-center text-xs font-bold shadow-sm outline-none cursor-pointer appearance-none ${stageGroup.color}`}
+                                                                    >
+                                                                        {STAGES.map(s => <option key={s.id} value={s.id} className="bg-white text-gray-900">{s.label}</option>)}
+                                                                    </select>
+                                                                ) : (
+                                                                    <div className={`w-full py-1.5 px-2 rounded text-center text-xs font-bold shadow-sm ${stageGroup.color}`}>
+                                                                        {stageGroup.label}
+                                                                    </div>
+                                                                )}
+                                                            </td>
+                                                            <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">
+                                                                {item.originalData.location || 'N/A'}
+                                                            </td>
+                                                            <td className="px-4 py-3">
+                                                                {item.source === 'queue' ? (
+                                                                    <input 
+                                                                        type="date"
+                                                                        value={item.originalData.deliveryDate || ''}
+                                                                        onChange={(e) => handleUpdateDeliveryDate(item, e.target.value)}
+                                                                        className="w-full text-xs bg-transparent border-none p-0 focus:ring-0 text-gray-700 dark:text-gray-300 cursor-pointer"
+                                                                    />
+                                                                ) : (
+                                                                    <span className="text-gray-400">-</span>
+                                                                )}
+                                                            </td>
+                                                            <td className="px-4 py-3 text-right font-medium text-gray-700 dark:text-gray-300">
+                                                                {formatCurrencyBRL(item.value)}
+                                                            </td>
+                                                            <td className="px-4 py-3">
+                                                                <div className="w-full h-6 bg-gray-200 dark:bg-gray-700 rounded overflow-hidden relative flex items-center justify-center">
+                                                                    <div className="absolute top-0 left-0 h-full bg-pink-500 transition-all" style={{ width: `${percentPaid}%`}}></div>
+                                                                    <span className="relative z-10 text-[10px] font-bold text-white drop-shadow-md">
+                                                                        {percentPaid === 100 ? '100% PAGO' : percentPaid > 0 ? `${percentPaid.toFixed(0)}% PAGO` : ''}
+                                                                    </span>
+                                                                </div>
+                                                            </td>
+                                                            <td className="px-4 py-3 text-center">
+                                                                {item.source === 'queue' ? (
+                                                                    <button 
+                                                                        onClick={() => setExpandedItemId(isExpanded ? null : item.id)}
+                                                                        className={`flex items-center justify-center w-full gap-1 p-1 rounded transition-colors ${isExpanded ? 'bg-gray-200 dark:bg-gray-700' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                                                                    >
+                                                                        <span className="font-bold text-green-600 dark:text-green-400 text-xs">{formatCurrencyBRL(item.profit || 0)}</span>
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} viewBox="0 0 20 20" fill="currentColor">
+                                                                            <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                                                                        </svg>
+                                                                    </button>
+                                                                ) : (
+                                                                    <span className="text-gray-400 text-xs">⚠ N/A</span>
+                                                                )}
+                                                            </td>
+                                                        </tr>
 
-                                            <div className="w-full sm:w-1/4 flex flex-col">
-                                                <span className="text-xs text-green-500/80 font-bold uppercase">Lucro (Base)</span>
-                                                <span className="font-bold text-green-600 dark:text-green-400">{item.profit ? formatCurrencyBRL(item.profit) : 'R$ 0,00'}</span>
-                                            </div>
-                                        </div>
+                                                        {/* Expanded Area for Costs */}
+                                                        {isExpanded && item.source === 'queue' && (
+                                                            <tr>
+                                                                <td colSpan={8} className="p-0 border-b border-gray-200 dark:border-gray-700">
+                                                                    <div className="bg-indigo-50/50 dark:bg-indigo-900/10 p-6 shadow-inner border-y border-indigo-100 dark:border-indigo-800/50">
+                                                                        <div className="flex flex-col lg:flex-row gap-8">
+                                                                            
+                                                                            {/* Left: Costs List */}
+                                                                            <div className="flex-1">
+                                                                                <h4 className="font-bold text-gray-900 dark:text-white mb-4 text-sm flex items-center gap-2">
+                                                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-indigo-500" viewBox="0 0 20 20" fill="currentColor">
+                                                                                      <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
+                                                                                      <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd" />
+                                                                                    </svg>
+                                                                                    Despesas e Custos Registrados
+                                                                                </h4>
+                                                                                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                                                                                    <table className="w-full text-sm text-left">
+                                                                                        <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                                                                                            <tr className="bg-gray-50 dark:bg-gray-800/50">
+                                                                                                <td className="px-4 py-2 text-gray-600 dark:text-gray-400">Custos Base Calculadora (Aço, Madeira, Impostos)</td>
+                                                                                                <td className="px-4 py-2 text-right font-medium text-gray-800 dark:text-gray-200">
+                                                                                                    {formatCurrencyBRL((item.cost || 0) - (item.customCosts?.reduce((a,c)=>a+c.value,0) || 0))}
+                                                                                                </td>
+                                                                                                <td className="w-10"></td>
+                                                                                            </tr>
+                                                                                            {item.customCosts?.map(cost => (
+                                                                                                <tr key={cost.id} className="hover:bg-gray-50 dark:hover:bg-gray-750">
+                                                                                                    <td className="px-4 py-2 font-medium text-gray-800 dark:text-gray-200">{cost.name}</td>
+                                                                                                    <td className="px-4 py-2 text-right text-red-500">{formatCurrencyBRL(cost.value)}</td>
+                                                                                                    <td className="px-4 py-2 text-right">
+                                                                                                        <button onClick={() => handleDeleteCost(item, cost.id)} className="text-gray-400 hover:text-red-500 p-1">
+                                                                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                                                                            </svg>
+                                                                                                        </button>
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                            ))}
+                                                                                            <tr className="bg-gray-50 dark:bg-gray-800/80">
+                                                                                                <td className="px-4 py-3 font-bold text-gray-900 dark:text-white text-right">CUSTO TOTAL</td>
+                                                                                                <td className="px-4 py-3 font-black text-red-500 text-right">{formatCurrencyBRL(item.cost || 0)}</td>
+                                                                                                <td></td>
+                                                                                            </tr>
+                                                                                        </tbody>
+                                                                                    </table>
+                                                                                </div>
+                                                                            </div>
 
-                                        <div className="flex items-center gap-2">
-                                            {item.source === 'queue' && item.stage !== 'concluido' && (
-                                                <button 
-                                                    onClick={(e) => { e.stopPropagation(); moveItem(item, 'concluido'); }}
-                                                    className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-lg"
-                                                    title="Marcar como Concluído"
-                                                >
-                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                                    </svg>
-                                                </button>
-                                            )}
-                                            <div className={`p-2 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''} text-gray-400`}>
-                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                                  <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                                                </svg>
-                                            </div>
-                                        </div>
-                                    </div>
+                                                                            {/* Right: Quick Actions */}
+                                                                            <div className="flex-1 flex flex-col">
+                                                                                <h4 className="font-bold text-gray-900 dark:text-white mb-4 text-sm">Adicionar Custo Extra</h4>
+                                                                                
+                                                                                <div className="grid grid-cols-2 gap-2 mb-4">
+                                                                                    {QUICK_COSTS.map((qCost, idx) => (
+                                                                                        <button 
+                                                                                            key={idx}
+                                                                                            onClick={() => {
+                                                                                                const val = prompt(`Digite o valor para: ${qCost}\n(Apenas números e ponto para centavos. Ex: 150.50)`);
+                                                                                                if (val) handleAddCost(item, qCost, val.replace(',','.'));
+                                                                                            }}
+                                                                                            className="text-xs text-left bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 hover:border-indigo-400 dark:hover:border-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 text-gray-700 dark:text-gray-300 px-3 py-2 rounded transition-colors"
+                                                                                        >
+                                                                                            + {qCost}
+                                                                                        </button>
+                                                                                    ))}
+                                                                                </div>
 
-                                    {/* Expanded Costs Area */}
-                                    {isExpanded && item.source === 'queue' && (
-                                        <div className="bg-gray-100 dark:bg-gray-800/80 p-4 sm:p-6 border-t border-gray-200 dark:border-gray-700">
-                                            <h4 className="font-bold text-gray-900 dark:text-white mb-4">Gestão de Custos Desta Escada</h4>
-                                            
-                                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                                                {/* Left: Tabela de Custos */}
-                                                <div>
-                                                    <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-                                                        <table className="w-full text-sm text-left">
-                                                            <thead className="text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 uppercase">
-                                                                <tr>
-                                                                    <th className="px-4 py-3">Descrição do Gasto</th>
-                                                                    <th className="px-4 py-3 text-right">Valor</th>
-                                                                    <th className="px-4 py-3 w-10"></th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                                                                <tr className="bg-white dark:bg-gray-900">
-                                                                    <td className="px-4 py-3 text-gray-800 dark:text-gray-200">Custos Base (Aço, Mad., Impos., Comis.)</td>
-                                                                    <td className="px-4 py-3 text-right font-medium text-gray-800 dark:text-gray-200">
-                                                                        {formatCurrencyBRL((item.cost || 0) - (item.customCosts?.reduce((a,c)=>a+c.value,0) || 0))}
-                                                                    </td>
-                                                                    <td className="px-4 py-3"></td>
-                                                                </tr>
-                                                                {item.customCosts?.map(cost => (
-                                                                    <tr key={cost.id} className="bg-white dark:bg-gray-900">
-                                                                        <td className="px-4 py-3 text-gray-800 dark:text-gray-200">{cost.name}</td>
-                                                                        <td className="px-4 py-3 text-right font-medium text-red-500">{formatCurrencyBRL(cost.value)}</td>
-                                                                        <td className="px-4 py-3 text-right">
-                                                                            <button onClick={() => handleDeleteCost(item, cost.id)} className="text-red-400 hover:text-red-600">
-                                                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                                                </svg>
-                                                                            </button>
-                                                                        </td>
-                                                                    </tr>
-                                                                ))}
-                                                                <tr className="bg-gray-50 dark:bg-gray-800">
-                                                                    <td className="px-4 py-3 font-bold text-gray-900 dark:text-white text-right">CUSTO TOTAL</td>
-                                                                    <td className="px-4 py-3 font-black text-red-500 text-right">{formatCurrencyBRL(item.cost || 0)}</td>
-                                                                    <td></td>
-                                                                </tr>
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                </div>
-
-                                                {/* Right: Adicionar Gasto & Resultado */}
-                                                <div className="flex flex-col gap-6">
-                                                    {/* Form */}
-                                                    <div className="bg-white dark:bg-gray-900 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                                                        <h5 className="font-bold text-sm text-gray-800 dark:text-gray-200 mb-3">Adicionar Gasto Extra</h5>
-                                                        <div className="flex flex-col gap-3">
-                                                            <input 
-                                                                type="text" 
-                                                                placeholder="Ex: Pagamento do Instalador, Dobradiças..." 
-                                                                value={newCostName}
-                                                                onChange={e => setNewCostName(e.target.value)}
-                                                                className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded px-3 py-2 text-sm text-gray-900 dark:text-white outline-none focus:border-highlight"
-                                                            />
-                                                            <div className="flex gap-2">
-                                                                <input 
-                                                                    type="number" 
-                                                                    placeholder="Valor R$" 
-                                                                    value={newCostValue}
-                                                                    onChange={e => setNewCostValue(e.target.value)}
-                                                                    className="flex-1 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded px-3 py-2 text-sm text-gray-900 dark:text-white outline-none focus:border-highlight"
-                                                                />
-                                                                <button 
-                                                                    onClick={() => handleAddCost(item)}
-                                                                    className="bg-highlight text-white px-4 py-2 rounded font-bold hover:bg-yellow-600 transition-colors"
-                                                                >
-                                                                    Adicionar
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Resultado */}
-                                                    <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/50 p-4 rounded-lg shadow-sm">
-                                                        <div className="flex justify-between items-center mb-1">
-                                                            <span className="text-sm font-bold text-green-800 dark:text-green-300 uppercase">Lucro Desta Escada</span>
-                                                        </div>
-                                                        <div className="text-3xl font-black text-green-600 dark:text-green-400">
-                                                            {formatCurrencyBRL(item.profit || 0)}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Expanded Info for non-queue items */}
-                                    {isExpanded && item.source !== 'queue' && (
-                                        <div className="bg-gray-100 dark:bg-gray-800/80 p-4 sm:p-6 border-t border-gray-200 dark:border-gray-700 text-sm text-gray-500 dark:text-gray-400">
-                                            Este é um {item.source === 'quote' ? 'Orçamento Salvo' : 'Contrato Pendente'}. Acesse a aba correspondente no menu para gerá-lo como Pedido e gerenciar seus custos.
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        })}
-                    </div>
-                )}
+                                                                                <div className="flex gap-2">
+                                                                                    <input 
+                                                                                        type="text" 
+                                                                                        placeholder="Outro gasto..." 
+                                                                                        value={newCostName}
+                                                                                        onChange={e => setNewCostName(e.target.value)}
+                                                                                        className="flex-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded px-3 py-2 text-sm text-gray-900 dark:text-white outline-none focus:border-indigo-500"
+                                                                                    />
+                                                                                    <input 
+                                                                                        type="number" 
+                                                                                        placeholder="R$" 
+                                                                                        value={newCostValue}
+                                                                                        onChange={e => setNewCostValue(e.target.value)}
+                                                                                        className="w-24 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded px-3 py-2 text-sm text-gray-900 dark:text-white outline-none focus:border-indigo-500"
+                                                                                    />
+                                                                                    <button 
+                                                                                        onClick={() => handleAddCost(item, newCostName, newCostValue)}
+                                                                                        className="bg-indigo-600 text-white px-4 py-2 rounded font-bold hover:bg-indigo-700 transition-colors text-sm whitespace-nowrap"
+                                                                                    >
+                                                                                        Incluir
+                                                                                    </button>
+                                                                                </div>
+                                                                            </div>
+                                                                            
+                                                                        </div>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        )}
+                                                    </React.Fragment>
+                                                );
+                                            })
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    );
+                })}
             </div>
         </div>
     );
