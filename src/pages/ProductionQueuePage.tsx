@@ -62,6 +62,11 @@ export default function ProductionQueue() {
     const [newCostName, setNewCostName] = useState('');
     const [newCostValue, setNewCostValue] = useState('');
 
+    const [paidModalOpen, setPaidModalOpen] = useState(false);
+    const [paidModalItem, setPaidModalItem] = useState<DashboardItem | null>(null);
+    const [paidModalPercent, setPaidModalPercent] = useState('');
+    const [paidModalValue, setPaidModalValue] = useState('');
+
     useEffect(() => {
         if (!user) return;
         
@@ -236,34 +241,26 @@ export default function ProductionQueue() {
         }
     };
 
-    const handleUpdatePaidAmount = async (item: DashboardItem) => {
+    const openPaidModal = (item: DashboardItem, currentPercent: number) => {
         if (item.source !== 'queue') return;
+        setPaidModalItem(item);
         
-        const input = prompt(`Qual o valor já pago para esta escada?\n\nExemplos:\n- "1500" para informar que R$ 1.500 foi pago\n- "50%" para informar que metade foi pago\n- Deixe em branco para voltar ao cálculo automático`);
+        let initialValue = item.originalData.customPaidValue !== undefined && item.originalData.customPaidValue !== null
+            ? item.originalData.customPaidValue
+            : ((item.originalData.downPayment || 0) + (item.originalData.balanceStatus === 'paid' ? item.originalData.balanceDue : 0));
         
-        // Se cancelar, não faz nada
-        if (input === null) return;
+        setPaidModalValue(initialValue > 0 ? initialValue.toString() : '');
+        setPaidModalPercent(currentPercent > 0 ? currentPercent.toFixed(2) : '');
+        setPaidModalOpen(true);
+    };
 
-        let newCustomPaidValue = null;
-        
-        if (input.trim() !== '') {
-            if (input.includes('%')) {
-                const perc = parseFloat(input.replace('%', '').replace(',', '.'));
-                if (!isNaN(perc)) {
-                    newCustomPaidValue = (item.value * perc) / 100;
-                }
-            } else {
-                const val = parseFloat(input.replace(/\./g, '').replace(',', '.'));
-                if (!isNaN(val)) {
-                    newCustomPaidValue = val;
-                }
-            }
-        }
-
+    const savePaidModal = async (valueToSave: number | null) => {
+        if (!paidModalItem) return;
         try {
-            await updateDoc(doc(db, 'production_queue', item.id), {
-                customPaidValue: newCustomPaidValue
+            await updateDoc(doc(db, 'production_queue', paidModalItem.id), {
+                customPaidValue: valueToSave
             });
+            setPaidModalOpen(false);
         } catch (error) {
             handleFirestoreError(error, OperationType.UPDATE, 'production_queue');
         }
@@ -459,7 +456,7 @@ export default function ProductionQueue() {
                                                             </td>
                                                             <td className="px-4 py-3">
                                                                 <div 
-                                                                    onClick={(e) => { e.stopPropagation(); handleUpdatePaidAmount(item); }}
+                                                                    onClick={(e) => { e.stopPropagation(); openPaidModal(item, percentPaid); }}
                                                                     className={`w-full h-6 bg-gray-200 dark:bg-gray-700 rounded overflow-hidden relative flex items-center justify-center ${item.source === 'queue' ? 'cursor-pointer hover:ring-2 hover:ring-pink-400' : ''}`}
                                                                     title={item.source === 'queue' ? 'Clique para editar o valor pago manualmente' : ''}
                                                                 >
@@ -594,6 +591,58 @@ export default function ProductionQueue() {
                     );
                 })}
             </div>
+            {/* Paid Modal */}
+            {paidModalOpen && paidModalItem && (
+                <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm p-6 flex flex-col gap-4">
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Atualizar Valor Pago</h3>
+                        
+                        <div className="flex flex-col gap-2">
+                            <label className="text-sm font-bold text-gray-700 dark:text-gray-300">Porcentagem (%)</label>
+                            <input 
+                                type="number"
+                                placeholder="Ex: 50"
+                                value={paidModalPercent}
+                                onChange={(e) => {
+                                    setPaidModalPercent(e.target.value);
+                                    const perc = parseFloat(e.target.value);
+                                    if (!isNaN(perc)) {
+                                        setPaidModalValue(((paidModalItem.value * perc) / 100).toFixed(2));
+                                    } else {
+                                        setPaidModalValue('');
+                                    }
+                                }}
+                                className="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-3 py-2 text-gray-900 dark:text-white outline-none focus:border-pink-500"
+                            />
+                        </div>
+
+                        <div className="flex flex-col gap-2">
+                            <label className="text-sm font-bold text-gray-700 dark:text-gray-300">Valor Pago (R$)</label>
+                            <input 
+                                type="number"
+                                placeholder={`Ex: ${paidModalItem.value / 2}`}
+                                value={paidModalValue}
+                                onChange={(e) => {
+                                    setPaidModalValue(e.target.value);
+                                    const val = parseFloat(e.target.value);
+                                    if (!isNaN(val) && paidModalItem.value > 0) {
+                                        setPaidModalPercent(((val / paidModalItem.value) * 100).toFixed(2));
+                                    } else {
+                                        setPaidModalPercent('');
+                                    }
+                                }}
+                                className="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-3 py-2 text-gray-900 dark:text-white outline-none focus:border-pink-500"
+                            />
+                        </div>
+
+                        <div className="flex gap-2 mt-4">
+                            <button onClick={() => setPaidModalOpen(false)} className="flex-1 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 py-2 rounded font-bold hover:bg-gray-300 dark:hover:bg-gray-600">Cancelar</button>
+                            <button onClick={() => savePaidModal(parseFloat(paidModalValue) || 0)} className="flex-1 bg-pink-500 text-white py-2 rounded font-bold hover:bg-pink-600">Salvar</button>
+                        </div>
+                        <button onClick={() => savePaidModal(null)} className="mt-2 text-sm text-gray-400 hover:text-pink-500 underline text-center">Voltar para cálculo automático</button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
