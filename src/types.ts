@@ -166,6 +166,7 @@ export interface ProductionOrder {
   installments?: number;
   paidInstallments?: number;
   isLateManual?: boolean;
+  customPaidValue?: number; // NOVO: Valor pago digitado manualmente no dashboard
 }
 
 export interface ProjectFile {

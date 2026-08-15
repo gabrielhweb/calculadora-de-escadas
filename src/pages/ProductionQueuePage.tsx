@@ -236,6 +236,39 @@ export default function ProductionQueue() {
         }
     };
 
+    const handleUpdatePaidAmount = async (item: DashboardItem) => {
+        if (item.source !== 'queue') return;
+        
+        const input = prompt(`Qual o valor já pago para esta escada?\n\nExemplos:\n- "1500" para informar que R$ 1.500 foi pago\n- "50%" para informar que metade foi pago\n- Deixe em branco para voltar ao cálculo automático`);
+        
+        // Se cancelar, não faz nada
+        if (input === null) return;
+
+        let newCustomPaidValue = null;
+        
+        if (input.trim() !== '') {
+            if (input.includes('%')) {
+                const perc = parseFloat(input.replace('%', '').replace(',', '.'));
+                if (!isNaN(perc)) {
+                    newCustomPaidValue = (item.value * perc) / 100;
+                }
+            } else {
+                const val = parseFloat(input.replace(/\./g, '').replace(',', '.'));
+                if (!isNaN(val)) {
+                    newCustomPaidValue = val;
+                }
+            }
+        }
+
+        try {
+            await updateDoc(doc(db, 'production_queue', item.id), {
+                customPaidValue: newCustomPaidValue
+            });
+        } catch (error) {
+            handleFirestoreError(error, OperationType.UPDATE, 'production_queue');
+        }
+    };
+
     const moveItem = async (item: DashboardItem, newStage: BoardStage) => {
         try {
             if (item.source === 'queue') {
@@ -374,8 +407,10 @@ export default function ProductionQueue() {
                                                 let percentPaid = 0;
                                                 if (item.source === 'quote') percentPaid = 0;
                                                 else if (item.source === 'queue' && item.originalData) {
-                                                    const paid = (item.originalData.downPayment || 0) + 
-                                                                 (item.originalData.balanceStatus === 'paid' ? item.originalData.balanceDue : 0);
+                                                    const paid = item.originalData.customPaidValue !== undefined && item.originalData.customPaidValue !== null
+                                                        ? item.originalData.customPaidValue
+                                                        : ((item.originalData.downPayment || 0) + 
+                                                          (item.originalData.balanceStatus === 'paid' ? item.originalData.balanceDue : 0));
                                                     percentPaid = item.value > 0 ? (paid / item.value) * 100 : 0;
                                                 }
 
@@ -423,10 +458,14 @@ export default function ProductionQueue() {
                                                                 {formatCurrencyBRL(item.value)}
                                                             </td>
                                                             <td className="px-4 py-3">
-                                                                <div className="w-full h-6 bg-gray-200 dark:bg-gray-700 rounded overflow-hidden relative flex items-center justify-center">
-                                                                    <div className="absolute top-0 left-0 h-full bg-pink-500 transition-all" style={{ width: `${percentPaid}%`}}></div>
+                                                                <div 
+                                                                    onClick={(e) => { e.stopPropagation(); handleUpdatePaidAmount(item); }}
+                                                                    className={`w-full h-6 bg-gray-200 dark:bg-gray-700 rounded overflow-hidden relative flex items-center justify-center ${item.source === 'queue' ? 'cursor-pointer hover:ring-2 hover:ring-pink-400' : ''}`}
+                                                                    title={item.source === 'queue' ? 'Clique para editar o valor pago manualmente' : ''}
+                                                                >
+                                                                    <div className="absolute top-0 left-0 h-full bg-pink-500 transition-all" style={{ width: `${Math.min(100, Math.max(0, percentPaid))}%`}}></div>
                                                                     <span className="relative z-10 text-[10px] font-bold text-white drop-shadow-md">
-                                                                        {percentPaid === 100 ? '100% PAGO' : percentPaid > 0 ? `${percentPaid.toFixed(0)}% PAGO` : ''}
+                                                                        {percentPaid >= 100 ? '100% PAGO' : percentPaid > 0 ? `${percentPaid.toFixed(0)}% PAGO` : ''}
                                                                     </span>
                                                                 </div>
                                                             </td>
