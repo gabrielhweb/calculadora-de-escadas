@@ -128,6 +128,7 @@ export interface SavedContract {
   deliveryNotes?: string;
   hingesQty?: string;
   measurementsNotes?: string;
+  customAddress?: string;
 }
 
 export type BoardStage = 'orcamento' | 'contrato' | 'corte' | 'soldagem' | 'pronta' | 'concluido';

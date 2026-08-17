@@ -338,7 +338,7 @@ export const DeliveriesTable: React.FC = () => {
                             ) : (
                                 contracts.map(contract => {
                                     const data = parseContractData(contract.contractData);
-                                    const address = getFullAddress(data?.userData);
+                                    const address = contract.customAddress !== undefined ? contract.customAddress : getFullAddress(data?.userData);
                                     
                                     const attention = contract.deliveryNotes !== undefined ? contract.deliveryNotes : getDefaultAttention(data);
                                     const hinges = contract.hingesQty !== undefined ? contract.hingesQty : getDefaultHinges(data);
@@ -366,7 +366,16 @@ export const DeliveriesTable: React.FC = () => {
                                                 </div>
                                             </td>
                                             <td className="p-2 align-top text-sm">
-                                                <div className="editable-cell">
+                                                <div 
+                                                    className="editable-cell"
+                                                    contentEditable
+                                                    suppressContentEditableWarning
+                                                    onBlur={(e) => {
+                                                        if (e.target.innerText !== address) {
+                                                            handleUpdateContract(contract.id, 'customAddress', e.target.innerText);
+                                                        }
+                                                    }}
+                                                >
                                                     {address}
                                                 </div>
                                             </td>
