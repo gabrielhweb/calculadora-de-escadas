@@ -129,6 +129,8 @@ export interface SavedContract {
   hingesQty?: string;
   measurementsNotes?: string;
   customAddress?: string;
+  projectImages?: string[];
+  installationImages?: string[];
 }
 
 export type BoardStage = 'orcamento' | 'contrato' | 'corte' | 'soldagem' | 'pronta' | 'concluido';
@@ -168,6 +170,7 @@ export interface ProductionOrder {
   paidInstallments?: number;
   isLateManual?: boolean;
   customPaidValue?: number; // NOVO: Valor pago digitado manualmente no dashboard
+  installationImages?: string[];
 }
 
 export interface ProjectFile {

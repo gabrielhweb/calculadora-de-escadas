@@ -208,7 +208,7 @@ export const DeliveriesTable: React.FC = () => {
         }
     };
 
-    const handleUpdateContract = async (id: string, field: string, value: string) => {
+    const handleUpdateContract = async (id: string, field: string, value: any) => {
         try {
             const docRef = doc(db, 'contracts', id);
             await updateDoc(docRef, { [field]: value });
@@ -445,7 +445,7 @@ export const DeliveriesTable: React.FC = () => {
                                                     {measurements}
                                                 </div>
                                             </td>
-                                            <td className="p-2 align-middle print-hidden">
+                                            <td className="p-2 align-middle print-hidden flex flex-col gap-2">
                                                 <button 
                                                     onClick={() => handleMarkAsDelivered(contract.id)}
                                                     className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-2 rounded text-xs transition-colors shadow-sm"
@@ -453,6 +453,32 @@ export const DeliveriesTable: React.FC = () => {
                                                 >
                                                     Entregue ✓
                                                 </button>
+                                                <label className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-2 rounded text-xs transition-colors shadow-sm cursor-pointer text-center block" title="Anexar Imagem">
+                                                    Anexar Imagem
+                                                    <input type="file" className="hidden" accept="image/*,video/*" onChange={async (e) => {
+                                                        const file = e.target.files?.[0];
+                                                        if (file) {
+                                                            try {
+                                                                const { uploadImageToFirebase } = await import('../services/firebaseStorage');
+                                                                const url = await uploadImageToFirebase(file, 'projects', contract.id);
+                                                                const currentImages = contract.projectImages || [];
+                                                                handleUpdateContract(contract.id, 'projectImages', [...currentImages, url]);
+                                                                alert('Imagem anexada com sucesso!');
+                                                            } catch (err) {
+                                                                alert('Erro ao anexar imagem.');
+                                                            }
+                                                        }
+                                                    }} />
+                                                </label>
+                                                {contract.projectImages && contract.projectImages.length > 0 && (
+                                                    <div className="flex gap-1 flex-wrap mt-1">
+                                                        {contract.projectImages.map((img: string, idx: number) => (
+                                                            <a key={idx} href={img} target="_blank" rel="noreferrer" className="w-8 h-8 rounded border border-gray-300 overflow-hidden inline-block">
+                                                                <img src={img} alt="Anexo" className="w-full h-full object-cover" />
+                                                            </a>
+                                                        ))}
+                                                    </div>
+                                                )}
                                             </td>
                                         </tr>
                                     );

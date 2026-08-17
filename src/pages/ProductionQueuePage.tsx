@@ -361,7 +361,7 @@ export default function ProductionQueue() {
                         className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-sm font-bold text-gray-700 dark:text-gray-200 outline-none focus:ring-2 focus:ring-highlight"
                     >
                         <option value="all">Todas as Etapas</option>
-                        {STAGES.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
+                        {STAGES.map(s => <option key={s.id} value={s.id} className={`${s.color.split(' ')[0]} ${s.color.split(' ')[1]}`}>{s.label}</option>)}
                     </select>
                     <select 
                         value={timeFilter}
@@ -632,6 +632,40 @@ export default function ProductionQueue() {
                                                                                     >
                                                                                         Incluir
                                                                                     </button>
+                                                                                </div>
+                                                                                <div className="flex-1 flex flex-col mt-6">
+                                                                                    <h4 className="font-bold text-gray-900 dark:text-white mb-4 text-sm">Fotos da Instalação</h4>
+                                                                                    <div className="flex gap-2 flex-wrap mb-2">
+                                                                                        {item.originalData.installationImages?.map((img: string, i: number) => (
+                                                                                            <a key={i} href={img} target="_blank" rel="noreferrer" className="w-16 h-16 rounded border border-gray-300 overflow-hidden block">
+                                                                                                <img src={img} alt="Instalação" className="w-full h-full object-cover" />
+                                                                                            </a>
+                                                                                        ))}
+                                                                                    </div>
+                                                                                    <label className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-bold transition-colors text-sm whitespace-nowrap cursor-pointer text-center">
+                                                                                        Anexar Foto
+                                                                                        <input type="file" className="hidden" accept="image/*,video/*" onChange={async (e) => {
+                                                                                            const file = e.target.files?.[0];
+                                                                                            if (file) {
+                                                                                                try {
+                                                                                                    const { uploadImageToFirebase } = await import('../services/firebaseStorage');
+                                                                                                    const url = await uploadImageToFirebase(file, 'installations', item.id);
+                                                                                                    const currentImages = item.originalData.installationImages || [];
+                                                                                                    const newImages = [...currentImages, url];
+                                                                                                    
+                                                                                                    const { updateDoc, doc } = await import('firebase/firestore');
+                                                                                                    const { db } = await import('../firebase');
+                                                                                                    await updateDoc(doc(db, 'production_queue', item.id), { installationImages: newImages });
+                                                                                                    if (item.originalData.contractId) {
+                                                                                                        await updateDoc(doc(db, 'contracts', item.originalData.contractId), { installationImages: newImages });
+                                                                                                    }
+                                                                                                    alert('Foto anexada com sucesso!');
+                                                                                                } catch (err) {
+                                                                                                    alert('Erro ao anexar foto.');
+                                                                                                }
+                                                                                            }
+                                                                                        }} />
+                                                                                    </label>
                                                                                 </div>
                                                                             </div>
                                                                             

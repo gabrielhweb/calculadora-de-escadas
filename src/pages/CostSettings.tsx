@@ -149,7 +149,53 @@ export default function CostSettingsPage() {
                         </div>
                     </div>
 
-                    <div className="flex justify-end pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <button
+                            type="button"
+                            onClick={async () => {
+                                try {
+                                    const { collection, getDocs } = await import('firebase/firestore');
+                                    const { jsPDF } = await import('jspdf');
+                                    const querySnapshot = await getDocs(collection(db, 'production_queue'));
+                                    let fixedTotal = 0;
+                                    let variableTotal = 0;
+                                    const variableKeywords = ['gasolina', 'pedagio', 'pedágio', 'combustivel', 'frete', 'viagem'];
+
+                                    querySnapshot.forEach(doc => {
+                                        const data = doc.data();
+                                        if (data.customCosts && Array.isArray(data.customCosts)) {
+                                            data.customCosts.forEach((c: any) => {
+                                                const nameLower = c.name.toLowerCase();
+                                                const isVariable = variableKeywords.some(k => nameLower.includes(k));
+                                                if (isVariable) {
+                                                    variableTotal += c.value;
+                                                } else {
+                                                    fixedTotal += c.value;
+                                                }
+                                            });
+                                        }
+                                    });
+
+                                    const pdf = new jsPDF();
+                                    pdf.setFontSize(20);
+                                    pdf.text("Relatório de Exportação de Custos", 14, 20);
+                                    
+                                    pdf.setFontSize(14);
+                                    pdf.text(`Custos Variáveis (Gás/Pedágio/Frete): R$ ${variableTotal.toFixed(2)}`, 14, 40);
+                                    pdf.text(`Custos Fixos (Outros extras): R$ ${fixedTotal.toFixed(2)}`, 14, 50);
+                                    pdf.text(`Total Geral: R$ ${(variableTotal + fixedTotal).toFixed(2)}`, 14, 60);
+                                    
+                                    pdf.save("relatorio_custos.pdf");
+                                } catch (e) {
+                                    alert('Erro ao gerar relatório');
+                                    console.error(e);
+                                }
+                            }}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold transition-colors"
+                        >
+                            Exportar Relatório PDF
+                        </button>
+
                         <button
                             type="submit"
                             disabled={isSaving}
