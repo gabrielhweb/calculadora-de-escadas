@@ -146,6 +146,7 @@ export interface CustomCost {
   id: string;
   name: string;
   value: number;
+  receiptUrl?: string; // NOVO: Foto/Comprovante do custo
 }
 
 export interface ProductionOrder {

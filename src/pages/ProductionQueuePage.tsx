@@ -354,7 +354,43 @@ export default function ProductionQueue() {
                     Fila de Produção
                 </h1>
                 
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
+                    <button
+                        onClick={async () => {
+                            if (!window.confirm('Sincronizar informações faltantes (N/A) buscando dos contratos?')) return;
+                            const { getDocs, query, collection, doc, updateDoc } = await import('firebase/firestore');
+                            const { db } = await import('../firebase');
+                            try {
+                                const qSnap = await getDocs(query(collection(db, 'production_queue')));
+                                const cSnap = await getDocs(query(collection(db, 'contracts')));
+                                const contractsData: Record<string, any> = {};
+                                cSnap.forEach(c => { contractsData[c.id] = c.data(); });
+                                
+                                let updatedCount = 0;
+                                for (const docSnap of qSnap.docs) {
+                                    const data = docSnap.data();
+                                    if (data.contractId && contractsData[data.contractId]) {
+                                        const contract = contractsData[data.contractId];
+                                        const updates: any = {};
+                                        if (!data.deliveryDate && contract.deliveryDate) updates.deliveryDate = contract.deliveryDate;
+                                        if (!data.location && contract.customAddress) updates.location = contract.customAddress;
+                                        
+                                        if (Object.keys(updates).length > 0) {
+                                            await updateDoc(doc(db, 'production_queue', docSnap.id), updates);
+                                            updatedCount++;
+                                        }
+                                    }
+                                }
+                                alert(`Sincronização concluída! ${updatedCount} itens atualizados.`);
+                            } catch (e) {
+                                alert('Erro na sincronização.');
+                                console.error(e);
+                            }
+                        }}
+                        className="bg-yellow-500 hover:bg-yellow-600 text-white border border-yellow-600 rounded-lg px-4 py-2 text-sm font-bold shadow-sm transition-colors"
+                    >
+                        Sincronizar N/A
+                    </button>
                     <select 
                         value={stageFilter}
                         onChange={(e) => setStageFilter(e.target.value as any)}
@@ -571,7 +607,41 @@ export default function ProductionQueue() {
                                                                                             </tr>
                                                                                             {item.customCosts?.map(cost => (
                                                                                                 <tr key={cost.id} className="hover:bg-gray-50 dark:hover:bg-gray-750">
-                                                                                                    <td className="px-4 py-2 font-medium text-gray-800 dark:text-gray-200">{cost.name}</td>
+                                                                                                    <td className="px-4 py-2 font-medium text-gray-800 dark:text-gray-200">
+                                                                                                        <div className="flex items-center gap-2">
+                                                                                                            {cost.name}
+                                                                                                            {cost.receiptUrl ? (
+                                                                                                                <a href={cost.receiptUrl} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600 text-xs flex items-center gap-1" title="Ver Comprovante">
+                                                                                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                                                                                                        <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                                                                                                                    </svg>
+                                                                                                                </a>
+                                                                                                            ) : (
+                                                                                                                <label className="text-gray-400 hover:text-blue-500 cursor-pointer" title="Anexar Comprovante">
+                                                                                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                                                                                                    </svg>
+                                                                                                                    <input type="file" className="hidden" accept="image/*,application/pdf" onChange={async (e) => {
+                                                                                                                        const file = e.target.files?.[0];
+                                                                                                                        if (file) {
+                                                                                                                            try {
+                                                                                                                                const { uploadImageToFirebase } = await import('../services/firebaseStorage');
+                                                                                                                                const url = await uploadImageToFirebase(file, 'receipts', cost.id);
+                                                                                                                                const newCosts = item.customCosts?.map(c => c.id === cost.id ? { ...c, receiptUrl: url } : c) || [];
+                                                                                                                                
+                                                                                                                                const { updateDoc, doc } = await import('firebase/firestore');
+                                                                                                                                const { db } = await import('../firebase');
+                                                                                                                                await updateDoc(doc(db, 'production_queue', item.id), { customCosts: newCosts });
+                                                                                                                                alert('Comprovante anexado!');
+                                                                                                                            } catch (err) {
+                                                                                                                                alert('Erro ao anexar comprovante.');
+                                                                                                                            }
+                                                                                                                        }
+                                                                                                                    }} />
+                                                                                                                </label>
+                                                                                                            )}
+                                                                                                        </div>
+                                                                                                    </td>
                                                                                                     <td className="px-4 py-2 text-right text-red-500">{formatCurrencyBRL(cost.value)}</td>
                                                                                                     <td className="px-4 py-2 text-right">
                                                                                                         <button onClick={() => handleDeleteCost(item, cost.id)} className="text-gray-400 hover:text-red-500 p-1">
