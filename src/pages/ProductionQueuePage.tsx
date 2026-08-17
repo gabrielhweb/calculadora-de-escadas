@@ -331,6 +331,22 @@ export default function ProductionQueue() {
         }
     };
 
+    const handleDeleteOrder = async (item: DashboardItem) => {
+        if (!window.confirm(`Tem certeza que deseja EXCLUIR definitivamente o item "${item.title}" da fila de produção?`)) return;
+        try {
+            const { deleteDoc } = await import('firebase/firestore');
+            if (item.source === 'queue') {
+                await deleteDoc(doc(db, 'production_queue', item.id));
+            } else if (item.source === 'contract') {
+                await deleteDoc(doc(db, 'contracts', item.id));
+            } else if (item.source === 'quote') {
+                await deleteDoc(doc(db, 'saved_quotes', item.id));
+            }
+        } catch (error) {
+            handleFirestoreError(error, OperationType.UPDATE, 'delete_order');
+        }
+    };
+
     if (!user) {
         return (
             <div className="max-w-7xl mx-auto p-4 sm:p-6 flex flex-col items-center justify-center h-[50vh]">
@@ -460,12 +476,13 @@ export default function ProductionQueue() {
                                             <th className="px-4 py-3 font-normal text-right">Valor venda</th>
                                             <th className="px-4 py-3 font-normal w-32 text-center">PAGO</th>
                                             <th className="px-4 py-3 font-normal text-center">Lucro</th>
+                                            <th className="px-2 py-3 font-normal w-10 text-center">Ações</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-100 dark:divide-gray-700/50">
                                         {groupItems.length === 0 ? (
                                             <tr>
-                                                <td colSpan={8} className="px-4 py-8 text-center text-gray-400">
+                                                <td colSpan={9} className="px-4 py-8 text-center text-gray-400">
                                                     Nenhuma tarefa nesta etapa.
                                                 </td>
                                             </tr>
@@ -577,12 +594,23 @@ export default function ProductionQueue() {
                                                                     <span className="text-gray-400 text-xs">⚠ N/A</span>
                                                                 )}
                                                             </td>
+                                                            <td className="px-2 py-3 text-center">
+                                                                <button 
+                                                                    onClick={() => handleDeleteOrder(item)}
+                                                                    className="text-gray-400 hover:text-red-500 transition-colors p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/30"
+                                                                    title="Excluir Definitivamente"
+                                                                >
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                                    </svg>
+                                                                </button>
+                                                            </td>
                                                         </tr>
 
                                                         {/* Expanded Area for Costs */}
                                                         {isExpanded && item.source === 'queue' && (
                                                             <tr>
-                                                                <td colSpan={8} className="p-0 border-b border-gray-200 dark:border-gray-700">
+                                                                <td colSpan={9} className="p-0 border-b border-gray-200 dark:border-gray-700">
                                                                     <div className="bg-indigo-50/50 dark:bg-indigo-900/10 p-6 shadow-inner border-y border-indigo-100 dark:border-indigo-800/50">
                                                                         <div className="flex flex-col lg:flex-row gap-8">
                                                                             
