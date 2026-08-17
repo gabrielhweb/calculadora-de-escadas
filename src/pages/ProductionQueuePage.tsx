@@ -81,8 +81,22 @@ export default function ProductionQueue() {
                     const contractData = rawContractsData[q.originalData.contractId];
                     if (contractData.deliveryDate) {
                         q.originalData.deliveryDate = contractData.deliveryDate;
-                        q.subtitle = q.originalData.location || `Data de Entrega: ${contractData.deliveryDate}`;
                     }
+                    if (contractData.customAddress) {
+                        q.originalData.location = contractData.customAddress;
+                    } else if (!q.originalData.location && contractData.contractData) {
+                        try {
+                            const parsed = JSON.parse(contractData.contractData);
+                            const addr = parsed?.userData?.address;
+                            if (addr && (addr.street || addr.city)) {
+                                q.originalData.location = `${addr.street || ''}, ${addr.number || ''} - ${addr.city || ''}`.replace(/^, /, '');
+                            }
+                        } catch(e){}
+                    }
+                    if (contractData.clientName && contractData.clientName !== 'NOVO CLIENTE (Editar)') {
+                        q.title = contractData.clientName;
+                    }
+                    q.subtitle = q.originalData.location || `Data de Entrega: ${contractData.deliveryDate || 'N/A'}`;
                 }
                 return q;
             });
@@ -294,6 +308,29 @@ export default function ProductionQueue() {
         }
     };
 
+    const handleUpdateField = async (item: DashboardItem, field: 'clientName' | 'location', value: string) => {
+        try {
+            if (item.source === 'queue') {
+                await updateDoc(doc(db, 'production_queue', item.id), { [field]: value });
+                if (item.originalData.contractId) {
+                    if (field === 'location') {
+                        await updateDoc(doc(db, 'contracts', item.originalData.contractId), { customAddress: value });
+                    } else if (field === 'clientName') {
+                        await updateDoc(doc(db, 'contracts', item.originalData.contractId), { clientName: value });
+                    }
+                }
+            } else if (item.source === 'contract') {
+                if (field === 'location') {
+                    await updateDoc(doc(db, 'contracts', item.id), { customAddress: value });
+                } else if (field === 'clientName') {
+                    await updateDoc(doc(db, 'contracts', item.id), { clientName: value });
+                }
+            }
+        } catch (error) {
+            handleFirestoreError(error, OperationType.UPDATE, `sync_${field}`);
+        }
+    };
+
     if (!user) {
         return (
             <div className="max-w-7xl mx-auto p-4 sm:p-6 flex flex-col items-center justify-center h-[50vh]">
@@ -419,7 +456,18 @@ export default function ProductionQueue() {
                                                                 <div className="w-4 h-4 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800"></div>
                                                             </td>
                                                             <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">
-                                                                {item.title}
+                                                                <div 
+                                                                    contentEditable={item.source === 'queue' || item.source === 'contract'}
+                                                                    suppressContentEditableWarning
+                                                                    onBlur={(e) => {
+                                                                        if (e.target.innerText !== item.title) {
+                                                                            handleUpdateField(item, 'clientName', e.target.innerText);
+                                                                        }
+                                                                    }}
+                                                                    className={`px-2 py-1 ${item.source === 'quote' ? '' : 'editable-cell'}`}
+                                                                >
+                                                                    {item.title}
+                                                                </div>
                                                             </td>
                                                             <td className="px-4 py-3">
                                                                 {item.source === 'queue' ? (
@@ -437,7 +485,19 @@ export default function ProductionQueue() {
                                                                 )}
                                                             </td>
                                                             <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">
-                                                                {item.originalData.location || 'N/A'}
+                                                                <div 
+                                                                    contentEditable={item.source === 'queue' || item.source === 'contract'}
+                                                                    suppressContentEditableWarning
+                                                                    onBlur={(e) => {
+                                                                        const currentLoc = item.originalData.location || 'N/A';
+                                                                        if (e.target.innerText !== currentLoc && e.target.innerText !== 'N/A') {
+                                                                            handleUpdateField(item, 'location', e.target.innerText);
+                                                                        }
+                                                                    }}
+                                                                    className={`px-2 py-1 ${item.source === 'quote' ? '' : 'editable-cell'}`}
+                                                                >
+                                                                    {item.originalData.location || 'N/A'}
+                                                                </div>
                                                             </td>
                                                             <td className="px-4 py-3">
                                                                 {item.source === 'queue' ? (
