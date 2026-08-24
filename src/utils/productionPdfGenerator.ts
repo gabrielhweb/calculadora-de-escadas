@@ -53,22 +53,9 @@ export const drawProductionPage = (doc: jsPDF, props: ProductionPdfProps) => {
     
     doc.text(cutText, 10, 30 + nameHeightOffset); 
 
-    // Caixas de Assinatura (JEF, AQUI, SOLD, PRT)
-    const signatureY = 45 + nameHeightOffset;
-    doc.setFontSize(8);
-    doc.setTextColor(0, 0, 0);
-    const labels = ["JEF", "AQUI", "SOLD", "PRT"];
-    let sigX = 10;
-    labels.forEach(label => {
-        doc.text(label, sigX + 1, signatureY); // Texto acima do quadrado
-        doc.rect(sigX, signatureY + 2, 10, 10); // Quadrado 10x10
-        sigX += 18; // Espaçamento entre as caixas
-    });
-
     // Inserir a Imagem Limpa de Fundo
     const imgX = 5;
-    // Abaixei um pouco a imagem para não sobrepor as caixas
-    const imgY = 55 + nameHeightOffset;
+    const imgY = 40;
     const imgProps = doc.getImageProperties(selectedImage);
     const imgRatio = imgProps.width / imgProps.height;
     
@@ -95,41 +82,40 @@ export const drawProductionPage = (doc: jsPDF, props: ProductionPdfProps) => {
     doc.text('ESPESSURA 1/8"', 150, 39, { align: 'center' });
     
     // Lado Esquerdo (pisada e altura)
-    const baseOffsetY = 15 + nameHeightOffset; // O quanto a imagem desceu
-
+    // Movidos para posições absolutas seguras
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     const pisadaText = 'pisada';
-    doc.text(pisadaText, 130, 80 + baseOffsetY);
+    doc.text(pisadaText, 130, 80);
     const pisadaWidth = doc.getTextWidth(pisadaText);
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
     const displayPisada = isHollow ? treadDepthMm : treadDepthMm + 10;
-    doc.text(`${displayPisada}mm`, 130 + pisadaWidth + 2, 80 + baseOffsetY);
+    doc.text(`${displayPisada}mm`, 130 + pisadaWidth + 2, 80);
     
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     const alturaText = 'altura';
-    doc.text(alturaText, 130, 115 + baseOffsetY);
+    doc.text(alturaText, 130, 115);
     const alturaWidth = doc.getTextWidth(alturaText);
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.text(`${stepHeightMm}mm`, 130 + alturaWidth + 2, 115 + baseOffsetY);
+    doc.text(`${stepHeightMm}mm`, 130 + alturaWidth + 2, 115);
     
     // Lado Direito
     if (!isHollow) {
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(22);
-        doc.text(`${uShapeWidthMm}mm`, 245, 55 + baseOffsetY, { align: 'center' });
+        doc.text(`${uShapeWidthMm}mm`, 245, 55, { align: 'center' });
         
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(10);
-        doc.text('PISADA', 245, 63 + baseOffsetY, { align: 'center' });
-        doc.text('DEGRAU', 245, 68 + baseOffsetY, { align: 'center' });
+        doc.text('PISADA', 245, 63, { align: 'center' });
+        doc.text('DEGRAU', 245, 68, { align: 'center' });
         
         // Info Quantidade, Comprimento, Espessura
         const infoX = 220;
-        const infoY = 115 + baseOffsetY;
+        const infoY = 115;
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(10);
         doc.text(`QUANTIDADE:`, infoX, infoY);
@@ -154,21 +140,21 @@ export const drawProductionPage = (doc: jsPDF, props: ProductionPdfProps) => {
         doc.setFont('helvetica', 'bold');
         
         // 600mm comprimento na lateral esquerda da caixa
-        doc.text(`${widthMm}mm`, 210, 85 + baseOffsetY, { align: 'right' });
+        doc.text(`${widthMm}mm`, 210, 85, { align: 'right' });
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
-        doc.text('comprimento', 210, 90 + baseOffsetY, { align: 'right' });
+        doc.text('comprimento', 210, 90, { align: 'right' });
 
         // 180mm largura no topo da caixa
         doc.setFontSize(16);
         doc.setFont('helvetica', 'bold');
-        doc.text(`${treadDepthMm - 10}mm`, 255, 48 + baseOffsetY, { align: 'center' });
+        doc.text(`${treadDepthMm - 10}mm`, 255, 48, { align: 'center' });
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
-        doc.text('largura', 255, 53 + baseOffsetY, { align: 'center' });
+        doc.text('largura', 255, 53, { align: 'center' });
         
         const infoX = 220;
-        const infoY = 125 + baseOffsetY;
+        const infoY = 125;
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
         doc.text(`QUANTIDADE:`, infoX, infoY);

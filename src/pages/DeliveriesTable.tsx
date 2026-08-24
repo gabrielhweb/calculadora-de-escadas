@@ -361,8 +361,17 @@ export const DeliveriesTable: React.FC = () => {
                                                 >
                                                     {contract.clientName}
                                                 </div>
-                                                <div className="text-sm font-semibold text-gray-500 print:text-[14px] print:font-bold px-2">
+                                                <div className="text-sm font-semibold text-gray-500 print:text-[14px] print:font-bold px-2 mb-2">
                                                     Contrato: {formatDate(contract.createdAt)}
+                                                </div>
+                                                {/* Caixas de Assinatura (Produção) */}
+                                                <div className="mt-2 flex justify-between px-2 print:mt-1 gap-1">
+                                                    {['JEF', 'AQUI', 'SOLD', 'PRT'].map(label => (
+                                                        <div key={label} className="flex flex-col items-center">
+                                                            <span className="text-[9px] font-bold text-gray-700 print:text-black leading-tight">{label}</span>
+                                                            <div className="w-5 h-5 border-2 border-gray-400 print:border-black rounded-sm print:w-6 print:h-6 print:border-[2px]"></div>
+                                                        </div>
+                                                    ))}
                                                 </div>
                                             </td>
                                             <td className="p-2 align-top text-sm">
