@@ -276,6 +276,27 @@ export const ContractsList: React.FC = () => {
             while (typeof parsedData === 'string') {
                 parsedData = JSON.parse(parsedData);
             }
+            
+            // Hidrata os dados para garantir que a geração do PDF não quebre em contratos manuais
+            if (!parsedData) parsedData = {};
+            if (!parsedData.userData) parsedData.userData = {};
+            if (!parsedData.inputData) parsedData.inputData = {};
+            if (!parsedData.selectedOption) parsedData.selectedOption = {};
+            if (!parsedData.paymentDetails) parsedData.paymentDetails = {};
+
+            parsedData.inputData.totalHeight = parsedData.inputData.totalHeight || 0;
+            parsedData.selectedOption.totalLength = parsedData.selectedOption.totalLength || 0;
+            parsedData.selectedOption.stairWidth = parsedData.selectedOption.stairWidth || parsedData.width || parsedData.largura || 0;
+            parsedData.selectedOption.stepHeight = parsedData.selectedOption.stepHeight || parsedData.altura || 0;
+            parsedData.selectedOption.treadDepth = parsedData.selectedOption.treadDepth || parsedData.pisante || 0;
+            parsedData.selectedOption.structureSteps = parsedData.selectedOption.structureSteps || parsedData.degraus || 0;
+            parsedData.finalStairPrice = parsedData.finalStairPrice || 0;
+            parsedData.finalLandingsPrice = parsedData.finalLandingsPrice || 0;
+            parsedData.freightCost = parsedData.freightCost || 0;
+            parsedData.tollCost = parsedData.tollCost || 0;
+            parsedData.installationCost = parsedData.installationCost || 0;
+            parsedData.extrasCost = parsedData.extrasCost || 0;
+
             generateContractPDF(parsedData);
         } catch (error) {
             console.error("Erro ao gerar PDF:", error);
