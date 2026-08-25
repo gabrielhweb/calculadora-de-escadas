@@ -1,0 +1,88 @@
+commit 79716678ac0b0a07cf3a234f0f39a7e26acc814e
+Author: Gabrielweb <gaguisilva15@gmail.com>
+Date:   Tue Aug 25 16:39:35 2026 -0300
+
+    Inject known contract data into manual PDF generation
+
+diff --git a/src/pages/ContractsList.tsx b/src/pages/ContractsList.tsx
+index 71f3e99..d7c6492 100644
+--- a/src/pages/ContractsList.tsx
++++ b/src/pages/ContractsList.tsx
+@@ -270,9 +270,9 @@ export const ContractsList: React.FC = () => {
+         }
+     };
+ 
+-    const handleDownload = (contractData: any) => {
++    const handleDownload = (contract: SavedContract) => {
+         try {
+-            let parsedData = typeof contractData === 'string' ? JSON.parse(contractData) : contractData;
++            let parsedData = typeof contract.contractData === 'string' ? JSON.parse(contract.contractData) : contract.contractData;
+             while (typeof parsedData === 'string') {
+                 parsedData = JSON.parse(parsedData);
+             }
+@@ -284,13 +284,16 @@ export const ContractsList: React.FC = () => {
+             if (!parsedData.selectedOption) parsedData.selectedOption = {};
+             if (!parsedData.paymentDetails) parsedData.paymentDetails = {};
+ 
++            // Injeta dados conhecidos do quadro Kanban caso estejam vazios no JSON
++            parsedData.userData.name = parsedData.userData.name || contract.clientName || 'CLIENTE NÃO INFORMADO';
++            parsedData.finalStairPrice = parsedData.finalStairPrice || contract.totalValue || 0;
++
+             parsedData.inputData.totalHeight = parsedData.inputData.totalHeight || 0;
+             parsedData.selectedOption.totalLength = parsedData.selectedOption.totalLength || 0;
+             parsedData.selectedOption.stairWidth = parsedData.selectedOption.stairWidth || parsedData.width || parsedData.largura || 0;
+             parsedData.selectedOption.stepHeight = parsedData.selectedOption.stepHeight || parsedData.altura || 0;
+             parsedData.selectedOption.treadDepth = parsedData.selectedOption.treadDepth || parsedData.pisante || 0;
+             parsedData.selectedOption.structureSteps = parsedData.selectedOption.structureSteps || parsedData.degraus || 0;
+-            parsedData.finalStairPrice = parsedData.finalStairPrice || 0;
+             parsedData.finalLandingsPrice = parsedData.finalLandingsPrice || 0;
+             parsedData.freightCost = parsedData.freightCost || 0;
+             parsedData.tollCost = parsedData.tollCost || 0;
+@@ -463,7 +466,7 @@ export const ContractsList: React.FC = () => {
+                                     {contract.contractData && (
+                                         <>
+                                             <button 
+-                                                onClick={() => handleDownload(contract.contractData)}
++                                                onClick={() => handleDownload(contract)}
+                                                 className="flex-1 bg-gray-100 hover:bg-gray-200 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 text-xs py-1.5 rounded font-medium transition-colors"
+                                                 title="Baixar PDF do Contrato"
+                                             >
+
+commit 6678d5527ea1df48a8bdd8b57f834a8eb3011742
+Author: Gabrielweb <gaguisilva15@gmail.com>
+Date:   Tue Aug 25 16:27:11 2026 -0300
+
+    Hydrate parsedData to prevent generateContractPDF crash
+
+diff --git a/src/pages/ContractsList.tsx b/src/pages/ContractsList.tsx
+index a81d0f6..71f3e99 100644
+--- a/src/pages/ContractsList.tsx
++++ b/src/pages/ContractsList.tsx
+@@ -276,6 +276,27 @@ export const ContractsList: React.FC = () => {
+             while (typeof parsedData === 'string') {
+                 parsedData = JSON.parse(parsedData);
+             }
++            
++            // Hidrata os dados para garantir que a geração do PDF não quebre em contratos manuais
++            if (!parsedData) parsedData = {};
++            if (!parsedData.userData) parsedData.userData = {};
++            if (!parsedData.inputData) parsedData.inputData = {};
++            if (!parsedData.selectedOption) parsedData.selectedOption = {};
++            if (!parsedData.paymentDetails) parsedData.paymentDetails = {};
++
++            parsedData.inputData.totalHeight = parsedData.inputData.totalHeight || 0;
++            parsedData.selectedOption.totalLength = parsedData.selectedOption.totalLength || 0;
++            parsedData.selectedOption.stairWidth = parsedData.selectedOption.stairWidth || parsedData.width || parsedData.largura || 0;
++            parsedData.selectedOption.stepHeight = parsedData.selectedOption.stepHeight || parsedData.altura || 0;
++            parsedData.selectedOption.treadDepth = parsedData.selectedOption.treadDepth || parsedData.pisante || 0;
++            parsedData.selectedOption.structureSteps = parsedData.selectedOption.structureSteps || parsedData.degraus || 0;
++            parsedData.finalStairPrice = parsedData.finalStairPrice || 0;
++            parsedData.finalLandingsPrice = parsedData.finalLandingsPrice || 0;
++            parsedData.freightCost = parsedData.freightCost || 0;
++            parsedData.tollCost = parsedData.tollCost || 0;
++            parsedData.installationCost = parsedData.installationCost || 0;
++            parsedData.extrasCost = parsedData.extrasCost || 0;
++
+             generateContractPDF(parsedData);
+         } catch (error) {
+             console.error("Erro ao gerar PDF:", error);

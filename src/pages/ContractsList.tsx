@@ -534,6 +534,16 @@ export const ContractsList: React.FC = () => {
         );
     };
 
+    const exportDatabase = () => {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(contracts, null, 2));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", "backup_banco_escadas.json");
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+    };
+
     return (
         <div className="max-w-7xl mx-auto p-4 sm:p-6 h-[calc(100vh-80px)] flex flex-col">
             <header className="mb-6 flex justify-between items-end">
@@ -543,12 +553,20 @@ export const ContractsList: React.FC = () => {
                     </h1>
                     <p className="text-gray-500 dark:text-gray-400 mt-1">Acompanhe o status de cada projeto na sua timeline.</p>
                 </div>
-                <button 
-                    onClick={openAddModal}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition-colors text-sm"
-                >
-                    + Adicionar Pedido Retroativo
-                </button>
+                <div className="flex gap-2">
+                    <button 
+                        onClick={exportDatabase}
+                        className="bg-gray-800 hover:bg-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition-colors text-sm"
+                    >
+                        📦 Exportar Banco (Backup)
+                    </button>
+                    <button 
+                        onClick={openAddModal}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition-colors text-sm"
+                    >
+                        + Adicionar Pedido Retroativo
+                    </button>
+                </div>
             </header>
 
             <div className="flex-1 flex gap-6 overflow-x-auto pb-4 custom-scrollbar">
