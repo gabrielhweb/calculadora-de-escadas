@@ -262,27 +262,34 @@ export const ContractsList: React.FC = () => {
         }
     };
 
-    const handleDownloadTechnical = (contractData: any) => {
+    const handleDownloadTechnical = (contract: SavedContract) => {
         try {
-            let parsedData = typeof contractData === 'string' ? JSON.parse(contractData) : contractData;
+            let parsedData = typeof contract.contractData === 'string' ? JSON.parse(contract.contractData) : contract.contractData;
             while (typeof parsedData === 'string') {
                 parsedData = JSON.parse(parsedData);
             }
+            
+            // Tenta pegar de selectedOption, ou de inputData, ou da raiz (caso editado manualmente no JSON plano)
+            const getProp = (key: string) => 
+                parsedData?.selectedOption?.[key] || 
+                parsedData?.inputData?.[key] || 
+                parsedData?.[key];
+
             const technicalProps = {
-                clientName: parsedData.userData?.name || '',
-                totalSteps: parsedData.selectedOption?.steps || 0,
-                stepHeightCm: parsedData.selectedOption?.stepHeight || 0,
-                treadDepthCm: parsedData.selectedOption?.treadDepth || 0,
-                widthCm: parsedData.selectedOption?.stairWidth || 0,
-                totalLength: parsedData.selectedOption?.totalLength || 0,
-                landings: parsedData.selectedOption?.landings || [],
-                stairDirection: parsedData.inputData?.stairDirection || 'standard',
-                wallFixation: parsedData.inputData?.wallFixation || 'left',
-                cutStepType: parsedData.inputData?.cutStepType || 'left',
-                treadMaterial: parsedData.inputData?.treadMaterial || 'wood',
-                address: parsedData.userData?.address || '',
-                zip: parsedData.userData?.zip || '',
-                optionalItems: parsedData.inputData?.optionalItems || []
+                clientName: parsedData?.userData?.name || contract.clientName || 'CLIENTE NÃO INFORMADO',
+                totalSteps: getProp('steps') || getProp('desiredSteps') || getProp('totalSteps') || getProp('degraus') || 0,
+                stepHeightCm: getProp('stepHeight') || getProp('stepHeightCm') || getProp('altura') || 0,
+                treadDepthCm: getProp('treadDepth') || getProp('treadDepthCm') || getProp('pisante') || 0,
+                widthCm: getProp('stairWidth') || getProp('widthCm') || getProp('width') || getProp('largura') || 0,
+                totalLength: getProp('totalLength') || 0,
+                landings: getProp('landings') || [],
+                stairDirection: getProp('stairDirection') || 'standard',
+                wallFixation: getProp('wallFixation') || 'left',
+                cutStepType: getProp('cutStepType') || 'left',
+                treadMaterial: getProp('treadMaterial') || 'wood',
+                address: parsedData?.userData?.address || '',
+                zip: parsedData?.userData?.zip || '',
+                optionalItems: getProp('optionalItems') || []
             };
             generateUnifiedTechnicalPDF(technicalProps);
         } catch (error) {
@@ -421,7 +428,7 @@ export const ContractsList: React.FC = () => {
                                                 📄 Contrato
                                             </button>
                                             <button 
-                                                onClick={() => handleDownloadTechnical(contract.contractData)}
+                                                onClick={() => handleDownloadTechnical(contract)}
                                                 className="flex-1 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900 dark:hover:bg-blue-800 text-blue-700 dark:text-blue-200 text-xs py-1.5 rounded font-medium transition-colors"
                                                 title="Baixar Ficha Técnica (Produção + Matéria Prima)"
                                             >
