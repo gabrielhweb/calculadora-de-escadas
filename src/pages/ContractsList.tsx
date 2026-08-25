@@ -270,9 +270,9 @@ export const ContractsList: React.FC = () => {
         }
     };
 
-    const handleDownload = (contractData: any) => {
+    const handleDownload = (contract: SavedContract) => {
         try {
-            let parsedData = typeof contractData === 'string' ? JSON.parse(contractData) : contractData;
+            let parsedData = typeof contract.contractData === 'string' ? JSON.parse(contract.contractData) : contract.contractData;
             while (typeof parsedData === 'string') {
                 parsedData = JSON.parse(parsedData);
             }
@@ -284,13 +284,16 @@ export const ContractsList: React.FC = () => {
             if (!parsedData.selectedOption) parsedData.selectedOption = {};
             if (!parsedData.paymentDetails) parsedData.paymentDetails = {};
 
+            // Injeta dados conhecidos do quadro Kanban caso estejam vazios no JSON
+            parsedData.userData.name = parsedData.userData.name || contract.clientName || 'CLIENTE NÃO INFORMADO';
+            parsedData.finalStairPrice = parsedData.finalStairPrice || contract.totalValue || 0;
+
             parsedData.inputData.totalHeight = parsedData.inputData.totalHeight || 0;
             parsedData.selectedOption.totalLength = parsedData.selectedOption.totalLength || 0;
             parsedData.selectedOption.stairWidth = parsedData.selectedOption.stairWidth || parsedData.width || parsedData.largura || 0;
             parsedData.selectedOption.stepHeight = parsedData.selectedOption.stepHeight || parsedData.altura || 0;
             parsedData.selectedOption.treadDepth = parsedData.selectedOption.treadDepth || parsedData.pisante || 0;
             parsedData.selectedOption.structureSteps = parsedData.selectedOption.structureSteps || parsedData.degraus || 0;
-            parsedData.finalStairPrice = parsedData.finalStairPrice || 0;
             parsedData.finalLandingsPrice = parsedData.finalLandingsPrice || 0;
             parsedData.freightCost = parsedData.freightCost || 0;
             parsedData.tollCost = parsedData.tollCost || 0;
@@ -463,7 +466,7 @@ export const ContractsList: React.FC = () => {
                                     {contract.contractData && (
                                         <>
                                             <button 
-                                                onClick={() => handleDownload(contract.contractData)}
+                                                onClick={() => handleDownload(contract)}
                                                 className="flex-1 bg-gray-100 hover:bg-gray-200 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 text-xs py-1.5 rounded font-medium transition-colors"
                                                 title="Baixar PDF do Contrato"
                                             >
