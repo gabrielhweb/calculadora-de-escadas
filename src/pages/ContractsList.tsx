@@ -74,11 +74,15 @@ export const ContractsList: React.FC = () => {
     const [formData, setFormData] = useState({
         clientName: '',
         totalValue: 0,
-        createdAt: new Date().toISOString().split('T')[0],
-        status: 'producao' as ContractStatus,
+        createdAt: '',
+        status: 'pendente' as ContractStatus,
         paymentStatus: 'a_receber' as 'a_receber' | 'recebido',
         deliveryStatus: 'em_producao' as 'em_producao' | 'a_entregar',
-        contractDataString: ''
+        contractDataString: '',
+        treadDepth: '',
+        stepHeight: '',
+        stairWidth: '',
+        totalSteps: ''
     });
 
     const openAddModal = () => {
@@ -91,7 +95,11 @@ export const ContractsList: React.FC = () => {
             status: 'producao',
             paymentStatus: 'a_receber',
             deliveryStatus: 'em_producao',
-            contractDataString: ''
+            contractDataString: '',
+            treadDepth: '',
+            stepHeight: '',
+            stairWidth: '',
+            totalSteps: ''
         });
         setIsModalOpen(true);
     };
@@ -101,9 +109,10 @@ export const ContractsList: React.FC = () => {
         setShowAdvanced(false);
         
         let dataString = '';
+        let parsed: any = null;
         if (contract.contractData) {
             try {
-                let parsed = typeof contract.contractData === 'string' ? JSON.parse(contract.contractData) : contract.contractData;
+                parsed = typeof contract.contractData === 'string' ? JSON.parse(contract.contractData) : contract.contractData;
                 while (typeof parsed === 'string') {
                     parsed = JSON.parse(parsed);
                 }
@@ -128,6 +137,8 @@ export const ContractsList: React.FC = () => {
             dateString = new Date().toISOString().split('T')[0];
         }
 
+        const getProp = (key: string) => parsed?.selectedOption?.[key] || parsed?.inputData?.[key] || parsed?.[key];
+
         setFormData({
             clientName: contract.clientName || '',
             totalValue: contract.totalValue || 0,
@@ -135,14 +146,18 @@ export const ContractsList: React.FC = () => {
             status: contract.status || 'pendente',
             paymentStatus: contract.paymentStatus || 'a_receber',
             deliveryStatus: contract.deliveryStatus || 'em_producao',
-            contractDataString: dataString
+            contractDataString: dataString,
+            treadDepth: getProp('treadDepth') || getProp('treadDepthCm') || getProp('pisante') || '',
+            stepHeight: getProp('stepHeight') || getProp('stepHeightCm') || getProp('altura') || '',
+            stairWidth: getProp('stairWidth') || getProp('widthCm') || getProp('width') || getProp('largura') || '',
+            totalSteps: getProp('steps') || getProp('desiredSteps') || getProp('totalSteps') || getProp('degraus') || ''
         });
         setIsModalOpen(true);
     };
 
     const handleSaveModal = async () => {
         try {
-            let parsedContractData = null;
+            let parsedContractData: any = {};
             if (formData.contractDataString.trim()) {
                 try {
                     parsedContractData = JSON.parse(formData.contractDataString);
@@ -151,6 +166,12 @@ export const ContractsList: React.FC = () => {
                     return;
                 }
             }
+
+            // Injetar os valores do formulário (simples) para dentro do JSON de dados
+            if (formData.treadDepth) parsedContractData.pisante = Number(formData.treadDepth) || 0;
+            if (formData.stepHeight) parsedContractData.altura = Number(formData.stepHeight) || 0;
+            if (formData.stairWidth) parsedContractData.largura = Number(formData.stairWidth) || 0;
+            if (formData.totalSteps) parsedContractData.degraus = Number(formData.totalSteps) || 0;
 
             let finalDate = new Date().toISOString();
             try {
@@ -590,6 +611,48 @@ export const ContractsList: React.FC = () => {
                                     </div>
                                 </div>
                             )}
+
+                            <div className="pt-2">
+                                <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-2 border-b border-gray-200 dark:border-gray-700 pb-1">Medidas para a Ficha (Opcional)</h3>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Pisada (cm)</label>
+                                        <input 
+                                            type="number" step="any"
+                                            value={formData.treadDepth}
+                                            onChange={(e) => setFormData({...formData, treadDepth: e.target.value})}
+                                            className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Altura (cm)</label>
+                                        <input 
+                                            type="number" step="any"
+                                            value={formData.stepHeight}
+                                            onChange={(e) => setFormData({...formData, stepHeight: e.target.value})}
+                                            className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Largura (cm)</label>
+                                        <input 
+                                            type="number" step="any"
+                                            value={formData.stairWidth}
+                                            onChange={(e) => setFormData({...formData, stairWidth: e.target.value})}
+                                            className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Nº Degraus</label>
+                                        <input 
+                                            type="number" 
+                                            value={formData.totalSteps}
+                                            onChange={(e) => setFormData({...formData, totalSteps: e.target.value})}
+                                            className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
