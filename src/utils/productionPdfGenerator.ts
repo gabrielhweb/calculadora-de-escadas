@@ -8,6 +8,7 @@ export interface ProductionPdfProps {
     widthCm: number;
     cutStepType: 'left' | 'right' | 'hollow_left' | 'hollow_right';
     clientName: string;
+    landings?: any[];
 }
 
 export const drawProductionPage = (doc: jsPDF, props: ProductionPdfProps) => {
@@ -169,8 +170,63 @@ export const drawProductionPage = (doc: jsPDF, props: ProductionPdfProps) => {
     }
 };
 
+import { patamarBase64 } from './patamarBase64';
+
+export const drawLandingsPage = (doc: jsPDF, landings: any[], clientName: string) => {
+    landings.forEach((landing, index) => {
+        doc.addPage('a4', 'l');
+
+        // Cabeçalho
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(24);
+        doc.setTextColor(0, 0, 0);
+        const safeClientName = clientName ? clientName.toUpperCase() : 'CLIENTE NÃO INFORMADO';
+        const splitName = doc.splitTextToSize(safeClientName, 120);
+        doc.text(splitName, 10, 20);
+        
+        const nameHeightOffset = (splitName.length - 1) * 8;
+        
+        doc.setFontSize(14);
+        doc.setTextColor(255, 0, 0); 
+        doc.text(`FICHA DE PRODUÇÃO - PATAMAR ${index + 1}`, 10, 30 + nameHeightOffset); 
+
+        // Inserir a Imagem do Patamar
+        const imgX = 20;
+        const imgY = 40;
+        const imgProps = doc.getImageProperties(patamarBase64);
+        const imgRatio = imgProps.width / imgProps.height;
+        
+        let finalH = 140;
+        let finalW = finalH * imgRatio;
+        
+        doc.addImage(patamarBase64, 'JPEG', imgX, imgY, finalW, finalH);
+
+        doc.setTextColor(0, 0, 0);
+        
+        // Posições baseadas na imagem (valores aproximados)
+        // Comprimento (topo esquerdo)
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${landing.length ? landing.length * 10 : 0}mm`, imgX + 80, imgY + 13);
+        
+        // Largura (inferior esquerdo)
+        doc.text(`${landing.width ? landing.width * 10 : 0}mm`, imgX + 45, imgY + 125);
+        
+        // Quantidade (inferior centro)
+        doc.text(`1`, imgX + 135, imgY + 137);
+
+        // O usuário disse: "onde esta escrito aba podemos deixar sem valor por enquanto"
+        // Então não escrevemos nada perto de "aba"
+    });
+};
+
 export const generateProductionPDF = (props: ProductionPdfProps) => {
     const doc = new jsPDF('l', 'mm', 'a4');
     drawProductionPage(doc, props);
+    
+    if (props.landings && props.landings.length > 0) {
+        drawLandingsPage(doc, props.landings, props.clientName);
+    }
+    
     doc.save(`FICHA_PRODUCAO_${props.cutStepType.toUpperCase()}_${props.clientName.replace(/\s+/g, '_')}.pdf`);
 };
