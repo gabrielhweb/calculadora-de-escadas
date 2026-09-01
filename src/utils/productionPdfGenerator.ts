@@ -195,10 +195,11 @@ export const drawLandingsPage = (doc: jsPDF, landings: any[], clientName: string
         const imgRatio = imgProps.width / imgProps.height;
         
         // Tamanho e posicionamento centralizado
+        // Tamanho e posicionamento centralizado
         const finalW = 200;
         const finalH = finalW / imgRatio;
         const imgX = (297 - finalW) / 2; // Centro da página
-        const imgY = 35;
+        const imgY = 55; // Descemos a imagem para o fundo branco dela não apagar o título vermelho
         
         doc.addImage(patamarBase64, 'PNG', imgX, imgY, finalW, finalH);
 
@@ -210,35 +211,32 @@ export const drawLandingsPage = (doc: jsPDF, landings: any[], clientName: string
         
         doc.setFontSize(14);
         
-        // Como a imagem PNG original tem muita margem transparente ao redor do desenho,
-        // precisamos colocar os textos "dentro" do bounding box da imagem para encostarem no desenho real.
-
-        // Comprimento (topo esquerdo, colado na linha superior do desenho)
+        // Comprimento (topo esquerdo, afastado para cima e esquerda)
         doc.setFont('helvetica', 'normal');
-        doc.text('COMPRIMENTO:', imgX + 40, imgY + 38);
+        doc.text('COMPRIMENTO:', imgX + 25, imgY + 28);
         doc.setFont('helvetica', 'bold');
-        doc.text(`${lenMm}mm`, imgX + 80, imgY + 38);
+        doc.text(`${lenMm}mm`, imgX + 65, imgY + 28);
         
-        // Largura (inferior esquerdo, colado na linha esquerda do desenho)
+        // Largura (inferior esquerdo, afastado para esquerda e baixo)
         doc.setFont('helvetica', 'normal');
-        doc.text('LARGURA:', imgX + 25, imgY + 105);
+        doc.text('LARGURA:', imgX + 15, imgY + 115);
         doc.setFont('helvetica', 'bold');
-        doc.text(`${widMm}mm`, imgX + 52, imgY + 105);
+        doc.text(`${widMm}mm`, imgX + 42, imgY + 115);
         
-        // Aba (direita central, colado na linha direita do desenho)
+        // Aba (direita central, afastado para a direita)
         doc.setFont('helvetica', 'normal');
-        doc.text('ABA:', imgX + 160, imgY + 70);
+        doc.text('ABA:', imgX + 165, imgY + 70);
         doc.setFont('helvetica', 'bold');
-        doc.text('100mm', imgX + 172, imgY + 70);
+        doc.text('100mm', imgX + 177, imgY + 70);
         
-        // Rodapé (Xadrez e Quantidade, logo abaixo da quina inferior do desenho)
+        // Rodapé (Xadrez e Quantidade, afastados para baixo)
         doc.setFontSize(16);
         doc.setFont('helvetica', 'normal');
-        doc.text('XADREZ 3,00', 297 / 2, imgY + 135, { align: 'center' });
+        doc.text('XADREZ 3,00', 297 / 2, imgY + 140, { align: 'center' });
         
-        doc.text('QUANTIDADE:', (297 / 2) - 10, imgY + 145, { align: 'center' });
+        doc.text('QUANTIDADE:', (297 / 2) - 10, imgY + 150, { align: 'center' });
         doc.setFont('helvetica', 'bold');
-        doc.text('1', (297 / 2) + 22, imgY + 145, { align: 'center' });
+        doc.text('1', (297 / 2) + 22, imgY + 150, { align: 'center' });
     });
 };
 
