@@ -811,7 +811,7 @@ const Contract = () => {
             userId: user.uid
         };
 
-        try {
+
             if (isEditing) {
                 if (!editingContractId) {
                     alert("Erro: ID do contrato não encontrado para edição.");
