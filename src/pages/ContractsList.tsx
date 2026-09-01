@@ -384,8 +384,8 @@ export const ContractsList: React.FC = () => {
 
                     technicalProps.landings = [{
                         id: 'legacy-landing',
-                        width: val1 / 100, // o PDF generator multiplica por 10 e assume que era cm/m
-                        length: val2 / 100, // mantemos compatível com o q ele faria
+                        width: val1, // em cm
+                        length: val2, // em cm
                     }];
                 }
             }

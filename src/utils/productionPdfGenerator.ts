@@ -190,33 +190,52 @@ export const drawLandingsPage = (doc: jsPDF, landings: any[], clientName: string
         doc.setTextColor(255, 0, 0); 
         doc.text(`FICHA DE PRODUÇÃO - PATAMAR ${index + 1}`, 10, 30 + nameHeightOffset); 
 
-        // Inserir a Imagem do Patamar
-        const imgX = 20;
-        const imgY = 40;
+        // Inserir a Imagem do Patamar limpa e centralizada
         const imgProps = doc.getImageProperties(patamarBase64);
         const imgRatio = imgProps.width / imgProps.height;
         
-        let finalH = 140;
-        let finalW = finalH * imgRatio;
+        // Tamanho e posicionamento centralizado
+        const finalW = 180;
+        const finalH = finalW / imgRatio;
+        const imgX = (297 - finalW) / 2; // 297 é a largura da A4 landscape
+        const imgY = 45;
         
-        doc.addImage(patamarBase64, 'JPEG', imgX, imgY, finalW, finalH);
+        doc.addImage(patamarBase64, 'PNG', imgX, imgY, finalW, finalH);
 
         doc.setTextColor(0, 0, 0);
         
-        // Posições baseadas na imagem (valores aproximados)
+        // Medidas em Milímetros
+        const lenMm = landing.length ? landing.length * 10 : 0;
+        const widMm = landing.width ? landing.width * 10 : 0;
+        
+        doc.setFontSize(14);
+        
         // Comprimento (topo esquerdo)
-        doc.setFontSize(16);
+        doc.setFont('helvetica', 'normal');
+        doc.text('COMPRIMENTO:', imgX + 15, imgY + 15);
         doc.setFont('helvetica', 'bold');
-        doc.text(`${landing.length ? landing.length * 10 : 0}mm`, imgX + 80, imgY + 13);
+        doc.text(`${lenMm}mm`, imgX + 55, imgY + 15);
         
         // Largura (inferior esquerdo)
-        doc.text(`${landing.width ? landing.width * 10 : 0}mm`, imgX + 45, imgY + 125);
+        doc.setFont('helvetica', 'normal');
+        doc.text('LARGURA:', imgX - 10, imgY + finalH - 25);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${widMm}mm`, imgX + 17, imgY + finalH - 25);
         
-        // Quantidade (inferior centro)
-        doc.text(`1`, imgX + 135, imgY + 137);
-
-        // O usuário disse: "onde esta escrito aba podemos deixar sem valor por enquanto"
-        // Então não escrevemos nada perto de "aba"
+        // Aba (direita central)
+        doc.setFont('helvetica', 'normal');
+        doc.text('ABA:', imgX + finalW - 10, imgY + (finalH / 2) + 10);
+        doc.setFont('helvetica', 'bold');
+        doc.text('100mm', imgX + finalW + 2, imgY + (finalH / 2) + 10);
+        
+        // Rodapé (Xadrez e Quantidade)
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'normal');
+        doc.text('XADREZ 3,00', 297 / 2, imgY + finalH + 15, { align: 'center' });
+        
+        doc.text('QUANTIDADE:', (297 / 2) - 10, imgY + finalH + 25, { align: 'center' });
+        doc.setFont('helvetica', 'bold');
+        doc.text('1', (297 / 2) + 20, imgY + finalH + 25, { align: 'center' });
     });
 };
 
