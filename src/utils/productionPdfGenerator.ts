@@ -194,11 +194,11 @@ export const drawLandingsPage = (doc: jsPDF, landings: any[], clientName: string
         const imgProps = doc.getImageProperties(patamarBase64);
         const imgRatio = imgProps.width / imgProps.height;
         
-        // Tamanho e posicionamento centralizado (Aumentado para melhor visualização)
-        const finalW = 220;
+        // Tamanho e posicionamento centralizado
+        const finalW = 200;
         const finalH = finalW / imgRatio;
-        const imgX = (297 - finalW) / 2; // 297 é a largura da A4 landscape
-        const imgY = 40;
+        const imgX = (297 - finalW) / 2; // Centro da página
+        const imgY = 35;
         
         doc.addImage(patamarBase64, 'PNG', imgX, imgY, finalW, finalH);
 
@@ -210,32 +210,35 @@ export const drawLandingsPage = (doc: jsPDF, landings: any[], clientName: string
         
         doc.setFontSize(14);
         
-        // Comprimento (topo, mais para a esquerda e para cima)
+        // Como a imagem PNG original tem muita margem transparente ao redor do desenho,
+        // precisamos colocar os textos "dentro" do bounding box da imagem para encostarem no desenho real.
+
+        // Comprimento (topo esquerdo, colado na linha superior do desenho)
         doc.setFont('helvetica', 'normal');
-        doc.text('COMPRIMENTO:', imgX + 30, imgY - 2);
+        doc.text('COMPRIMENTO:', imgX + 40, imgY + 38);
         doc.setFont('helvetica', 'bold');
-        doc.text(`${lenMm}mm`, imgX + 70, imgY - 2);
+        doc.text(`${lenMm}mm`, imgX + 80, imgY + 38);
         
-        // Largura (inferior esquerdo)
+        // Largura (inferior esquerdo, colado na linha esquerda do desenho)
         doc.setFont('helvetica', 'normal');
-        doc.text('LARGURA:', imgX, imgY + finalH - 25);
+        doc.text('LARGURA:', imgX + 25, imgY + 105);
         doc.setFont('helvetica', 'bold');
-        doc.text(`${widMm}mm`, imgX + 27, imgY + finalH - 25);
+        doc.text(`${widMm}mm`, imgX + 52, imgY + 105);
         
-        // Aba (direita central)
+        // Aba (direita central, colado na linha direita do desenho)
         doc.setFont('helvetica', 'normal');
-        doc.text('ABA:', imgX + finalW - 25, imgY + (finalH / 2) + 15);
+        doc.text('ABA:', imgX + 160, imgY + 70);
         doc.setFont('helvetica', 'bold');
-        doc.text('100mm', imgX + finalW - 13, imgY + (finalH / 2) + 15);
+        doc.text('100mm', imgX + 172, imgY + 70);
         
-        // Rodapé (Xadrez e Quantidade, encostados na base da imagem)
+        // Rodapé (Xadrez e Quantidade, logo abaixo da quina inferior do desenho)
         doc.setFontSize(16);
         doc.setFont('helvetica', 'normal');
-        doc.text('XADREZ 3,00', 297 / 2, imgY + finalH - 5, { align: 'center' });
+        doc.text('XADREZ 3,00', 297 / 2, imgY + 135, { align: 'center' });
         
-        doc.text('QUANTIDADE:', (297 / 2) - 10, imgY + finalH + 5, { align: 'center' });
+        doc.text('QUANTIDADE:', (297 / 2) - 10, imgY + 145, { align: 'center' });
         doc.setFont('helvetica', 'bold');
-        doc.text('1', (297 / 2) + 22, imgY + finalH + 5, { align: 'center' });
+        doc.text('1', (297 / 2) + 22, imgY + 145, { align: 'center' });
     });
 };
 
