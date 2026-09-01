@@ -194,11 +194,11 @@ export const drawLandingsPage = (doc: jsPDF, landings: any[], clientName: string
         const imgProps = doc.getImageProperties(patamarBase64);
         const imgRatio = imgProps.width / imgProps.height;
         
-        // Tamanho e posicionamento centralizado
-        const finalW = 180;
+        // Tamanho e posicionamento centralizado (Aumentado para melhor visualização)
+        const finalW = 220;
         const finalH = finalW / imgRatio;
         const imgX = (297 - finalW) / 2; // 297 é a largura da A4 landscape
-        const imgY = 45;
+        const imgY = 40;
         
         doc.addImage(patamarBase64, 'PNG', imgX, imgY, finalW, finalH);
 
@@ -210,32 +210,32 @@ export const drawLandingsPage = (doc: jsPDF, landings: any[], clientName: string
         
         doc.setFontSize(14);
         
-        // Comprimento (topo esquerdo)
+        // Comprimento (topo, mais para a esquerda e para cima)
         doc.setFont('helvetica', 'normal');
-        doc.text('COMPRIMENTO:', imgX + 35, imgY + 25);
+        doc.text('COMPRIMENTO:', imgX + 30, imgY - 2);
         doc.setFont('helvetica', 'bold');
-        doc.text(`${lenMm}mm`, imgX + 75, imgY + 25);
+        doc.text(`${lenMm}mm`, imgX + 70, imgY - 2);
         
         // Largura (inferior esquerdo)
         doc.setFont('helvetica', 'normal');
-        doc.text('LARGURA:', imgX + 15, imgY + finalH - 35);
+        doc.text('LARGURA:', imgX, imgY + finalH - 25);
         doc.setFont('helvetica', 'bold');
-        doc.text(`${widMm}mm`, imgX + 42, imgY + finalH - 35);
+        doc.text(`${widMm}mm`, imgX + 27, imgY + finalH - 25);
         
         // Aba (direita central)
         doc.setFont('helvetica', 'normal');
-        doc.text('ABA:', imgX + finalW - 35, imgY + (finalH / 2) + 15);
+        doc.text('ABA:', imgX + finalW - 25, imgY + (finalH / 2) + 15);
         doc.setFont('helvetica', 'bold');
-        doc.text('100mm', imgX + finalW - 23, imgY + (finalH / 2) + 15);
+        doc.text('100mm', imgX + finalW - 13, imgY + (finalH / 2) + 15);
         
-        // Rodapé (Xadrez e Quantidade)
+        // Rodapé (Xadrez e Quantidade, encostados na base da imagem)
         doc.setFontSize(16);
         doc.setFont('helvetica', 'normal');
-        doc.text('XADREZ 3,00', 297 / 2, imgY + finalH + 15, { align: 'center' });
+        doc.text('XADREZ 3,00', 297 / 2, imgY + finalH - 5, { align: 'center' });
         
-        doc.text('QUANTIDADE:', (297 / 2) - 10, imgY + finalH + 25, { align: 'center' });
+        doc.text('QUANTIDADE:', (297 / 2) - 10, imgY + finalH + 5, { align: 'center' });
         doc.setFont('helvetica', 'bold');
-        doc.text('1', (297 / 2) + 20, imgY + finalH + 25, { align: 'center' });
+        doc.text('1', (297 / 2) + 22, imgY + finalH + 5, { align: 'center' });
     });
 };
 
