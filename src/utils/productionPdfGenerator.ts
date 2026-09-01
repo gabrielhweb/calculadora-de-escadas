@@ -212,21 +212,21 @@ export const drawLandingsPage = (doc: jsPDF, landings: any[], clientName: string
         
         // Comprimento (topo esquerdo)
         doc.setFont('helvetica', 'normal');
-        doc.text('COMPRIMENTO:', imgX + 15, imgY + 15);
+        doc.text('COMPRIMENTO:', imgX + 35, imgY + 25);
         doc.setFont('helvetica', 'bold');
-        doc.text(`${lenMm}mm`, imgX + 55, imgY + 15);
+        doc.text(`${lenMm}mm`, imgX + 75, imgY + 25);
         
         // Largura (inferior esquerdo)
         doc.setFont('helvetica', 'normal');
-        doc.text('LARGURA:', imgX - 10, imgY + finalH - 25);
+        doc.text('LARGURA:', imgX + 15, imgY + finalH - 35);
         doc.setFont('helvetica', 'bold');
-        doc.text(`${widMm}mm`, imgX + 17, imgY + finalH - 25);
+        doc.text(`${widMm}mm`, imgX + 42, imgY + finalH - 35);
         
         // Aba (direita central)
         doc.setFont('helvetica', 'normal');
-        doc.text('ABA:', imgX + finalW - 10, imgY + (finalH / 2) + 10);
+        doc.text('ABA:', imgX + finalW - 35, imgY + (finalH / 2) + 15);
         doc.setFont('helvetica', 'bold');
-        doc.text('100mm', imgX + finalW + 2, imgY + (finalH / 2) + 10);
+        doc.text('100mm', imgX + finalW - 23, imgY + (finalH / 2) + 15);
         
         // Rodapé (Xadrez e Quantidade)
         doc.setFontSize(16);
