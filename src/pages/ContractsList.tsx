@@ -354,7 +354,7 @@ export const ContractsList: React.FC = () => {
 
             const technicalProps = {
                 clientName: parsedData?.userData?.name || contract.clientName || 'CLIENTE NÃO INFORMADO',
-                totalSteps: getProp('steps') || getProp('desiredSteps') || getProp('totalSteps') || getProp('degraus') || 0,
+                totalSteps: getProp('steps') || getProp('desiredSteps') || getProp('totalSteps') || getProp('degraus') || getProp('structureSteps') || 0,
                 stepHeightCm: getProp('stepHeight') || getProp('stepHeightCm') || getProp('altura') || 0,
                 treadDepthCm: getProp('treadDepth') || getProp('treadDepthCm') || getProp('pisante') || 0,
                 widthCm: getProp('stairWidth') || getProp('widthCm') || getProp('width') || getProp('largura') || 0,
