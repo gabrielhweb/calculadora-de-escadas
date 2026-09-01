@@ -368,6 +368,27 @@ export const ContractsList: React.FC = () => {
                 zip: parsedData?.userData?.zip || '',
                 optionalItems: getProp('optionalItems') || []
             };
+
+            // AUTO-FIX: Se não houver patamar nos dados estruturados, tenta extrair das notas (para os backups antigos)
+            if (technicalProps.landings.length === 0 && contract.measurementsNotes) {
+                // Procura por algo como "PATAMAR: 1,20M POR 1,65CM"
+                const patamarRegex = /PATAMAR.*?([\d,\.]+)\s*[A-Z]*\s*(?:POR|X)\s*([\d,\.]+)\s*[A-Z]*/i;
+                const match = contract.measurementsNotes.match(patamarRegex);
+                if (match) {
+                    let val1 = parseFloat(match[1].replace(',', '.'));
+                    let val2 = parseFloat(match[2].replace(',', '.'));
+                    
+                    // Converte para cm se parece estar em metros (ex: 1.2 vira 120)
+                    if (val1 < 10) val1 = val1 * 100;
+                    if (val2 < 10) val2 = val2 * 100;
+
+                    technicalProps.landings = [{
+                        id: 'legacy-landing',
+                        width: val1 / 100, // o PDF generator multiplica por 10 e assume que era cm/m
+                        length: val2 / 100, // mantemos compatível com o q ele faria
+                    }];
+                }
+            }
             generateUnifiedTechnicalPDF(technicalProps);
         } catch (error) {
             console.error("Erro ao gerar PDF Técnico:", error);

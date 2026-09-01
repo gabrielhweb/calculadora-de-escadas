@@ -1053,7 +1053,8 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                 treadDepthCm: parseFloat(treadDepth) || 0,
                 widthCm: parseFloat(width) || 0,
                 cutStepType,
-                clientName: clientName || ''
+                clientName: clientName || '',
+                landings: landings
             });
         });
     };
