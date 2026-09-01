@@ -273,12 +273,19 @@ export const ContractsList: React.FC = () => {
 
     const handleDownload = (contract: SavedContract) => {
         try {
-            let parsedData = typeof contract.contractData === 'string' ? JSON.parse(contract.contractData) : contract.contractData;
-            while (typeof parsedData === 'string') {
-                parsedData = JSON.parse(parsedData);
+            let parsedData: any = contract.contractData;
+            let maxIters = 5;
+            while (typeof parsedData === 'string' && maxIters > 0) {
+                try { parsedData = JSON.parse(parsedData); } catch(e){ break; }
+                maxIters--;
             }
             if (parsedData?.contractData) {
                 parsedData = parsedData.contractData;
+                maxIters = 5;
+                while (typeof parsedData === 'string' && maxIters > 0) {
+                    try { parsedData = JSON.parse(parsedData); } catch(e){ break; }
+                    maxIters--;
+                }
             }
             
             // Hidrata os dados para garantir que a geração do PDF não quebre em contratos manuais
@@ -313,19 +320,37 @@ export const ContractsList: React.FC = () => {
 
     const handleDownloadTechnical = (contract: SavedContract) => {
         try {
-            let parsedData = typeof contract.contractData === 'string' ? JSON.parse(contract.contractData) : contract.contractData;
-            while (typeof parsedData === 'string') {
-                parsedData = JSON.parse(parsedData);
+            let parsedData: any = contract.contractData;
+            let maxIters = 5;
+            while (typeof parsedData === 'string' && maxIters > 0) {
+                try { parsedData = JSON.parse(parsedData); } catch(e){ break; }
+                maxIters--;
             }
             if (parsedData?.contractData) {
                 parsedData = parsedData.contractData;
+                maxIters = 5;
+                while (typeof parsedData === 'string' && maxIters > 0) {
+                    try { parsedData = JSON.parse(parsedData); } catch(e){ break; }
+                    maxIters--;
+                }
             }
             
-            // Tenta pegar de selectedOption, ou de inputData, ou da raiz (caso editado manualmente no JSON plano)
+            // Função para extrair independentemente de onde a key estiver
+            const searchProp = (obj: any, key: string): any => {
+                if (!obj || typeof obj !== 'object') return undefined;
+                if (key in obj) return obj[key];
+                for (const k in obj) {
+                    const res = searchProp(obj[k], key);
+                    if (res !== undefined) return res;
+                }
+                return undefined;
+            };
+
             const getProp = (key: string) => 
                 parsedData?.selectedOption?.[key] || 
                 parsedData?.inputData?.[key] || 
-                parsedData?.[key];
+                parsedData?.[key] ||
+                searchProp(parsedData, key);
 
             const technicalProps = {
                 clientName: parsedData?.userData?.name || contract.clientName || 'CLIENTE NÃO INFORMADO',

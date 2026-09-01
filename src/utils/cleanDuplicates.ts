@@ -77,8 +77,8 @@ export const cleanDuplicateContracts = async () => {
             } catch (e) {
                 dateStr = 'unknown';
             }
-            // Agrupar por nome e data e valor do contrato para garantir q eh duplicata
-            const key = `${item.clientName}_${item.contractId || item.balanceDue}_${dateStr}`;
+            // Agrupar apenas por nome, valor (balanceDue/downPayment) e data para ignorar IDs diferentes gerados por cliques rápidos
+            const key = `${item.clientName}_${item.downPayment || 0}_${item.balanceDue || 0}_${dateStr}`;
             
             if (!queueGroups[key]) {
                 queueGroups[key] = [];
