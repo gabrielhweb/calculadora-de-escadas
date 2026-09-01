@@ -753,6 +753,14 @@ export const ContractsList: React.FC = () => {
                                     </div>
                                 </div>
                             </div>
+                            
+                            {/* Sessão de Debug Oculta para ajudar a ver os dados brutos */}
+                            <details className="mt-4 border border-gray-300 dark:border-gray-600 rounded p-2 text-xs">
+                                <summary className="cursor-pointer text-gray-500 font-bold">Ver Dados Brutos (Debug - Copie para o Desenvolvedor)</summary>
+                                <pre className="mt-2 p-2 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded overflow-x-auto max-h-64 overflow-y-auto">
+                                    {JSON.stringify(editingContract, null, 2)}
+                                </pre>
+                            </details>
                         </div>
 
                         <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
