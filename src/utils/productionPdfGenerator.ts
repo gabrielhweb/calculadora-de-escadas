@@ -188,7 +188,12 @@ export const drawLandingsPage = (doc: jsPDF, landings: any[], clientName: string
         
         doc.setFontSize(14);
         doc.setTextColor(255, 0, 0); 
-        doc.text(`FICHA DE PRODUÇÃO - PATAMAR ${index + 1}`, 10, 30 + nameHeightOffset); 
+        
+        let typeStr = '';
+        if (landing.type === 'fixed') typeStr = ' (FIXO)';
+        else if (landing.type === 'articulated') typeStr = ' (ARTICULADO)';
+        
+        doc.text(`FICHA DE PRODUÇÃO - PATAMAR ${index + 1}${typeStr}`, 10, 30 + nameHeightOffset); 
 
         // Inserir a Imagem do Patamar limpa e centralizada
         const imgProps = doc.getImageProperties(patamarBase64);
