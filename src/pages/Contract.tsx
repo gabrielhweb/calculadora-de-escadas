@@ -265,6 +265,9 @@ const Contract = () => {
     const [finishText, setFinishText] = useState('Fornecido com aplicação de fundo primer. Observação: a pintura final é de responsabilidade do cliente.');
     const [stepCapacityText, setStepCapacityText] = useState('180 quilos');
     const [stairCapacityText, setStairCapacityText] = useState('360 quilos');
+
+    const [isSavingContract, setIsSavingContract] = useState(false);
+
     const [warrantyText, setWarrantyText] = useState('um ano');
     const [deliveryText, setDeliveryText] = useState(''); // Se vazio, usa o default com a data
     const [deliveryDays, setDeliveryDays] = useState<number>(30);
@@ -710,6 +713,7 @@ const Contract = () => {
     };
 
     const handleSaveContract = async () => {
+        if (isSavingContract) return; // Prevenir cliques duplos
         if (!user) {
             alert("Você precisa fazer login para salvar contratos na nuvem.");
             return;
@@ -719,6 +723,9 @@ const Contract = () => {
             alert("Por favor, preencha o Nome do Cliente antes de salvar.");
             return;
         }
+
+        setIsSavingContract(true);
+        try {
 
         const numLandings = landings.length;
         const totalStepsNum = parseFloat(totalSteps) || 0;
@@ -888,6 +895,8 @@ const Contract = () => {
             alert("Contrato salvo com sucesso na sua Timeline na Nuvem!");
         } catch (error) {
             handleFirestoreError(error, isEditing ? OperationType.UPDATE : OperationType.CREATE, 'contracts');
+        } finally {
+            setIsSavingContract(false);
         }
     };
 
@@ -2008,8 +2017,8 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
 
                         <div className="flex flex-col gap-4 mt-2">
                             <div className="flex gap-4">
-                                <button onClick={handleSaveContract} className="flex-1 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white font-black py-4 rounded-lg shadow-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2">
-                                    <span>💾</span> {location.state?.isEditing ? 'Salvar Alterações' : 'Salvar na Timeline'}
+                                <button onClick={handleSaveContract} disabled={isSavingContract} className={`flex-1 ${isSavingContract ? 'bg-gray-400 cursor-not-allowed' : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'} text-gray-800 dark:text-white font-black py-4 rounded-lg shadow-lg transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2`}>
+                                    <span>💾</span> {isSavingContract ? 'Salvando...' : (location.state?.isEditing ? 'Salvar Alterações' : 'Salvar na Timeline')}
                                 </button>
                                 <button onClick={handleCopyCotacaoFrete} className="flex-1 bg-indigo-600 text-white font-black py-4 rounded-lg shadow-lg hover:bg-indigo-700 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2">
                                     <span>📋</span> Cotação de Frete

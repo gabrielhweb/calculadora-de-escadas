@@ -8,6 +8,7 @@ import { generatePaymentReceiptPDF } from '../utils/paymentReceiptGenerator';
 import { collection, query, where, onSnapshot, doc, updateDoc, deleteDoc, getDocs, addDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { useAuth } from '../components/AuthProvider';
+import { cleanDuplicateContracts } from '../utils/cleanDuplicates';
 
 enum OperationType {
   CREATE = 'create',
@@ -554,6 +555,17 @@ export const ContractsList: React.FC = () => {
                     <p className="text-gray-500 dark:text-gray-400 mt-1">Acompanhe o status de cada projeto na sua timeline.</p>
                 </div>
                 <div className="flex gap-2">
+                    <button 
+                        onClick={async () => {
+                            const confirmed = window.confirm('Deseja realmente limpar contratos duplicados no banco?');
+                            if (confirmed) {
+                                await cleanDuplicateContracts();
+                            }
+                        }}
+                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition-colors text-sm"
+                    >
+                        Limpar Duplicados
+                    </button>
                     <button 
                         onClick={exportDatabase}
                         className="bg-gray-800 hover:bg-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition-colors text-sm"
