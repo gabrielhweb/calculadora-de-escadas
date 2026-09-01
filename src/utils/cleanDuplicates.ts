@@ -77,8 +77,9 @@ export const cleanDuplicateContracts = async () => {
             } catch (e) {
                 dateStr = 'unknown';
             }
-            // Agrupar apenas por nome, valor (balanceDue/downPayment) e data para ignorar IDs diferentes gerados por cliques rápidos
-            const key = `${item.clientName}_${item.downPayment || 0}_${item.balanceDue || 0}_${dateStr}`;
+            // Agrupar apenas por nome e data. 
+            // Ignoramos downPayment e balanceDue porque as cópias geradas por clique duplo podem ter salvado as parcelas de forma errada/diferente
+            const key = `${item.clientName}_${dateStr}`;
             
             if (!queueGroups[key]) {
                 queueGroups[key] = [];
