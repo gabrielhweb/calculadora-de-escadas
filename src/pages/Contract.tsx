@@ -724,9 +724,11 @@ const Contract = () => {
             return;
         }
 
+        const isEditing = location.state?.isEditing;
+        const editingContractId = location.state?.editingContractId;
+
         setIsSavingContract(true);
         try {
-
         const numLandings = landings.length;
         const totalStepsNum = parseFloat(totalSteps) || 0;
         const structureStepsNum = totalStepsNum - numLandings;
@@ -798,8 +800,6 @@ const Contract = () => {
             deliveryDays
         };
 
-        const isEditing = location.state?.isEditing;
-        const editingContractId = location.state?.editingContractId;
 
         const newSavedContract = {
             id: isEditing ? editingContractId : Date.now().toString(),
