@@ -277,6 +277,9 @@ export const ContractsList: React.FC = () => {
             while (typeof parsedData === 'string') {
                 parsedData = JSON.parse(parsedData);
             }
+            if (parsedData?.contractData) {
+                parsedData = parsedData.contractData;
+            }
             
             // Hidrata os dados para garantir que a geração do PDF não quebre em contratos manuais
             if (!parsedData) parsedData = {};
@@ -313,6 +316,9 @@ export const ContractsList: React.FC = () => {
             let parsedData = typeof contract.contractData === 'string' ? JSON.parse(contract.contractData) : contract.contractData;
             while (typeof parsedData === 'string') {
                 parsedData = JSON.parse(parsedData);
+            }
+            if (parsedData?.contractData) {
+                parsedData = parsedData.contractData;
             }
             
             // Tenta pegar de selectedOption, ou de inputData, ou da raiz (caso editado manualmente no JSON plano)
@@ -449,7 +455,22 @@ export const ContractsList: React.FC = () => {
                                             Entrega: {contract.deliveryDate.split('-').reverse().join('/')}
                                         </p>
                                     )}
-                                    <p className="font-semibold text-highlight mt-1">{formatCurrencyBRL(contract.totalValue)}</p>
+                                    <p className="font-semibold text-highlight mt-1">
+                                        {(() => {
+                                            let val = contract.totalValue;
+                                            if (isNaN(Number(val)) || val === undefined || val === null) {
+                                                try {
+                                                    let parsedData = typeof contract.contractData === 'string' ? JSON.parse(contract.contractData) : contract.contractData;
+                                                    while (typeof parsedData === 'string') parsedData = JSON.parse(parsedData);
+                                                    if (parsedData?.totalValue) val = parsedData.totalValue;
+                                                    else if (parsedData?.contractData?.totalValue) val = parsedData.contractData.totalValue;
+                                                    else if (parsedData?.contractData?.selectedOption?.totalPrice) val = parsedData.contractData.selectedOption.totalPrice;
+                                                    else if (parsedData?.finalStairPrice) val = (parsedData.finalStairPrice || 0) + (parsedData.finalLandingsPrice || 0);
+                                                } catch(e) { val = 0; }
+                                            }
+                                            return formatCurrencyBRL(Number(val) || 0);
+                                        })()}
+                                    </p>
                                 </div>
 
                                 {status === 'producao' && (

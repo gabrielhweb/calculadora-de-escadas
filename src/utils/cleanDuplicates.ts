@@ -53,9 +53,57 @@ export const cleanDuplicateContracts = async () => {
             }
         }
 
-        console.log(`Limpeza concluída! ${deletedCount} contratos duplicados removidos.`);
-        alert(`Limpeza concluída com sucesso! ${deletedCount} contratos repetidos foram removidos do sistema.`);
-        return deletedCount;
+        console.log(`Limpeza de contratos concluída! ${deletedCount} contratos duplicados removidos.`);
+
+        // Agora limpar a fila de produção
+        console.log("Iniciando limpeza da fila de produção...");
+        const queueSnapshot = await getDocs(collection(db, 'production_queue'));
+        const queue: any[] = [];
+        
+        queueSnapshot.forEach((docSnap) => {
+            queue.push({ id: docSnap.id, ...docSnap.data() });
+        });
+
+        const queueGroups: { [key: string]: any[] } = {};
+        
+        queue.forEach(item => {
+            let dateStr = '';
+            try {
+                if (item.createdAt && typeof item.createdAt.toDate === 'function') {
+                    dateStr = item.createdAt.toDate().toISOString().split('T')[0];
+                } else if (item.createdAt) {
+                    dateStr = new Date(item.createdAt).toISOString().split('T')[0];
+                }
+            } catch (e) {
+                dateStr = 'unknown';
+            }
+            // Agrupar por nome e data e valor do contrato para garantir q eh duplicata
+            const key = `${item.clientName}_${item.contractId || item.balanceDue}_${dateStr}`;
+            
+            if (!queueGroups[key]) {
+                queueGroups[key] = [];
+            }
+            queueGroups[key].push(item);
+        });
+
+        let queueDeletedCount = 0;
+
+        for (const key in queueGroups) {
+            const group = queueGroups[key];
+            if (group.length > 1) {
+                console.log(`Encontrado duplicados na fila para: ${key} (${group.length} registros)`);
+                for (let i = 1; i < group.length; i++) {
+                    const docId = group[i].id;
+                    console.log(`Deletando duplicata da fila ID: ${docId}`);
+                    await deleteDoc(doc(db, 'production_queue', docId));
+                    queueDeletedCount++;
+                }
+            }
+        }
+
+        console.log(`Limpeza da fila concluída! ${queueDeletedCount} duplicados removidos.`);
+        alert(`Limpeza concluída com sucesso!\n${deletedCount} contratos repetidos removidos.\n${queueDeletedCount} itens repetidos da fila removidos.`);
+        return deletedCount + queueDeletedCount;
     } catch (error) {
         console.error("Erro ao limpar duplicatas:", error);
         alert("Erro ao executar limpeza. Veja o console.");
