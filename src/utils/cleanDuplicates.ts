@@ -92,6 +92,14 @@ export const cleanDuplicateContracts = async () => {
             const group = queueGroups[key];
             if (group.length > 1) {
                 console.log(`Encontrado duplicados na fila para: ${key} (${group.length} registros)`);
+                // Ordenar para que o item que tem location válido (diferente de N/A e preenchido) fique no topo [0]
+                group.sort((a, b) => {
+                    const aValid = a.location && a.location !== 'N/A' && a.location.trim() !== '' && a.location.trim() !== '-';
+                    const bValid = b.location && b.location !== 'N/A' && b.location.trim() !== '' && b.location.trim() !== '-';
+                    if (aValid && !bValid) return -1;
+                    if (!aValid && bValid) return 1;
+                    return 0; // se os dois sao validos ou os dois invalidos, mantem ordem
+                });
                 for (let i = 1; i < group.length; i++) {
                     const docId = group[i].id;
                     console.log(`Deletando duplicata da fila ID: ${docId}`);
