@@ -233,20 +233,20 @@ export const drawLandingsPage = (doc: jsPDF, landings: any[], clientName: string
         if (isArticulated) {
             // Textos para o Patamar Articulado (imagem lateral da escada)
             
-            // LARGURA ESCADA (canto superior direito) - Movido mais para a borda
+            // LARGURA ESCADA (canto superior direito) - Posicionado para não cruzar
             doc.setFontSize(16);
             doc.setFont('helvetica', 'bold');
-            doc.text(`${widMm}mm`, imgX + finalW - 8, imgY + 28, { align: 'right' });
+            doc.text(`${widMm}mm`, imgX + finalW - 15, imgY + (finalH * 0.23), { align: 'right' });
             
-            // PISANTE MAIOR (abaixo da largura) - Subi um pouco para não cruzar a linha
-            doc.text(`${lenMm}mm`, imgX + finalW - 8, imgY + 45, { align: 'right' });
+            // PISANTE MAIOR (abaixo da largura) - Posicionado para não cruzar
+            doc.text(`${lenMm}mm`, imgX + finalW - 15, imgY + (finalH * 0.33), { align: 'right' });
 
-            // Observação ilustrativa - Movida para o Canto Superior Esquerdo (onde é totalmente vazio)
+            // Observação ilustrativa (canto superior esquerdo, espaço em branco)
             doc.setFontSize(12);
             doc.setFont('helvetica', 'bold');
-            doc.setTextColor(220, 38, 38); // Vermelho
-            doc.text('OBS: QUANTIDADE DE DEGRAUS ILUSTRATIVA', imgX + 5, imgY + 15);
-            doc.text('CONSIDERAR A QUANTIDADE SOLICITADA', imgX + 5, imgY + 21);
+            doc.setTextColor(220, 38, 38); // Vermelho escuro para destacar
+            doc.text('OBS: QUANTIDADE DE DEGRAUS ILUSTRATIVA', imgX + 5, imgY + (finalH * 0.15));
+            doc.text('CONSIDERAR A QUANTIDADE SOLICITADA', imgX + 5, imgY + (finalH * 0.21));
             doc.setTextColor(0, 0, 0);
 
             // Rodapé (Quantidade e Espessura no canto inferior direito)
