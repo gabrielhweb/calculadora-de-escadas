@@ -171,8 +171,9 @@ export const drawProductionPage = (doc: jsPDF, props: ProductionPdfProps) => {
 };
 
 import { patamarBase64 } from './patamarBase64';
+import { patamarArticuladoBase64 } from './patamarArticuladoBase64';
 
-export const drawLandingsPage = (doc: jsPDF, landings: any[], clientName: string) => {
+export const drawLandingsPage = (doc: jsPDF, landings: any[], clientName: string, totalSteps?: number) => {
     landings.forEach((landing, index) => {
         doc.addPage('a4', 'l');
 
@@ -195,53 +196,91 @@ export const drawLandingsPage = (doc: jsPDF, landings: any[], clientName: string
         
         doc.text(`FICHA DE PRODUÇÃO - PATAMAR ${index + 1}${typeStr}`, 10, 30 + nameHeightOffset); 
 
+        const isArticulated = landing.type === 'articulated';
+        const currentImage = isArticulated ? patamarArticuladoBase64 : patamarBase64;
+
         // Inserir a Imagem do Patamar limpa e centralizada
-        const imgProps = doc.getImageProperties(patamarBase64);
+        const imgProps = doc.getImageProperties(currentImage);
         const imgRatio = imgProps.width / imgProps.height;
         
         // Tamanho e posicionamento centralizado
-        // Tamanho e posicionamento centralizado
-        const finalW = 200;
+        const finalW = isArticulated ? 260 : 200;
         const finalH = finalW / imgRatio;
         const imgX = (297 - finalW) / 2; // Centro da página
-        const imgY = 55; // Descemos a imagem para o fundo branco dela não apagar o título vermelho
+        const imgY = isArticulated ? 40 : 55;
         
-        doc.addImage(patamarBase64, 'PNG', imgX, imgY, finalW, finalH);
+        doc.addImage(currentImage, 'PNG', imgX, imgY, finalW, finalH);
 
         doc.setTextColor(0, 0, 0);
         
         // Medidas em Milímetros
         const lenMm = landing.length ? landing.length * 10 : 0;
         const widMm = landing.width ? landing.width * 10 : 0;
+        const widM = landing.width ? (landing.width / 100).toFixed(2).replace('.', ',') : '0';
+        const lenM = landing.length ? (landing.length / 100).toFixed(2).replace('.', ',') : '0';
         
         doc.setFontSize(14);
         
-        // Comprimento (topo esquerdo, afastado para cima e esquerda)
-        doc.setFont('helvetica', 'normal');
-        doc.text('COMPRIMENTO:', imgX + 25, imgY + 28);
-        doc.setFont('helvetica', 'bold');
-        doc.text(`${lenMm}mm`, imgX + 65, imgY + 28);
-        
-        // Largura (inferior esquerdo, afastado para esquerda e baixo)
-        doc.setFont('helvetica', 'normal');
-        doc.text('LARGURA:', imgX + 15, imgY + 115);
-        doc.setFont('helvetica', 'bold');
-        doc.text(`${widMm}mm`, imgX + 42, imgY + 115);
-        
-        // Aba (direita central, afastado para a direita)
-        doc.setFont('helvetica', 'normal');
-        doc.text('ABA:', imgX + 165, imgY + 70);
-        doc.setFont('helvetica', 'bold');
-        doc.text('100mm', imgX + 177, imgY + 70);
-        
-        // Rodapé (Xadrez e Quantidade, afastados para baixo)
-        doc.setFontSize(16);
-        doc.setFont('helvetica', 'normal');
-        doc.text('XADREZ 3,00', 297 / 2, imgY + 140, { align: 'center' });
-        
-        doc.text('QUANTIDADE:', (297 / 2) - 10, imgY + 150, { align: 'center' });
-        doc.setFont('helvetica', 'bold');
-        doc.text('1', (297 / 2) + 22, imgY + 150, { align: 'center' });
+        if (isArticulated) {
+            // Textos para o Patamar Articulado (imagem lateral da escada)
+            
+            // LARGURA ESCADA (canto superior direito)
+            doc.setFont('helvetica', 'bold');
+            doc.text(`${widMm}mm`, imgX + finalW - 35, imgY + 28);
+            
+            // PISANTE MAIOR (abaixo da largura)
+            doc.setFont('helvetica', 'bold');
+            doc.text(`${lenMm}mm`, imgX + finalW - 45, imgY + 48);
+
+            // Observação ilustrativa (canto superior esquerdo, dentro do desenho)
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            doc.text('obs: quantidade de degraus ilustrativa', imgX + 30, imgY + 50);
+            doc.text('considerar a quantidade solicitada', imgX + 30, imgY + 56);
+
+            // Rodapé (Quantidade e Espessura no canto inferior direito)
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'normal');
+            doc.text('QUANTIDADE DE DEGRAUS:', imgX + finalW - 100, imgY + finalH - 20);
+            
+            const stepsCount = totalSteps || 0;
+            // "X DEGRAUS + 1 PATAMAR (1,20m x 1,65m)"
+            const qtdText = `${stepsCount} DEGRAUS + 1 PATAMAR (${widM}m x ${lenM}m)`;
+            doc.setFont('helvetica', 'bold');
+            doc.text(qtdText, imgX + finalW - 100, imgY + finalH - 12);
+            
+            doc.setFont('helvetica', 'normal');
+            doc.text('ESPESSURA: 3mm', imgX + finalW - 100, imgY + finalH - 4);
+            
+        } else {
+            // Textos originais para o Patamar Fixo
+            // Comprimento (topo esquerdo, afastado para cima e esquerda)
+            doc.setFont('helvetica', 'normal');
+            doc.text('COMPRIMENTO:', imgX + 25, imgY + 28);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`${lenMm}mm`, imgX + 65, imgY + 28);
+            
+            // Largura (inferior esquerdo, afastado para esquerda e baixo)
+            doc.setFont('helvetica', 'normal');
+            doc.text('LARGURA:', imgX + 15, imgY + 115);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`${widMm}mm`, imgX + 42, imgY + 115);
+            
+            // Aba (direita central, afastado para a direita)
+            doc.setFont('helvetica', 'normal');
+            doc.text('ABA:', imgX + 165, imgY + 70);
+            doc.setFont('helvetica', 'bold');
+            doc.text('100mm', imgX + 177, imgY + 70);
+            
+            // Rodapé (Xadrez e Quantidade, afastados para baixo)
+            doc.setFontSize(16);
+            doc.setFont('helvetica', 'normal');
+            doc.text('XADREZ 3,00', 297 / 2, imgY + 140, { align: 'center' });
+            
+            doc.text('QUANTIDADE:', (297 / 2) - 10, imgY + 150, { align: 'center' });
+            doc.setFont('helvetica', 'bold');
+            doc.text('1', (297 / 2) + 22, imgY + 150, { align: 'center' });
+        }
     });
 };
 
@@ -250,7 +289,7 @@ export const generateProductionPDF = (props: ProductionPdfProps) => {
     drawProductionPage(doc, props);
     
     if (props.landings && props.landings.length > 0) {
-        drawLandingsPage(doc, props.landings, props.clientName);
+        drawLandingsPage(doc, props.landings, props.clientName, props.totalSteps);
     }
     
     doc.save(`FICHA_PRODUCAO_${props.cutStepType.toUpperCase()}_${props.clientName.replace(/\s+/g, '_')}.pdf`);

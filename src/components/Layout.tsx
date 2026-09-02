@@ -177,10 +177,110 @@ const Layout: React.FC = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                   </svg>
                 )}
+              {/* Mobile Menu Button */}
+              <button 
+                className="md:hidden p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              >
+                <span className="sr-only">Open main menu</span>
+                {isMobileMenuOpen ? (
+                  <svg className="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                ) : (
+                  <svg className="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                )}
               </button>
             </div>
           </div>
         </div>
+
+        {/* Mobile Menu Dropdown */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden bg-secondary dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+            <div className="px-2 pt-2 pb-3 space-y-1">
+              <Link 
+                to="/" 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`${isActive('/') ? 'bg-gray-200 dark:bg-gray-700 text-highlight font-bold' : 'text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'} block px-3 py-2 rounded-md text-base font-medium`}
+              >
+                Calculadora
+              </Link>
+              <Link 
+                to="/contrato" 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`${isActive('/contrato') ? 'bg-gray-200 dark:bg-gray-700 text-highlight font-bold' : 'text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'} block px-3 py-2 rounded-md text-base font-medium`}
+              >
+                Gerar Contrato
+              </Link>
+              <Link 
+                to="/contratos" 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`${isActive('/contratos') ? 'bg-gray-200 dark:bg-gray-700 text-highlight font-bold' : 'text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'} block px-3 py-2 rounded-md text-base font-medium`}
+              >
+                Meus Contratos
+              </Link>
+              <Link 
+                to="/fila" 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`${isActive('/fila') ? 'bg-gray-200 dark:bg-gray-700 text-highlight font-bold' : 'text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'} block px-3 py-2 rounded-md text-base font-medium`}
+              >
+                Fila de Produção
+              </Link>
+              <Link 
+                to="/transportadoras" 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`${isActive('/transportadoras') ? 'bg-gray-200 dark:bg-gray-700 text-highlight font-bold' : 'text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'} block px-3 py-2 rounded-md text-base font-medium`}
+              >
+                🚚 Fretes
+              </Link>
+              <Link 
+                to="/tabela-entregas" 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`${isActive('/tabela-entregas') ? 'bg-gray-200 dark:bg-gray-700 text-highlight font-bold' : 'text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'} block px-3 py-2 rounded-md text-base font-medium`}
+              >
+                🚚 Tabela de Entregas
+              </Link>
+              <Link 
+                to="/recibo-pagamento" 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`${isActive('/recibo-pagamento') ? 'bg-gray-200 dark:bg-gray-700 text-highlight font-bold' : 'text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'} block px-3 py-2 rounded-md text-base font-medium`}
+              >
+                Recibo Pagamento
+              </Link>
+              <Link 
+                to="/recibo-visita" 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`${isActive('/recibo-visita') ? 'bg-gray-200 dark:bg-gray-700 text-highlight font-bold' : 'text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'} block px-3 py-2 rounded-md text-base font-medium`}
+              >
+                Recibo Visita
+              </Link>
+              <Link 
+                to="/recibo-instalacao" 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`${isActive('/recibo-instalacao') ? 'bg-gray-200 dark:bg-gray-700 text-highlight font-bold' : 'text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'} block px-3 py-2 rounded-md text-base font-medium`}
+              >
+                Recibo Instalação
+              </Link>
+              <Link 
+                to="/salvos" 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`${isActive('/salvos') ? 'bg-gray-200 dark:bg-gray-700 text-highlight font-bold' : 'text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'} block px-3 py-2 rounded-md text-base font-medium`}
+              >
+                Orçamentos Salvos
+              </Link>
+              <Link 
+                to="/custos" 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`${isActive('/custos') ? 'bg-gray-200 dark:bg-gray-700 text-highlight font-bold' : 'text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'} block px-3 py-2 rounded-md text-base font-medium`}
+              >
+                💰 Custos
+              </Link>
+            </div>
+          </div>
+        )}
       </nav>
 
       <main className="flex-grow">
