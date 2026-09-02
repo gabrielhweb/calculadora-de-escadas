@@ -648,7 +648,7 @@ export const ContractsList: React.FC = () => {
                 </div>
             </header>
 
-            <div className="flex-1 flex gap-6 overflow-x-auto pb-4 custom-scrollbar">
+            <div className="flex-1 flex flex-col md:flex-row gap-6 overflow-x-auto pb-4 custom-scrollbar">
                 {renderColumn('falta_assinar', 'Falta Assinar', 'border-yellow-400')}
                 {renderColumn('producao', 'Em Produção', 'border-blue-500')}
                 {renderColumn('entregue', 'Entregue', 'border-green-500')}

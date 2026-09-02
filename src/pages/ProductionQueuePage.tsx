@@ -53,7 +53,7 @@ const QUICK_COSTS = [
 
 export default function ProductionQueue() {
     const [items, setItems] = useState<DashboardItem[]>([]);
-    const [timeFilter, setTimeFilter] = useState<'all' | 'month' | 'week'>('month');
+    const [timeFilter, setTimeFilter] = useState<'all' | 'month' | 'week'>('all');
     const [stageFilter, setStageFilter] = useState<'all' | BoardStage>('all');
     const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
     const { user } = useAuth();
