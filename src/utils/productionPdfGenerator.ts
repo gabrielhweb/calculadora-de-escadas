@@ -233,20 +233,20 @@ export const drawLandingsPage = (doc: jsPDF, landings: any[], clientName: string
         if (isArticulated) {
             // Textos para o Patamar Articulado (imagem lateral da escada)
             
-            // LARGURA ESCADA (canto superior direito) - Posicionado para não cruzar
+            // LARGURA ESCADA (canto superior direito) - Movido mais para a borda
             doc.setFontSize(16);
             doc.setFont('helvetica', 'bold');
-            doc.text(`${widMm}mm`, imgX + finalW - 15, imgY + (finalH * 0.18), { align: 'right' });
+            doc.text(`${widMm}mm`, imgX + finalW - 8, imgY + 28, { align: 'right' });
             
-            // PISANTE MAIOR (abaixo da largura) - Posicionado para não cruzar
-            doc.text(`${lenMm}mm`, imgX + finalW - 15, imgY + (finalH * 0.40), { align: 'right' });
+            // PISANTE MAIOR (abaixo da largura) - Subi um pouco para não cruzar a linha
+            doc.text(`${lenMm}mm`, imgX + finalW - 8, imgY + 45, { align: 'right' });
 
-            // Observação ilustrativa (aumentada e melhor posicionada)
-            doc.setFontSize(14);
+            // Observação ilustrativa - Movida para o Canto Superior Esquerdo (onde é totalmente vazio)
+            doc.setFontSize(12);
             doc.setFont('helvetica', 'bold');
-            doc.setTextColor(220, 38, 38); // Vermelho escuro para destacar
-            doc.text('OBS: QUANTIDADE DE DEGRAUS ILUSTRATIVA', imgX + 10, imgY + (finalH * 0.35));
-            doc.text('CONSIDERAR A QUANTIDADE SOLICITADA', imgX + 10, imgY + (finalH * 0.42));
+            doc.setTextColor(220, 38, 38); // Vermelho
+            doc.text('OBS: QUANTIDADE DE DEGRAUS ILUSTRATIVA', imgX + 5, imgY + 15);
+            doc.text('CONSIDERAR A QUANTIDADE SOLICITADA', imgX + 5, imgY + 21);
             doc.setTextColor(0, 0, 0);
 
             // Rodapé (Quantidade e Espessura no canto inferior direito)
