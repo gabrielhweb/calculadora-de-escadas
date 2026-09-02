@@ -9,6 +9,8 @@ const Layout: React.FC = () => {
   // Agora a calculadora é a raiz '/', então verificamos se é exatamente '/'
   const isActive = (path: string) => location.pathname === path;
 
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   // State initialization with localStorage check
   const [isDark, setIsDark] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -177,6 +179,7 @@ const Layout: React.FC = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                   </svg>
                 )}
+              </button>
               {/* Mobile Menu Button */}
               <button 
                 className="md:hidden p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
