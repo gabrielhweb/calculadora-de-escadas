@@ -204,10 +204,21 @@ export const drawLandingsPage = (doc: jsPDF, landings: any[], clientName: string
         const imgRatio = imgProps.width / imgProps.height;
         
         // Tamanho e posicionamento centralizado
-        const finalW = isArticulated ? 260 : 200;
-        const finalH = finalW / imgRatio;
+        let finalW = isArticulated ? 260 : 200;
+        let finalH = finalW / imgRatio;
+        
+        // Limitar altura para caber na página A4 deitada (altura máxima 210mm, margem ~150mm)
+        if (finalH > 150) {
+            finalH = 150;
+            finalW = finalH * imgRatio;
+        }
+        
         const imgX = (297 - finalW) / 2; // Centro da página
         const imgY = isArticulated ? 40 : 55;
+        
+        // Opcional: preencher o fundo com a mesma cor da imagem para disfarçar o corte
+        doc.setFillColor(247, 247, 247);
+        doc.rect(imgX, imgY, finalW, finalH, 'F');
         
         doc.addImage(currentImage, 'PNG', imgX, imgY, finalW, finalH);
 
@@ -219,38 +230,37 @@ export const drawLandingsPage = (doc: jsPDF, landings: any[], clientName: string
         const widM = landing.width ? (landing.width / 100).toFixed(2).replace('.', ',') : '0';
         const lenM = landing.length ? (landing.length / 100).toFixed(2).replace('.', ',') : '0';
         
-        doc.setFontSize(14);
-        
         if (isArticulated) {
             // Textos para o Patamar Articulado (imagem lateral da escada)
             
-            // LARGURA ESCADA (canto superior direito)
+            // LARGURA ESCADA (canto superior direito) - Posicionado para não cruzar
+            doc.setFontSize(16);
             doc.setFont('helvetica', 'bold');
-            doc.text(`${widMm}mm`, imgX + finalW - 35, imgY + 28);
+            doc.text(`${widMm}mm`, imgX + finalW - 15, imgY + (finalH * 0.18), { align: 'right' });
             
-            // PISANTE MAIOR (abaixo da largura)
-            doc.setFont('helvetica', 'bold');
-            doc.text(`${lenMm}mm`, imgX + finalW - 45, imgY + 48);
+            // PISANTE MAIOR (abaixo da largura) - Posicionado para não cruzar
+            doc.text(`${lenMm}mm`, imgX + finalW - 15, imgY + (finalH * 0.40), { align: 'right' });
 
-            // Observação ilustrativa (canto superior esquerdo, dentro do desenho)
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'normal');
-            doc.text('obs: quantidade de degraus ilustrativa', imgX + 30, imgY + 50);
-            doc.text('considerar a quantidade solicitada', imgX + 30, imgY + 56);
+            // Observação ilustrativa (aumentada e melhor posicionada)
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(220, 38, 38); // Vermelho escuro para destacar
+            doc.text('OBS: QUANTIDADE DE DEGRAUS ILUSTRATIVA', imgX + 10, imgY + (finalH * 0.35));
+            doc.text('CONSIDERAR A QUANTIDADE SOLICITADA', imgX + 10, imgY + (finalH * 0.42));
+            doc.setTextColor(0, 0, 0);
 
             // Rodapé (Quantidade e Espessura no canto inferior direito)
             doc.setFontSize(14);
             doc.setFont('helvetica', 'normal');
-            doc.text('QUANTIDADE DE DEGRAUS:', imgX + finalW - 100, imgY + finalH - 20);
+            doc.text('QUANTIDADE DE DEGRAUS:', imgX + finalW - 10, imgY + finalH - 20, { align: 'right' });
             
             const stepsCount = totalSteps || 0;
-            // "X DEGRAUS + 1 PATAMAR (1,20m x 1,65m)"
             const qtdText = `${stepsCount} DEGRAUS + 1 PATAMAR (${widM}m x ${lenM}m)`;
             doc.setFont('helvetica', 'bold');
-            doc.text(qtdText, imgX + finalW - 100, imgY + finalH - 12);
+            doc.text(qtdText, imgX + finalW - 10, imgY + finalH - 12, { align: 'right' });
             
             doc.setFont('helvetica', 'normal');
-            doc.text('ESPESSURA: 3mm', imgX + finalW - 100, imgY + finalH - 4);
+            doc.text('ESPESSURA: 3mm', imgX + finalW - 10, imgY + finalH - 4, { align: 'right' });
             
         } else {
             // Textos originais para o Patamar Fixo
