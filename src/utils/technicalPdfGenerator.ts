@@ -373,7 +373,7 @@ export const generateUnifiedTechnicalPDF = (props: TechnicalDataProps) => {
   });
 
   if (props.landings && props.landings.length > 0) {
-      drawLandingsPage(doc, props.landings, props.clientName, props.totalSteps);
+      drawLandingsPage(doc, props.landings, props.clientName, props.totalSteps, props.wallFixation);
   }
 
   // Página 2: Documento Técnico Pristine

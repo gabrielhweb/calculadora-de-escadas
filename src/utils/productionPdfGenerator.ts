@@ -9,6 +9,7 @@ export interface ProductionPdfProps {
     cutStepType: 'left' | 'right' | 'hollow_left' | 'hollow_right';
     clientName: string;
     landings?: any[];
+    wallFixation?: 'left' | 'right' | 'frontal';
 }
 
 export const drawProductionPage = (doc: jsPDF, props: ProductionPdfProps) => {
@@ -173,7 +174,7 @@ export const drawProductionPage = (doc: jsPDF, props: ProductionPdfProps) => {
 import { patamarBase64 } from './patamarBase64';
 import { patamarArticuladoBase64 } from './patamarArticuladoBase64';
 
-export const drawLandingsPage = (doc: jsPDF, landings: any[], clientName: string, totalSteps?: number) => {
+export const drawLandingsPage = (doc: jsPDF, landings: any[], clientName: string, totalSteps?: number, wallFixation?: string) => {
     landings.forEach((landing, index) => {
         doc.addPage('a4', 'l');
 
@@ -185,16 +186,30 @@ export const drawLandingsPage = (doc: jsPDF, landings: any[], clientName: string
         const splitName = doc.splitTextToSize(safeClientName, 120);
         doc.text(splitName, 10, 20);
         
-        const nameHeightOffset = (splitName.length - 1) * 8;
+        const nameLines = splitName.length;
+        const nameHeightOffset = (nameLines - 1) * 10;
         
         doc.setFontSize(14);
-        doc.setTextColor(255, 0, 0); 
-        
+        doc.setTextColor(255, 0, 0);
         let typeStr = '';
         if (landing.type === 'fixed') typeStr = ' (FIXO)';
         else if (landing.type === 'articulated') typeStr = ' (ARTICULADO)';
         
         doc.text(`FICHA DE PRODUÇÃO - PATAMAR ${index + 1}${typeStr}`, 10, 30 + nameHeightOffset); 
+
+        // Indicação do lado da parede
+        if (wallFixation) {
+            let wallText = '';
+            if (wallFixation === 'left') wallText = 'PAREDE LADO ESQUERDO (E)';
+            else if (wallFixation === 'right') wallText = 'PAREDE LADO DIREITO (D)';
+            else if (wallFixation === 'frontal') wallText = 'PAREDE FRONTAL';
+
+            if (wallText) {
+                doc.setFontSize(16);
+                doc.setTextColor(255, 0, 0); // Mantém em vermelho para destaque igual à ficha principal
+                doc.text(wallText, 287, 30 + nameHeightOffset, { align: 'right' });
+            }
+        } 
 
         const isArticulated = landing.type === 'articulated';
         const currentImage = isArticulated ? patamarArticuladoBase64 : patamarBase64;
@@ -215,10 +230,6 @@ export const drawLandingsPage = (doc: jsPDF, landings: any[], clientName: string
         
         const imgX = (297 - finalW) / 2; // Centro da página
         const imgY = isArticulated ? 40 : 55;
-        
-        // Opcional: preencher o fundo com a mesma cor da imagem para disfarçar o corte
-        doc.setFillColor(247, 247, 247);
-        doc.rect(imgX, imgY, finalW, finalH, 'F');
         
         doc.addImage(currentImage, 'PNG', imgX, imgY, finalW, finalH);
 
@@ -299,7 +310,7 @@ export const generateProductionPDF = (props: ProductionPdfProps) => {
     drawProductionPage(doc, props);
     
     if (props.landings && props.landings.length > 0) {
-        drawLandingsPage(doc, props.landings, props.clientName, props.totalSteps);
+        drawLandingsPage(doc, props.landings, props.clientName, props.totalSteps, props.wallFixation);
     }
     
     doc.save(`FICHA_PRODUCAO_${props.cutStepType.toUpperCase()}_${props.clientName.replace(/\s+/g, '_')}.pdf`);
