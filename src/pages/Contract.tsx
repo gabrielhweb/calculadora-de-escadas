@@ -1844,17 +1844,48 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
 
                         {paymentMethod === 'pix' && (
                             <div className="space-y-4 animate-fade-in">
-                                <div className="flex items-center gap-4">
-                                    <div className="flex-1">
-                                        <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Sinal (%)</label>
-                                        <input type="number" value={signalPercent} onChange={e => setSignalPercent(parseFloat(e.target.value)||0)} className="w-full p-2 border rounded font-bold text-center text-green-600 dark:text-green-400 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600"/>
+                                {isCustomPix ? (
+                                    <div className="space-y-3 bg-green-50 dark:bg-green-900/20 p-3 rounded border border-green-200 dark:border-green-800">
+                                        <div className="flex justify-between items-center">
+                                            <label className="block text-xs font-bold text-green-800 dark:text-green-300 uppercase">Parcelas Customizadas</label>
+                                            <span className="text-xs font-bold text-gray-500">Total Distribuído: R$ {pixInstallmentsList.reduce((acc, curr) => acc + (Number(curr.value) || 0), 0).toFixed(2)} / R$ {pixTotal.toFixed(2)}</span>
+                                        </div>
+                                        {pixInstallmentsList.map((inst, idx) => (
+                                            <div key={idx} className="flex items-center gap-2">
+                                                <input type="number" value={inst.value} onChange={e => {
+                                                    const newList = [...pixInstallmentsList];
+                                                    newList[idx].value = parseFloat(e.target.value) || 0;
+                                                    setPixInstallmentsList(newList);
+                                                }} className="w-1/3 p-2 border rounded font-bold text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600" placeholder="R$ Valor"/>
+                                                <input type="text" value={inst.description} onChange={e => {
+                                                    const newList = [...pixInstallmentsList];
+                                                    newList[idx].description = e.target.value;
+                                                    setPixInstallmentsList(newList);
+                                                }} className="w-2/3 p-2 border rounded font-medium text-sm text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600" placeholder="Descrição (ex: daqui 15 dias)"/>
+                                                <button onClick={() => setPixInstallmentsList(pixInstallmentsList.filter((_, i) => i !== idx))} className="p-2 text-red-500 hover:bg-red-100 rounded">X</button>
+                                            </div>
+                                        ))}
+                                        <button onClick={() => setPixInstallmentsList([...pixInstallmentsList, { value: 0, description: '' }])} className="w-full py-2 bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-300 rounded font-bold text-xs uppercase">+ Adicionar Parcela</button>
+                                        {Math.abs(pixInstallmentsList.reduce((acc, curr) => acc + (Number(curr.value) || 0), 0) - pixTotal) > 0.05 && (
+                                            <p className="text-xs text-red-500 font-bold">* O total das parcelas não bate com o valor total a pagar!</p>
+                                        )}
                                     </div>
-                                </div>
+                                ) : (
+                                    <div className="flex items-center gap-4">
+                                        <div className="flex-1">
+                                            <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Sinal (%)</label>
+                                            <input type="number" value={signalPercent} onChange={e => setSignalPercent(parseFloat(e.target.value)||0)} className="w-full p-2 border rounded font-bold text-center text-green-600 dark:text-green-400 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600"/>
+                                        </div>
+                                    </div>
+                                )}
                                 <div className="pt-2 text-sm text-gray-500 dark:text-gray-400 font-medium border-t border-gray-300 dark:border-gray-600">
                                     <p className="flex justify-between"><span>Valor Original:</span> <span className="line-through">{formatCurrencyBRL(totalGeralBase)}</span></p>
                                     {discountMoney > 0 && <p className="flex justify-between text-green-600"><span>Desconto:</span> <span>- {formatCurrencyBRL(discountMoney)}</span></p>}
                                     <p className="flex justify-between text-green-700 dark:text-green-400 font-bold text-lg"><span>A Pagar:</span> <span>{formatCurrencyBRL(pixTotal)}</span></p>
                                     
+                                    {!isCustomPix && (
+                                        <p className="text-xs mt-1">* {signalPercent}% de sinal na assinatura e {100 - signalPercent}% na entrega.</p>
+                                    )}
                                 </div>
                             </div>
                         )}
