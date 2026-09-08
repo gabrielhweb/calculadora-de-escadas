@@ -237,6 +237,12 @@ const Contract = () => {
     
     // Configurações do Contrato
     const [paymentMethod, setPaymentMethod] = useState<'pix' | 'card' | 'hybrid'>('pix');
+    const [cashMethodName, setCashMethodName] = useState<'PIX' | 'Transferência Bancária'>('PIX');
+    const [isCustomPix, setIsCustomPix] = useState(false);
+    const [pixInstallmentsList, setPixInstallmentsList] = useState<{value: number; description: string}[]>([
+        { value: 0, description: 'Sinal na assinatura' }, 
+        { value: 0, description: 'Na entrega/instalação' }
+    ]);
     
     // Pagamento
     const [discountPercent, setDiscountPercent] = useState(0);
@@ -383,6 +389,11 @@ const Contract = () => {
                 if (data.paymentMethod) setPaymentMethod(String(data.paymentMethod) as any);
 
                 if (paymentDetails) {
+                    setCashMethodName(paymentDetails.cashMethodName || 'PIX');
+                    setIsCustomPix(!!paymentDetails.isCustomPix);
+                    if (paymentDetails.pixInstallmentsList) {
+                        setPixInstallmentsList(paymentDetails.pixInstallmentsList);
+                    }
                     setDiscountPercent(Number(paymentDetails.discountPercent || 0));
                     setDiscountValue(paymentDetails.discountValue ? Number(paymentDetails.discountValue).toFixed(2) : '');
                     setSignalPercent(Number(paymentDetails.signalPercent || 50));
@@ -789,7 +800,10 @@ const Contract = () => {
                 installmentValue: finalInstallmentVal,
                 hybridSignalAmount: finalHybridSignal,
                 pixTiming: pixTiming,
-                remainderText: remainderPaymentMode
+                remainderText: remainderPaymentMode,
+                cashMethodName,
+                isCustomPix,
+                pixInstallmentsList
             },
             additionalClauses: customClauses,
             finishText,
@@ -968,9 +982,12 @@ const Contract = () => {
                 signalPercent, 
                 installments, 
                 installmentValue: finalInstallmentVal,
-                hybridSignalAmount: finalHybridSignal, // Passa o valor manual exato
-                pixTiming: pixTiming, // Passa o momento do pagamento
-                remainderText: remainderPaymentMode // Texto personalizado do restante
+                hybridSignalAmount: finalHybridSignal,
+                pixTiming: pixTiming,
+                remainderText: remainderPaymentMode,
+                cashMethodName,
+                isCustomPix,
+                pixInstallmentsList
             },
             additionalClauses: customClauses,
             finishText,
@@ -1130,7 +1147,10 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                 installmentValue: finalInstallmentVal,
                 hybridSignalAmount: finalHybridSignal,
                 pixTiming: pixTiming,
-                remainderText: remainderPaymentMode
+                remainderText: remainderPaymentMode,
+                cashMethodName,
+                isCustomPix,
+                pixInstallmentsList
             },
             additionalClauses: [],
             finishText,
@@ -1801,6 +1821,27 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                             <button onClick={() => handleMethodChange('card')} className={`flex-1 py-2 rounded font-bold transition text-xs sm:text-sm ${paymentMethod === 'card' ? 'bg-white dark:bg-gray-800 shadow text-blue-700 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600'}`}>Cartão</button>
                         </div>
 
+                                                {/* SELEÇÃO DO MÉTODO À VISTA E PARCELAMENTO */}
+                        {(paymentMethod === 'pix' || paymentMethod === 'hybrid') && (
+                            <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded mb-4 border border-gray-300 dark:border-gray-600 space-y-3">
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-600 dark:text-gray-300 uppercase mb-2">Forma de pagamento à vista:</label>
+                                    <div className="flex gap-2">
+                                        <button onClick={() => setCashMethodName('PIX')} className={`flex-1 py-1.5 rounded text-sm font-bold transition ${cashMethodName === 'PIX' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-400'}`}>PIX</button>
+                                        <button onClick={() => setCashMethodName('Transferência Bancária')} className={`flex-1 py-1.5 rounded text-sm font-bold transition ${cashMethodName === 'Transferência Bancária' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-400'}`}>Transferência</button>
+                                    </div>
+                                </div>
+                                {paymentMethod === 'pix' && (
+                                    <div className="pt-2 border-t border-gray-300 dark:border-gray-700">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input type="checkbox" checked={isCustomPix} onChange={e => setIsCustomPix(e.target.checked)} className="w-4 h-4 text-green-600 rounded focus:ring-green-500" />
+                                            <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Parcelamento Personalizado ({cashMethodName})</span>
+                                        </label>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
                         {paymentMethod === 'pix' && (
                             <div className="space-y-4 animate-fade-in">
                                 <div className="flex items-center gap-4">
@@ -1813,7 +1854,7 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                     <p className="flex justify-between"><span>Valor Original:</span> <span className="line-through">{formatCurrencyBRL(totalGeralBase)}</span></p>
                                     {discountMoney > 0 && <p className="flex justify-between text-green-600"><span>Desconto:</span> <span>- {formatCurrencyBRL(discountMoney)}</span></p>}
                                     <p className="flex justify-between text-green-700 dark:text-green-400 font-bold text-lg"><span>A Pagar:</span> <span>{formatCurrencyBRL(pixTotal)}</span></p>
-                                    <p className="text-xs mt-1">* {signalPercent}% de sinal na assinatura e {100 - signalPercent}% na entrega.</p>
+                                    
                                 </div>
                             </div>
                         )}

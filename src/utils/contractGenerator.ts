@@ -22,7 +22,10 @@ export interface ContractData {
       hybridSignalAmount?: number; // Valor manual exato do sinal
       pixTiming?: 'entry' | 'delivery'; // Momento do pagamento Pix
       remainderText?: string; // NOVO: Texto personalizado para a forma de pagamento do restante
-  };
+  cashMethodName?: string;
+        isCustomPix?: boolean;
+        pixInstallmentsList?: { value: number; description: string }[];
+    };
   additionalClauses?: string[]; 
   
   // PREÇOS SEPARADOS EXPLICITAMENTE
@@ -370,19 +373,35 @@ export const generateContractPDF = (data: ContractData) => {
       addText('6.2 Antes do envio, a CONTRATADA encaminhará vídeos ao cliente demonstrando o funcionamento da escada.', 11, false, 'justify');
       addText('6.3 Após a emissão da nota fiscal, o pagamento do saldo permite o devido despacho do produto na transportadora.', 11, false, 'justify');
   } else {
+      const cashMethod = (data.paymentDetails as any).cashMethodName || 'PIX';
+      const cashMethodLower = cashMethod.toLowerCase();
+
       if (data.paymentMethod === 'pix') {
-          const signalP = data.paymentDetails.signalPercent || 50;
-          const valorSinal = totalComDesconto * (signalP / 100);
-          const valorEntrega = totalComDesconto - valorSinal;
-          
           if (discountVal > 0) {
               addText(`Total ${formatCurrencyBRL(totalGeral)} ${discountText} = ${formatCurrencyBRL(totalComDesconto)}`, 11, false, 'left');
           } else {
               addText(`Total ${formatCurrencyBRL(totalGeral)}`, 11, false, 'left');
           }
-          addText(`Sendo pago ${formatCurrencyBRL(valorSinal)} via pix de sinal e ${formatCurrencyBRL(valorEntrega)} no dia entrega e instalação`, 11, false, 'left');
+          
+          if ((data.paymentDetails as any).isCustomPix && (data.paymentDetails as any).pixInstallmentsList && (data.paymentDetails as any).pixInstallmentsList.length > 0) {
+              addText(`Sendo pago de forma parcelada via ${cashMethodLower} nas seguintes condições:`, 11, false, 'left');
+              (data.paymentDetails as any).pixInstallmentsList.forEach((inst: any, idx: number) => {
+                  addText(`Parcela ${idx + 1}: ${formatCurrencyBRL(inst.value)} - ${inst.description}`, 11, false, 'left');
+              });
+          } else {
+              const signalP = data.paymentDetails.signalPercent || 50;
+              const valorSinal = totalComDesconto * (signalP / 100);
+              const valorEntrega = totalComDesconto - valorSinal;
+              
+              addText(`Sendo pago ${formatCurrencyBRL(valorSinal)} via ${cashMethodLower} de sinal e ${formatCurrencyBRL(valorEntrega)} no dia entrega e instalação`, 11, false, 'left');
+          }
+          
           currentY += 2;
           addText(`Chave PIX (CNPJ): 28.869.537/0001-01`, 11, true, 'left');
+          
+          if (cashMethod === 'Transferência Bancária') {
+              addText(`Banco Itaú - Ag: 3176 Conta: 29775-8`, 11, true, 'left');
+          }
       
       } else if (data.paymentMethod === 'hybrid') {
           // Usa o valor manual se disponível, senão calcula pela %
@@ -401,8 +420,8 @@ export const generateContractPDF = (data: ContractData) => {
           // Determina o texto baseado no momento do pagamento (Timing)
           const isPixOnDelivery = data.paymentDetails.pixTiming === 'delivery';
           const timingText = isPixOnDelivery
-              ? "via pix/dinheiro no ato da entrega/retirada" 
-              : "via pix de entrada";
+              ? `via ${cashMethodLower} no ato da entrega/retirada` 
+              : `via ${cashMethodLower} de entrada`;
 
           // Texto flexível do restante
           const remainderMethodName = data.paymentDetails.remainderText || "Link de Pagamento (Cartão de Crédito)";
@@ -515,3 +534,5 @@ export const generateContractPDF = (data: ContractData) => {
 
   doc.save(`contrato_${(data.userData?.name || 'cliente').toLowerCase().replace(/\s/g, '_')}.pdf`);
 };
+
+
