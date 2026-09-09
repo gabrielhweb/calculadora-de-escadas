@@ -101,7 +101,25 @@ export default function ProductionQueue() {
                 return q;
             });
 
-            const all = [...loadedQuotes, ...loadedContracts, ...queueWithSyncedDates];
+            const queueContractIds = new Set(loadedQueue.map(q => q.originalData?.contractId).filter(Boolean));
+            const missingContracts = Object.keys(rawContractsData).filter(id => {
+                const c = rawContractsData[id];
+                return c.status === 'producao' && !queueContractIds.has(id);
+            }).map(id => {
+                const data = rawContractsData[id];
+                return {
+                    id: id,
+                    title: data.clientName,
+                    subtitle: 'Retroativo',
+                    stage: 'contrato' as any,
+                    value: data.totalValue || 0,
+                    source: 'contract' as any,
+                    originalData: data,
+                    createdAt: data.createdAt
+                };
+            });
+
+            const all = [...loadedQuotes, ...loadedContracts, ...missingContracts, ...queueWithSyncedDates];
             all.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
             setItems(all);
         };
@@ -573,7 +591,7 @@ export default function ProductionQueue() {
                                                                     className={`w-full h-6 bg-gray-200 dark:bg-gray-700 rounded overflow-hidden relative flex items-center justify-center ${item.source === 'queue' ? 'cursor-pointer hover:ring-2 hover:ring-pink-400' : ''}`}
                                                                     title={item.source === 'queue' ? 'Clique para editar o valor pago manualmente' : ''}
                                                                 >
-                                                                    <div className="absolute top-0 left-0 h-full bg-pink-500 transition-all" style={{ width: `${Math.min(100, Math.max(0, percentPaid))}%`}}></div>
+                                                                    <div className={`absolute top-0 left-0 h-full transition-all ${percentPaid >= 100 ? 'bg-green-500' : 'bg-pink-500'}`} style={{ width: `${Math.min(100, Math.max(0, percentPaid))}%`}}></div>
                                                                     <span className="relative z-10 text-[10px] font-bold text-white drop-shadow-md">
                                                                         {percentPaid >= 100 ? '100% PAGO' : percentPaid > 0 ? `${percentPaid.toFixed(0)}% PAGO` : ''}
                                                                     </span>
