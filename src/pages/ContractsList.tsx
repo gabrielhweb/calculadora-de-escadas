@@ -85,7 +85,39 @@ export const ContractsList: React.FC = () => {
         totalSteps: ''
     });
 
-    const RESTORE_DATA = [
+    
+    const FIX_DATA = [
+      { clientName: "Diego Ferreira Santos", steps: 13, stepHeightCm: 22.14, treadDepthCm: 20.00, widthCm: 60, totalLength: 267, wallFixation: "left", treadMaterial: "metal", landings: [], totalValue: 6327 },
+      { clientName: "Alexandre Bergamo de Oliveira", steps: 13, stepHeightCm: 24.43, treadDepthCm: 16.00, widthCm: 52, totalLength: 215, wallFixation: "frontal", treadMaterial: "metal", landings: [], totalValue: 7215.25 },
+      { clientName: "Andréa Aragão Ferreira Rovina", steps: 13, stepHeightCm: 23.00, treadDepthCm: 20.00, widthCm: 70, totalLength: 267, wallFixation: "right", treadMaterial: "wood", landings: [], totalValue: 7476.50 },
+      { clientName: "Joquebede dos Santos Coelho Rodrigues", steps: 11, stepHeightCm: 25.17, treadDepthCm: 13.00, widthCm: 60, totalLength: 149, wallFixation: "right", treadMaterial: "metal", landings: [], totalValue: 5529 },
+      { clientName: "Ricardo Torres Soares", steps: 13, stepHeightCm: 22.14, treadDepthCm: 20.00, widthCm: 60, totalLength: 337, wallFixation: "left", treadMaterial: "metal", landings: [{width: 70, length: 70}], totalValue: 7894.50 },
+      { clientName: "Felipe Pagliarde Cerezer", steps: 7, stepHeightCm: 24.25, treadDepthCm: 20.00, widthCm: 70, totalLength: 144, wallFixation: "right", treadMaterial: "metal", landings: [], totalValue: 3724 },
+      { clientName: "Márcia Campos Nogueira", steps: 13, stepHeightCm: 20.93, treadDepthCm: 20.00, widthCm: 60, totalLength: 267, wallFixation: "left", treadMaterial: "metal", landings: [], totalValue: 7039.50 },
+      { clientName: "Mario dos Reis Filho", steps: 11, stepHeightCm: 23.54, treadDepthCm: 20.00, widthCm: 58, totalLength: 225, wallFixation: "right", treadMaterial: "metal", landings: [], totalValue: 5771.25 }
+    ];
+
+    const handleFixContractData = async () => {
+        try {
+            const querySnapshot = await getDocs(collection(db, 'contracts'));
+            let updated = 0;
+            querySnapshot.forEach(async (docSnap) => {
+                const c = docSnap.data();
+                const fix = FIX_DATA.find(f => f.clientName === c.clientName);
+                if (fix && !c.contractData) {
+                    await updateDoc(doc(db, 'contracts', docSnap.id), {
+                        contractData: JSON.stringify(fix)
+                    });
+                    updated++;
+                }
+            });
+            alert("Corrigido " + FIX_DATA.length + " contratos. Atualize a página!");
+        } catch(e) {
+            console.error(e);
+            alert("Erro");
+        }
+    };
+\n    const RESTORE_DATA = [
       { clientName: "Diego Ferreira Santos", totalValue: 6327, createdAt: "2026-08-27T12:00:00.000Z" },
       { clientName: "Alexandre Bergamo de Oliveira", totalValue: 7215.25, createdAt: "2026-09-03T12:00:00.000Z" },
       { clientName: "Andréa Aragão Ferreira Rovina", totalValue: 7476.50, createdAt: "2026-08-26T12:00:00.000Z" },
@@ -662,6 +694,12 @@ export const ContractsList: React.FC = () => {
                         className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition-colors text-sm"
                     >
                         Restaurar 8 Contratos (Temporário)
+                    </button>
+                    <button 
+                        onClick={handleFixContractData}
+                        className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition-colors text-sm"
+                    >
+                        [Temporário] Fixar PDFs
                     </button>
                     <button 
                         onClick={exportDatabase}
