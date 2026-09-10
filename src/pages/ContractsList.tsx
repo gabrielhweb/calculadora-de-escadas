@@ -85,6 +85,42 @@ export const ContractsList: React.FC = () => {
         totalSteps: ''
     });
 
+    const RESTORE_DATA = [
+      { clientName: "Diego Ferreira Santos", totalValue: 6327, createdAt: "2026-08-27T12:00:00.000Z" },
+      { clientName: "Alexandre Bergamo de Oliveira", totalValue: 7215.25, createdAt: "2026-09-03T12:00:00.000Z" },
+      { clientName: "Andréa Aragão Ferreira Rovina", totalValue: 7476.50, createdAt: "2026-08-26T12:00:00.000Z" },
+      { clientName: "Joquebede dos Santos Coelho Rodrigues", totalValue: 5529, createdAt: "2026-08-25T12:00:00.000Z" },
+      { clientName: "Ricardo Torres Soares", totalValue: 7894.50, createdAt: "2026-09-01T12:00:00.000Z" },
+      { clientName: "Felipe Pagliarde Cerezer", totalValue: 3724, createdAt: "2026-08-28T12:00:00.000Z" },
+      { clientName: "Márcia Campos Nogueira", totalValue: 7039.50, createdAt: "2026-09-09T12:00:00.000Z" },
+      { clientName: "Mario dos Reis Filho", totalValue: 5771.25, createdAt: "2026-08-31T12:00:00.000Z" }
+    ];
+
+    const handleRestoreAll = async () => {
+        try {
+            for (const data of RESTORE_DATA) {
+                await addDoc(collection(db, 'contracts'), {
+                    clientName: data.clientName,
+                    totalValue: data.totalValue,
+                    createdAt: data.createdAt,
+                    status: 'producao',
+                    paymentStatus: 'a_receber',
+                    deliveryStatus: 'em_producao',
+                    contractDataString: '',
+                    treadDepth: '',
+                    stepHeight: '',
+                    stairWidth: '',
+                    totalSteps: '',
+                    userId: user?.uid
+                });
+            }
+            alert("Restauração de 8 contratos concluída com sucesso! Atualize a página.");
+        } catch(e) {
+            console.error(e);
+            alert("Erro na restauração");
+        }
+    };
+
     const openAddModal = () => {
         setEditingContract(null);
         setShowAdvanced(false);
@@ -621,6 +657,12 @@ export const ContractsList: React.FC = () => {
                     <p className="text-gray-500 dark:text-gray-400 mt-1">Acompanhe o status de cada projeto na sua timeline.</p>
                 </div>
                 <div className="flex gap-2">
+                    <button 
+                        onClick={handleRestoreAll}
+                        className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition-colors text-sm"
+                    >
+                        Restaurar 8 Contratos (Temporário)
+                    </button>
                     <button 
                         onClick={exportDatabase}
                         className="bg-gray-800 hover:bg-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition-colors text-sm"
