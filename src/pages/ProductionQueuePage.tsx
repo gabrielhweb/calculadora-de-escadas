@@ -316,10 +316,19 @@ export default function ProductionQueue() {
     const handleUpdateDeliveryDate = async (item: DashboardItem, newDate: string) => {
         try {
             if (item.source === 'queue') {
+                // Atualiza na fila
                 await updateDoc(doc(db, 'production_queue', item.id), { deliveryDate: newDate });
+                // Tenta atualizar no contrato, se falhar (ex: contrato deletado), ignora
                 if (item.originalData.contractId) {
-                    await updateDoc(doc(db, 'contracts', item.originalData.contractId), { deliveryDate: newDate });
+                    try {
+                        await updateDoc(doc(db, 'contracts', item.originalData.contractId), { deliveryDate: newDate });
+                    } catch (e) {
+                        console.warn('Contrato original no encontrado para sincronizar data.', e);
+                    }
                 }
+            } else if (item.source === 'contract') {
+                // Se for um contrato rfo (Retroativo)
+                await updateDoc(doc(db, 'contracts', item.id), { deliveryDate: newDate });
             }
         } catch (error) {
             handleFirestoreError(error, OperationType.UPDATE, 'sync_delivery_date');
