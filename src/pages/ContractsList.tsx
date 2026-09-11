@@ -117,39 +117,65 @@ export const ContractsList: React.FC = () => {
             alert("Erro");
         }
     };
-    const RESTORE_DATA = [
-      { clientName: "Diego Ferreira Santos", totalValue: 6327, createdAt: "2026-08-27T12:00:00.000Z" },
-      { clientName: "Alexandre Bergamo de Oliveira", totalValue: 7215.25, createdAt: "2026-09-03T12:00:00.000Z" },
-      { clientName: "Andréa Aragão Ferreira Rovina", totalValue: 7476.50, createdAt: "2026-08-26T12:00:00.000Z" },
-      { clientName: "Joquebede dos Santos Coelho Rodrigues", totalValue: 5529, createdAt: "2026-08-25T12:00:00.000Z" },
-      { clientName: "Ricardo Torres Soares", totalValue: 7894.50, createdAt: "2026-09-01T12:00:00.000Z" },
-      { clientName: "Felipe Pagliarde Cerezer", totalValue: 3724, createdAt: "2026-08-28T12:00:00.000Z" },
-      { clientName: "Márcia Campos Nogueira", totalValue: 7039.50, createdAt: "2026-09-09T12:00:00.000Z" },
-      { clientName: "Mario dos Reis Filho", totalValue: 5771.25, createdAt: "2026-08-31T12:00:00.000Z" }
+    const INJECT_DATA = [
+        { name: "Diego Ferreira Santos", data: { steps: 13, stepHeight: 22.14, treadDepth: 20, stairWidth: 60, totalHeight: 310, totalLength: 267, wallFixation: "left", treadMaterial: "metal" } },
+        { name: "Alexandre Bergamo de Oliveira", data: { steps: 13, stepHeight: 24.43, treadDepth: 16, stairWidth: 52, totalHeight: 342, totalLength: 215, wallFixation: "front", treadMaterial: "metal" } },
+        { name: "Andréa Aragão Ferreira Rovina", data: { steps: 13, stepHeight: 23.00, treadDepth: 20, stairWidth: 70, totalHeight: 322, totalLength: 267, wallFixation: "right", treadMaterial: "wood", woodType: "Muiracatiara" } },
+        { name: "Joquebede", data: { steps: 11, stepHeight: 25.17, treadDepth: 13, stairWidth: 60, totalHeight: 302, totalLength: 149, wallFixation: "right", treadMaterial: "metal" } },
+        { name: "Ricardo Torres Soares", data: { steps: 13, stepHeight: 22.14, treadDepth: 20, stairWidth: 60, totalHeight: 310, totalLength: 337, wallFixation: "left", treadMaterial: "metal", landings: [{ type: "fixo", width: 70, length: 70, customHeight: "" }] } },
+        { name: "Felipe Pagliarde", data: { steps: 7, stepHeight: 24.25, treadDepth: 20, stairWidth: 70, totalHeight: 194, totalLength: 144, wallFixation: "right", treadMaterial: "metal" } },
+        { name: "Márcia Campos Nogueira", data: { steps: 13, stepHeight: 20.93, treadDepth: 20, stairWidth: 60, totalHeight: 293, totalLength: 267, wallFixation: "left", treadMaterial: "metal" } },
+        { name: "Mario dos Reis Filho", data: { steps: 11, stepHeight: 23.54, treadDepth: 20, stairWidth: 58, totalHeight: 283, totalLength: 225, wallFixation: "right", treadMaterial: "metal" } }
     ];
 
-    const handleRestoreAll = async () => {
+    const fetchContracts = () => {};
+
+    const handleInjectData = async () => {
         try {
-            for (const data of RESTORE_DATA) {
-                await addDoc(collection(db, 'contracts'), {
-                    clientName: data.clientName,
-                    totalValue: data.totalValue,
-                    createdAt: data.createdAt,
-                    status: 'producao',
-                    paymentStatus: 'a_receber',
-                    deliveryStatus: 'em_producao',
-                    contractDataString: '',
-                    treadDepth: '',
-                    stepHeight: '',
-                    stairWidth: '',
-                    totalSteps: '',
-                    userId: user?.uid
-                });
-            }
-            alert("Restauração de 8 contratos concluída com sucesso! Atualize a página.");
-        } catch(e) {
+            const querySnapshot = await getDocs(collection(db, 'contracts'));
+            let updated = 0;
+            querySnapshot.forEach(async (docSnap) => {
+                const docData = docSnap.data();
+                const match = INJECT_DATA.find(i => docData.clientName && docData.clientName.toLowerCase().includes(i.name.toLowerCase()));
+                if (match && !docData.contractData) {
+                    const fakeContractData = {
+                        inputData: { totalHeight: match.data.totalHeight },
+                        selectedOption: {
+                            steps: match.data.steps,
+                            stepHeight: match.data.stepHeight,
+                            treadDepth: match.data.treadDepth,
+                            stairWidth: match.data.stairWidth,
+                            totalLength: match.data.totalLength,
+                            wallFixation: match.data.wallFixation,
+                            treadMaterial: match.data.treadMaterial,
+                            woodType: match.data.woodType || 'Garapeira',
+                            landings: match.data.landings || [],
+                            cutStepType: 'left',
+                            stairDirection: 'standard'
+                        }
+                    };
+                    await updateDoc(doc(db, 'contracts', docSnap.id), {
+                        contractData: JSON.stringify(fakeContractData),
+                        contractDataString: JSON.stringify(fakeContractData),
+                        treadDepth: match.data.treadDepth.toString(),
+                        stepHeight: match.data.stepHeight.toString(),
+                        stairWidth: match.data.stairWidth.toString(),
+                        totalSteps: match.data.steps.toString()
+                    });
+                    updated++;
+                }
+            });
+            setTimeout(() => {
+                if (updated > 0) {
+                    alert(`Sucesso! ${updated} contratos foram preenchidos automaticamente com as medidas lidas dos PDFs!\nAgora os botões de Ficha Técnica vão funcionar perfeitamente.`);
+                    fetchContracts();
+                } else {
+                    alert("Nenhum contrato vazio encontrado para injetar.");
+                }
+            }, 2000);
+        } catch (e) {
             console.error(e);
-            alert("Erro na restauração");
+            alert("Erro ao injetar dados");
         }
     };
 
@@ -705,6 +731,12 @@ export const ContractsList: React.FC = () => {
                 </div>
                 <div className="flex gap-2">
                     <button 
+                        onClick={handleInjectData}
+                        className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition-colors text-sm"
+                    >
+                        [Temporário] Injetar PDFs
+                    </button>
+                    <button 
                         onClick={handleFixContractData}
                         className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition-colors text-sm"
                     >
@@ -714,13 +746,13 @@ export const ContractsList: React.FC = () => {
                         onClick={exportDatabase}
                         className="bg-gray-800 hover:bg-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition-colors text-sm"
                     >
-                        📦 Exportar Banco (Backup)
+                        📦 Backup
                     </button>
                     <button 
                         onClick={openAddModal}
                         className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition-colors text-sm"
                     >
-                        + Adicionar Pedido Retroativo
+                        + Adicionar Pedido Retoativo
                     </button>
                 </div>
             </header>
