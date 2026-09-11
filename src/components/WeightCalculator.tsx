@@ -123,7 +123,7 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             
             {/* DEGRAUS */}
-            <div className="bg-white rounded-xl shadow-md border-t-4 border-t-blue-500 overflow-hidden flex flex-col">
+            <div className="bg-white rounded-xl shadow-md border-t-4 border-t-blue-500 overflow-hidden flex flex-col relative group">
               <div className="p-4 bg-blue-50 border-b border-blue-100">
                 <h3 className="font-bold text-lg text-blue-800 text-center uppercase">Degraus ({totalSteps} un)</h3>
               </div>
@@ -132,12 +132,15 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
                 <div className="text-center w-full">
                   <p className="text-sm text-slate-500 mb-1">Área total: {(stepAreaM2 * totalSteps).toFixed(2)} m²</p>
                   <p className="text-3xl font-black text-blue-600">{stepsWeightKg.toFixed(1)} <span className="text-lg font-normal">kg</span></p>
+                  <p className="text-[10px] text-slate-400 mt-2 font-mono" title="Fórmula do Cliente">
+                    ({treadDepthCm}+6) × {widthCm} × {selectedThickness}mm × 0.00785 × {totalSteps}un
+                  </p>
                 </div>
               </div>
             </div>
 
             {/* PATAMARES */}
-            <div className="bg-white rounded-xl shadow-md border-t-4 border-t-emerald-500 overflow-hidden flex flex-col">
+            <div className="bg-white rounded-xl shadow-md border-t-4 border-t-emerald-500 overflow-hidden flex flex-col relative group">
               <div className="p-4 bg-emerald-50 border-b border-emerald-100">
                 <h3 className="font-bold text-lg text-emerald-800 text-center uppercase">Patamares ({landings.length} un)</h3>
               </div>
@@ -148,6 +151,9 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
                     <div className="text-center w-full">
                       <p className="text-sm text-slate-500 mb-1">Área total: {landingsAreaM2.toFixed(2)} m²</p>
                       <p className="text-3xl font-black text-emerald-600">{landingsWeightKg.toFixed(1)} <span className="text-lg font-normal">kg</span></p>
+                      <p className="text-[10px] text-slate-400 mt-2 font-mono" title="Cálculo do Patamar">
+                        {landingsAreaM2.toFixed(2)}m² × {selectedThickness}mm × 7.85
+                      </p>
                     </div>
                   </>
                 ) : (
@@ -161,7 +167,7 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
             </div>
 
             {/* ESTRUTURA VIGAS */}
-            <div className="bg-white rounded-xl shadow-md border-t-4 border-t-amber-500 overflow-hidden flex flex-col">
+            <div className="bg-white rounded-xl shadow-md border-t-4 border-t-amber-500 overflow-hidden flex flex-col relative group">
               <div className="p-4 bg-amber-50 border-b border-amber-100">
                 <h3 className="font-bold text-lg text-amber-800 text-center uppercase">Vigas Laterais (Par)</h3>
               </div>
@@ -170,6 +176,9 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
                 <div className="text-center w-full">
                   <p className="text-sm text-slate-500 mb-1">Corte Zigue-Zague ({stringerLengthM.toFixed(2)}m linear)</p>
                   <p className="text-3xl font-black text-amber-600">{stringerWeightKg.toFixed(1)} <span className="text-lg font-normal">kg</span></p>
+                  <p className="text-[10px] text-slate-400 mt-2 font-mono" title="Fórmula de Pitágoras">
+                    {redLineCm.toFixed(1)} × ({blueLineCm.toFixed(1)}+9) × {selectedThickness}mm × 0.00785 × 2
+                  </p>
                 </div>
               </div>
             </div>
