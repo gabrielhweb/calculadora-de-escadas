@@ -67,6 +67,9 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
   const stringerAreaM2 = (redLineCm / 100) * (stringerWidthCm / 100) * 2;
   const stringerVolumeM3 = stringerAreaM2 * thicknessM;
   const stringerWeightKg = stringerVolumeM3 * STEEL_DENSITY;
+  
+  // Variável para a tela (UI)
+  const stringerLengthM = redLineCm / 100;
 
   // Total
   const totalWeightKg = stepsWeightKg + landingsWeightKg + stringerWeightKg;
