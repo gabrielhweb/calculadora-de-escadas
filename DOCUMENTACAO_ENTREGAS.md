@@ -62,4 +62,9 @@ Quando o botão "Imprimir Tabela" é acionado, as seguintes propriedades CSS for
 - **Atenção:** A verificação automática de corrimão foi totalmente removida a pedido. Se o cliente tiver corrimão dos dois lados, a anotação deverá ser feita manualmente pelo time. O tipo de material foi movido para a aba de Medidas.
 - **Dobradiças:** O cálculo agora utiliza a mesma matemática da ficha de produção técnica do PDF.
 
-*Última atualização: Julho de 2026 - Antigravity AI*
+**Setembro de 2026 - Atualizações de Frete e 3D:**
+- **Fila de Produção:** Corrigido bug de renderização que causava exibição duplicada de contratos que estavam simultaneamente na lista de contratos brutos e na fila de produção, aplicando desduplicação por `contractId`.
+- **Frete e Tabela de Entregas:** A coluna "QTD Dobradiças" foi substituída por "FRETE (MEDIDAS)". Agora, ela gera as informações de dimensões do pacote exatamente na ordem solicitada pelo usuário (COMPRIMENTO, LARGURA, ALTURA e PESO EST. ESCADA). Retirou-se a quantidade de volumes e a especificação estática da mercadoria, deixando limpo para uso de qualquer cliente.
+- **Visualizador 3D:** O HUD (painel transparente de Frete no modelo 3D) foi reorganizado para apresentar as medidas exatamente na mesma ordem: Comprimento, Largura, Altura, Peso. O botão de fechar [X] foi sobreposto ao Canvas 3D para nunca mais desaparecer durante a rotação da escada. Os textos baseados em chapa de 3mm agora explicitam "(ESCADA)".
+
+*Última atualização: Setembro de 2026 - Antigravity AI*

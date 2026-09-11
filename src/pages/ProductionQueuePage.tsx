@@ -119,7 +119,19 @@ export default function ProductionQueue() {
                 };
             });
 
-            const all = [...loadedQuotes, ...loadedContracts, ...missingContracts, ...queueWithSyncedDates];
+            let all = [...loadedQuotes, ...loadedContracts, ...missingContracts, ...queueWithSyncedDates];
+            
+            // Deduplicate by contractId to avoid ghosts where a contract is in queue and also matched incorrectly
+            const seenContracts = new Set();
+            all = all.filter(item => {
+                if (item.source === 'quote') return true; // Quotes are standalone
+                
+                const cId = item.originalData?.contractId || item.id;
+                if (cId && seenContracts.has(cId)) return false;
+                if (cId) seenContracts.add(cId);
+                return true;
+            });
+            
             all.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
             setItems(all);
         };

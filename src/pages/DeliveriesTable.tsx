@@ -167,8 +167,8 @@ export const DeliveriesTable: React.FC = () => {
                 const totalWeightKg = stepsWeight + landingsWeight + stringerWeight;
                 const costOfSteel = totalWeightKg * 13.80;
 
-                med += `\nPESO APROX (3mm): ${totalWeightKg.toFixed(1)} kg\n`;
-                med += `CUSTO AÇO: R$ ${costOfSteel.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n`;
+                med += `\nPESO APROX (ESCADA): ${totalWeightKg.toFixed(1)} kg\n`;
+                med += `CUSTO AÇO (ESCADA): R$ ${costOfSteel.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n`;
             }
         } catch (e) {
             console.error("Erro ao calcular peso na tabela", e);
@@ -207,7 +207,8 @@ export const DeliveriesTable: React.FC = () => {
         const maxHandrailHeightM = (inputData.optionalItems && inputData.optionalItems.some((i: any) => i.id === 'corrimao_aco')) ? 0.8 : 0;
         const pontasM = 0.20;
         const alturaDaViga = 0.35;
-        const larguraPacoteM = maxHandrailHeightM + alturaDaViga;
+        const pacoteAlturaM = maxHandrailHeightM + alturaDaViga;
+        const pacoteLarguraM = widthCm / 100;
 
         const comprimentoMaximoM = (treadDepthCm * numSteps) / 100;
         const totalHeightM = (stepHeightCm * numSteps) / 100;
@@ -233,7 +234,7 @@ export const DeliveriesTable: React.FC = () => {
         const stringerWeight = stringerAreaM2 * thicknessM * STEEL_DENSITY;
         const totalWeightKg = stepsWeight + landingsWeight + stringerWeight;
 
-        return `QTD VOLUMES: 2\nMERCADORIA: Escada\nLARGURA PACOTE: ${larguraPacoteM.toFixed(2)}m\nCOMPRIMENTO: ${diagonalExata.toFixed(2)}m\nPESO TOTAL: ${totalWeightKg.toFixed(1)}kg`;
+        return `COMPRIMENTO: ${diagonalExata.toFixed(2)}m\nLARGURA: ${pacoteLarguraM.toFixed(2)}m\nALTURA: ${pacoteAlturaM.toFixed(2)}m\nPESO EST (ESCADA): ${totalWeightKg.toFixed(1)}kg`;
     };
 
 

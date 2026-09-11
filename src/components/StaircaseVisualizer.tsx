@@ -217,7 +217,8 @@ const Interactive3DStair: React.FC<{
   // A Largura do Pacote agora é a seta azul (Corrimão + Altura da Viga)
   // Temporariamente setado como Altura do Corrimão + 0.35m (altura média da viga) até o usuário confirmar a fórmula
   const alturaDaViga = 0.35; 
-  const larguraPacoteM = maxHandrailHeightM + alturaDaViga; 
+  const pacoteAlturaM = maxHandrailHeightM + alturaDaViga; 
+  const pacoteLarguraM = stairWidth;
 
   const comprimentoMaximoM = totalLengthM;
   
@@ -358,24 +359,25 @@ const Interactive3DStair: React.FC<{
                 title="Transparência do painel"
              />
           </div>
-          <div className="font-mono text-sm flex justify-between gap-6 items-center">
-            <span className="text-slate-400 tracking-wider text-xs">ESPESSURA (ESTRUTURA)</span> 
-            <span className="font-bold text-green-400 bg-green-400/10 px-2 py-0.5 rounded">{espessuraEstruturaM.toFixed(2)}m</span>
-          </div>
-          <div className="font-mono text-sm flex justify-between gap-6 items-center">
-            <span className="text-slate-400 tracking-wider text-xs" style={{ color: '#fbbf24' }}>LARGURA DO PACOTE</span> 
-            <span className="font-bold text-yellow-400 bg-yellow-400/10 px-2 py-0.5 rounded">{larguraPacoteM.toFixed(2)}m</span>
-          </div>
-          <div className="font-mono text-sm flex flex-col gap-1 border-t border-slate-700 pt-2 mt-1">
-            <div className="flex justify-between items-center mb-1">
-                <span className="text-slate-400 tracking-wider text-xs" style={{ color: '#a78bfa' }}>PESO TOTAL EST.</span> 
+          <div className="font-mono text-sm flex flex-col gap-2">
+            <div className="flex justify-between items-center border-b border-slate-700/50 pb-1">
+                <span className="text-slate-400 tracking-wider text-xs" style={{ color: '#60a5fa' }}>COMPRIMENTO</span> 
+                <span className="font-bold text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded">{diagonalExata.toFixed(2)}m</span>
+            </div>
+            <div className="flex justify-between items-center border-b border-slate-700/50 pb-1">
+                <span className="text-slate-400 tracking-wider text-xs" style={{ color: '#fbbf24' }}>LARGURA</span> 
+                <span className="font-bold text-yellow-400 bg-yellow-400/10 px-2 py-0.5 rounded">{pacoteLarguraM.toFixed(2)}m</span>
+            </div>
+            <div className="flex justify-between items-center border-b border-slate-700/50 pb-1">
+                <span className="text-slate-400 tracking-wider text-xs" style={{ color: '#10b981' }}>ALTURA</span> 
+                <span className="font-bold text-green-400 bg-green-400/10 px-2 py-0.5 rounded">{pacoteAlturaM.toFixed(2)}m</span>
+            </div>
+            <div className="flex justify-between items-center pt-1">
+                <span className="text-slate-400 tracking-wider text-xs" style={{ color: '#a78bfa' }}>PESO EST (ESCADA)</span> 
                 <span className="font-bold text-purple-400 bg-purple-400/10 px-2 py-0.5 rounded text-lg">{pesoTotalEstimado.toFixed(1)}kg</span>
             </div>
-            <div className="flex justify-between items-center">
-                <span className="text-slate-400 tracking-wider text-xs" style={{ color: '#60a5fa' }}>COMPRIMENTO FECHADO</span> 
-                <span className="font-bold text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded text-lg">{diagonalExata.toFixed(2)}m</span>
-            </div>
-            <div className="mt-2 text-[10px] text-slate-400 font-mono text-center bg-slate-800/50 p-2 rounded leading-relaxed">
+            
+            <div className="mt-1 text-[10px] text-slate-400 font-mono text-center bg-slate-800/50 p-2 rounded leading-relaxed">
                 Escada Fechada (Viga + Corrimão + Pontas):
                 <br />
                 {tamanhoViga.toFixed(2)} + {maxHandrailHeightM.toFixed(2)} + {pontasM.toFixed(2)} = {diagonalExata.toFixed(2)}m
