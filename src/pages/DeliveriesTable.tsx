@@ -80,23 +80,28 @@ export const DeliveriesTable: React.FC = () => {
     };
 
     const getMeasurements = (parsedData: any) => {
-        if (!parsedData || !parsedData.inputData) return '';
-        const { inputData, selectedOption } = parsedData;
-        const steps = selectedOption?.steps || inputData.desiredSteps;
-        const tread = selectedOption?.treadDepth || inputData.treadDepth;
-        const height = selectedOption?.stepHeight || (inputData.totalHeight / inputData.desiredSteps).toFixed(2);
-        const width = selectedOption?.stairWidth || inputData.stairWidth;
+        if (!parsedData) return '';
+        const inputData = parsedData.inputData || parsedData;
+        const selectedOption = parsedData.selectedOption || parsedData;
+        
+        const steps = getProp(parsedData, 'steps') ?? getProp(parsedData, 'desiredSteps') ?? getProp(parsedData, 'degraus');
+        const tread = getProp(parsedData, 'treadDepth') ?? getProp(parsedData, 'treadDepthCm') ?? getProp(parsedData, 'pisante');
+        const height = getProp(parsedData, 'stepHeight') ?? getProp(parsedData, 'stepHeightCm') ?? getProp(parsedData, 'altura');
+        const width = getProp(parsedData, 'stairWidth') ?? getProp(parsedData, 'widthCm') ?? getProp(parsedData, 'largura');
         
         let fixationText = "";
-        if (inputData.stairGeometry === 'hide') {
+        const wallFix = getProp(parsedData, 'wallFixation');
+        const stairGeom = getProp(parsedData, 'stairGeometry');
+        
+        if (stairGeom === 'hide') {
             fixationText = "SEM FIXAÇÃO";
-        } else if (inputData.stairGeometry && inputData.stairGeometry.includes('Fixação')) {
-            fixationText = inputData.stairGeometry;
-        } else if (inputData.wallFixation === 'frontal') {
+        } else if (stairGeom && typeof stairGeom === 'string' && stairGeom.includes('Fixação')) {
+            fixationText = stairGeom;
+        } else if (wallFix === 'frontal') {
             fixationText = "Fixação FRONTAL";
-        } else if (inputData.wallFixation === 'left') {
+        } else if (wallFix === 'left') {
             fixationText = "Fixação na Parede ESQUERDA";
-        } else if (inputData.wallFixation === 'right') {
+        } else if (wallFix === 'right') {
             fixationText = "Fixação na Parede DIREITA";
         }
         
@@ -106,27 +111,32 @@ export const DeliveriesTable: React.FC = () => {
         med += `ALT: ${height}cm\n`;
         med += `LARGURA: ${width}cm\n`;
 
-        if (inputData.treadMaterial === 'wood') {
+        const treadMaterial = getProp(parsedData, 'treadMaterial');
+        const woodType = getProp(parsedData, 'woodType');
+
+        if (treadMaterial === 'wood') {
             let wood = 'MADEIRA';
-            if (inputData.woodType === 'garapeira') wood += ' (GARAPEIRA)';
-            if (inputData.woodType === 'muiracatiara') wood += ' (MUIRACATIARA)';
-            if (inputData.woodType === 'ambas') wood += ' (GARAPEIRA/MUIRACATIARA)';
+            if (woodType === 'garapeira') wood += ' (GARAPEIRA)';
+            if (woodType === 'muiracatiara') wood += ' (MUIRACATIARA)';
+            if (woodType === 'ambas') wood += ' (GARAPEIRA/MUIRACATIARA)';
             med += `MATERIAL: ${wood}\n`;
-        } else if (inputData.treadMaterial === 'chapa_xadrez') {
+        } else if (treadMaterial === 'chapa_xadrez') {
             med += `MATERIAL: CHAPA XADREZ\n`;
-        } else if (inputData.treadMaterial === 'chapa_vazada') {
+        } else if (treadMaterial === 'chapa_vazada') {
             med += `MATERIAL: CHAPA VAZADA\n`;
         }
 
-        if (selectedOption?.landings && selectedOption.landings.length > 0) {
-            selectedOption.landings.forEach((l: any, idx: number) => {
+        const landings = getProp(parsedData, 'landings');
+        if (landings && landings.length > 0) {
+            landings.forEach((l: any, idx: number) => {
                 const type = l.type === 'articulated' ? 'ARTICULADO' : 'FIXO';
                 med += `PATAMAR ${idx + 1} (${type}): ${l.length}cm x ${l.width}cm\n`;
             });
         }
         
-        if (inputData.optionalItems && inputData.optionalItems.length > 0) {
-            inputData.optionalItems.forEach((opt: any) => {
+        const optionalItems = getProp(parsedData, 'optionalItems');
+        if (optionalItems && optionalItems.length > 0) {
+            optionalItems.forEach((opt: any) => {
                 med += `EXTRA: ${opt.name}\n`;
             });
         }
@@ -178,14 +188,16 @@ export const DeliveriesTable: React.FC = () => {
     };
 
     const getDefaultAttention = (parsedData: any) => {
-        if (!parsedData || !parsedData.inputData) return '';
-        const { inputData, selectedOption } = parsedData;
+        if (!parsedData) return '';
         let att = [];
-        if (selectedOption?.landings && selectedOption.landings.length > 0) {
-            const hasArticulated = selectedOption.landings.some((l:any) => l.type === 'articulated');
+        
+        const landings = getProp(parsedData, 'landings');
+        
+        if (landings && landings.length > 0) {
+            const hasArticulated = landings.some((l:any) => l.type === 'articulated');
             if (hasArticulated) att.push('PATAMAR RETRÁTIL');
             
-            selectedOption.landings.forEach((l: any) => {
+            landings.forEach((l: any) => {
                 if (l.frenchBrackets > 0) {
                     att.push(`(${l.frenchBrackets} mão francesa)`);
                 }
@@ -194,17 +206,25 @@ export const DeliveriesTable: React.FC = () => {
         return att.join(' - ');
     };
 
+    const getProp = (parsed: any, key: string) => {
+        if (parsed?.selectedOption && parsed.selectedOption[key] !== undefined && parsed.selectedOption[key] !== '') return parsed.selectedOption[key];
+        if (parsed?.inputData && parsed.inputData[key] !== undefined && parsed.inputData[key] !== '') return parsed.inputData[key];
+        if (parsed && parsed[key] !== undefined && parsed[key] !== '') return parsed[key];
+        return undefined;
+    };
+
     const getFreightDimensions = (parsedData: any) => {
-        if (!parsedData || !parsedData.inputData) return '';
-        const { inputData, selectedOption } = parsedData;
-        const numSteps = Number(selectedOption?.steps || inputData.desiredSteps) || 0;
-        const treadDepthCm = Number(selectedOption?.treadDepth || inputData.treadDepth) || 0;
-        const stepHeightCm = Number(selectedOption?.stepHeight || (inputData.totalHeight / inputData.desiredSteps).toFixed(2)) || 0;
-        const widthCm = Number(selectedOption?.stairWidth || inputData.stairWidth) || 0;
+        if (!parsedData) return '';
+        
+        const numSteps = Number(getProp(parsedData, 'steps') ?? getProp(parsedData, 'desiredSteps') ?? getProp(parsedData, 'degraus')) || 0;
+        const treadDepthCm = Number(getProp(parsedData, 'treadDepth') ?? getProp(parsedData, 'treadDepthCm') ?? getProp(parsedData, 'pisante')) || 0;
+        const stepHeightCm = Number(getProp(parsedData, 'stepHeight') ?? getProp(parsedData, 'stepHeightCm') ?? getProp(parsedData, 'altura')) || 0;
+        const widthCm = Number(getProp(parsedData, 'stairWidth') ?? getProp(parsedData, 'widthCm') ?? getProp(parsedData, 'width') ?? getProp(parsedData, 'largura')) || 0;
 
         if (!numSteps || !treadDepthCm || !stepHeightCm) return '';
 
-        const maxHandrailHeightM = (inputData.optionalItems && inputData.optionalItems.some((i: any) => i.id === 'corrimao_aco')) ? 0.8 : 0;
+        const optionalItems = getProp(parsedData, 'optionalItems');
+        const maxHandrailHeightM = (optionalItems && optionalItems.some((i: any) => i.id === 'corrimao_aco')) ? 0.8 : 0;
         const pontasM = 0.20;
         
         const stepHypotenuseCm = Math.sqrt(Math.pow(treadDepthCm, 2) + Math.pow(stepHeightCm, 2));
@@ -225,8 +245,9 @@ export const DeliveriesTable: React.FC = () => {
         const stepAreaM2 = ((treadDepthCm + 6) / 100) * (widthCm / 100);
         const stepsWeight = stepAreaM2 * thicknessM * numSteps * STEEL_DENSITY;
         let landingsAreaM2 = 0;
-        if (selectedOption?.landings) {
-            selectedOption.landings.forEach((l: any) => {
+        const landings = getProp(parsedData, 'landings');
+        if (landings) {
+            landings.forEach((l: any) => {
                 landingsAreaM2 += (Number(l.length) * Number(l.width)) / 10000;
             });
         }
