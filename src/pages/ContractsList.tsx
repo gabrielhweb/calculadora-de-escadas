@@ -731,18 +731,6 @@ export const ContractsList: React.FC = () => {
                 </div>
                 <div className="flex gap-2">
                     <button 
-                        onClick={handleInjectData}
-                        className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition-colors text-sm"
-                    >
-                        [Temporário] Injetar PDFs
-                    </button>
-                    <button 
-                        onClick={handleFixContractData}
-                        className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition-colors text-sm"
-                    >
-                        [Temporário] Fixar PDFs
-                    </button>
-                    <button 
                         onClick={exportDatabase}
                         className="bg-gray-800 hover:bg-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition-colors text-sm"
                     >

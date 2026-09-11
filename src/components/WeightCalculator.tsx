@@ -60,10 +60,10 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
   // Linha azul: Altura do triângulo do degrau (cateto1 * cateto2 / hipotenusa)
   const blueLineCm = (treadDepthCm * stepHeightCm) / stepHypotenuseCm;
 
-  // Largura da viga (linha azul + 14 cm de dobra)
-  const stringerWidthCm = blueLineCm + 14;
+  // Largura da viga (linha azul + 15 cm de dobra)
+  const stringerWidthCm = blueLineCm + 15;
 
-  // Cálculo final: (Linha Vermelha) x (Linha Azul + 14) x Espessura x Densidade x 2 corpos
+  // Cálculo final: (Linha Vermelha) x (Linha Azul + 15) x Espessura x Densidade x 2 corpos
   const stringerAreaM2 = (redLineCm / 100) * (stringerWidthCm / 100) * 2;
   const stringerVolumeM3 = stringerAreaM2 * thicknessM;
   const stringerWeightKg = stringerVolumeM3 * STEEL_DENSITY;
@@ -177,7 +177,7 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
                   <p className="text-sm text-slate-500 mb-1">Corte Zigue-Zague ({stringerLengthM.toFixed(2)}m linear)</p>
                   <p className="text-3xl font-black text-amber-600">{stringerWeightKg.toFixed(1)} <span className="text-lg font-normal">kg</span></p>
                   <p className="text-[10px] text-slate-400 mt-2 font-mono" title="Fórmula de Pitágoras">
-                    {redLineCm.toFixed(1)} × ({blueLineCm.toFixed(1)}+14) × {selectedThickness}mm × 0.00785 × 2
+                    {redLineCm.toFixed(1)} × ({blueLineCm.toFixed(1)}+15) × {selectedThickness}mm × 0.00785 × 2
                   </p>
                 </div>
               </div>
