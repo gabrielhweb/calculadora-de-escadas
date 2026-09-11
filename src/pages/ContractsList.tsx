@@ -731,6 +731,63 @@ export const ContractsList: React.FC = () => {
                 </div>
                 <div className="flex gap-2">
                     <button 
+                        onClick={async () => {
+                            if (!window.confirm("Essa ação vai recalcular o peso e consertar a estrutura de TODOS os contratos. Continuar?")) return;
+                            try {
+                                const q = query(collection(db, 'contracts'));
+                                const snapshot = await getDocs(q);
+                                let count = 0;
+                                for (const docSnap of snapshot.docs) {
+                                    const d = docSnap.data();
+                                    const cData = typeof d.contractData === 'string' ? JSON.parse(d.contractData) : d.contractData;
+                                    if (!cData) continue;
+                                    
+                                    // Extract data using fallbacks
+                                    const tDepth = cData.selectedOption?.treadDepth || cData.pisante || 0;
+                                    const sHeight = cData.selectedOption?.stepHeight || cData.altura || 0;
+                                    const w = cData.selectedOption?.stairWidth || cData.largura || 0;
+                                    const sNum = cData.selectedOption?.steps || cData.degraus || 0;
+                                    const landings = cData.selectedOption?.landings || cData.patamares || [];
+                                    
+                                    // Calculate Weight
+                                    let estimatedWeightKg = 0;
+                                    if (tDepth > 0 && sHeight > 0 && w > 0 && sNum > 0) {
+                                        const stepAreaM2 = ((tDepth + 6) / 100) * (w / 100);
+                                        const stepsWeight = stepAreaM2 * (3.0 / 1000) * sNum * 7850;
+                                        let landingsAreaM2 = 0;
+                                        landings.forEach((l: any) => { landingsAreaM2 += (Number(l.length||0) * Number(l.width||0)) / 10000; });
+                                        const landingsWeight = landingsAreaM2 * (3.0 / 1000) * 7850;
+                                        const stepHypotenuseCm = Math.sqrt(Math.pow(tDepth, 2) + Math.pow(sHeight, 2));
+                                        const stringerWidthCm = ((tDepth * sHeight) / stepHypotenuseCm) + 16.5;
+                                        const stringerWeight = ((stepHypotenuseCm * sNum / 100) * (stringerWidthCm / 100) * 2) * (3.0 / 1000) * 7850;
+                                        estimatedWeightKg = stepsWeight + landingsWeight + stringerWeight;
+                                    }
+
+                                    // Build fixed structure
+                                    const newData = { ...cData };
+                                    newData.estimatedWeightKg = estimatedWeightKg;
+                                    
+                                    if (!newData.selectedOption) {
+                                        newData.selectedOption = { steps: sNum, stepHeight: sHeight, treadDepth: tDepth, stairWidth: w, landings };
+                                    }
+                                    if (!newData.inputData) {
+                                        newData.inputData = { desiredSteps: sNum, totalHeight: (sHeight * sNum).toFixed(2), stairWidth: w, treadDepth: tDepth };
+                                    }
+
+                                    await updateDoc(doc(db, 'contracts', docSnap.id), { contractData: newData });
+                                    count++;
+                                }
+                                alert(`Sucesso! ${count} contratos foram corrigidos e tiveram o peso calculado.`);
+                            } catch (e) {
+                                console.error(e);
+                                alert("Erro ao migrar.");
+                            }
+                        }}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition-colors text-sm"
+                    >
+                        [Temporário] Fixar Pesos e Estruturas
+                    </button>
+                    <button 
                         onClick={exportDatabase}
                         className="bg-gray-800 hover:bg-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition-colors text-sm"
                     >

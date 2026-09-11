@@ -333,30 +333,33 @@ const Contract = () => {
                     setPersonType(String(userData.cpf || '').length > 14 ? 'pj' : 'pf');
                 }
 
-                if (selectedOption && inputData) {
-                    setOriginalInputData(inputData);
-                    setTotalHeight(String(inputData.totalHeight || '300'));
-                    setWidth(String(selectedOption.stairWidth || '70'));
-                    setTotalSteps(String(selectedOption.steps || '15'));
-                    setStepHeight(Number(selectedOption.stepHeight || 20).toFixed(2));
-                    setTreadDepth(Number(selectedOption.treadDepth || 25).toFixed(2));
-                    setTotalLength(String(selectedOption.totalLength || '300'));
-                    setDampers(String(inputData.dampers || '4'));
-                    setStairDirection(String(inputData.stairDirection || 'standard') as any);
-                    setWallFixation(String(inputData.wallFixation || 'left') as any);
-                    setHasWheels(Boolean(inputData.hasWheels));
-                    setIsFixedStair(Boolean(inputData.isFixedStair));
-                    setHandrailSide(String(inputData.handrailSide || 'both') as 'left'|'right'|'both');
-                    setTreadMaterial(String(inputData.treadMaterial || 'wood') as any);
-                    if (inputData.woodType) setWoodType(inputData.woodType as any);
+                if (selectedOption || data.degraus || data.pisante) {
+                    const fallbackInput = inputData || data;
+                    const fallbackOption = selectedOption || data;
                     
-                    if (inputData.cutStepType) {
-                        setCutStepType(inputData.cutStepType as any);
+                    setOriginalInputData(fallbackInput);
+                    setTotalHeight(String(fallbackInput.totalHeight || fallbackInput.alturaTotal || '300'));
+                    setWidth(String(fallbackOption.stairWidth || fallbackOption.largura || '70'));
+                    setTotalSteps(String(fallbackOption.steps || fallbackOption.degraus || '15'));
+                    setStepHeight(Number(fallbackOption.stepHeight || fallbackOption.altura || 20).toFixed(2));
+                    setTreadDepth(Number(fallbackOption.treadDepth || fallbackOption.pisante || 25).toFixed(2));
+                    setTotalLength(String(fallbackOption.totalLength || fallbackOption.comprimento || '300'));
+                    setDampers(String(fallbackInput.dampers || '4'));
+                    setStairDirection(String(fallbackInput.stairDirection || 'standard') as any);
+                    setWallFixation(String(fallbackInput.wallFixation || 'left') as any);
+                    setHasWheels(Boolean(fallbackInput.hasWheels));
+                    setIsFixedStair(Boolean(fallbackInput.isFixedStair));
+                    setHandrailSide(String(fallbackInput.handrailSide || 'both') as 'left'|'right'|'both');
+                    setTreadMaterial(String(fallbackInput.treadMaterial || 'wood') as any);
+                    if (fallbackInput.woodType) setWoodType(fallbackInput.woodType as any);
+                    
+                    if (fallbackInput.cutStepType) {
+                        setCutStepType(fallbackInput.cutStepType as any);
                         setUserManuallyChangedCut(true);
                     }
                     
-                    if (selectedOption.landings && Array.isArray(selectedOption.landings) && selectedOption.landings.length > 0) {
-                        setLandings(selectedOption.landings.filter(Boolean));
+                    if (fallbackOption.landings && Array.isArray(fallbackOption.landings) && fallbackOption.landings.length > 0) {
+                        setLandings(fallbackOption.landings.filter(Boolean));
                     } else {
                         setLandings([]);
                     }
@@ -365,14 +368,14 @@ const Contract = () => {
                         setStairPrice(Number(data.finalStairPrice).toFixed(2));
                         setLandingsPrice(Number(data.finalLandingsPrice || 0).toFixed(2));
                     } else {
-                        const safeLandings = Array.isArray(selectedOption.landings) ? selectedOption.landings.filter(Boolean) : [];
+                        const safeLandings = Array.isArray(fallbackOption.landings) ? fallbackOption.landings.filter(Boolean) : [];
                         const totalL = safeLandings.reduce((acc: number, l: LandingInfo) => acc + Number(l.price || 0), 0);
                         setLandingsPrice(totalL.toFixed(2));
-                        setStairPrice((Number(selectedOption.totalPrice || 0) - totalL).toFixed(2));
+                        setStairPrice((Number(fallbackOption.totalPrice || 0) - totalL).toFixed(2));
                     }
                     
-                    if (inputData.optionalItems && Array.isArray(inputData.optionalItems) && inputData.optionalItems.length > 0) {
-                        setOptionalItems(inputData.optionalItems.filter(Boolean).map((item: any) => ({
+                    if (fallbackInput.optionalItems && Array.isArray(fallbackInput.optionalItems) && fallbackInput.optionalItems.length > 0) {
+                        setOptionalItems(fallbackInput.optionalItems.filter(Boolean).map((item: any) => ({
                             id: String(item.id || Date.now()),
                             name: String(item.name || ''),
                             price: Number(item.price || 0)
@@ -382,8 +385,8 @@ const Contract = () => {
                     }
 
                     setFreightPrice(data.freightCost ? Number(data.freightCost).toFixed(2) : '0');
-                    if (inputData.logistics?.freightMode) {
-                        setFreightMode(inputData.logistics.freightMode as 'empresa' | 'transportadora' | 'entrega' | 'auto' | 'manual' | 'fixed');
+                    if (fallbackInput.logistics?.freightMode) {
+                        setFreightMode(fallbackInput.logistics.freightMode as 'empresa' | 'transportadora' | 'entrega' | 'auto' | 'manual' | 'fixed');
                     }
                     setInstallationPrice(data.installationCost ? Number(data.installationCost).toFixed(2) : '0');
                     setExtrasPrice(data.extrasCost ? Number(data.extrasCost).toFixed(2) : '0');
@@ -749,7 +752,41 @@ const Contract = () => {
         const fullAddress = `${street}, ${number} - ${neighborhood}, ${city} - ${state}, ${zip}`;
         const finalHybridSignal = parseFloat(hybridSignalValue) || (discountedBase * (signalPercent/100));
 
+        // CALCULAR O PESO DA ESCADA
+        let estimatedWeightKg = 0;
+        try {
+            const tDepth = parseFloat(treadDepth) || 0;
+            const sHeight = parseFloat(stepHeight) || 0;
+            const w = parseFloat(width) || 0;
+            const sNum = totalStepsNum;
+            const thicknessM = 3.0 / 1000;
+            const STEEL_DENSITY = 7850;
+
+            if (tDepth > 0 && sHeight > 0 && w > 0 && sNum > 0) {
+                const stepAreaM2 = ((tDepth + 6) / 100) * (w / 100);
+                const stepsWeight = stepAreaM2 * thicknessM * sNum * STEEL_DENSITY;
+
+                let landingsAreaM2 = 0;
+                landings.forEach((l: any) => {
+                    landingsAreaM2 += (Number(l.length||0) * Number(l.width||0)) / 10000;
+                });
+                const landingsWeight = landingsAreaM2 * thicknessM * STEEL_DENSITY;
+
+                const stepHypotenuseCm = Math.sqrt(Math.pow(tDepth, 2) + Math.pow(sHeight, 2));
+                const redLineCm = stepHypotenuseCm * sNum;
+                const blueLineCm = (tDepth * sHeight) / stepHypotenuseCm;
+                const stringerWidthCm = blueLineCm + 16.5;
+                const stringerAreaM2 = (redLineCm / 100) * (stringerWidthCm / 100) * 2;
+                const stringerWeight = stringerAreaM2 * thicknessM * STEEL_DENSITY;
+
+                estimatedWeightKg = stepsWeight + landingsWeight + stringerWeight;
+            }
+        } catch (e) {
+            console.error("Erro calculando peso ao salvar", e);
+        }
+
         const contractData = {
+            estimatedWeightKg,
             userData: { 
                 name: clientName, cpf: clientDoc, rg: clientRG, address: fullAddress, 
                 zip, street, number, neighborhood, city, state 

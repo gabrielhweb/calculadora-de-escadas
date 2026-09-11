@@ -211,7 +211,7 @@ const Interactive3DStair: React.FC<{
 
   // HUD and Dimension logic for Closed Package State
   const maxHandrailHeightM = hasCorrimao ? handrailHeightM : 0; 
-  const espessuraEstruturaM = 0.08; // Espessura fixa exigida de 8cm (0.08m)
+  const espessuraEstruturaM = 0.20; // Espessura fixa exigida de 20cm (0.20m) - (Antes era 0.08)
   
   // A Largura do Pacote agora é a seta azul (Corrimão + Altura da Viga)
   // Temporariamente setado como Altura do Corrimão + 0.35m (altura média da viga) até o usuário confirmar a fórmula
