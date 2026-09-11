@@ -279,6 +279,11 @@ export const ContractsList: React.FC = () => {
     };
 
     useEffect(() => {
+        // Auto-limpeza disparada uma vez
+        import('../utils/cleanDuplicates').then(m => m.cleanDuplicateContracts());
+    }, []);
+
+    useEffect(() => {
         if (!user) {
             setContracts([]);
             return;
@@ -339,6 +344,10 @@ export const ContractsList: React.FC = () => {
     };
 
     const handleDownload = (contract: SavedContract) => {
+        if (!contract.contractData) {
+            alert("Contrato sem medidas! Clique na setinha azul à esquerda para carregar o contrato, preencha as medidas da escada (altura, pisada, degraus, etc) e clique em Salvar Alterações para poder gerar o contrato.");
+            return;
+        }
         try {
             let parsedData: any = contract.contractData;
             let maxIters = 5;
@@ -386,6 +395,10 @@ export const ContractsList: React.FC = () => {
     };
 
     const handleDownloadTechnical = (contract: SavedContract) => {
+        if (!contract.contractData) {
+            alert("Contrato sem medidas! Clique na setinha azul à esquerda para carregar o contrato, preencha as medidas da escada (altura, pisada, degraus, etc) e clique em Salvar Alterações para poder gerar a ficha técnica.");
+            return;
+        }
         try {
             let parsedData: any = contract.contractData;
             let maxIters = 5;
@@ -598,7 +611,6 @@ export const ContractsList: React.FC = () => {
                                 )}
 
                                 <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-gray-600">
-                                    {contract.contractData && (
                                         <>
                                             <button 
                                                 onClick={() => handleDownload(contract)}
@@ -616,6 +628,10 @@ export const ContractsList: React.FC = () => {
                                             </button>
                                             <button
                                                 onClick={() => {
+                                                    if (!contract.contractData) {
+                                                        alert("Contrato vazio! Clique na setinha azul à esquerda para carregar o contrato, preencha as medidas da escada e salve para poder gerar o Recibo.");
+                                                        return;
+                                                    }
                                                     setSelectedContractForReceipt(contract);
                                                     setReceiptModalOpen(true);
                                                 }}
@@ -625,7 +641,6 @@ export const ContractsList: React.FC = () => {
                                                 💰 Recibo
                                             </button>
                                         </>
-                                    )}
 
                                     {status === 'falta_assinar' && (
                                         <button 
@@ -689,12 +704,6 @@ export const ContractsList: React.FC = () => {
                     <p className="text-gray-500 dark:text-gray-400 mt-1">Acompanhe o status de cada projeto na sua timeline.</p>
                 </div>
                 <div className="flex gap-2">
-                    <button 
-                        onClick={handleRestoreAll}
-                        className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition-colors text-sm"
-                    >
-                        Restaurar 8 Contratos (Temporário)
-                    </button>
                     <button 
                         onClick={handleFixContractData}
                         className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition-colors text-sm"
