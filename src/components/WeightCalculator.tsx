@@ -36,11 +36,9 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
   const thicknessM = selectedThickness / 1000;
 
   // 1. CÁLCULO DOS DEGRAUS
-  // Área de 1 degrau (pisada + espelho) x largura
-  const isHollow = cutStepType.startsWith('hollow');
-  const stepAreaM2 = isHollow 
-    ? ((treadDepthCm / 100) * (widthCm / 100)) 
-    : (((treadDepthCm + stepHeightCm) / 100) * (widthCm / 100));
+  // Área de 1 degrau: (pisada + 6cm) x largura
+  // O +6cm é referente às dobras/abas da chapa de aço no degrau
+  const stepAreaM2 = ((treadDepthCm + 6) / 100) * (widthCm / 100);
   const stepsVolumeM3 = stepAreaM2 * thicknessM * totalSteps;
   const stepsWeightKg = stepsVolumeM3 * STEEL_DENSITY;
 
@@ -67,6 +65,7 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
   const totalWeightKg = stepsWeightKg + landingsWeightKg + stringerWeightKg;
 
   // Selecionar imagem representativa baseada no tipo de escada
+  const isHollow = cutStepType.startsWith('hollow');
   const stepImage = isHollow ? vazadaEsquerdaBase64 : lisaEsquerdaBase64;
 
   return (
