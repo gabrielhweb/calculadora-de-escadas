@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { GoogleGenAI } from "@google/genai";
@@ -7,6 +6,7 @@ import { generateAceiteObraPDF } from '../utils/aceiteObraGenerator';
 import { LandingInfo, OptionalItem } from '../types';
 import { formatCurrencyBRL } from '../utils';
 import { TechnicalBudget } from '../components/TechnicalBudget';
+import { WeightCalculator } from '../components/WeightCalculator';
 import { db, auth } from '../firebase';
 import { doc, setDoc, updateDoc, collection, query, getDocs, getDoc } from 'firebase/firestore';
 import { useAuth } from '../components/AuthProvider';
@@ -128,6 +128,9 @@ const Contract = () => {
     const [number, setNumber] = useState('');
     const [neighborhood, setNeighborhood] = useState('');
     const [city, setCity] = useState('');
+    const [showOptions, setShowOptions] = useState(false);
+    const [showWeightCalculator, setShowWeightCalculator] = useState(false);
+    const [priceCalculated, setPriceCalculated] = useState(false);
     const [state, setState] = useState('');
     const [isLoadingCep, setIsLoadingCep] = useState(false);
 
@@ -2083,9 +2086,14 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                     <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Chapa Vazada (Furo Direito)</span>
                                 </label>
                             </div>
-                            <button onClick={handleGenerateProductionSheet} className="w-full bg-purple-600 text-white font-black py-3 rounded-lg shadow-lg hover:bg-purple-700 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2">
-                                <span>⚙️</span> Gerar Ficha de Produção
-                            </button>
+                            <div className="flex gap-4">
+                                <button onClick={handleGenerateProductionSheet} className="flex-1 bg-purple-600 text-white font-black py-3 rounded-lg shadow-lg hover:bg-purple-700 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2">
+                                    <span>⚙️</span> Gerar Ficha de Produção
+                                </button>
+                                <button onClick={() => setShowWeightCalculator(true)} className="flex-1 bg-teal-600 text-white font-black py-3 rounded-lg shadow-lg hover:bg-teal-700 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2">
+                                    <span>⚖️</span> Calcular Peso (KG)
+                                </button>
+                            </div>
                         </div>
 
                         <div className="flex flex-col gap-4 mt-2">
@@ -2107,6 +2115,20 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                             </div>
                         </div>
                     </div>
+
+                    {showWeightCalculator && (
+                        <WeightCalculator 
+                            totalSteps={parseFloat(totalSteps) || 0}
+                            stepHeightCm={parseFloat(stepHeight) || 0}
+                            treadDepthCm={parseFloat(treadDepth) || 0}
+                            widthCm={parseFloat(width) || 0}
+                            totalLengthCm={parseFloat(totalLength) || 0}
+                            totalHeightCm={parseFloat(totalHeight) || 0}
+                            cutStepType={cutStepType}
+                            landings={landings}
+                            onClose={() => setShowWeightCalculator(false)}
+                        />
+                    )}
 
                     {/* COMPONENTE NOVO: ORÇAMENTO TÉCNICO (FÁBRICA) */}
                     <TechnicalBudget 

@@ -117,7 +117,7 @@ export const ContractsList: React.FC = () => {
             alert("Erro");
         }
     };
-\n    const RESTORE_DATA = [
+    const RESTORE_DATA = [
       { clientName: "Diego Ferreira Santos", totalValue: 6327, createdAt: "2026-08-27T12:00:00.000Z" },
       { clientName: "Alexandre Bergamo de Oliveira", totalValue: 7215.25, createdAt: "2026-09-03T12:00:00.000Z" },
       { clientName: "Andréa Aragão Ferreira Rovina", totalValue: 7476.50, createdAt: "2026-08-26T12:00:00.000Z" },
@@ -980,3 +980,5 @@ export const ContractsList: React.FC = () => {
         </div>
     );
 };
+
+export default ContractsList;
