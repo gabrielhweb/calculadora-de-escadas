@@ -211,7 +211,8 @@ const Interactive3DStair: React.FC<{
 
   // HUD and Dimension logic for Closed Package State
   const maxHandrailHeightM = hasCorrimao ? handrailHeightM : 0; 
-  const espessuraEstruturaM = 0.20; // Espessura fixa exigida de 20cm (0.20m) - (Antes era 0.08)
+  const espessuraEstruturaM = 0.08; // Espessura fixa exigida de 8cm (0.08m)
+  const pontasM = 0.20; // As pontas da escada que somam 20cm
   
   // A Largura do Pacote agora é a seta azul (Corrimão + Altura da Viga)
   // Temporariamente setado como Altura do Corrimão + 0.35m (altura média da viga) até o usuário confirmar a fórmula
@@ -222,9 +223,25 @@ const Interactive3DStair: React.FC<{
   
   // O Segredo do Paralelogramo Achatado: 
   // Quando a escada articulada fecha, o corrimão deita sobre a viga. 
-  // O comprimento final é o tamanho da Viga + a altura do poste do corrimão que deitou + as pontas de metal (0.08).
+  // O comprimento final é o tamanho da Viga + a altura do poste do corrimão que deitou + as pontas de metal (0.20m).
   const tamanhoViga = Math.sqrt(Math.pow(comprimentoMaximoM, 2) + Math.pow(totalHeightM, 2));
-  const diagonalExata = tamanhoViga + maxHandrailHeightM + espessuraEstruturaM;
+  const diagonalExata = tamanhoViga + maxHandrailHeightM + pontasM;
+
+  // Calculo de Peso (Chapa 3mm)
+  const treadDepthCm = treadDepth * 100;
+  const widthCm = stairWidth * 100;
+  const stepHeightCm = (totalHeightM / stepsCount) * 100;
+  
+  const stepAreaM2 = ((treadDepthCm + 6) / 100) * (widthCm / 100);
+  const stepsWeightKg = stepAreaM2 * 0.003 * 7850 * stepsCount;
+  
+  const stepHypotenuseCm = Math.sqrt(Math.pow(treadDepthCm, 2) + Math.pow(stepHeightCm, 2));
+  const redLineCm = stepHypotenuseCm * stepsCount;
+  const blueLineCm = (treadDepthCm * stepHeightCm) / stepHypotenuseCm;
+  const stringerAreaM2 = (redLineCm / 100) * ((blueLineCm + 16.5) / 100) * 2;
+  const stringerWeightKg = stringerAreaM2 * 0.003 * 7850;
+  
+  const pesoTotalEstimado = stepsWeightKg + stringerWeightKg;
 
   return (
     <div className="relative w-full h-full bg-slate-200">
@@ -350,6 +367,10 @@ const Interactive3DStair: React.FC<{
             <span className="font-bold text-yellow-400 bg-yellow-400/10 px-2 py-0.5 rounded">{larguraPacoteM.toFixed(2)}m</span>
           </div>
           <div className="font-mono text-sm flex flex-col gap-1 border-t border-slate-700 pt-2 mt-1">
+            <div className="flex justify-between items-center mb-1">
+                <span className="text-slate-400 tracking-wider text-xs" style={{ color: '#a78bfa' }}>PESO TOTAL EST.</span> 
+                <span className="font-bold text-purple-400 bg-purple-400/10 px-2 py-0.5 rounded text-lg">{pesoTotalEstimado.toFixed(1)}kg</span>
+            </div>
             <div className="flex justify-between items-center">
                 <span className="text-slate-400 tracking-wider text-xs" style={{ color: '#60a5fa' }}>COMPRIMENTO FECHADO</span> 
                 <span className="font-bold text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded text-lg">{diagonalExata.toFixed(2)}m</span>
@@ -357,7 +378,7 @@ const Interactive3DStair: React.FC<{
             <div className="mt-2 text-[10px] text-slate-400 font-mono text-center bg-slate-800/50 p-2 rounded leading-relaxed">
                 Escada Fechada (Viga + Corrimão + Pontas):
                 <br />
-                {tamanhoViga.toFixed(2)} + {maxHandrailHeightM.toFixed(2)} + {espessuraEstruturaM.toFixed(2)} = {diagonalExata.toFixed(2)}m
+                {tamanhoViga.toFixed(2)} + {maxHandrailHeightM.toFixed(2)} + {pontasM.toFixed(2)} = {diagonalExata.toFixed(2)}m
             </div>
           </div>
         </div>
@@ -1453,8 +1474,6 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
              </div>
         </div>
 
-        <button onClick={onClose} className="absolute top-4 right-4 z-10 bg-red-600 text-white w-12 h-12 rounded-full font-black text-xl shadow-lg hover:bg-red-700">✕</button>
-
         {/* CANVAS - OCUPA TELA TODA AGORA */}
         <div ref={internalCanvasRef} 
              className={`absolute inset-0 w-full h-full ${viewMode === 'side' ? 'cursor-move' : ''} overflow-hidden ${isExporting ? 'bg-white' : 'bg-blueprint-grid'}`} 
@@ -1466,6 +1485,8 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
              onWheel={viewMode === 'side' ? handleWheel : undefined}>
             {viewMode === 'side' ? <SVGContent /> : <Interactive3DStair option={option} totalHeight={totalHeight} inputData={inputData} treadMaterial={treadMaterial} />}
         </div>
+        
+        <button onClick={onClose} className="absolute top-4 right-4 z-50 bg-red-600 text-white w-12 h-12 rounded-full font-black text-xl shadow-lg hover:bg-red-700">✕</button>
 
         {/* --- CONTROLES FLUTUANTES (MODIFICADO PARA SER CARD SOBREPOSTO) --- */}
         {!isExporting && (

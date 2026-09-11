@@ -232,16 +232,16 @@ export const ContractsList: React.FC = () => {
         }
 
         const getProp = (key: string) => {
-            if (parsed?.selectedOption && parsed.selectedOption[key] !== undefined) return parsed.selectedOption[key];
-            if (parsed?.inputData && parsed.inputData[key] !== undefined) return parsed.inputData[key];
-            if (parsed && parsed[key] !== undefined) return parsed[key];
-            return '';
+            if (parsed?.selectedOption && parsed.selectedOption[key] !== undefined && parsed.selectedOption[key] !== '') return parsed.selectedOption[key];
+            if (parsed?.inputData && parsed.inputData[key] !== undefined && parsed.inputData[key] !== '') return parsed.inputData[key];
+            if (parsed && parsed[key] !== undefined && parsed[key] !== '') return parsed[key];
+            return undefined;
         };
 
-        const tDepth = getProp('treadDepth') || getProp('treadDepthCm') || getProp('pisante');
-        const sHeight = getProp('stepHeight') || getProp('stepHeightCm') || getProp('altura');
-        const sWidth = getProp('stairWidth') || getProp('widthCm') || getProp('width') || getProp('largura');
-        const sSteps = getProp('steps') || getProp('desiredSteps') || getProp('totalSteps') || getProp('degraus');
+        const tDepth = getProp('treadDepth') ?? getProp('treadDepthCm') ?? getProp('pisante');
+        const sHeight = getProp('stepHeight') ?? getProp('stepHeightCm') ?? getProp('altura');
+        const sWidth = getProp('stairWidth') ?? getProp('widthCm') ?? getProp('width') ?? getProp('largura');
+        const sSteps = getProp('steps') ?? getProp('desiredSteps') ?? getProp('totalSteps') ?? getProp('degraus');
 
         setFormData({
             clientName: contract.clientName || '',
@@ -251,10 +251,10 @@ export const ContractsList: React.FC = () => {
             paymentStatus: contract.paymentStatus || 'a_receber',
             deliveryStatus: contract.deliveryStatus || 'em_producao',
             contractDataString: dataString,
-            treadDepth: tDepth !== undefined && tDepth !== null && tDepth !== '' ? String(tDepth) : '',
-            stepHeight: sHeight !== undefined && sHeight !== null && sHeight !== '' ? String(sHeight) : '',
-            stairWidth: sWidth !== undefined && sWidth !== null && sWidth !== '' ? String(sWidth) : '',
-            totalSteps: sSteps !== undefined && sSteps !== null && sSteps !== '' ? String(sSteps) : ''
+            treadDepth: tDepth !== undefined && tDepth !== null ? String(tDepth) : '',
+            stepHeight: sHeight !== undefined && sHeight !== null ? String(sHeight) : '',
+            stairWidth: sWidth !== undefined && sWidth !== null ? String(sWidth) : '',
+            totalSteps: sSteps !== undefined && sSteps !== null ? String(sSteps) : ''
         });
         setIsModalOpen(true);
     };

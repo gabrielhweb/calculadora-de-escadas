@@ -194,17 +194,48 @@ export const DeliveriesTable: React.FC = () => {
         return att.join(' - ');
     };
 
-    const getDefaultHinges = (parsedData: any) => {
+    const getFreightDimensions = (parsedData: any) => {
         if (!parsedData || !parsedData.inputData) return '';
         const { inputData, selectedOption } = parsedData;
-        const numSteps = selectedOption?.steps || inputData.desiredSteps;
-        const treadDepthCm = selectedOption?.treadDepth || inputData.treadDepth;
-        
-        if (!numSteps || !treadDepthCm) return '';
-        const hingesPerStep = treadDepthCm <= 16 ? 2 : 4;
-        const hingeSize = treadDepthCm > 16 ? '3x2.5/8' : '4x3';
-        return `${hingesPerStep * numSteps} dobradiças (${hingeSize})`;
+        const numSteps = Number(selectedOption?.steps || inputData.desiredSteps) || 0;
+        const treadDepthCm = Number(selectedOption?.treadDepth || inputData.treadDepth) || 0;
+        const stepHeightCm = Number(selectedOption?.stepHeight || (inputData.totalHeight / inputData.desiredSteps).toFixed(2)) || 0;
+        const widthCm = Number(selectedOption?.stairWidth || inputData.stairWidth) || 0;
+
+        if (!numSteps || !treadDepthCm || !stepHeightCm) return '';
+
+        const maxHandrailHeightM = (inputData.optionalItems && inputData.optionalItems.some((i: any) => i.id === 'corrimao_aco')) ? 0.8 : 0;
+        const pontasM = 0.20;
+        const alturaDaViga = 0.35;
+        const larguraPacoteM = maxHandrailHeightM + alturaDaViga;
+
+        const comprimentoMaximoM = (treadDepthCm * numSteps) / 100;
+        const totalHeightM = (stepHeightCm * numSteps) / 100;
+        const tamanhoViga = Math.sqrt(Math.pow(comprimentoMaximoM, 2) + Math.pow(totalHeightM, 2));
+        const diagonalExata = tamanhoViga + maxHandrailHeightM + pontasM;
+
+        // Weight
+        const thicknessM = 3.0 / 1000;
+        const STEEL_DENSITY = 7850;
+        const stepAreaM2 = ((treadDepthCm + 6) / 100) * (widthCm / 100);
+        const stepsWeight = stepAreaM2 * thicknessM * numSteps * STEEL_DENSITY;
+        let landingsAreaM2 = 0;
+        if (selectedOption?.landings) {
+            selectedOption.landings.forEach((l: any) => {
+                landingsAreaM2 += (Number(l.length) * Number(l.width)) / 10000;
+            });
+        }
+        const landingsWeight = landingsAreaM2 * thicknessM * STEEL_DENSITY;
+        const stepHypotenuseCm = Math.sqrt(Math.pow(treadDepthCm, 2) + Math.pow(stepHeightCm, 2));
+        const redLineCm = stepHypotenuseCm * numSteps;
+        const blueLineCm = (treadDepthCm * stepHeightCm) / stepHypotenuseCm;
+        const stringerAreaM2 = (redLineCm / 100) * ((blueLineCm + 16.5) / 100) * 2;
+        const stringerWeight = stringerAreaM2 * thicknessM * STEEL_DENSITY;
+        const totalWeightKg = stepsWeight + landingsWeight + stringerWeight;
+
+        return `QTD VOLUMES: 2\nMERCADORIA: Escada\nLARGURA PACOTE: ${larguraPacoteM.toFixed(2)}m\nCOMPRIMENTO: ${diagonalExata.toFixed(2)}m\nPESO TOTAL: ${totalWeightKg.toFixed(1)}kg`;
     };
+
 
     const formatDate = (dateString: any) => {
         if (!dateString) return '';
@@ -363,9 +394,9 @@ export const DeliveriesTable: React.FC = () => {
                                 <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[15%]">CLIENTE</th>
                                 <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[20%]">LOCALIZAÇÃO</th>
                                 <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[12%]">DATA ENTREGA</th>
-                                <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[8%]">QTD DOBRADIÇAS</th>
+                                <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[15%]">FRETE (MEDIDAS)</th>
                                 <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[18%]">ATENÇÃO</th>
-                                <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[20%]">MEDIDAS</th>
+                                <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[20%]">FABRICAÇÃO</th>
                                 <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[7%] print-hidden">AÇÃO</th>
                             </tr>
                         </thead>
@@ -382,7 +413,7 @@ export const DeliveriesTable: React.FC = () => {
                                     const address = contract.customAddress !== undefined ? contract.customAddress : getFullAddress(data?.userData);
                                     
                                     const attention = contract.deliveryNotes !== undefined ? contract.deliveryNotes : getDefaultAttention(data);
-                                    const hinges = contract.hingesQty !== undefined ? contract.hingesQty : getDefaultHinges(data);
+                                    const freightInfo = contract.hingesQty !== undefined ? contract.hingesQty : getFreightDimensions(data);
                                     const measurements = contract.measurementsNotes !== undefined ? contract.measurementsNotes : getMeasurements(data);
                                     
                                     const dateColor = getDateColorClass(contract.deliveryDate);
@@ -453,18 +484,18 @@ export const DeliveriesTable: React.FC = () => {
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="p-2 align-top text-sm font-bold text-center">
+                                            <td className="p-2 align-top text-sm">
                                                 <div 
-                                                    className="editable-cell" 
-                                                    contentEditable 
+                                                    className="editable-cell whitespace-pre-line font-mono text-xs font-bold p-1 rounded bg-slate-100 dark:bg-slate-800 print:bg-white"
+                                                    contentEditable
                                                     suppressContentEditableWarning
                                                     onBlur={(e) => {
-                                                        if (e.target.innerText !== hinges) {
+                                                        if (e.target.innerText !== freightInfo) {
                                                             handleUpdateContract(contract.id, 'hingesQty', e.target.innerText);
                                                         }
                                                     }}
                                                 >
-                                                    {hinges}
+                                                    {freightInfo}
                                                 </div>
                                             </td>
                                             <td className="p-2 align-top text-sm text-red-600 dark:text-red-400 print:text-red-600 font-semibold print:!text-red-600 print:font-bold">
