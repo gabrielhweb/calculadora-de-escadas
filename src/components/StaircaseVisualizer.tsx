@@ -215,8 +215,7 @@ const Interactive3DStair: React.FC<{
   const pontasM = 0.20; // As pontas da escada que somam 20cm
   
   // A Largura do Pacote agora é a seta azul (Corrimão + Altura da Viga)
-  // Temporariamente setado como Altura do Corrimão + 0.35m (altura média da viga) até o usuário confirmar a fórmula
-  const alturaDaViga = 0.35; 
+  const alturaDaViga = 0.08; 
   const pacoteAlturaM = maxHandrailHeightM + alturaDaViga; 
   const pacoteLarguraM = stairWidth;
 

@@ -206,7 +206,7 @@ export const DeliveriesTable: React.FC = () => {
 
         const maxHandrailHeightM = (inputData.optionalItems && inputData.optionalItems.some((i: any) => i.id === 'corrimao_aco')) ? 0.8 : 0;
         const pontasM = 0.20;
-        const alturaDaViga = 0.35;
+        const alturaDaViga = 0.08;
         const pacoteAlturaM = maxHandrailHeightM + alturaDaViga;
         const pacoteLarguraM = widthCm / 100;
 
@@ -414,7 +414,13 @@ export const DeliveriesTable: React.FC = () => {
                                     const address = contract.customAddress !== undefined ? contract.customAddress : getFullAddress(data?.userData);
                                     
                                     const attention = contract.deliveryNotes !== undefined ? contract.deliveryNotes : getDefaultAttention(data);
-                                    const freightInfo = contract.hingesQty !== undefined ? contract.hingesQty : getFreightDimensions(data);
+                                    let freightInfo = getFreightDimensions(data);
+                                    if (contract.hingesQty !== undefined 
+                                        && !contract.hingesQty.toLowerCase().includes('dobradiça')
+                                        && !contract.hingesQty.includes('QTD VOLUMES')
+                                    ) {
+                                        freightInfo = contract.hingesQty;
+                                    }
                                     const measurements = contract.measurementsNotes !== undefined ? contract.measurementsNotes : getMeasurements(data);
                                     
                                     const dateColor = getDateColorClass(contract.deliveryDate);
