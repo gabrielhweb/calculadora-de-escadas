@@ -52,12 +52,19 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
   const landingsVolumeM3 = landingsAreaM2 * thicknessM;
   const landingsWeightKg = landingsVolumeM3 * STEEL_DENSITY;
 
-  // 3. CÁLCULO DAS VIGAS / ESTRUTURA (Estimativa simplificada)
-  // Perfil em zigue-zague ou tubo reto. 
-  // O comprimento total da fita de aço em zigue-zague = (pisada + espelho) * degraus
-  const stringerLengthM = ((treadDepthCm + stepHeightCm) * totalSteps) / 100;
-  // Assumimos uma profundidade média da viga de 15cm (0.15m) e multiplicamos por 2 vigas (esquerda/direita) se for padrão
-  const stringerAreaM2 = stringerLengthM * 0.15 * 2; 
+  // 3. CÁLCULO DAS VIGAS LATERAIS
+  // Linha vermelha: Hipotenusa (rampa) calculada pelo teorema de Pitágoras em 1 degrau x quantidade
+  const stepHypotenuseCm = Math.sqrt(Math.pow(treadDepthCm, 2) + Math.pow(stepHeightCm, 2));
+  const redLineCm = stepHypotenuseCm * totalSteps;
+
+  // Linha azul: Altura do triângulo do degrau (cateto1 * cateto2 / hipotenusa)
+  const blueLineCm = (treadDepthCm * stepHeightCm) / stepHypotenuseCm;
+
+  // Largura da viga (linha azul + 9 cm de dobra)
+  const stringerWidthCm = blueLineCm + 9;
+
+  // Cálculo final: (Linha Vermelha) x (Linha Azul + 9) x Espessura x Densidade x 2 corpos
+  const stringerAreaM2 = (redLineCm / 100) * (stringerWidthCm / 100) * 2;
   const stringerVolumeM3 = stringerAreaM2 * thicknessM;
   const stringerWeightKg = stringerVolumeM3 * STEEL_DENSITY;
 
