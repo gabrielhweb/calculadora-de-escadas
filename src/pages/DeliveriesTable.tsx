@@ -116,8 +116,6 @@ export const DeliveriesTable: React.FC = () => {
             med += `MATERIAL: CHAPA XADREZ\n`;
         } else if (inputData.treadMaterial === 'chapa_vazada') {
             med += `MATERIAL: CHAPA VAZADA\n`;
-        } else if (inputData.treadMaterial === 'metal') {
-            med += `MATERIAL: AÇO CARBONO\n`;
         }
 
         if (selectedOption?.landings && selectedOption.landings.length > 0) {
@@ -131,6 +129,49 @@ export const DeliveriesTable: React.FC = () => {
             inputData.optionalItems.forEach((opt: any) => {
                 med += `EXTRA: ${opt.name}\n`;
             });
+        }
+
+        // --- CÁLCULO DE PESO E CUSTO DO AÇO ---
+        try {
+            const treadNum = Number(tread) || 0;
+            const heightNum = Number(height) || 0;
+            const widthNum = Number(width) || 0;
+            const stepsNum = Number(steps) || 0;
+            const thicknessM = 3.0 / 1000; // 3mm padrão
+            const STEEL_DENSITY = 7850;
+
+            if (treadNum > 0 && heightNum > 0 && widthNum > 0 && stepsNum > 0) {
+                // 1. Degraus
+                const stepAreaM2 = ((treadNum + 6) / 100) * (widthNum / 100);
+                const stepsWeight = stepAreaM2 * thicknessM * stepsNum * STEEL_DENSITY;
+
+                // 2. Patamares
+                let landingsAreaM2 = 0;
+                if (selectedOption?.landings) {
+                    selectedOption.landings.forEach((l: any) => {
+                        const lLen = Number(l.length) || 0;
+                        const lWid = Number(l.width) || 0;
+                        landingsAreaM2 += (lLen * lWid) / 10000;
+                    });
+                }
+                const landingsWeight = landingsAreaM2 * thicknessM * STEEL_DENSITY;
+
+                // 3. Vigas Laterais
+                const stepHypotenuseCm = Math.sqrt(Math.pow(treadNum, 2) + Math.pow(heightNum, 2));
+                const redLineCm = stepHypotenuseCm * stepsNum;
+                const blueLineCm = (treadNum * heightNum) / stepHypotenuseCm;
+                const stringerWidthCm = blueLineCm + 16.5;
+                const stringerAreaM2 = (redLineCm / 100) * (stringerWidthCm / 100) * 2;
+                const stringerWeight = stringerAreaM2 * thicknessM * STEEL_DENSITY;
+
+                const totalWeightKg = stepsWeight + landingsWeight + stringerWeight;
+                const costOfSteel = totalWeightKg * 13.80;
+
+                med += `\nPESO APROX (3mm): ${totalWeightKg.toFixed(1)} kg\n`;
+                med += `CUSTO AÇO: R$ ${costOfSteel.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n`;
+            }
+        } catch (e) {
+            console.error("Erro ao calcular peso na tabela", e);
         }
         
         return med;

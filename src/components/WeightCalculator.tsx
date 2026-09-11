@@ -79,16 +79,19 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
   const stepImage = isHollow ? vazadaEsquerdaBase64 : lisaEsquerdaBase64;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-70 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl h-[90vh] flex flex-col overflow-hidden">
-        
+    <div className="fixed inset-0 z-[9999] bg-slate-50 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
+      
         {/* Header */}
-        <div className="bg-primary text-white p-6 flex justify-between items-center shrink-0">
+        <div className="bg-primary text-white p-6 flex justify-between items-center shrink-0 shadow-md z-10">
           <div className="flex items-center gap-3">
             <span className="text-3xl">⚖️</span>
-            <h2 className="text-2xl font-bold uppercase tracking-wider">Calculadora de Peso Estrutural</h2>
+            <div>
+              <h2 className="text-2xl font-bold uppercase tracking-wider">Calculadora de Peso Estrutural</h2>
+              <p className="text-primary-content text-sm opacity-80 mt-1">Análise de chapa e peso de materiais da escada atual</p>
+            </div>
           </div>
-          <button onClick={onClose} className="btn btn-ghost btn-circle text-white hover:bg-white hover:text-primary">
+          <button onClick={onClose} className="btn btn-ghost text-white hover:bg-white/20 px-6 font-bold flex gap-2">
+            <span>VOLTAR AO CONTRATO</span>
             <span className="text-xl">✖</span>
           </button>
         </div>
@@ -208,7 +211,6 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
           </div>
 
         </div>
-      </div>
     </div>
   );
 };
