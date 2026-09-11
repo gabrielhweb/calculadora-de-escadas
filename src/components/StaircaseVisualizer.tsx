@@ -214,10 +214,15 @@ const Interactive3DStair: React.FC<{
   const espessuraEstruturaM = 0.08; // Espessura fixa exigida de 8cm (0.08m)
   const pontasM = 0.20; // As pontas da escada que somam 20cm
   
-  // A Largura do Pacote agora é a seta azul (Corrimão + Altura da Viga)
-  const alturaDaViga = 0.08; 
-  const pacoteAlturaM = maxHandrailHeightM + alturaDaViga; 
-  const pacoteLarguraM = stairWidth;
+  // A Largura do Pacote agora é a seta azul (Corrimão + Altura da Viga exata)
+  const treadDepthCm = treadDepth * 100;
+  const stepHeightCm = (totalHeightM / stepsCount) * 100;
+  const stepHypotenuseCm = Math.sqrt(Math.pow(treadDepthCm, 2) + Math.pow(stepHeightCm, 2));
+  const blueLineCm = (treadDepthCm * stepHeightCm) / stepHypotenuseCm;
+  const stringerWidthM = (blueLineCm + 16.5) / 100;
+
+  const pacoteLarguraM = maxHandrailHeightM + stringerWidthM;
+  const pacoteAlturaM = 0.08;
 
   const comprimentoMaximoM = totalLengthM;
   
@@ -228,17 +233,13 @@ const Interactive3DStair: React.FC<{
   const diagonalExata = tamanhoViga + maxHandrailHeightM + pontasM;
 
   // Calculo de Peso (Chapa 3mm)
-  const treadDepthCm = treadDepth * 100;
   const widthCm = stairWidth * 100;
-  const stepHeightCm = (totalHeightM / stepsCount) * 100;
   
   const stepAreaM2 = ((treadDepthCm + 6) / 100) * (widthCm / 100);
   const stepsWeightKg = stepAreaM2 * 0.003 * 7850 * stepsCount;
   
-  const stepHypotenuseCm = Math.sqrt(Math.pow(treadDepthCm, 2) + Math.pow(stepHeightCm, 2));
   const redLineCm = stepHypotenuseCm * stepsCount;
-  const blueLineCm = (treadDepthCm * stepHeightCm) / stepHypotenuseCm;
-  const stringerAreaM2 = (redLineCm / 100) * ((blueLineCm + 16.5) / 100) * 2;
+  const stringerAreaM2 = (redLineCm / 100) * (stringerWidthM) * 2;
   const stringerWeightKg = stringerAreaM2 * 0.003 * 7850;
   
   const pesoTotalEstimado = stepsWeightKg + stringerWeightKg;

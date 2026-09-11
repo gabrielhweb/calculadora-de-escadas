@@ -206,9 +206,13 @@ export const DeliveriesTable: React.FC = () => {
 
         const maxHandrailHeightM = (inputData.optionalItems && inputData.optionalItems.some((i: any) => i.id === 'corrimao_aco')) ? 0.8 : 0;
         const pontasM = 0.20;
-        const alturaDaViga = 0.08;
-        const pacoteAlturaM = maxHandrailHeightM + alturaDaViga;
-        const pacoteLarguraM = widthCm / 100;
+        
+        const stepHypotenuseCm = Math.sqrt(Math.pow(treadDepthCm, 2) + Math.pow(stepHeightCm, 2));
+        const blueLineCm = (treadDepthCm * stepHeightCm) / stepHypotenuseCm;
+        const stringerWidthM = (blueLineCm + 16.5) / 100;
+        
+        const pacoteLarguraM = maxHandrailHeightM + stringerWidthM;
+        const pacoteAlturaM = 0.08;
 
         const comprimentoMaximoM = (treadDepthCm * numSteps) / 100;
         const totalHeightM = (stepHeightCm * numSteps) / 100;
@@ -227,10 +231,8 @@ export const DeliveriesTable: React.FC = () => {
             });
         }
         const landingsWeight = landingsAreaM2 * thicknessM * STEEL_DENSITY;
-        const stepHypotenuseCm = Math.sqrt(Math.pow(treadDepthCm, 2) + Math.pow(stepHeightCm, 2));
         const redLineCm = stepHypotenuseCm * numSteps;
-        const blueLineCm = (treadDepthCm * stepHeightCm) / stepHypotenuseCm;
-        const stringerAreaM2 = (redLineCm / 100) * ((blueLineCm + 16.5) / 100) * 2;
+        const stringerAreaM2 = (redLineCm / 100) * (stringerWidthM) * 2;
         const stringerWeight = stringerAreaM2 * thicknessM * STEEL_DENSITY;
         const totalWeightKg = stepsWeight + landingsWeight + stringerWeight;
 
