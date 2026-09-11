@@ -12,6 +12,7 @@ import CustomPaymentReceipt from './pages/CustomPaymentReceipt';
 import Carriers from './pages/Carriers';
 import { DeliveriesTable } from './pages/DeliveriesTable';
 import CostSettingsPage from './pages/CostSettings';
+import WeightCalculatorPage from './pages/WeightCalculatorPage';
 import { AuthProvider } from './components/AuthProvider';
 import { useEffect } from 'react';
 import { getDocFromServer, doc } from 'firebase/firestore';
@@ -38,6 +39,7 @@ function App() {
           <Route path="/" element={<Layout />}>
             <Route index element={<Calculator />} />
             <Route path="contrato" element={<Contract />} />
+            <Route path="calculadora-peso" element={<WeightCalculatorPage />} />
             <Route path="salvos" element={<SavedQuotes />} />
             <Route path="contratos" element={<ContractsList />} />
             <Route path="fila" element={<ProductionQueuePage />} />

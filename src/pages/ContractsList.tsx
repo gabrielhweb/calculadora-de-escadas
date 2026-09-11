@@ -231,7 +231,17 @@ export const ContractsList: React.FC = () => {
             dateString = new Date().toISOString().split('T')[0];
         }
 
-        const getProp = (key: string) => parsed?.selectedOption?.[key] || parsed?.inputData?.[key] || parsed?.[key];
+        const getProp = (key: string) => {
+            if (parsed?.selectedOption && parsed.selectedOption[key] !== undefined) return parsed.selectedOption[key];
+            if (parsed?.inputData && parsed.inputData[key] !== undefined) return parsed.inputData[key];
+            if (parsed && parsed[key] !== undefined) return parsed[key];
+            return '';
+        };
+
+        const tDepth = getProp('treadDepth') || getProp('treadDepthCm') || getProp('pisante');
+        const sHeight = getProp('stepHeight') || getProp('stepHeightCm') || getProp('altura');
+        const sWidth = getProp('stairWidth') || getProp('widthCm') || getProp('width') || getProp('largura');
+        const sSteps = getProp('steps') || getProp('desiredSteps') || getProp('totalSteps') || getProp('degraus');
 
         setFormData({
             clientName: contract.clientName || '',
@@ -241,10 +251,10 @@ export const ContractsList: React.FC = () => {
             paymentStatus: contract.paymentStatus || 'a_receber',
             deliveryStatus: contract.deliveryStatus || 'em_producao',
             contractDataString: dataString,
-            treadDepth: getProp('treadDepth') || getProp('treadDepthCm') || getProp('pisante') || '',
-            stepHeight: getProp('stepHeight') || getProp('stepHeightCm') || getProp('altura') || '',
-            stairWidth: getProp('stairWidth') || getProp('widthCm') || getProp('width') || getProp('largura') || '',
-            totalSteps: getProp('steps') || getProp('desiredSteps') || getProp('totalSteps') || getProp('degraus') || ''
+            treadDepth: tDepth !== undefined && tDepth !== null && tDepth !== '' ? String(tDepth) : '',
+            stepHeight: sHeight !== undefined && sHeight !== null && sHeight !== '' ? String(sHeight) : '',
+            stairWidth: sWidth !== undefined && sWidth !== null && sWidth !== '' ? String(sWidth) : '',
+            totalSteps: sSteps !== undefined && sSteps !== null && sSteps !== '' ? String(sSteps) : ''
         });
         setIsModalOpen(true);
     };

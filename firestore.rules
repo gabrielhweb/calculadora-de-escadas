@@ -42,5 +42,11 @@ service cloud.firestore {
     match /state_prices/{uf} {
       allow read, write: if isAllowedUser();
     }
+    match /saved_quotes/{quoteId} {
+      allow read, write: if isAllowedUser();
+    }
+    match /settings/{settingId} {
+      allow read, write: if isAllowedUser();
+    }
   }
 }

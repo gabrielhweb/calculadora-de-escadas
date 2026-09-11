@@ -85,6 +85,12 @@ const Layout: React.FC = () => {
                   Calculadora
                 </Link>
                 <Link 
+                  to="/calculadora-peso" 
+                  className={`${isActive('/calculadora-peso') ? 'text-highlight font-bold border-b-4 border-highlight' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'} px-2 pt-1 text-sm uppercase tracking-wide transition-all duration-200 h-full flex items-center font-bold whitespace-nowrap`}
+                >
+                  ⚖️ Calc. Peso
+                </Link>
+                <Link 
                   to="/contrato" 
                   className={`${isActive('/contrato') ? 'text-highlight font-bold border-b-4 border-highlight' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'} px-2 pt-1 text-sm uppercase tracking-wide transition-all duration-200 h-full flex items-center font-bold`}
                 >
@@ -210,6 +216,13 @@ const Layout: React.FC = () => {
                 className={`${isActive('/') ? 'bg-gray-200 dark:bg-gray-700 text-highlight font-bold' : 'text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'} block px-3 py-2 rounded-md text-base font-medium`}
               >
                 Calculadora
+              </Link>
+              <Link 
+                to="/calculadora-peso" 
+                className={`${isActive('/calculadora-peso') ? 'bg-gray-200 dark:bg-gray-700 text-highlight font-bold' : 'text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'} block px-3 py-2 rounded-md text-base font-medium`}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                ⚖️ Calc. Peso
               </Link>
               <Link 
                 to="/contrato" 

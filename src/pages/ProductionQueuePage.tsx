@@ -13,8 +13,8 @@ enum OperationType {
 }
 
 function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
-  console.error('Firestore Error: ', error);
-  alert(`Erro ao carregar dados do CRM: ${error}`);
+  console.error(`Firestore Error [${operationType}] on ${path}: `, error);
+  // Removido o alert para não travar a tela com erros de permissão de coleções vazias/antigas
 }
 
 export interface DashboardItem {

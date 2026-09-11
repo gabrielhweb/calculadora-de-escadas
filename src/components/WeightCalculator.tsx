@@ -14,10 +14,11 @@ interface WeightCalculatorProps {
   cutStepType: string;
   landings: any[];
   onClose: () => void;
+  isEmbedded?: boolean;
 }
 
 export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
-  totalSteps, stepHeightCm, treadDepthCm, widthCm, totalLengthCm, totalHeightCm, cutStepType, landings, onClose
+  totalSteps, stepHeightCm, treadDepthCm, widthCm, totalLengthCm, totalHeightCm, cutStepType, landings, onClose, isEmbedded
 }) => {
   // Densidade do Aço Carbono: 7850 kg/m³
   const STEEL_DENSITY = 7850;
@@ -77,6 +78,127 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
   // Selecionar imagem representativa baseada no tipo de escada
   const isHollow = cutStepType.startsWith('hollow');
   const stepImage = isHollow ? vazadaEsquerdaBase64 : lisaEsquerdaBase64;
+
+  if (isEmbedded) {
+    return (
+      <div className="bg-slate-50 flex flex-col overflow-hidden animate-in fade-in duration-300 rounded-xl shadow-lg border border-slate-200">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-50">
+          
+          {/* Controls */}
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200 mb-8 flex flex-col md:flex-row gap-6 items-center justify-between">
+            <div>
+              <h3 className="font-bold text-lg flex items-center gap-2 text-slate-700">
+                <span className="text-xl">📏</span>
+                Espessura da Chapa (Aço Carbono)
+              </h3>
+              <p className="text-sm text-slate-500 mt-1">Altere a espessura para recalcular o peso instantaneamente.</p>
+            </div>
+            
+            <div className="flex gap-2 flex-wrap justify-end">
+              {thicknessOptions.map(opt => (
+                <button
+                  key={opt.value}
+                  onClick={() => setSelectedThickness(opt.value)}
+                  className={`btn ${selectedThickness === opt.value ? 'btn-primary' : 'btn-outline border-slate-300'}`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            
+            {/* DEGRAUS */}
+            <div className="bg-white rounded-xl shadow-md border-t-4 border-t-blue-500 overflow-hidden flex flex-col relative group">
+              <div className="p-4 bg-blue-50 border-b border-blue-100">
+                <h3 className="font-bold text-lg text-blue-800 text-center uppercase">Degraus ({totalSteps} un)</h3>
+              </div>
+              <div className="p-6 flex-1 flex flex-col items-center justify-center">
+                <img src={stepImage} alt="Degrau" className="h-32 object-contain mb-4 filter drop-shadow-md" />
+                <div className="text-center w-full">
+                  <p className="text-sm text-slate-500 mb-1">Área total: {(stepAreaM2 * totalSteps).toFixed(2)} m²</p>
+                  <p className="text-3xl font-black text-blue-600">{stepsWeightKg.toFixed(1)} <span className="text-lg font-normal">kg</span></p>
+                  <p className="text-[10px] text-slate-400 mt-2 font-mono" title="Fórmula do Cliente">
+                    ({treadDepthCm}+6) × {widthCm} × {selectedThickness}mm × 0.00785 × {totalSteps}un
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* PATAMARES */}
+            <div className="bg-white rounded-xl shadow-md border-t-4 border-t-emerald-500 overflow-hidden flex flex-col relative group">
+              <div className="p-4 bg-emerald-50 border-b border-emerald-100">
+                <h3 className="font-bold text-lg text-emerald-800 text-center uppercase">Patamares ({landings.length} un)</h3>
+              </div>
+              <div className="p-6 flex-1 flex flex-col items-center justify-center">
+                {landings.length > 0 ? (
+                  <>
+                    <img src={patamarBase64} alt="Patamar" className="h-32 object-contain mb-4 filter drop-shadow-md" />
+                    <div className="text-center w-full">
+                      <p className="text-sm text-slate-500 mb-1">Área total: {landingsAreaM2.toFixed(2)} m²</p>
+                      <p className="text-3xl font-black text-emerald-600">{landingsWeightKg.toFixed(1)} <span className="text-lg font-normal">kg</span></p>
+                      <p className="text-[10px] text-slate-400 mt-2 font-mono" title="Cálculo do Patamar">
+                        {landingsAreaM2.toFixed(2)}m² × {selectedThickness}mm × 7.85
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center text-slate-400 flex flex-col items-center">
+                    <span className="text-6xl opacity-30 mb-2">🔲</span>
+                    <p>Nenhum patamar</p>
+                    <p className="text-2xl font-black text-slate-300 mt-2">0.0 <span className="text-lg font-normal">kg</span></p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* ESTRUTURA VIGAS */}
+            <div className="bg-white rounded-xl shadow-md border-t-4 border-t-amber-500 overflow-hidden flex flex-col relative group">
+              <div className="p-4 bg-amber-50 border-b border-amber-100">
+                <h3 className="font-bold text-lg text-amber-800 text-center uppercase">Vigas Laterais (Par)</h3>
+              </div>
+              <div className="p-6 flex-1 flex flex-col items-center justify-center">
+                <span className="text-7xl mb-6 drop-shadow-sm">📉</span>
+                <div className="text-center w-full">
+                  <p className="text-sm text-slate-500 mb-1">Corte Zigue-Zague ({stringerLengthM.toFixed(2)}m linear)</p>
+                  <p className="text-3xl font-black text-amber-600">{stringerWeightKg.toFixed(1)} <span className="text-lg font-normal">kg</span></p>
+                  <p className="text-[10px] text-slate-400 mt-2 font-mono" title="Fórmula de Pitágoras">
+                    {redLineCm.toFixed(1)} × ({blueLineCm.toFixed(1)}+16.5) × {selectedThickness}mm × 0.00785 × 2
+                  </p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          {/* TOTAL BANNER */}
+          <div className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-xl shadow-lg p-8 flex flex-col md:flex-row items-center justify-between text-white">
+            <div className="flex items-center gap-4 mb-4 md:mb-0">
+              <div className="bg-white bg-opacity-20 p-4 rounded-full">
+                <span className="text-4xl">⚖️</span>
+              </div>
+              <div>
+                <h2 className="text-xl text-slate-300 uppercase tracking-widest font-semibold">Peso Total Estimado</h2>
+                <p className="text-sm text-slate-400">Aço Carbono • Densidade 7850 kg/m³</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <span className="text-6xl font-black">{totalWeightKg.toFixed(1)}</span>
+              <span className="text-2xl text-slate-400 ml-2">kg</span>
+            </div>
+          </div>
+          
+          <div className="mt-4 flex items-start gap-2 text-slate-500 text-sm">
+            <span className="text-lg">ℹ️</span>
+            <p>Nota: O cálculo acima é uma estimativa matemática baseada no volume das chapas de aço. Corrimão, parafusos, solda, tinta e suportes extras não estão inclusos. Pode haver variação de acordo com sobras de corte e projeto final.</p>
+          </div>
+
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-[9999] bg-slate-50 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
