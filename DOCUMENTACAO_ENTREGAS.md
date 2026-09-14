@@ -68,3 +68,10 @@ Quando o botão "Imprimir Tabela" é acionado, as seguintes propriedades CSS for
 - **Visualizador 3D:** O HUD (painel transparente de Frete no modelo 3D) foi reorganizado para apresentar as medidas exatamente na mesma ordem: Comprimento, Largura, Altura, Peso. O botão de fechar [X] foi sobreposto ao Canvas 3D para nunca mais desaparecer durante a rotação da escada. Os textos baseados em chapa de 3mm agora explicitam "(ESCADA)".
 
 *Última atualização: Setembro de 2026 - Antigravity AI*
+
+## ⚠️ AVISO IMPORTANTE SOBRE A LIMPEZA DE DUPLICADOS (cleanDuplicates.ts)
+**NUNCA adicione ou ative a execução automática da função cleanDuplicateContracts (ex: via useEffect) no carregamento das páginas.**
+- O script atual agrupa contratos por Nome + Valor + Data e deleta os excedentes automaticamente.
+- Isso causa a **perda irreversível** de dados se a empresa fechar dois contratos diferentes para o mesmo cliente (ex: duas escadas na mesma obra) no mesmo dia.
+- Isso também apaga os documentos da production_queue de forma que o "vínculo" do contrato se quebre, travando a edição na Fila de Produção.
+- A exclusão via script de banco de dados não tem lixeira. Para manter o sistema seguro, a exclusão de contratos deve ser sempre **estritamente manual** via ação intencional do usuário na interface.
