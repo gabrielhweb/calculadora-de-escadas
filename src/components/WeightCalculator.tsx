@@ -46,8 +46,8 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
   // 2. CÁLCULO DOS PATAMARES
   let landingsAreaM2 = 0;
   landings.forEach(l => {
-    const lLen = l.length || 0;
-    const lWid = l.width || 0;
+    const lLen = (l.length || 0) + 10;
+    const lWid = (l.width || 0) + 10;
     landingsAreaM2 += (lLen * lWid) / 10000; // cm² para m²
   });
   const landingsVolumeM3 = landingsAreaM2 * thicknessM;
@@ -140,7 +140,7 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
                       <p className="text-sm text-slate-500 mb-1">Área total: {landingsAreaM2.toFixed(2)} m²</p>
                       <p className="text-3xl font-black text-emerald-600">{landingsWeightKg.toFixed(1)} <span className="text-lg font-normal">kg</span></p>
                       <p className="text-[10px] text-slate-400 mt-2 font-mono" title="Cálculo do Patamar">
-                        {landingsAreaM2.toFixed(2)}m² × {selectedThickness}mm × 7.85
+                        (L+10) × (W+10) × {selectedThickness}mm × 0.00785
                       </p>
                     </div>
                   </>
@@ -277,7 +277,7 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
                       <p className="text-sm text-slate-500 mb-1">Área total: {landingsAreaM2.toFixed(2)} m²</p>
                       <p className="text-3xl font-black text-emerald-600">{landingsWeightKg.toFixed(1)} <span className="text-lg font-normal">kg</span></p>
                       <p className="text-[10px] text-slate-400 mt-2 font-mono" title="Cálculo do Patamar">
-                        {landingsAreaM2.toFixed(2)}m² × {selectedThickness}mm × 7.85
+                        (L+10) × (W+10) × {selectedThickness}mm × 0.00785
                       </p>
                     </div>
                   </>
