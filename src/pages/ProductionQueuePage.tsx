@@ -132,7 +132,20 @@ export default function ProductionQueue() {
                 return true;
             });
             
-            all.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+            all.sort((a, b) => {
+                const dateA = a.originalData?.deliveryDate;
+                const dateB = b.originalData?.deliveryDate;
+                
+                if (dateA && dateB) {
+                    return new Date(dateA).getTime() - new Date(dateB).getTime();
+                } else if (dateA) {
+                    return -1;
+                } else if (dateB) {
+                    return 1;
+                } else {
+                    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+                }
+            });
             setItems(all);
         };
 

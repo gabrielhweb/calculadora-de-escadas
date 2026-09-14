@@ -22,6 +22,7 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
 }) => {
   // Densidade do Aço Carbono: 7850 kg/m³
   const STEEL_DENSITY = 7850;
+  const STEEL_PRICE_PER_KG = 13.80;
   
   // Opções de espessura de chapa (mm)
   const thicknessOptions = [
@@ -46,8 +47,8 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
   // 2. CÁLCULO DOS PATAMARES
   let landingsAreaM2 = 0;
   landings.forEach(l => {
-    const lLen = (l.length || 0) + 10;
-    const lWid = (l.width || 0) + 10;
+    const lLen = (l.length || 0) + 20;
+    const lWid = (l.width || 0) + 20;
     landingsAreaM2 += (lLen * lWid) / 10000; // cm² para m²
   });
   const landingsVolumeM3 = landingsAreaM2 * thicknessM;
@@ -140,7 +141,7 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
                       <p className="text-sm text-slate-500 mb-1">Área total: {landingsAreaM2.toFixed(2)} m²</p>
                       <p className="text-3xl font-black text-emerald-600">{landingsWeightKg.toFixed(1)} <span className="text-lg font-normal">kg</span></p>
                       <p className="text-[10px] text-slate-400 mt-2 font-mono" title="Cálculo do Patamar">
-                        (L+10) × (W+10) × {selectedThickness}mm × 0.00785
+                        (L+20) × (W+20) × {selectedThickness}mm × 0.00785
                       </p>
                     </div>
                   </>
@@ -184,10 +185,15 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
                 <p className="text-sm text-slate-400">Aço Carbono • Densidade 7850 kg/m³</p>
               </div>
             </div>
-            <div className="text-right">
-              <span className="text-6xl font-black">{totalWeightKg.toFixed(1)}</span>
-              <span className="text-2xl text-slate-400 ml-2">kg</span>
-            </div>
+            <div className="text-right flex flex-col items-end">
+                <div>
+                  <span className="text-6xl font-black">{totalWeightKg.toFixed(1)}</span>
+                  <span className="text-2xl text-slate-400 ml-2">kg</span>
+                </div>
+                <div className="mt-2 text-emerald-400 font-bold text-xl">
+                  Custo Aprox: R$ {(totalWeightKg * 13.80).toFixed(2).replace('.', ',')}
+                </div>
+              </div>
           </div>
           
           <div className="mt-4 flex items-start gap-2 text-slate-500 text-sm">
@@ -277,7 +283,7 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
                       <p className="text-sm text-slate-500 mb-1">Área total: {landingsAreaM2.toFixed(2)} m²</p>
                       <p className="text-3xl font-black text-emerald-600">{landingsWeightKg.toFixed(1)} <span className="text-lg font-normal">kg</span></p>
                       <p className="text-[10px] text-slate-400 mt-2 font-mono" title="Cálculo do Patamar">
-                        (L+10) × (W+10) × {selectedThickness}mm × 0.00785
+                        (L+20) × (W+20) × {selectedThickness}mm × 0.00785
                       </p>
                     </div>
                   </>
@@ -321,10 +327,15 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
                 <p className="text-sm text-slate-400">Aço Carbono • Densidade 7850 kg/m³</p>
               </div>
             </div>
-            <div className="text-right">
-              <span className="text-6xl font-black">{totalWeightKg.toFixed(1)}</span>
-              <span className="text-2xl text-slate-400 ml-2">kg</span>
-            </div>
+            <div className="text-right flex flex-col items-end">
+                <div>
+                  <span className="text-6xl font-black">{totalWeightKg.toFixed(1)}</span>
+                  <span className="text-2xl text-slate-400 ml-2">kg</span>
+                </div>
+                <div className="mt-2 text-emerald-400 font-bold text-xl">
+                  Custo Aprox: R$ {(totalWeightKg * 13.80).toFixed(2).replace('.', ',')}
+                </div>
+              </div>
           </div>
           
           <div className="mt-4 flex items-start gap-2 text-slate-500 text-sm">
