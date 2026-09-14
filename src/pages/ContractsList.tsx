@@ -315,11 +315,6 @@ export const ContractsList: React.FC = () => {
     };
 
     useEffect(() => {
-        // Auto-limpeza disparada uma vez
-        import('../utils/cleanDuplicates').then(m => m.cleanDuplicateContracts());
-    }, []);
-
-    useEffect(() => {
         if (!user) {
             setContracts([]);
             return;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, query, onSnapshot, doc, updateDoc, deleteDoc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ProductionOrder, SavedQuote, SavedContract, BoardStage, CustomCost } from '../types';
 import { formatCurrencyBRL } from '../utils';
@@ -310,6 +310,29 @@ export default function ProductionQueue() {
         }
     };
 
+    const fixQueueLink = async (item: DashboardItem) => {
+        try {
+            const newOrder = {
+                contractId: item.id,
+                createdAt: new Date().toISOString(),
+                clientName: item.title,
+                deliveryDate: item.originalData.deliveryDate || '',
+                downPayment: item.originalData.totalValue ? item.originalData.totalValue / 2 : 0,
+                balanceDue: item.originalData.totalValue ? item.originalData.totalValue / 2 : 0,
+                status: 'in_queue',
+                boardStage: 'contrato',
+                location: item.originalData.location || item.originalData.customAddress || 'N/A',
+                installments: [],
+                paidInstallments: 0
+            };
+            await setDoc(doc(db, 'production_queue', Date.now().toString() + '_queue'), newOrder);
+            alert("Vínculo criado com sucesso! Agora você pode editar as datas, o estágio e ver a ficha.");
+        } catch (e) {
+            console.error(e);
+            alert("Erro ao criar vínculo com a fila.");
+        }
+    };
+
     const moveItem = async (item: DashboardItem, newStage: BoardStage) => {
         try {
             if (item.source === 'queue') {
@@ -560,6 +583,15 @@ export default function ProductionQueue() {
                                                                 >
                                                                     {item.title}
                                                                 </div>
+                                                                {item.source === 'contract' && (
+                                                                    <button 
+                                                                        onClick={() => fixQueueLink(item)}
+                                                                        className="ml-2 mt-1 text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded border border-red-200 hover:bg-red-200"
+                                                                        title="Falta vínculo com a fila. Clique para corrigir."
+                                                                    >
+                                                                        Corrigir Vínculo
+                                                                    </button>
+                                                                )}
                                                             </td>
                                                             <td className="px-4 py-3">
                                                                 {item.source === 'queue' ? (
