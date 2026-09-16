@@ -221,12 +221,9 @@ const Interactive3DStair: React.FC<{
   const blueLineCm = (treadDepthCm * stepHeightCm) / stepHypotenuseCm;
   const stringerWidthM = (blueLineCm + 16.5) / 100;
 
-  // Matemática do "Risco Amarelo": distância perpendicular do corrimão ao fundo do degrau
-  const handrailVerticalCm = maxHandrailHeightM * 100;
-  const handrailPerpendicularCm = handrailVerticalCm * (treadDepthCm / stepHypotenuseCm);
-  const yellowLineCm = handrailPerpendicularCm + blueLineCm;
-
-  const pacoteLarguraM = (yellowLineCm + 16.5) / 100;
+  // Matemática solicitada pelo usuário para Largura do Pacote de Frete
+  const handrailCm = maxHandrailHeightM > 0 ? 80 : 0;
+  const pacoteLarguraM = ((treadDepthCm + 1) + handrailCm + 16.5) / 100;
   const pacoteAlturaM = 0.08;
 
   const comprimentoMaximoM = totalLengthM;
