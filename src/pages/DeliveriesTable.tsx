@@ -176,14 +176,21 @@ export const DeliveriesTable: React.FC = () => {
 
                 const escadaWeight = stepsWeight + stringerWeight;
                 const totalWeightKg = escadaWeight + landingsWeight;
-                const costOfSteel = totalWeightKg * 13.80;
+                
+                const escadaCost = escadaWeight * 13.80;
+                const landingsCost = landingsWeight * 13.80;
+                const totalCost = totalWeightKg * 13.80;
 
                 med += `\nPESO APROX. (ESCADA): ${escadaWeight.toFixed(1)} kg\n`;
+                med += `CUSTO AÇO (ESCADA): R$ ${escadaCost.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n`;
+                
                 if (landingsWeight > 0) {
                     med += `PESO APROX. (PATAMAR): ${landingsWeight.toFixed(1)} kg\n`;
+                    med += `CUSTO AÇO (PATAMAR): R$ ${landingsCost.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n`;
                 }
+                
                 med += `PESO TOTAL: ${totalWeightKg.toFixed(1)} kg\n`;
-                med += `CUSTO AÇO: R$ ${costOfSteel.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n`;
+                med += `CUSTO TOTAL AÇO: R$ ${totalCost.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n`;
             }
         } catch (e) {
             console.error("Erro ao calcular peso na tabela", e);
