@@ -13,7 +13,9 @@ export interface ProductionPdfProps {
 }
 
 export const drawProductionPage = (doc: jsPDF, props: ProductionPdfProps) => {
-    const { totalSteps, stepHeightCm, treadDepthCm, widthCm, cutStepType, clientName } = props;
+    const { totalSteps, stepHeightCm, treadDepthCm, widthCm, cutStepType, clientName, landings } = props;
+
+    const numSteps = totalSteps - (landings?.length || 0);
 
     const treadDepthMm = Math.round(treadDepthCm * 10);
     const stepHeightMm = Math.round(stepHeightCm * 10);
@@ -79,7 +81,7 @@ export const drawProductionPage = (doc: jsPDF, props: ProductionPdfProps) => {
     doc.setFont('helvetica', 'normal');
     doc.text('QUANTIDADE DE DEGRAUS:', 150, 28, { align: 'center' });
     doc.setFont('helvetica', 'bold');
-    doc.text(`${totalSteps}`, 150, 34, { align: 'center' });
+    doc.text(`${numSteps}`, 150, 34, { align: 'center' });
     doc.setFont('helvetica', 'normal');
     doc.text('ESPESSURA 1/8"', 150, 39, { align: 'center' });
     
@@ -92,7 +94,7 @@ export const drawProductionPage = (doc: jsPDF, props: ProductionPdfProps) => {
     const pisadaWidth = doc.getTextWidth(pisadaText);
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    const displayPisada = isHollow ? treadDepthMm : treadDepthMm + 10;
+    const displayPisada = treadDepthMm;
     doc.text(`${displayPisada}mm`, 130 + pisadaWidth + 2, 80);
     
     doc.setFontSize(10);

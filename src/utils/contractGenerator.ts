@@ -179,14 +179,17 @@ export const generateContractPDF = (data: ContractData) => {
       dampersText = ' com rodinhas de avanço';
   }
 
+  const numLandings = data.selectedOption.landings ? data.selectedOption.landings.length : 0;
+  const computedStructureSteps = data.selectedOption.structureSteps ?? (data.selectedOption.steps - numLandings);
+
   let objText = '';
   let stepsText = '';
   if (data.inputData.isFixedStair) {
       objText = `Escada fixa em aço carbono com corte à laser, com medidas de: ${alturaM}m de altura, ${compM}m de comprimento, ${widthM}m de largura e com corrimão de 80cm.`;
-      stepsText = `- Com ${data.selectedOption.structureSteps} degraus fixos com dimensões de ${stepH}cm de altura e pisante de ${treadMaterialStr} de ${tread}cm.`;
+      stepsText = `- Com ${computedStructureSteps} degraus fixos com dimensões de ${stepH}cm de altura e pisante de ${treadMaterialStr} de ${tread}cm.`;
   } else {
       objText = `Escada articulada lateral em aço carbono com corte à laser, ${fixationText}, com medidas de: ${alturaM}m de altura, ${compM}m de comprimento, ${widthM}m de largura e com corrimão de 80cm.`;
-      stepsText = `- Com ${data.selectedOption.structureSteps} degraus articulados com dimensões de ${stepH}cm de altura e pisante de ${treadMaterialStr} de ${tread}cm${dampersText}.`;
+      stepsText = `- Com ${computedStructureSteps} degraus articulados com dimensões de ${stepH}cm de altura e pisante de ${treadMaterialStr} de ${tread}cm${dampersText}.`;
   }
   
   addText(objText, 11, false, 'left');
@@ -226,7 +229,7 @@ export const generateContractPDF = (data: ContractData) => {
   // --- PRECIFICAÇÃO SEPARADA (ESCADA vs PATAMARES) ---
   // USAMOS OS VALORES EXPLICITOS PASSADOS PELA TELA AGORA
   
-  addText(`-Valor Escada (${data.selectedOption.structureSteps} degraus): ${formatCurrencyBRL(data.finalStairPrice)}`, 11, false, 'left');
+  addText(`-Valor Escada (${computedStructureSteps} degraus): ${formatCurrencyBRL(data.finalStairPrice)}`, 11, false, 'left');
 
   if (data.finalLandingsPrice > 0) {
       addText(`-Valor Patamares (Total): ${formatCurrencyBRL(data.finalLandingsPrice)}`, 11, false, 'left');
