@@ -17,6 +17,7 @@
     "@types/three": "^0.160.0",
     "date-fns": "^4.4.0",
     "date-fns-tz": "^3.2.0",
+    "dotenv": "^17.4.2",
     "extenso": "^2.1.0",
     "firebase": "^12.10.0",
     "html2canvas": "^1.4.1",
