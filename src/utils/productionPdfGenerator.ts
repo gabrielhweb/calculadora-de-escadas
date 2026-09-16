@@ -277,21 +277,24 @@ export const drawLandingsPage = (doc: jsPDF, landings: any[], clientName: string
             // Textos originais para o Patamar Fixo
             // Comprimento (topo esquerdo, afastado para cima e esquerda)
             doc.setFont('helvetica', 'normal');
-            doc.text('COMPRIMENTO:', imgX + 25, imgY + 28);
+            doc.text('COMPRIMENTO: ', imgX + 25, imgY + 28);
+            const compW = doc.getTextWidth('COMPRIMENTO: ');
             doc.setFont('helvetica', 'bold');
-            doc.text(`${lenMm}mm`, imgX + 65, imgY + 28);
+            doc.text(`${lenMm}mm`, imgX + 25 + compW, imgY + 28);
             
             // Largura (inferior esquerdo, afastado para esquerda e baixo)
             doc.setFont('helvetica', 'normal');
-            doc.text('LARGURA:', imgX + 15, imgY + 115);
+            doc.text('LARGURA: ', imgX + 15, imgY + 115);
+            const largW = doc.getTextWidth('LARGURA: ');
             doc.setFont('helvetica', 'bold');
-            doc.text(`${widMm}mm`, imgX + 42, imgY + 115);
+            doc.text(`${widMm}mm`, imgX + 15 + largW, imgY + 115);
             
             // Aba (direita central, afastado para a direita)
             doc.setFont('helvetica', 'normal');
-            doc.text('ABA:', imgX + 165, imgY + 70);
+            doc.text('ABA: ', imgX + 165, imgY + 70);
+            const abaW = doc.getTextWidth('ABA: ');
             doc.setFont('helvetica', 'bold');
-            doc.text('100mm', imgX + 177, imgY + 70);
+            doc.text('100mm', imgX + 165 + abaW, imgY + 70);
             
             // Rodapé (Xadrez e Quantidade, afastados para baixo)
             doc.setFontSize(16);
