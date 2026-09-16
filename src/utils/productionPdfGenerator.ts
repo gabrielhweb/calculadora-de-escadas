@@ -94,7 +94,7 @@ export const drawProductionPage = (doc: jsPDF, props: ProductionPdfProps) => {
     const pisadaWidth = doc.getTextWidth(pisadaText);
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    const displayPisada = treadDepthMm;
+    const displayPisada = isHollow ? treadDepthMm : treadDepthMm + 10;
     doc.text(`${displayPisada}mm`, 130 + pisadaWidth + 2, 80);
     
     doc.setFontSize(10);
