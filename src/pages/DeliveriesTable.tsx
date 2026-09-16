@@ -157,10 +157,10 @@ export const DeliveriesTable: React.FC = () => {
 
                 // 2. Patamares
                 let landingsAreaM2 = 0;
-                if (selectedOption?.landings) {
-                    selectedOption.landings.forEach((l: any) => {
-                        const lLen = Number(l.length) || 0;
-                        const lWid = Number(l.width) || 0;
+                if (landings && landings.length > 0) {
+                    landings.forEach((l: any) => {
+                        const lLen = (Number(l.length) || 0) + 10;
+                        const lWid = (Number(l.width) || 0) + 10;
                         landingsAreaM2 += (lLen * lWid) / 10000;
                     });
                 }
@@ -174,11 +174,16 @@ export const DeliveriesTable: React.FC = () => {
                 const stringerAreaM2 = (redLineCm / 100) * (stringerWidthCm / 100) * 2;
                 const stringerWeight = stringerAreaM2 * thicknessM * STEEL_DENSITY;
 
-                const totalWeightKg = stepsWeight + landingsWeight + stringerWeight;
+                const escadaWeight = stepsWeight + stringerWeight;
+                const totalWeightKg = escadaWeight + landingsWeight;
                 const costOfSteel = totalWeightKg * 13.80;
 
-                med += `\nPESO APROX (ESCADA): ${totalWeightKg.toFixed(1)} kg\n`;
-                med += `CUSTO AÇO (ESCADA): R$ ${costOfSteel.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n`;
+                med += `\nPESO APROX. (ESCADA): ${escadaWeight.toFixed(1)} kg\n`;
+                if (landingsWeight > 0) {
+                    med += `PESO APROX. (PATAMAR): ${landingsWeight.toFixed(1)} kg\n`;
+                }
+                med += `PESO TOTAL: ${totalWeightKg.toFixed(1)} kg\n`;
+                med += `CUSTO AÇO: R$ ${costOfSteel.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n`;
             }
         } catch (e) {
             console.error("Erro ao calcular peso na tabela", e);
@@ -248,18 +253,28 @@ export const DeliveriesTable: React.FC = () => {
         const stepsWeight = stepAreaM2 * thicknessM * numSteps * STEEL_DENSITY;
         let landingsAreaM2 = 0;
         const landings = getProp(parsedData, 'landings');
-        if (landings) {
+        if (landings && landings.length > 0) {
             landings.forEach((l: any) => {
-                landingsAreaM2 += (Number(l.length) * Number(l.width)) / 10000;
+                const lLen = (Number(l.length) || 0) + 10;
+                const lWid = (Number(l.width) || 0) + 10;
+                landingsAreaM2 += (lLen * lWid) / 10000;
             });
         }
         const landingsWeight = landingsAreaM2 * thicknessM * STEEL_DENSITY;
         const redLineCm = stepHypotenuseCm * numSteps;
         const stringerAreaM2 = (redLineCm / 100) * (stringerWidthM) * 2;
         const stringerWeight = stringerAreaM2 * thicknessM * STEEL_DENSITY;
-        const totalWeightKg = stepsWeight + landingsWeight + stringerWeight;
+        
+        const escadaWeight = stepsWeight + stringerWeight;
+        const totalWeightKg = escadaWeight + landingsWeight;
 
-        return `COMPRIMENTO: ${diagonalExata.toFixed(2)}m\nLARGURA: ${pacoteLarguraM.toFixed(2)}m\nALTURA: ${pacoteAlturaM.toFixed(2)}m\nPESO EST (ESCADA): ${totalWeightKg.toFixed(1)}kg`;
+        let freightText = `COMPRIMENTO: ${diagonalExata.toFixed(2)}m\nLARGURA: ${pacoteLarguraM.toFixed(2)}m\nALTURA: ${pacoteAlturaM.toFixed(2)}m\nPESO (ESCADA): ${escadaWeight.toFixed(1)}kg`;
+        if (landingsWeight > 0) {
+            freightText += `\nPESO (PATAMAR): ${landingsWeight.toFixed(1)}kg`;
+        }
+        freightText += `\nPESO TOTAL: ${totalWeightKg.toFixed(1)}kg`;
+        
+        return freightText;
     };
 
 
