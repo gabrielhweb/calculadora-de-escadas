@@ -143,10 +143,19 @@ export const DeliveriesTable: React.FC = () => {
 
         // --- CÁLCULO DE PESO E CUSTO DO AÇO ---
         try {
-            const treadNum = Number(tread) || 0;
-            const heightNum = Number(height) || 0;
-            const widthNum = Number(width) || 0;
-            const stepsNum = Number(steps) || 0;
+            const extractNum = (val: any) => {
+                if (typeof val === 'number') return val;
+                if (typeof val === 'string') {
+                    const match = val.replace(',', '.').match(/[\d.]+/);
+                    return match ? Number(match[0]) : 0;
+                }
+                return 0;
+            };
+
+            const treadNum = extractNum(tread);
+            const heightNum = extractNum(height);
+            const widthNum = extractNum(width);
+            const stepsNum = extractNum(steps);
             const thicknessM = 3.0 / 1000; // 3mm padrão
             const STEEL_DENSITY = 7850;
 
@@ -227,13 +236,21 @@ export const DeliveriesTable: React.FC = () => {
 
     const getFreightDimensions = (parsedData: any) => {
         if (!parsedData) return '';
+        const extractNum = (val: any) => {
+            if (typeof val === 'number') return val;
+            if (typeof val === 'string') {
+                const match = val.replace(',', '.').match(/[\d.]+/);
+                return match ? Number(match[0]) : 0;
+            }
+            return 0;
+        };
         
-        const numSteps = Number(getProp(parsedData, 'steps') ?? getProp(parsedData, 'desiredSteps') ?? getProp(parsedData, 'degraus')) || 0;
-        const treadDepthCm = Number(getProp(parsedData, 'treadDepth') ?? getProp(parsedData, 'treadDepthCm') ?? getProp(parsedData, 'pisante')) || 0;
-        const stepHeightCm = Number(getProp(parsedData, 'stepHeight') ?? getProp(parsedData, 'stepHeightCm') ?? getProp(parsedData, 'altura')) || 0;
-        const widthCm = Number(getProp(parsedData, 'stairWidth') ?? getProp(parsedData, 'widthCm') ?? getProp(parsedData, 'width') ?? getProp(parsedData, 'largura')) || 0;
+        const numSteps = extractNum(getProp(parsedData, 'steps') ?? getProp(parsedData, 'desiredSteps') ?? getProp(parsedData, 'degraus'));
+        const treadDepthCm = extractNum(getProp(parsedData, 'treadDepth') ?? getProp(parsedData, 'treadDepthCm') ?? getProp(parsedData, 'pisante'));
+        const stepHeightCm = extractNum(getProp(parsedData, 'stepHeight') ?? getProp(parsedData, 'stepHeightCm') ?? getProp(parsedData, 'altura'));
+        const widthCm = extractNum(getProp(parsedData, 'stairWidth') ?? getProp(parsedData, 'widthCm') ?? getProp(parsedData, 'width') ?? getProp(parsedData, 'largura'));
 
-        if (!numSteps || !treadDepthCm || !stepHeightCm) return '';
+        if (!numSteps || !treadDepthCm || !stepHeightCm) return '-';
 
         const optionalItems = getProp(parsedData, 'optionalItems');
         const maxHandrailHeightM = (optionalItems && optionalItems.some((i: any) => i.id === 'corrimao_aco')) ? 0.8 : 0;
@@ -468,7 +485,7 @@ export const DeliveriesTable: React.FC = () => {
                                     ) {
                                         freightInfo = contract.hingesQty;
                                     }
-                                    const measurements = contract.measurementsNotes !== undefined ? contract.measurementsNotes : getMeasurements(data);
+                                    const measurements = contract.measurementsNotes || getMeasurements(data);
                                     
                                     const dateColor = getDateColorClass(contract.deliveryDate);
                                     

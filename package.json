@@ -20,6 +20,7 @@
     "dotenv": "^17.4.2",
     "extenso": "^2.1.0",
     "firebase": "^12.10.0",
+    "firebase-admin": "^14.4.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
     "react": "^18.2.0",
