@@ -480,6 +480,8 @@ export const DeliveriesTable: React.FC = () => {
                                     const attention = contract.deliveryNotes !== undefined ? contract.deliveryNotes : getDefaultAttention(data);
                                     let freightInfo = getFreightDimensions(data);
                                     if (contract.hingesQty !== undefined 
+                                        && contract.hingesQty.trim() !== '-'
+                                        && contract.hingesQty.trim() !== ''
                                         && !contract.hingesQty.toLowerCase().includes('dobradiça')
                                         && !contract.hingesQty.includes('QTD VOLUMES')
                                     ) {
