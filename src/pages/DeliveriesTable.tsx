@@ -159,12 +159,12 @@ export const DeliveriesTable: React.FC = () => {
                 let landingsAreaM2 = 0;
                 if (landings && landings.length > 0) {
                     landings.forEach((l: any) => {
-                        const lLen = (Number(l.length) || 0) + 10;
-                        const lWid = (Number(l.width) || 0) + 10;
+                        const lLen = (Number(l.length) || 0) + 20;
+                        const lWid = (Number(l.width) || 0) + 20;
                         landingsAreaM2 += (lLen * lWid) / 10000;
                     });
                 }
-                const landingsWeight = landingsAreaM2 * thicknessM * STEEL_DENSITY;
+                const landingsWeight = landingsAreaM2 * (3.34 / 1000) * STEEL_DENSITY;
 
                 // 3. Vigas Laterais
                 const stepHypotenuseCm = Math.sqrt(Math.pow(treadNum, 2) + Math.pow(heightNum, 2));
@@ -262,12 +262,12 @@ export const DeliveriesTable: React.FC = () => {
         const landings = getProp(parsedData, 'landings');
         if (landings && landings.length > 0) {
             landings.forEach((l: any) => {
-                const lLen = (Number(l.length) || 0) + 10;
-                const lWid = (Number(l.width) || 0) + 10;
+                const lLen = (Number(l.length) || 0) + 20;
+                const lWid = (Number(l.width) || 0) + 20;
                 landingsAreaM2 += (lLen * lWid) / 10000;
             });
         }
-        const landingsWeight = landingsAreaM2 * thicknessM * STEEL_DENSITY;
+        const landingsWeight = landingsAreaM2 * (3.34 / 1000) * STEEL_DENSITY;
         const redLineCm = stepHypotenuseCm * numSteps;
         const stringerAreaM2 = (redLineCm / 100) * (stringerWidthM) * 2;
         const stringerWeight = stringerAreaM2 * thicknessM * STEEL_DENSITY;

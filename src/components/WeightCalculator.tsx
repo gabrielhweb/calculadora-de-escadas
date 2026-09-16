@@ -51,7 +51,8 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
     const lWid = (l.width || 0) + 20;
     landingsAreaM2 += (lLen * lWid) / 10000; // cm² para m²
   });
-  const landingsVolumeM3 = landingsAreaM2 * thicknessM;
+  const PATAMAR_THICKNESS_M = 3.34 / 1000; // 0.334cm = 3.34mm (Chapa xadrez aprox)
+  const landingsVolumeM3 = landingsAreaM2 * PATAMAR_THICKNESS_M;
   const landingsWeightKg = landingsVolumeM3 * STEEL_DENSITY;
 
   // 3. CÁLCULO DAS VIGAS LATERAIS
@@ -141,7 +142,7 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
                       <p className="text-sm text-slate-500 mb-1">Área total: {landingsAreaM2.toFixed(2)} m²</p>
                       <p className="text-3xl font-black text-emerald-600">{landingsWeightKg.toFixed(1)} <span className="text-lg font-normal">kg</span></p>
                       <p className="text-[10px] text-slate-400 mt-2 font-mono" title="Cálculo do Patamar">
-                        (L+20) × (W+20) × {selectedThickness}mm × 0.00785
+                        (L+20) × (W+20) × 0,334 × 0.00785
                       </p>
                     </div>
                   </>
@@ -283,7 +284,7 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
                       <p className="text-sm text-slate-500 mb-1">Área total: {landingsAreaM2.toFixed(2)} m²</p>
                       <p className="text-3xl font-black text-emerald-600">{landingsWeightKg.toFixed(1)} <span className="text-lg font-normal">kg</span></p>
                       <p className="text-[10px] text-slate-400 mt-2 font-mono" title="Cálculo do Patamar">
-                        (L+20) × (W+20) × {selectedThickness}mm × 0.00785
+                        (L+20) × (W+20) × 0,334 × 0.00785
                       </p>
                     </div>
                   </>
