@@ -11,8 +11,15 @@ export interface Supplier {
     isSupplier?: boolean;
 }
 
+export interface Product {
+    id: string;
+    name: string;
+    supplierId?: string;
+}
+
 export default function SupplierCatalog() {
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+    const [products, setProducts] = useState<Product[]>([]);
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
     const [address, setAddress] = useState('');
@@ -24,15 +31,20 @@ export default function SupplierCatalog() {
         try {
             const snapshot = await getDocs(collection(db, 'contracts'));
             const data: Supplier[] = [];
+            const prodData: Product[] = [];
             snapshot.forEach((doc) => {
                 const docData = doc.data();
                 if (docData.isSupplier) {
                     data.push({ id: doc.id, ...docData } as Supplier);
                 }
+                if (docData.isProduct) {
+                    prodData.push({ id: doc.id, ...docData } as Product);
+                }
             });
             // Ordem alfabética
             data.sort((a, b) => a.name.localeCompare(b.name));
             setSuppliers(data);
+            setProducts(prodData);
         } catch (error) {
             console.error("Erro ao buscar fornecedores", error);
         } finally {
@@ -192,16 +204,32 @@ export default function SupplierCatalog() {
                                         <tr className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-sm">
                                             <th className="p-3">Nome</th>
                                             <th className="p-3">Telefone</th>
-                                            <th className="p-3">Endereço</th>
+                                            <th className="p-3 hidden sm:table-cell">Endereço</th>
+                                            <th className="p-3 hidden md:table-cell">Produtos Fornecidos</th>
                                             <th className="p-3">Ações</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {suppliers.map(s => (
+                                        {suppliers.map(s => {
+                                            const sProducts = products.filter(p => p.supplierId === s.id);
+                                            return (
                                             <tr key={s.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
                                                 <td className="p-3 font-medium text-gray-800 dark:text-gray-200">{s.name}</td>
                                                 <td className="p-3 text-gray-600 dark:text-gray-300 whitespace-nowrap">{s.phone || '-'}</td>
-                                                <td className="p-3 text-gray-600 dark:text-gray-300 text-sm">{s.address || '-'}</td>
+                                                <td className="p-3 text-gray-600 dark:text-gray-300 text-sm hidden sm:table-cell">{s.address || '-'}</td>
+                                                <td className="p-3 text-xs text-gray-500 dark:text-gray-400 hidden md:table-cell">
+                                                    {sProducts.length > 0 ? (
+                                                        <div className="flex flex-wrap gap-1">
+                                                            {sProducts.map(p => (
+                                                                <span key={p.id} className="bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 px-2 py-0.5 rounded border border-blue-100 dark:border-blue-800">
+                                                                    {p.name}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <span>-</span>
+                                                    )}
+                                                </td>
                                                 <td className="p-3 whitespace-nowrap">
                                                     <button onClick={() => handleEdit(s)} className="text-orange-500 hover:text-orange-700 text-sm font-medium mr-3">
                                                         Editar
@@ -211,7 +239,7 @@ export default function SupplierCatalog() {
                                                     </button>
                                                 </td>
                                             </tr>
-                                        ))}
+                                        )})}
                                     </tbody>
                                 </table>
                             </div>
