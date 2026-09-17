@@ -23,10 +23,11 @@ import { AuthProvider } from './components/AuthProvider';
 import { useEffect } from 'react';
 import { getDocFromServer, doc } from 'firebase/firestore';
 import { db } from './firebase';
-import { fixContracts } from './fixContracts';
+import { alignContractsWithPDF } from './alignContracts';
 
 function App() {
   useEffect(() => {
+    alignContractsWithPDF();
     async function testConnection() {
       try {
         await getDocFromServer(doc(db, 'test', 'connection'));
