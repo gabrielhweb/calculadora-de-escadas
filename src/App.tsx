@@ -15,8 +15,8 @@ import CostSettingsPage from './pages/CostSettings';
 import WeightCalculatorPage from './pages/WeightCalculatorPage';
 import PurchasesDashboard from './pages/Purchases/PurchasesDashboard';
 import ProductCatalog from './pages/Purchases/ProductCatalog';
-// import NewOrder from './pages/Purchases/NewOrder';
-// import OrderHistory from './pages/Purchases/OrderHistory';
+import NewOrder from './pages/Purchases/NewOrder';
+import OrderHistory from './pages/Purchases/OrderHistory';
 import { AuthProvider } from './components/AuthProvider';
 import { useEffect } from 'react';
 import { getDocFromServer, doc } from 'firebase/firestore';
@@ -55,6 +55,8 @@ function App() {
             <Route path="custos" element={<CostSettingsPage />} />
             <Route path="compras" element={<PurchasesDashboard />} />
             <Route path="compras/catalogo" element={<ProductCatalog />} />
+            <Route path="compras/novo-pedido" element={<NewOrder />} />
+            <Route path="compras/historico" element={<OrderHistory />} />
           </Route>
         </Routes>
       </BrowserRouter>
