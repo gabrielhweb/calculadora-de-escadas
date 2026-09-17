@@ -27,7 +27,6 @@ import { fixContracts } from './fixContracts';
 
 function App() {
   useEffect(() => {
-    fixContracts();
     async function testConnection() {
       try {
         await getDocFromServer(doc(db, 'test', 'connection'));
