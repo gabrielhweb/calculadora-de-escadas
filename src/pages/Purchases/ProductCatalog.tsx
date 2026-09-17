@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../components/AuthProvider';
-import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage } from '../../firebase';
+import { collection, addDoc, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { db } from '../../firebase';
 
 export interface Product {
     id: string;
@@ -47,8 +46,40 @@ export default function ProductCatalog() {
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
-            setImageFile(file);
-            setImagePreview(URL.createObjectURL(file));
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 300;
+                    const MAX_HEIGHT = 300;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+                    } else {
+                        if (height > MAX_HEIGHT) {
+                            width *= MAX_HEIGHT / height;
+                            height = MAX_HEIGHT;
+                        }
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx?.drawImage(img, 0, 0, width, height);
+                    const base64String = canvas.toDataURL('image/jpeg', 0.7);
+                    
+                    // We store the base64 string directly in the state
+                    setImageFile(null); // Not needed anymore
+                    setImagePreview(base64String);
+                };
+                img.src = event.target?.result as string;
+            };
+            reader.readAsDataURL(file);
         }
     };
 
@@ -61,12 +92,8 @@ export default function ProductCatalog() {
 
         setIsSaving(true);
         try {
-            let imageUrl = '';
-            if (imageFile) {
-                const storageRef = ref(storage, `products/${Date.now()}_${imageFile.name}`);
-                const snapshot = await uploadBytes(storageRef, imageFile);
-                imageUrl = await getDownloadURL(snapshot.ref);
-            }
+            // We directly use the compressed base64 string from imagePreview
+            const imageUrl = imagePreview;
 
             const newProduct = {
                 name,
@@ -105,6 +132,56 @@ export default function ProductCatalog() {
         }
     };
 
+    const handleImportCSV = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files || !e.target.files[0]) return;
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+            const text = event.target?.result as string;
+            const lines = text.split('\n').filter(line => line.trim().length > 0);
+            
+            // Assume format: Nome, Código, Valor
+            // Skip header if first line contains 'nome' or 'valor'
+            let startIndex = 0;
+            if (lines[0].toLowerCase().includes('nome') || lines[0].toLowerCase().includes('valor')) {
+                startIndex = 1;
+            }
+
+            let addedCount = 0;
+            setLoading(true);
+            try {
+                for (let i = startIndex; i < lines.length; i++) {
+                    const columns = lines[i].split(/[,;]/); // handle comma or semicolon
+                    if (columns.length >= 2) {
+                        const name = columns[0].trim();
+                        const code = columns.length >= 3 ? columns[1].trim() : '';
+                        let priceStr = columns.length >= 3 ? columns[2] : columns[1];
+                        priceStr = priceStr.replace('R$', '').replace(/\./g, '').replace(',', '.').trim();
+                        const price = parseFloat(priceStr) || 0;
+
+                        if (name && price > 0) {
+                            await addDoc(collection(db, 'products'), {
+                                name,
+                                code,
+                                price,
+                                imageUrl: '',
+                                createdAt: new Date()
+                            });
+                            addedCount++;
+                        }
+                    }
+                }
+                alert(`${addedCount} produtos importados com sucesso!`);
+                fetchProducts();
+            } catch (err) {
+                console.error(err);
+                alert('Erro ao importar CSV.');
+                setLoading(false);
+            }
+        };
+        reader.readAsText(file);
+    };
+
     if (!user) {
         return (
             <div className="max-w-7xl mx-auto p-4 sm:p-6 flex flex-col items-center justify-center h-[50vh]">
@@ -116,11 +193,19 @@ export default function ProductCatalog() {
 
     return (
         <div className="max-w-7xl mx-auto p-4 sm:p-6">
-            <div className="flex items-center gap-4 mb-6">
-                <button onClick={() => window.history.back()} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-                    ← Voltar
-                </button>
-                <h1 className="text-2xl font-bold text-gray-800 dark:text-white">📋 Catálogo de Produtos</h1>
+            <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-4">
+                    <button onClick={() => window.history.back()} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                        ← Voltar
+                    </button>
+                    <h1 className="text-2xl font-bold text-gray-800 dark:text-white">📋 Catálogo de Produtos</h1>
+                </div>
+                <div>
+                    <label className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-bold cursor-pointer transition-colors text-sm">
+                        📥 Importar Planilha CSV
+                        <input type="file" accept=".csv" className="hidden" onChange={handleImportCSV} />
+                    </label>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
