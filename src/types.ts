@@ -21,7 +21,13 @@ export interface LandingInfo {
   hasFrenchBrackets?: boolean; // Novo checkbox
   frenchBrackets?: number; // Quantidade de Mãos Francesas
   frenchBracketPrice?: number; // Preço unitário da mão francesa
-  isAngled?: boolean; // Patamar em ângulo
+  hasGuardrail?: boolean; // Novo: Possui Guarda Corpo
+  guardrailFormat?: 'normal' | 'L' | 'U'; // Formato do Guarda Corpo
+  guardrailLength?: number; // Comprimento total (cm)
+  guardrailHeight?: number; // Altura (cm)
+  guardrailPricePerMeter?: number; // Preço/metro
+  guardrailCalculatedPrice?: number; // Preço salvo calculado
+  isAngled?: boolean; // Patamar em Ângulo
 }
 
 export interface LogisticsInfo {

@@ -23,11 +23,9 @@ import { AuthProvider } from './components/AuthProvider';
 import { useEffect } from 'react';
 import { getDocFromServer, doc } from 'firebase/firestore';
 import { db } from './firebase';
-import { insertMissingContracts } from './insertContracts';
 
 function App() {
   useEffect(() => {
-    insertMissingContracts();
     async function testConnection() {
       try {
         await getDocFromServer(doc(db, 'test', 'connection'));

@@ -954,6 +954,104 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                         </div>
                                     )}
                                 </div>
+
+                                {/* INÍCIO GUARDA CORPO */}
+                                <div className="col-span-2 bg-gray-50 dark:bg-gray-700/50 p-2 rounded border border-gray-100 dark:border-gray-700">
+                                    <label className="flex items-center gap-2 cursor-pointer mb-2">
+                                        <input 
+                                            type="checkbox"
+                                            checked={!!landing.hasGuardrail}
+                                            onChange={(e) => updateLanding(landing.id, { hasGuardrail: e.target.checked })}
+                                            className="w-4 h-4 text-highlight rounded border-gray-300 focus:ring-highlight"
+                                        />
+                                        <span className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase">Possui Guarda Corpo?</span>
+                                    </label>
+                                    
+                                    {landing.hasGuardrail && (() => {
+                                        const gFormat = landing.guardrailFormat || 'normal';
+                                        const gLength = landing.guardrailLength || 100;
+                                        const gHeight = landing.guardrailHeight || 90;
+                                        const gPricePerMeter = landing.guardrailPricePerMeter !== undefined ? landing.guardrailPricePerMeter : 40;
+                                        
+                                        let innerL = gLength - 6;
+                                        if (innerL < 0) innerL = 0;
+                                        let numGaps = Math.max(1, Math.round(innerL / 18));
+                                        let numInterBars = numGaps - 1;
+                                        let totalBars = numInterBars + 2;
+                                        let exactGap = (innerL - (numInterBars * 3)) / numGaps;
+                                        
+                                        let totalVerticalMeters = totalBars * (gHeight / 100);
+                                        let totalHorizontalMeters = 2 * (gLength / 100);
+                                        let gTotalMeters = totalVerticalMeters + totalHorizontalMeters;
+                                        let currentGPrice = Math.round(gTotalMeters * gPricePerMeter);
+
+                                        return (
+                                            <div className="mt-2 space-y-3">
+                                                <div className="flex gap-2">
+                                                    <div className="flex-1">
+                                                        <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Formato:</label>
+                                                        <select
+                                                            value={gFormat}
+                                                            onChange={(e) => updateLanding(landing.id, { guardrailFormat: e.target.value as any })}
+                                                            className="w-full text-xs font-bold p-2 text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 rounded border border-gray-300 dark:border-gray-600 outline-none focus:border-highlight"
+                                                        >
+                                                            <option value="normal">Normal (Reto)</option>
+                                                            <option value="L">Em L</option>
+                                                            <option value="U">Em U</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div className="grid grid-cols-3 gap-2">
+                                                    <InputField 
+                                                        label="Comp. Total" 
+                                                        value={gLength.toString()} 
+                                                        onChange={e => updateLanding(landing.id, { guardrailLength: parseFloat(e.target.value) || 0 })} 
+                                                        unit="cm" 
+                                                        className="mb-0"
+                                                    />
+                                                    <InputField 
+                                                        label="Altura" 
+                                                        value={gHeight.toString()} 
+                                                        onChange={e => updateLanding(landing.id, { guardrailHeight: parseFloat(e.target.value) || 0 })} 
+                                                        unit="cm" 
+                                                        className="mb-0"
+                                                    />
+                                                    <InputField 
+                                                        label="R$/Metro" 
+                                                        value={gPricePerMeter.toString()} 
+                                                        onChange={e => updateLanding(landing.id, { guardrailPricePerMeter: parseFloat(e.target.value) || 0 })} 
+                                                        unit="R$" 
+                                                        className="mb-0"
+                                                    />
+                                                </div>
+
+                                                {/* Visualizador */}
+                                                <div className="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-600 text-center">
+                                                    <p className="text-[10px] uppercase font-bold text-gray-500 mb-2">Prévia do Guarda-Corpo</p>
+                                                    
+                                                    {/* Desenho do Guarda Corpo */}
+                                                    <div className="relative w-full max-w-[200px] mx-auto h-[60px] border-t-4 border-b-4 border-gray-800 dark:border-gray-300 flex justify-between">
+                                                        {Array.from({length: totalBars}).map((_, i) => (
+                                                            <div key={i} className="w-[4px] h-full bg-gray-800 dark:bg-gray-300"></div>
+                                                        ))}
+                                                        
+                                                        {/* Labels no desenho */}
+                                                        <div className="absolute -left-6 top-1/2 -translate-y-1/2 text-[9px] font-bold text-highlight">{gHeight}cm</div>
+                                                        <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] font-bold text-highlight">{gLength}cm</div>
+                                                    </div>
+
+                                                    <div className="mt-6 text-xs text-gray-700 dark:text-gray-300">
+                                                        <p><strong>{totalBars}</strong> tubos verticais com vãos de <strong>{exactGap.toFixed(1)}cm</strong></p>
+                                                        <p>Tubos usados: <strong>{gTotalMeters.toFixed(2)} metros</strong></p>
+                                                        <p className="mt-1 font-black text-highlight">Valor Estimado: R$ {currentGPrice}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
+                                </div>
+                                {/* FIM GUARDA CORPO */}
+
                                 <div className="col-span-2 sm:col-span-2 mt-2">
                                     <button 
                                         type="button"
@@ -973,6 +1071,25 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                                 const mfQtd = landing.frenchBrackets !== undefined ? landing.frenchBrackets : 2;
                                                 const mfPrice = landing.frenchBracketPrice !== undefined ? landing.frenchBracketPrice : 140;
                                                 calculatedPrice += (mfQtd * mfPrice);
+                                            }
+                                            
+                                            // Soma o preço do Guarda Corpo (se houver)
+                                            if (landing.hasGuardrail) {
+                                                const gLength = landing.guardrailLength || 100;
+                                                const gHeight = landing.guardrailHeight || 90;
+                                                const gPricePerMeter = landing.guardrailPricePerMeter !== undefined ? landing.guardrailPricePerMeter : 40;
+                                                
+                                                let innerL = gLength - 6;
+                                                if (innerL < 0) innerL = 0;
+                                                let numGaps = Math.max(1, Math.round(innerL / 18));
+                                                let numInterBars = numGaps - 1;
+                                                let totalBars = numInterBars + 2;
+                                                
+                                                let totalVerticalMeters = totalBars * (gHeight / 100);
+                                                let totalHorizontalMeters = 2 * (gLength / 100);
+                                                let gTotalMeters = totalVerticalMeters + totalHorizontalMeters;
+                                                
+                                                calculatedPrice += Math.round(gTotalMeters * gPricePerMeter);
                                             }
                                             
                                             updateLanding(landing.id, { price: calculatedPrice });
