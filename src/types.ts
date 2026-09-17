@@ -28,6 +28,7 @@ export interface LandingInfo {
   guardrailPricePerMeter?: number; // Preço/metro
   guardrailCalculatedPrice?: number; // Preço salvo calculado
   isAngled?: boolean; // Patamar em Ângulo
+  chapaPrice?: number; // Preço isolado da chapa do patamar
 }
 
 export interface LogisticsInfo {

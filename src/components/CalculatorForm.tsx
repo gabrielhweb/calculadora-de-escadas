@@ -935,28 +935,29 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                     </label>
                                     
                                     {landing.hasFrenchBrackets && (
-                                        <div className="flex gap-2">
-                                            <div className="flex-1">
-                                                <InputField 
-                                                    label="Qtd." 
-                                                    value={(landing.frenchBrackets !== undefined ? landing.frenchBrackets : 2).toString()} 
-                                                    onChange={e => updateLanding(landing.id, { frenchBrackets: parseInt(e.target.value) || 0 })} 
-                                                    className="mb-0"
-                                                />
+                                        <div className="flex flex-col gap-1">
+                                            <div className="flex gap-2">
+                                                <div className="flex-1">
+                                                    <InputField 
+                                                        label="Qtd." 
+                                                        value={(landing.frenchBrackets !== undefined ? landing.frenchBrackets : 2).toString()} 
+                                                        onChange={e => updateLanding(landing.id, { frenchBrackets: parseInt(e.target.value) || 0 })} 
+                                                        className="mb-0"
+                                                    />
+                                                </div>
+                                                <div className="flex-[2]">
+                                                    <InputField 
+                                                        label="Preço Unit." 
+                                                        value={(landing.frenchBracketPrice !== undefined ? landing.frenchBracketPrice : 140).toString()} 
+                                                        onChange={e => updateLanding(landing.id, { frenchBracketPrice: parseFloat(e.target.value) || 0 })} 
+                                                        unit="R$" 
+                                                        className="mb-0"
+                                                    />
+                                                </div>
                                             </div>
-                                            <div className="flex-[2]">
-                                                <InputField 
-                                                    label="Preço Unit." 
-                                                    value={(landing.frenchBracketPrice !== undefined ? landing.frenchBracketPrice : 140).toString()} 
-                                                    onChange={e => updateLanding(landing.id, { frenchBracketPrice: parseFloat(e.target.value) || 0 })} 
-                                                    unit="R$" 
-                                                    className="mb-0"
-                                                />
+                                            <div className="text-right text-xs mt-1 text-highlight font-bold">
+                                                Total Mãos Francesas: R$ {(landing.frenchBrackets !== undefined ? landing.frenchBrackets : 2) * (landing.frenchBracketPrice !== undefined ? landing.frenchBracketPrice : 140)}
                                             </div>
-                                        </div>
-                                        <div className="text-right text-xs mt-1 text-highlight font-bold">
-                                            Total Mãos Francesas: R$ {(landing.frenchBrackets !== undefined ? landing.frenchBrackets : 2) * (landing.frenchBracketPrice !== undefined ? landing.frenchBracketPrice : 140)}
-                                        </div>
                                         </div>
                                     )}
                                 </div>
