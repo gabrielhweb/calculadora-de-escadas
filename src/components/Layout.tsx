@@ -109,6 +109,12 @@ const Layout: React.FC = () => {
                   Fila de Produção
                 </Link>
                 <Link 
+                  to="/compras" 
+                  className={`${isActive('/compras') ? 'text-highlight font-bold border-b-4 border-highlight' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'} px-2 pt-1 text-sm uppercase tracking-wide transition-all duration-200 h-full flex items-center font-bold`}
+                >
+                  📦 Compras
+                </Link>
+                <Link 
                   to="/transportadoras" 
                   className={`${isActive('/transportadoras') ? 'text-highlight font-bold border-b-4 border-highlight' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'} px-2 pt-1 text-sm uppercase tracking-wide transition-all duration-200 h-full flex items-center font-bold`}
                 >
@@ -244,6 +250,13 @@ const Layout: React.FC = () => {
                 className={`${isActive('/fila') ? 'bg-gray-200 dark:bg-gray-700 text-highlight font-bold' : 'text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'} block px-3 py-2 rounded-md text-base font-medium`}
               >
                 Fila de Produção
+              </Link>
+              <Link 
+                to="/compras" 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`${isActive('/compras') ? 'bg-gray-200 dark:bg-gray-700 text-highlight font-bold' : 'text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'} block px-3 py-2 rounded-md text-base font-medium`}
+              >
+                📦 Compras
               </Link>
               <Link 
                 to="/transportadoras" 
