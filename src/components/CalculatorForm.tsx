@@ -824,39 +824,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                     </div>
                                 </div>
 
-                                <div className="col-span-2 bg-gray-50 dark:bg-gray-700/50 p-2 rounded border border-gray-100 dark:border-gray-700">
-                                    <label className="flex items-center gap-2 cursor-pointer mb-2">
-                                        <input 
-                                            type="checkbox"
-                                            checked={!!landing.hasFrenchBrackets}
-                                            onChange={(e) => updateLanding(landing.id, { hasFrenchBrackets: e.target.checked })}
-                                            className="w-4 h-4 text-highlight rounded border-gray-300 focus:ring-highlight"
-                                        />
-                                        <span className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase">Possui Mão Francesa?</span>
-                                    </label>
-                                    
-                                    {landing.hasFrenchBrackets && (
-                                        <div className="flex gap-2">
-                                            <div className="flex-1">
-                                                <InputField 
-                                                    label="Qtd." 
-                                                    value={(landing.frenchBrackets !== undefined ? landing.frenchBrackets : 2).toString()} 
-                                                    onChange={e => updateLanding(landing.id, { frenchBrackets: parseInt(e.target.value) || 0 })} 
-                                                    className="mb-0"
-                                                />
-                                            </div>
-                                            <div className="flex-[2]">
-                                                <InputField 
-                                                    label="Preço Unit." 
-                                                    value={(landing.frenchBracketPrice !== undefined ? landing.frenchBracketPrice : 140).toString()} 
-                                                    onChange={e => updateLanding(landing.id, { frenchBracketPrice: parseFloat(e.target.value) || 0 })} 
-                                                    unit="R$" 
-                                                    className="mb-0"
-                                                />
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
+
 
                                 <div className="col-span-2 bg-gray-50 dark:bg-gray-700/50 p-2 rounded border border-gray-100 dark:border-gray-700">
                                     <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Opções Adicionais:</label>
@@ -952,6 +920,39 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                         className="mb-0"
                                         tooltip="Valor base para cálculo automático (R$ 29/kg padrão)."
                                     />
+                                </div>
+                                <div className="col-span-2 bg-gray-50 dark:bg-gray-700/50 p-2 rounded border border-gray-100 dark:border-gray-700">
+                                    <label className="flex items-center gap-2 cursor-pointer mb-2">
+                                        <input 
+                                            type="checkbox"
+                                            checked={!!landing.hasFrenchBrackets}
+                                            onChange={(e) => updateLanding(landing.id, { hasFrenchBrackets: e.target.checked })}
+                                            className="w-4 h-4 text-highlight rounded border-gray-300 focus:ring-highlight"
+                                        />
+                                        <span className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase">Possui Mão Francesa?</span>
+                                    </label>
+                                    
+                                    {landing.hasFrenchBrackets && (
+                                        <div className="flex gap-2">
+                                            <div className="flex-1">
+                                                <InputField 
+                                                    label="Qtd." 
+                                                    value={(landing.frenchBrackets !== undefined ? landing.frenchBrackets : 2).toString()} 
+                                                    onChange={e => updateLanding(landing.id, { frenchBrackets: parseInt(e.target.value) || 0 })} 
+                                                    className="mb-0"
+                                                />
+                                            </div>
+                                            <div className="flex-[2]">
+                                                <InputField 
+                                                    label="Preço Unit." 
+                                                    value={(landing.frenchBracketPrice !== undefined ? landing.frenchBracketPrice : 140).toString()} 
+                                                    onChange={e => updateLanding(landing.id, { frenchBracketPrice: parseFloat(e.target.value) || 0 })} 
+                                                    unit="R$" 
+                                                    className="mb-0"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="col-span-2 sm:col-span-2 mt-2">
                                     <button 
