@@ -23,9 +23,11 @@ import { AuthProvider } from './components/AuthProvider';
 import { useEffect } from 'react';
 import { getDocFromServer, doc } from 'firebase/firestore';
 import { db } from './firebase';
+import { fixContractsDateAndUndefined } from './fixDates';
 
 function App() {
   useEffect(() => {
+    fixContractsDateAndUndefined();
     async function testConnection() {
       try {
         await getDocFromServer(doc(db, 'test', 'connection'));

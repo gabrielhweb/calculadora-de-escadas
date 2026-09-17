@@ -992,7 +992,18 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                                         <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Formato:</label>
                                                         <select
                                                             value={gFormat}
-                                                            onChange={(e) => updateLanding(landing.id, { guardrailFormat: e.target.value as any })}
+                                                            onChange={(e) => {
+                                                                const newFormat = e.target.value as any;
+                                                                let newLength = gLength;
+                                                                if (newFormat === 'normal') newLength = landing.length || 0;
+                                                                if (newFormat === 'L') newLength = (landing.length || 0) + (landing.width || 0);
+                                                                if (newFormat === 'U') newLength = (landing.length || 0) + ((landing.width || 0) * 2);
+                                                                
+                                                                updateLanding(landing.id, { 
+                                                                    guardrailFormat: newFormat,
+                                                                    guardrailLength: newLength
+                                                                });
+                                                            }}
                                                             className="w-full text-xs font-bold p-2 text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 rounded border border-gray-300 dark:border-gray-600 outline-none focus:border-highlight"
                                                         >
                                                             <option value="normal">Normal (Reto)</option>
