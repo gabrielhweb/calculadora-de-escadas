@@ -922,6 +922,37 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                     className="mb-0"
                                     tooltip="Largura lateral do patamar."
                                 />
+                                <div className="col-span-2 sm:col-span-1">
+                                    <InputField 
+                                        label="Preço/Peso Base" 
+                                        value={(landing.weightPerSqm || 29).toString()} 
+                                        onChange={e => updateLanding(landing.id, { weightPerSqm: parseFloat(e.target.value) })} 
+                                        unit="R$" 
+                                        className="mb-0"
+                                        tooltip="Valor base para cálculo automático (R$ 29/kg padrão)."
+                                    />
+                                </div>
+                                <div className="col-span-2 sm:col-span-2 mt-2">
+                                    <button 
+                                        type="button"
+                                        onClick={() => {
+                                            const l = (landing.length || 0) + 20;
+                                            const w = (landing.width || 0) + 20;
+                                            const area = (l / 100) * (w / 100);
+                                            // Peso com chapa 3.34mm (aprox 26.21 kg/m²)
+                                            const weightKg = area * 0.00334 * 7850;
+                                            const multiplier = landing.weightPerSqm || 29;
+                                            const calculatedPrice = Math.round(weightKg * multiplier);
+                                            updateLanding(landing.id, { price: calculatedPrice });
+                                        }}
+                                        className="w-full bg-blue-100 hover:bg-blue-200 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-800/50 py-2 rounded font-bold text-xs flex items-center justify-center gap-2 transition-colors border border-blue-200 dark:border-blue-700"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h3m-3-10h.01M9 17h.01M12 17h.01M15 17h.01M9 14h.01M12 14h.01M15 14h.01M4 7h16a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V8a1 1 0 011-1z" />
+                                        </svg>
+                                        Calcular Preço Automático
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     ))}
