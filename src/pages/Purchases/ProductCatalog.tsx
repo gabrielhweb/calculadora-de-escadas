@@ -208,7 +208,7 @@ export default function ProductCatalog() {
                     <button onClick={() => window.history.back()} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
                         ← Voltar
                     </button>
-                    <h1 className="text-2xl font-bold text-gray-800 dark:text-white">📋 Catálogo de Produtos</h1>
+                    <h1 className="text-2xl font-bold text-gray-800 dark:text-white">📋 Catálogo de Produtos (v2)</h1>
                 </div>
                 <div>
                     <label className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-bold cursor-pointer transition-colors text-sm">
