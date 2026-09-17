@@ -18,7 +18,9 @@ export interface LandingInfo {
   direction?: 'straight' | 'left' | 'right'; // Direção da curva
   hasSideGuardrail?: boolean; // Barra Lateral
   hasFrontGuardrail?: boolean; // Barra Frontal
-  frenchBrackets?: 0 | 1 | 2; // Quantidade de Mãos Francesas
+  hasFrenchBrackets?: boolean; // Novo checkbox
+  frenchBrackets?: number; // Quantidade de Mãos Francesas
+  frenchBracketPrice?: number; // Preço unitário da mão francesa
   isAngled?: boolean; // Patamar em ângulo
 }
 

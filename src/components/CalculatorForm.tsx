@@ -824,17 +824,38 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                     </div>
                                 </div>
 
-                                <div className="col-span-2">
-                                    <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Qtd. Mãos Francesas:</label>
-                                    <select
-                                        value={landing.frenchBrackets || 0}
-                                        onChange={(e) => updateLanding(landing.id, { frenchBrackets: parseInt(e.target.value) as 0 | 1 | 2 })}
-                                        className="w-full text-xs font-bold p-2 text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 rounded border border-gray-300 dark:border-gray-600 outline-none focus:border-highlight"
-                                    >
-                                        <option value={0}>Sem mão francesa</option>
-                                        <option value={1}>Com uma mão francesa</option>
-                                        <option value={2}>Com duas mãos francesas</option>
-                                    </select>
+                                <div className="col-span-2 bg-gray-50 dark:bg-gray-700/50 p-2 rounded border border-gray-100 dark:border-gray-700">
+                                    <label className="flex items-center gap-2 cursor-pointer mb-2">
+                                        <input 
+                                            type="checkbox"
+                                            checked={!!landing.hasFrenchBrackets}
+                                            onChange={(e) => updateLanding(landing.id, { hasFrenchBrackets: e.target.checked })}
+                                            className="w-4 h-4 text-highlight rounded border-gray-300 focus:ring-highlight"
+                                        />
+                                        <span className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase">Possui Mão Francesa?</span>
+                                    </label>
+                                    
+                                    {landing.hasFrenchBrackets && (
+                                        <div className="flex gap-2">
+                                            <div className="flex-1">
+                                                <InputField 
+                                                    label="Qtd." 
+                                                    value={(landing.frenchBrackets !== undefined ? landing.frenchBrackets : 2).toString()} 
+                                                    onChange={e => updateLanding(landing.id, { frenchBrackets: parseInt(e.target.value) || 0 })} 
+                                                    className="mb-0"
+                                                />
+                                            </div>
+                                            <div className="flex-[2]">
+                                                <InputField 
+                                                    label="Preço Unit." 
+                                                    value={(landing.frenchBracketPrice !== undefined ? landing.frenchBracketPrice : 140).toString()} 
+                                                    onChange={e => updateLanding(landing.id, { frenchBracketPrice: parseFloat(e.target.value) || 0 })} 
+                                                    unit="R$" 
+                                                    className="mb-0"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="col-span-2 bg-gray-50 dark:bg-gray-700/50 p-2 rounded border border-gray-100 dark:border-gray-700">
@@ -942,7 +963,17 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                             // Peso com chapa 3.34mm (aprox 26.21 kg/m²)
                                             const weightKg = area * 0.00334 * 7850;
                                             const multiplier = landing.weightPerSqm || 29;
-                                            const calculatedPrice = Math.round(weightKg * multiplier);
+                                            
+                                            // Preço base da chapa
+                                            let calculatedPrice = Math.round(weightKg * multiplier);
+                                            
+                                            // Soma o preço das Mãos Francesas (se houver)
+                                            if (landing.hasFrenchBrackets) {
+                                                const mfQtd = landing.frenchBrackets !== undefined ? landing.frenchBrackets : 2;
+                                                const mfPrice = landing.frenchBracketPrice !== undefined ? landing.frenchBracketPrice : 140;
+                                                calculatedPrice += (mfQtd * mfPrice);
+                                            }
+                                            
                                             updateLanding(landing.id, { price: calculatedPrice });
                                         }}
                                         className="w-full bg-blue-100 hover:bg-blue-200 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-800/50 py-2 rounded font-bold text-xs flex items-center justify-center gap-2 transition-colors border border-blue-200 dark:border-blue-700"
