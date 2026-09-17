@@ -182,6 +182,10 @@ export default function ProductCatalog() {
         reader.readAsText(file);
     };
 
+    const handleClearImage = () => {
+        setImagePreview('');
+    };
+
     if (!user) {
         return (
             <div className="max-w-7xl mx-auto p-4 sm:p-6 flex flex-col items-center justify-center h-[50vh]">
@@ -215,14 +219,26 @@ export default function ProductCatalog() {
                     <form onSubmit={handleAddProduct} className="space-y-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Foto da Matéria Prima</label>
-                            <input 
-                                type="file" 
-                                accept="image/*" 
-                                onChange={handleImageChange}
-                                className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-gray-700 dark:file:text-gray-200"
-                            />
-                            {imagePreview && (
-                                <img src={imagePreview} alt="Preview" className="mt-2 h-32 object-cover rounded border border-gray-200" />
+                            
+                            {!imagePreview ? (
+                                <input 
+                                    type="file" 
+                                    accept="image/*" 
+                                    onChange={handleImageChange}
+                                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-gray-700 dark:file:text-gray-200"
+                                />
+                            ) : (
+                                <div className="mt-2 relative inline-block">
+                                    <img src={imagePreview} alt="Preview" className="h-32 object-cover rounded border border-gray-200" />
+                                    <button 
+                                        type="button" 
+                                        onClick={handleClearImage}
+                                        className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shadow"
+                                        title="Remover imagem"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
                             )}
                         </div>
                         
