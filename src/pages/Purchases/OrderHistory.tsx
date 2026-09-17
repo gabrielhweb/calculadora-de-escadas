@@ -34,11 +34,14 @@ export default function OrderHistory() {
 
     const fetchOrders = async () => {
         try {
-            const q = query(collection(db, 'purchase_orders'), orderBy('date', 'desc'));
+            const q = query(collection(db, 'contracts'), orderBy('date', 'desc'));
             const snapshot = await getDocs(q);
             const data: PurchaseOrder[] = [];
             snapshot.forEach((doc) => {
-                data.push({ id: doc.id, ...doc.data() } as PurchaseOrder);
+                const docData = doc.data();
+                if (docData.isPurchaseOrder) {
+                    data.push({ id: doc.id, ...docData } as PurchaseOrder);
+                }
             });
             setOrders(data);
         } catch (error) {

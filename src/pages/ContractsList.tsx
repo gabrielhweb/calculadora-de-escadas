@@ -324,7 +324,11 @@ export const ContractsList: React.FC = () => {
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const loadedContracts: SavedContract[] = [];
             snapshot.forEach((doc) => {
-                loadedContracts.push({ id: doc.id, ...doc.data() } as SavedContract);
+                const docData = doc.data();
+                // Ignorar documentos que são produtos ou outras entidades
+                if (docData.isProduct || docData.isPurchaseOrder) return;
+                
+                loadedContracts.push({ id: doc.id, ...docData } as SavedContract);
             });
             // Sort by createdAt descending
             loadedContracts.sort((a, b) => {

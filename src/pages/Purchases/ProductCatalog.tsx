@@ -30,10 +30,13 @@ export default function ProductCatalog() {
 
     const fetchProducts = async () => {
         try {
-            const snapshot = await getDocs(collection(db, 'products'));
+            const snapshot = await getDocs(collection(db, 'contracts'));
             const data: Product[] = [];
             snapshot.forEach((doc) => {
-                data.push({ id: doc.id, ...doc.data() } as Product);
+                const docData = doc.data();
+                if (docData.isProduct) {
+                    data.push({ id: doc.id, ...docData } as Product);
+                }
             });
             setProducts(data);
         } catch (error) {
@@ -100,10 +103,11 @@ export default function ProductCatalog() {
                 code: code || '',
                 price: parseFloat(price.replace(',', '.')) || 0,
                 imageUrl,
-                createdAt: new Date()
+                createdAt: new Date(),
+                isProduct: true
             };
 
-            await addDoc(collection(db, 'products'), newProduct);
+            await addDoc(collection(db, 'contracts'), newProduct);
             
             // Reset form
             setName('');
@@ -114,21 +118,22 @@ export default function ProductCatalog() {
             
             await fetchProducts();
             alert('Produto cadastrado com sucesso!');
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            alert('Erro ao cadastrar produto.');
+            alert('Erro ao cadastrar produto: ' + (error.message || 'Erro desconhecido'));
         } finally {
             setIsSaving(false);
         }
     };
 
     const handleDelete = async (id: string) => {
-        if (!window.confirm('Tem certeza que deseja deletar este produto?')) return;
+        if (!window.confirm('Tem certeza que deseja excluir esta matéria prima?')) return;
         try {
-            await deleteDoc(doc(db, 'products', id));
+            await deleteDoc(doc(db, 'contracts', id));
             setProducts(products.filter(p => p.id !== id));
         } catch (error) {
-            alert('Erro ao deletar produto.');
+            console.error(error);
+            alert('Erro ao excluir produto.');
         }
     };
 
@@ -160,12 +165,13 @@ export default function ProductCatalog() {
                         const price = parseFloat(priceStr) || 0;
 
                         if (name && price > 0) {
-                            await addDoc(collection(db, 'products'), {
+                            await addDoc(collection(db, 'contracts'), {
                                 name,
                                 code,
                                 price,
                                 imageUrl: '',
-                                createdAt: new Date()
+                                createdAt: new Date(),
+                                isProduct: true
                             });
                             addedCount++;
                         }

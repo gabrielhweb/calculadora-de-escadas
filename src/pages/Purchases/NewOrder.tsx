@@ -22,10 +22,13 @@ export default function NewOrder() {
 
     const fetchProducts = async () => {
         try {
-            const snapshot = await getDocs(collection(db, 'products'));
+            const snapshot = await getDocs(collection(db, 'contracts'));
             const data: Product[] = [];
             snapshot.forEach((doc) => {
-                data.push({ id: doc.id, ...doc.data() } as Product);
+                const docData = doc.data();
+                if (docData.isProduct) {
+                    data.push({ id: doc.id, ...docData } as Product);
+                }
             });
             setProducts(data);
         } catch (error) {
@@ -76,10 +79,11 @@ export default function NewOrder() {
                     price: item.price,
                     quantity: item.quantity,
                     imageUrl: item.imageUrl || ''
-                }))
+                })),
+                isPurchaseOrder: true
             };
 
-            await addDoc(collection(db, 'purchase_orders'), newOrder);
+            await addDoc(collection(db, 'contracts'), newOrder);
             alert('Pedido gerado com sucesso!');
             setCart([]);
             window.location.href = '/compras/historico';
