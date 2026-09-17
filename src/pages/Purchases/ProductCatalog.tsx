@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase';
-import Papa from 'papaparse';
+
 import { Supplier } from './SupplierCatalog';
 
 export interface Product {
@@ -182,53 +182,56 @@ export default function ProductCatalog() {
     };
 
     const handleCsvUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
+        if (!e.target.files || !e.target.files[0]) return;
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+            const text = event.target?.result as string;
+            const lines = text.split('\n').filter(line => line.trim().length > 0);
+            
+            let startIndex = 0;
+            if (lines[0].toLowerCase().includes('nome') || lines[0].toLowerCase().includes('valor')) {
+                startIndex = 1;
+            }
 
-        Papa.parse(file, {
-            header: true,
-            skipEmptyLines: true,
-            complete: async (results) => {
-                setIsSaving(true);
-                try {
-                    let importedCount = 0;
-                    for (const row of results.data as any[]) {
-                        const rowName = row['Nome'] || row['nome'] || row['Name'];
-                        const rowCode = row['Código'] || row['codigo'] || row['Code'] || '';
-                        let rowPrice = row['Valor'] || row['valor'] || row['Preço'] || row['Price'] || '0';
-                        
-                        if (rowName && rowPrice) {
-                            if (typeof rowPrice === 'string') {
-                                rowPrice = rowPrice.replace('R$', '').trim().replace(',', '.');
-                            }
-                            const numericPrice = parseFloat(rowPrice);
-                            
-                            if (numericPrice > 0) {
-                                await addDoc(collection(db, 'contracts'), {
-                                    name: rowName,
-                                    code: rowCode,
-                                    price: numericPrice,
-                                    imageUrl: '',
-                                    supplierId: null,
-                                    supplierName: null,
-                                    createdAt: new Date(),
-                                    isProduct: true
-                                });
-                                importedCount++;
-                            }
+            let addedCount = 0;
+            setIsSaving(true);
+            try {
+                for (let i = startIndex; i < lines.length; i++) {
+                    const columns = lines[i].split(/[,;]/);
+                    if (columns.length >= 2) {
+                        const rowName = columns[0].trim();
+                        const rowCode = columns.length >= 3 ? columns[1].trim() : '';
+                        let rowPrice = columns.length >= 3 ? columns[2] : columns[1];
+                        rowPrice = rowPrice.replace('R$', '').replace(/\./g, '').replace(',', '.').trim();
+                        const numericPrice = parseFloat(rowPrice) || 0;
+
+                        if (rowName && numericPrice > 0) {
+                            await addDoc(collection(db, 'contracts'), {
+                                name: rowName,
+                                code: rowCode,
+                                price: numericPrice,
+                                imageUrl: '',
+                                supplierId: null,
+                                supplierName: null,
+                                createdAt: new Date(),
+                                isProduct: true
+                            });
+                            addedCount++;
                         }
                     }
-                    alert(`${importedCount} produtos importados com sucesso!`);
-                    fetchData();
-                } catch (err: any) {
-                    console.error('Erro na importação CSV', err);
-                    alert('Erro ao importar: ' + err.message);
-                } finally {
-                    setIsSaving(false);
-                    e.target.value = '';
                 }
+                alert(`${addedCount} produtos importados com sucesso!`);
+                fetchData();
+            } catch (err: any) {
+                console.error('Erro na importação CSV', err);
+                alert('Erro ao importar: ' + err.message);
+            } finally {
+                setIsSaving(false);
             }
-        });
+        };
+        reader.readAsText(file);
+        e.target.value = '';
     };
 
     return (

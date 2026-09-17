@@ -10,6 +10,8 @@ interface OrderItem {
     price: number;
     quantity: number;
     imageUrl: string;
+    supplierId?: string;
+    supplierName?: string;
 }
 
 interface PurchaseOrder {
