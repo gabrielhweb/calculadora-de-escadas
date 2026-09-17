@@ -98,6 +98,12 @@ export default function OrderHistory() {
                                             </p>
                                         </div>
                                         <button 
+                                            onClick={() => window.open(`/compras/imprimir/${order.id}`, '_blank')}
+                                            className="text-gray-600 hover:text-gray-800 font-medium text-sm mr-4"
+                                        >
+                                            🖨️ Imprimir
+                                        </button>
+                                        <button 
                                             onClick={() => setExpandedOrderId(expandedOrderId === order.id ? null : order.id)}
                                             className="text-blue-600 hover:text-blue-800 font-medium text-sm"
                                         >
@@ -122,6 +128,11 @@ export default function OrderHistory() {
                                                         <p className="text-xs text-gray-500 dark:text-gray-400">
                                                             {item.quantity}x {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.price)}
                                                         </p>
+                                                        {item.supplierName && (
+                                                            <p className="text-[10px] text-blue-600 dark:text-blue-400 font-medium mt-1">
+                                                                🏭 {item.supplierName}
+                                                            </p>
+                                                        )}
                                                     </div>
                                                     <div className="font-bold text-gray-800 dark:text-white text-sm">
                                                         {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.quantity * item.price)}

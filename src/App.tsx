@@ -15,8 +15,10 @@ import CostSettingsPage from './pages/CostSettings';
 import WeightCalculatorPage from './pages/WeightCalculatorPage';
 import PurchasesDashboard from './pages/Purchases/PurchasesDashboard';
 import ProductCatalog from './pages/Purchases/ProductCatalog';
+import SupplierCatalog from './pages/Purchases/SupplierCatalog';
 import NewOrder from './pages/Purchases/NewOrder';
 import OrderHistory from './pages/Purchases/OrderHistory';
+import PrintOrder from './pages/Purchases/PrintOrder';
 import { AuthProvider } from './components/AuthProvider';
 import { useEffect } from 'react';
 import { getDocFromServer, doc } from 'firebase/firestore';
@@ -55,8 +57,10 @@ function App() {
             <Route path="custos" element={<CostSettingsPage />} />
             <Route path="compras" element={<PurchasesDashboard />} />
             <Route path="compras/catalogo" element={<ProductCatalog />} />
+            <Route path="compras/fornecedores" element={<SupplierCatalog />} />
             <Route path="compras/novo-pedido" element={<NewOrder />} />
             <Route path="compras/historico" element={<OrderHistory />} />
+            <Route path="compras/imprimir/:id" element={<PrintOrder />} />
           </Route>
         </Routes>
       </BrowserRouter>
