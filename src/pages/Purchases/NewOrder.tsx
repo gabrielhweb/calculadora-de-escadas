@@ -3,6 +3,7 @@ import { useAuth } from '../../components/AuthProvider';
 import { collection, getDocs, addDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { Product } from './ProductCatalog';
+import { useNavigate } from 'react-router-dom';
 
 interface CartItem extends Product {
     quantity: number;
@@ -10,6 +11,7 @@ interface CartItem extends Product {
 
 export default function NewOrder() {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [products, setProducts] = useState<Product[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [cart, setCart] = useState<CartItem[]>([]);
@@ -86,7 +88,7 @@ export default function NewOrder() {
             await addDoc(collection(db, 'contracts'), newOrder);
             alert('Pedido gerado com sucesso!');
             setCart([]);
-            window.location.href = '/compras/historico';
+            navigate('/compras/historico');
         } catch (error) {
             console.error('Erro ao salvar pedido:', error);
             alert('Erro ao salvar o pedido.');

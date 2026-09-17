@@ -318,9 +318,20 @@ export default function ProductCatalog() {
                                         <tr key={p.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
                                             <td className="p-3">
                                                 {p.imageUrl ? (
-                                                    <img src={p.imageUrl} alt={p.name} className="w-12 h-12 object-cover rounded" />
+                                                    <img 
+                                                        src={p.imageUrl} 
+                                                        alt={p.name} 
+                                                        className="w-12 h-12 object-cover rounded" 
+                                                        onError={(e) => {
+                                                            (e.target as HTMLImageElement).style.display = 'none';
+                                                            const fallback = document.createElement('div');
+                                                            fallback.className = "w-12 h-12 bg-gray-200 dark:bg-gray-600 rounded flex items-center justify-center text-xs text-gray-500";
+                                                            fallback.innerText = "Erro img";
+                                                            (e.target as HTMLImageElement).parentNode?.appendChild(fallback);
+                                                        }}
+                                                    />
                                                 ) : (
-                                                    <div className="w-12 h-12 bg-gray-200 dark:bg-gray-600 rounded flex items-center justify-center text-xs text-gray-500">Sem Foto</div>
+                                                    <div className="w-12 h-12 bg-gray-200 dark:bg-gray-600 rounded flex items-center justify-center text-[10px] text-gray-500 leading-tight text-center px-1">Sem<br/>Foto</div>
                                                 )}
                                             </td>
                                             <td className="p-3 font-mono text-xs text-gray-500 dark:text-gray-400">{p.code || '-'}</td>
