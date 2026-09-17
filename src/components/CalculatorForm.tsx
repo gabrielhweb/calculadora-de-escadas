@@ -887,39 +887,41 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                         </button>
                                     </div>
                                 </div>
-                                <InputField 
-                                    label="Preço (R$)" 
-                                    value={landing.price.toString()} 
-                                    onChange={e => updateLanding(landing.id, { price: parseFloat(e.target.value) })} 
-                                    unit="R$" 
-                                    className="mb-0"
-                                    tooltip="Custo unitário deste patamar."
-                                />
-                                <InputField 
-                                    label="Comp. (cm)" 
-                                    value={landing.length.toString()} 
-                                    onChange={e => updateLanding(landing.id, { length: parseFloat(e.target.value) })} 
-                                    unit="cm" 
-                                    className="mb-0"
-                                    tooltip="Comprimento do patamar no sentido da subida."
-                                />
-                                <InputField 
-                                    label="Larg. (cm)" 
-                                    value={landing.width.toString()} 
-                                    onChange={e => updateLanding(landing.id, { width: parseFloat(e.target.value) })} 
-                                    unit="cm" 
-                                    className="mb-0"
-                                    tooltip="Largura lateral do patamar."
-                                />
-                                <div className="col-span-2 sm:col-span-1">
+                                <div className="grid grid-cols-2 gap-2 mt-2">
                                     <InputField 
-                                        label="Preço/Peso Base" 
-                                        value={(landing.weightPerSqm || 29).toString()} 
-                                        onChange={e => updateLanding(landing.id, { weightPerSqm: parseFloat(e.target.value) })} 
+                                        label="Preço da Chapa (R$)" 
+                                        value={(landing.chapaPrice || landing.price || 0).toString()} 
+                                        onChange={e => updateLanding(landing.id, { chapaPrice: parseFloat(e.target.value) || 0 })} 
                                         unit="R$" 
                                         className="mb-0"
-                                        tooltip="Valor base para cálculo automático (R$ 29/kg padrão)."
+                                        tooltip="Custo apenas da chapa do patamar."
                                     />
+                                    <InputField 
+                                        label="Comp. (cm)" 
+                                        value={landing.length.toString()} 
+                                        onChange={e => updateLanding(landing.id, { length: parseFloat(e.target.value) })} 
+                                        unit="cm" 
+                                        className="mb-0"
+                                        tooltip="Comprimento do patamar no sentido da subida."
+                                    />
+                                    <InputField 
+                                        label="Larg. (cm)" 
+                                        value={landing.width.toString()} 
+                                        onChange={e => updateLanding(landing.id, { width: parseFloat(e.target.value) })} 
+                                        unit="cm" 
+                                        className="mb-0"
+                                        tooltip="Largura lateral do patamar."
+                                    />
+                                    <div className="col-span-1">
+                                        <InputField 
+                                            label="Preço/Peso Base" 
+                                            value={(landing.weightPerSqm || 29).toString()} 
+                                            onChange={e => updateLanding(landing.id, { weightPerSqm: parseFloat(e.target.value) })} 
+                                            unit="R$" 
+                                            className="mb-0"
+                                            tooltip="Valor base para cálculo automático (R$ 29/kg padrão)."
+                                        />
+                                    </div>
                                 </div>
                                 <div className="col-span-2 bg-gray-50 dark:bg-gray-700/50 p-2 rounded border border-gray-100 dark:border-gray-700">
                                     <label className="flex items-center gap-2 cursor-pointer mb-2">
@@ -951,6 +953,10 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                                     className="mb-0"
                                                 />
                                             </div>
+                                        </div>
+                                        <div className="text-right text-xs mt-1 text-highlight font-bold">
+                                            Total Mãos Francesas: R$ {(landing.frenchBrackets !== undefined ? landing.frenchBrackets : 2) * (landing.frenchBracketPrice !== undefined ? landing.frenchBracketPrice : 140)}
+                                        </div>
                                         </div>
                                     )}
                                 </div>
@@ -1075,7 +1081,8 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                             const multiplier = landing.weightPerSqm || 29;
                                             
                                             // Preço base da chapa
-                                            let calculatedPrice = Math.round(weightKg * multiplier);
+                                            const baseChapaPrice = Math.round(weightKg * multiplier);
+                                            let calculatedPrice = baseChapaPrice;
                                             
                                             // Soma o preço das Mãos Francesas (se houver)
                                             if (landing.hasFrenchBrackets) {
@@ -1103,7 +1110,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                                 calculatedPrice += Math.round(gTotalMeters * gPricePerMeter);
                                             }
                                             
-                                            updateLanding(landing.id, { price: calculatedPrice });
+                                            updateLanding(landing.id, { price: calculatedPrice, chapaPrice: baseChapaPrice });
                                         }}
                                         className="w-full bg-blue-100 hover:bg-blue-200 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-800/50 py-2 rounded font-bold text-xs flex items-center justify-center gap-2 transition-colors border border-blue-200 dark:border-blue-700"
                                     >
@@ -1112,6 +1119,11 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                         </svg>
                                         Calcular Preço Automático
                                     </button>
+                                    
+                                    <div className="mt-3 p-2 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-100 dark:border-blue-800 text-center">
+                                        <p className="text-xs text-blue-800 dark:text-blue-300 font-bold uppercase">Preço Total Deste Patamar Completo</p>
+                                        <p className="text-lg font-black text-blue-900 dark:text-blue-100">R$ {landing.price}</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>

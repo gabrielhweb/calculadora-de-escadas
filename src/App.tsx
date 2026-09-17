@@ -23,11 +23,11 @@ import { AuthProvider } from './components/AuthProvider';
 import { useEffect } from 'react';
 import { getDocFromServer, doc } from 'firebase/firestore';
 import { db } from './firebase';
-import { fixContractsDateAndUndefined } from './fixDates';
+import { removeDuplicates } from './removeDuplicates';
 
 function App() {
   useEffect(() => {
-    fixContractsDateAndUndefined();
+    removeDuplicates();
     async function testConnection() {
       try {
         await getDocFromServer(doc(db, 'test', 'connection'));
