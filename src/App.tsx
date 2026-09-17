@@ -27,7 +27,6 @@ import { alignContractsWithPDF } from './alignContracts';
 
 function App() {
   useEffect(() => {
-    alignContractsWithPDF();
     async function testConnection() {
       try {
         await getDocFromServer(doc(db, 'test', 'connection'));
