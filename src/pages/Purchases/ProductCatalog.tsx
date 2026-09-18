@@ -181,6 +181,22 @@ export default function ProductCatalog() {
         handleClearImage();
     };
 
+    const handleDeleteAllProducts = async () => {
+        if (!window.confirm('Tem certeza que deseja apagar TODOS os produtos cadastrados? (Isso não afetará seus contratos)')) return;
+        setIsSaving(true);
+        try {
+            for (const p of products) {
+                await deleteDoc(doc(db, 'contracts', p.id));
+            }
+            alert('Todos os produtos foram apagados com sucesso!');
+            fetchData();
+        } catch (error) {
+            alert('Erro ao apagar produtos: ' + error);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
     const handleCsvUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files || !e.target.files[0]) return;
         const file = e.target.files[0];
@@ -251,6 +267,13 @@ export default function ProductCatalog() {
                 </div>
                 
                 <div className="flex flex-col sm:flex-row gap-2">
+                    <button 
+                        onClick={handleDeleteAllProducts}
+                        disabled={isSaving || products.length === 0}
+                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded font-bold transition-colors text-center text-sm disabled:opacity-50"
+                    >
+                        Limpar Todos
+                    </button>
                     <label className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded font-bold cursor-pointer transition-colors text-center text-sm">
                         Importar Planilha CSV
                         <input type="file" accept=".csv" className="hidden" onChange={handleCsvUpload} />
