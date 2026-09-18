@@ -84,12 +84,18 @@ export default function ProductionQueue() {
                     }
                     if (contractData.customAddress) {
                         q.originalData.location = contractData.customAddress;
-                    } else if (!q.originalData.location && contractData.contractData) {
+                    } 
+                    
+                    if (contractData.contractData) {
                         try {
                             const parsed = JSON.parse(contractData.contractData);
-                            const addr = parsed?.userData?.address;
-                            if (addr && (addr.street || addr.city)) {
-                                q.originalData.location = `${addr.street || ''}, ${addr.number || ''} - ${addr.city || ''}`.replace(/^, /, '');
+                            q.originalData.parsedContractData = parsed;
+                            
+                            if (!q.originalData.location) {
+                                const addr = parsed?.userData?.address;
+                                if (addr && (addr.street || addr.city)) {
+                                    q.originalData.location = `${addr.street || ''}, ${addr.number || ''} - ${addr.city || ''}`.replace(/^, /, '');
+                                }
                             }
                         } catch(e){}
                     }
@@ -695,7 +701,54 @@ export default function ProductionQueue() {
                                                         {isExpanded && item.source === 'queue' && (
                                                             <tr>
                                                                 <td colSpan={9} className="p-0 border-b border-gray-200 dark:border-gray-700">
-                                                                    <div className="bg-indigo-50/50 dark:bg-indigo-900/10 p-6 shadow-inner border-y border-indigo-100 dark:border-indigo-800/50">
+                                                                    <div className="bg-indigo-50/50 dark:bg-indigo-900/10 p-6 shadow-inner border-y border-indigo-100 dark:border-indigo-800/50 flex flex-col gap-6">
+                                                                        
+                                                                        {/* Top: Resumo do Projeto */}
+                                                                        {item.originalData?.parsedContractData?.landings && (
+                                                                            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-indigo-100 dark:border-indigo-800/50">
+                                                                                <h4 className="font-bold text-gray-900 dark:text-white mb-3 text-sm flex items-center gap-2">
+                                                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-indigo-500" viewBox="0 0 20 20" fill="currentColor">
+                                                                                        <path fillRule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V5zm11 1H6v8l4-2 4 2V6z" clipRule="evenodd" />
+                                                                                    </svg>
+                                                                                    Resumo de Produção (Tubos)
+                                                                                </h4>
+                                                                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                                                                    {item.originalData.parsedContractData.landings.map((l: any, i: number) => {
+                                                                                        let guardrailTubes = 0;
+                                                                                        let guardrailGaps = 0;
+                                                                                        if (l.hasGuardrail && l.guardrailLength > 0 && l.guardrailHeight > 0) {
+                                                                                            const gaps = l.guardrailBarsOverride || Math.max(1, Math.round(l.guardrailLength / 15));
+                                                                                            guardrailGaps = gaps;
+                                                                                            guardrailTubes = gaps - 1;
+                                                                                        }
+                                                                                        let gateTubes = 0;
+                                                                                        let gateGaps = 0;
+                                                                                        if (l.hasGate && l.gateLength > 0 && l.gateHeight > 0) {
+                                                                                            const gaps = l.gateBarsOverride || Math.max(1, Math.round(l.gateLength / 15));
+                                                                                            gateGaps = gaps;
+                                                                                            gateTubes = gaps - 1;
+                                                                                        }
+                                                                                        if (!guardrailTubes && !gateTubes) return null;
+                                                                                        return (
+                                                                                            <div key={i} className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded border border-gray-200 dark:border-gray-600">
+                                                                                                <p className="font-semibold text-gray-800 dark:text-gray-200 text-sm mb-1">Guarda-Corpo {i+1} ({l.shape})</p>
+                                                                                                {guardrailTubes > 0 && (
+                                                                                                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                                                                                                        <span className="font-medium">Tubos Guarda-Corpo:</span> {guardrailTubes} tubos ({guardrailGaps} vãos de {(l.guardrailLength / guardrailGaps).toFixed(1)}cm)
+                                                                                                    </p>
+                                                                                                )}
+                                                                                                {gateTubes > 0 && (
+                                                                                                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                                                                                                        <span className="font-medium">Tubos Portão:</span> {gateTubes} tubos ({gateGaps} vãos de {(l.gateLength / gateGaps).toFixed(1)}cm)
+                                                                                                    </p>
+                                                                                                )}
+                                                                                            </div>
+                                                                                        );
+                                                                                    })}
+                                                                                </div>
+                                                                            </div>
+                                                                        )}
+
                                                                         <div className="flex flex-col lg:flex-row gap-8">
                                                                             
                                                                             {/* Left: Costs List */}
