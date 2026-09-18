@@ -197,8 +197,14 @@ export default function ProductCatalog() {
             let addedCount = 0;
             setIsSaving(true);
             try {
+                const isSemicolon = lines[0].includes(';');
                 for (let i = startIndex; i < lines.length; i++) {
-                    const columns = lines[i].split(/[,;]/);
+                    // split with the correct delimiter, but ignore commas if semicolon is the main separator
+                    const separator = isSemicolon ? ';' : ',';
+                    
+                    // Simple split that handles basic CSV (won't handle quotes perfectly, but better than regex)
+                    const columns = lines[i].split(separator);
+                    
                     if (columns.length >= 2) {
                         const rowName = columns[0].trim();
                         const rowCode = columns.length >= 3 ? columns[1].trim() : '';
@@ -206,7 +212,7 @@ export default function ProductCatalog() {
                         rowPrice = rowPrice.replace('R$', '').replace(/\./g, '').replace(',', '.').trim();
                         const numericPrice = parseFloat(rowPrice) || 0;
 
-                        if (rowName && numericPrice > 0) {
+                        if (rowName) { // Removed numericPrice > 0 so we can import products with 0 price
                             await addDoc(collection(db, 'contracts'), {
                                 name: rowName,
                                 code: rowCode,
