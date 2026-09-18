@@ -753,7 +753,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                             </button>
                             <span className="text-xs font-bold text-gray-400 absolute top-1 left-2">#{index + 1}</span>
                             
-                            <div className="grid grid-cols-2 gap-2 mt-2">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
                                 {/* Campos do patamar mantidos como estavam */}
                                 <div className="mb-0 col-span-2">
                                     <div className="flex justify-between items-center mb-1">
@@ -887,7 +887,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                         </button>
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-2 mt-2">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
                                     <InputField 
                                         label="Preço da Chapa (R$)" 
                                         value={(landing.chapaPrice || landing.price || 0).toString()} 
@@ -978,13 +978,20 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                         const gFormat = landing.guardrailFormat || 'normal';
                                         const gLength = landing.guardrailLength || 100;
                                         const gHeight = landing.guardrailHeight || 90;
-                                        const gPricePerMeter = landing.guardrailPricePerMeter !== undefined ? landing.guardrailPricePerMeter : 40;
+                                        const gPricePerMeter = landing.guardrailPricePerMeter !== undefined ? landing.guardrailPricePerMeter : 50;
                                         
                                         let innerL = gLength - 6;
                                         if (innerL < 0) innerL = 0;
                                         let numGaps = Math.max(1, Math.round(innerL / 18));
                                         let numInterBars = numGaps - 1;
                                         let totalBars = numInterBars + 2;
+                                        
+                                        if (landing.guardrailBarsOverride !== undefined) {
+                                            totalBars = Math.max(2, landing.guardrailBarsOverride);
+                                            numInterBars = totalBars - 2;
+                                            numGaps = numInterBars + 1;
+                                        }
+                                        
                                         let exactGap = (innerL - (numInterBars * 3)) / numGaps;
                                         
                                         let totalVerticalMeters = totalBars * (gHeight / 100);
@@ -1005,6 +1012,8 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                                                 if (newFormat === 'normal') newLength = landing.length || 0;
                                                                 if (newFormat === 'L') newLength = (landing.length || 0) + (landing.width || 0);
                                                                 if (newFormat === 'U') newLength = (landing.length || 0) + ((landing.width || 0) * 2);
+                                                                if (newFormat === 'frente') newLength = landing.width || 0;
+                                                                if (newFormat === 'atras') newLength = landing.width || 0;
                                                                 
                                                                 updateLanding(landing.id, { 
                                                                     guardrailFormat: newFormat,
@@ -1016,10 +1025,12 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                                             <option value="normal">Normal (Reto)</option>
                                                             <option value="L">Em L</option>
                                                             <option value="U">Em U</option>
+                                                            <option value="frente">Apenas Frente</option>
+                                                            <option value="atras">Apenas Atrás</option>
                                                         </select>
                                                     </div>
                                                 </div>
-                                                <div className="grid grid-cols-3 gap-2">
+                                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                                                     <InputField 
                                                         label="Comp. Total" 
                                                         value={gLength.toString()} 
@@ -1059,7 +1070,11 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                                     </div>
 
                                                     <div className="mt-6 text-xs text-gray-700 dark:text-gray-300">
-                                                        <p><strong>{totalBars}</strong> tubos verticais com vãos de <strong>{exactGap.toFixed(1)}cm</strong></p>
+                                                        <div className="flex items-center justify-center gap-2 mb-2">
+                                                            <button type="button" onClick={() => updateLanding(landing.id, { guardrailBarsOverride: totalBars - 1 })} className="px-2 py-0.5 bg-gray-200 dark:bg-gray-600 rounded font-bold hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-800 dark:text-white text-[10px]">- BARRA</button>
+                                                            <p><strong>{totalBars}</strong> tubos verticais com vãos de <strong>{exactGap.toFixed(1)}cm</strong></p>
+                                                            <button type="button" onClick={() => updateLanding(landing.id, { guardrailBarsOverride: totalBars + 1 })} className="px-2 py-0.5 bg-gray-200 dark:bg-gray-600 rounded font-bold hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-800 dark:text-white text-[10px]">+ BARRA</button>
+                                                        </div>
                                                         <p>Tubos usados: <strong>{gTotalMeters.toFixed(2)} metros</strong></p>
                                                         <p className="mt-1 font-black text-highlight">Valor Estimado: R$ {currentGPrice}</p>
                                                     </div>
@@ -1069,6 +1084,90 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                     })()}
                                 </div>
                                 {/* FIM GUARDA CORPO */}
+                                {/* INICIO PORTAO */}
+                                <div className="col-span-1 sm:col-span-2 mt-2 pt-2 border-t border-gray-100 dark:border-gray-700">
+                                    <label className="flex items-center gap-2 cursor-pointer mb-2">
+                                        <input 
+                                            type="checkbox"
+                                            checked={!!landing.hasGate}
+                                            onChange={(e) => updateLanding(landing.id, { hasGate: e.target.checked })}
+                                            className="w-4 h-4 text-highlight rounded border-gray-300 focus:ring-highlight"
+                                        />
+                                        <span className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase">Possui Portãozinho?</span>
+                                    </label>
+                                    
+                                    {landing.hasGate && (() => {
+                                        const gateLength = landing.gateLength || 100;
+                                        const gateHeight = landing.gateHeight || 90;
+                                        const gatePricePerMeter = landing.gatePricePerMeter !== undefined ? landing.gatePricePerMeter : 50;
+                                        
+                                        let innerL = gateLength - 6;
+                                        if (innerL < 0) innerL = 0;
+                                        let numGaps = Math.max(1, Math.round(innerL / 18));
+                                        let numInterBars = numGaps - 1;
+                                        let totalBars = numInterBars + 2;
+                                        
+                                        if (landing.gateBarsOverride !== undefined) {
+                                            totalBars = Math.max(2, landing.gateBarsOverride);
+                                            numInterBars = totalBars - 2;
+                                            numGaps = numInterBars + 1;
+                                        }
+                                        
+                                        let exactGap = (innerL - (numInterBars * 3)) / numGaps;
+                                        let totalVerticalMeters = totalBars * (gateHeight / 100);
+                                        let totalHorizontalMeters = 2 * (gateLength / 100);
+                                        let gateTotalMeters = totalVerticalMeters + totalHorizontalMeters;
+                                        let currentGatePrice = Math.round(gateTotalMeters * gatePricePerMeter);
+
+                                        return (
+                                            <div className="mt-2 space-y-3">
+                                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                                    <InputField 
+                                                        label="Comp. Total" 
+                                                        value={gateLength.toString()} 
+                                                        onChange={e => updateLanding(landing.id, { gateLength: parseFloat(e.target.value) || 0 })} 
+                                                        unit="cm" 
+                                                        className="mb-0"
+                                                    />
+                                                    <InputField 
+                                                        label="Altura" 
+                                                        value={gateHeight.toString()} 
+                                                        onChange={e => updateLanding(landing.id, { gateHeight: parseFloat(e.target.value) || 0 })} 
+                                                        unit="cm" 
+                                                        className="mb-0"
+                                                    />
+                                                    <InputField 
+                                                        label="R$/Metro" 
+                                                        value={gatePricePerMeter.toString()} 
+                                                        onChange={e => updateLanding(landing.id, { gatePricePerMeter: parseFloat(e.target.value) || 0 })} 
+                                                        unit="R$" 
+                                                        className="mb-0"
+                                                    />
+                                                </div>
+
+                                                {/* Visualizador */}
+                                                <div className="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-600 text-center">
+                                                    <p className="text-[10px] uppercase font-bold text-gray-500 mb-2">Prévia do Portão</p>
+                                                    <div className="relative w-full max-w-[200px] mx-auto h-[60px] border-t-4 border-b-4 border-gray-800 dark:border-gray-300 flex justify-between border-l-4 border-r-4">
+                                                        {Array.from({length: totalBars}).map((_, i) => (
+                                                            <div key={i} className="w-[4px] h-full bg-gray-800 dark:bg-gray-300"></div>
+                                                        ))}
+                                                    </div>
+                                                    <div className="mt-6 text-xs text-gray-700 dark:text-gray-300">
+                                                        <div className="flex items-center justify-center gap-2 mb-2">
+                                                            <button type="button" onClick={() => updateLanding(landing.id, { gateBarsOverride: totalBars - 1 })} className="px-2 py-0.5 bg-gray-200 dark:bg-gray-600 rounded font-bold hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-800 dark:text-white text-[10px]">- BARRA</button>
+                                                            <p><strong>{totalBars}</strong> tubos com vãos de <strong>{exactGap.toFixed(1)}cm</strong></p>
+                                                            <button type="button" onClick={() => updateLanding(landing.id, { gateBarsOverride: totalBars + 1 })} className="px-2 py-0.5 bg-gray-200 dark:bg-gray-600 rounded font-bold hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-800 dark:text-white text-[10px]">+ BARRA</button>
+                                                        </div>
+                                                        <p>Tubos usados: <strong>{gateTotalMeters.toFixed(2)} metros</strong></p>
+                                                        <p className="mt-1 font-black text-highlight">Valor Estimado: R$ {currentGatePrice}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
+                                </div>
+                                {/* FIM PORTAO */}
 
                                 <div className="col-span-2 sm:col-span-2 mt-2">
                                     <button 
@@ -1096,7 +1195,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                             if (landing.hasGuardrail) {
                                                 const gLength = landing.guardrailLength || 100;
                                                 const gHeight = landing.guardrailHeight || 90;
-                                                const gPricePerMeter = landing.guardrailPricePerMeter !== undefined ? landing.guardrailPricePerMeter : 40;
+                                                const gPricePerMeter = landing.guardrailPricePerMeter !== undefined ? landing.guardrailPricePerMeter : 50;
                                                 
                                                 let innerL = gLength - 6;
                                                 if (innerL < 0) innerL = 0;
@@ -1104,11 +1203,38 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                                 let numInterBars = numGaps - 1;
                                                 let totalBars = numInterBars + 2;
                                                 
+                                                if (landing.guardrailBarsOverride !== undefined) {
+                                                    totalBars = Math.max(2, landing.guardrailBarsOverride);
+                                                }
+                                                
                                                 let totalVerticalMeters = totalBars * (gHeight / 100);
                                                 let totalHorizontalMeters = 2 * (gLength / 100);
                                                 let gTotalMeters = totalVerticalMeters + totalHorizontalMeters;
                                                 
                                                 calculatedPrice += Math.round(gTotalMeters * gPricePerMeter);
+                                            }
+                                            
+                                            // Soma o preço do Portãozinho (se houver)
+                                            if (landing.hasGate) {
+                                                const gateLength = landing.gateLength || 100;
+                                                const gateHeight = landing.gateHeight || 90;
+                                                const gatePricePerMeter = landing.gatePricePerMeter !== undefined ? landing.gatePricePerMeter : 50;
+                                                
+                                                let innerL = gateLength - 6;
+                                                if (innerL < 0) innerL = 0;
+                                                let numGaps = Math.max(1, Math.round(innerL / 18));
+                                                let numInterBars = numGaps - 1;
+                                                let totalBars = numInterBars + 2;
+                                                
+                                                if (landing.gateBarsOverride !== undefined) {
+                                                    totalBars = Math.max(2, landing.gateBarsOverride);
+                                                }
+                                                
+                                                let totalVerticalMeters = totalBars * (gateHeight / 100);
+                                                let totalHorizontalMeters = 2 * (gateLength / 100);
+                                                let gateTotalMeters = totalVerticalMeters + totalHorizontalMeters;
+                                                
+                                                calculatedPrice += Math.round(gateTotalMeters * gatePricePerMeter);
                                             }
                                             
                                             updateLanding(landing.id, { price: calculatedPrice, chapaPrice: baseChapaPrice });

@@ -22,11 +22,17 @@ export interface LandingInfo {
   frenchBrackets?: number; // Quantidade de Mãos Francesas
   frenchBracketPrice?: number; // Preço unitário da mão francesa
   hasGuardrail?: boolean; // Novo: Possui Guarda Corpo
-  guardrailFormat?: 'normal' | 'L' | 'U'; // Formato do Guarda Corpo
+  guardrailFormat?: 'normal' | 'L' | 'U' | 'frente' | 'atras'; // Formato do Guarda Corpo
   guardrailLength?: number; // Comprimento total (cm)
   guardrailHeight?: number; // Altura (cm)
   guardrailPricePerMeter?: number; // Preço/metro
   guardrailCalculatedPrice?: number; // Preço salvo calculado
+  guardrailBarsOverride?: number; // Divisão manual (+/- barras)
+  hasGate?: boolean; // Portãozinho
+  gateLength?: number;
+  gateHeight?: number;
+  gatePricePerMeter?: number;
+  gateBarsOverride?: number;
   isAngled?: boolean; // Patamar em Ângulo
   chapaPrice?: number; // Preço isolado da chapa do patamar
 }
