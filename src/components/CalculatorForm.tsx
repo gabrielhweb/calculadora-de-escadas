@@ -982,22 +982,26 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                         
                                         let innerL = gLength - 6;
                                         if (innerL < 0) innerL = 0;
-                                        let numGaps = Math.max(1, Math.round(innerL / 18));
-                                        let numInterBars = numGaps - 1;
-                                        let totalBars = numInterBars + 2;
+                                        const baseGaps = Math.max(1, Math.round(innerL / 15));
+                                        const baseBars = baseGaps + 1;
                                         
-                                        if (landing.guardrailBarsOverride !== undefined) {
-                                            totalBars = Math.max(2, landing.guardrailBarsOverride);
-                                            numInterBars = totalBars - 2;
-                                            numGaps = numInterBars + 1;
-                                        }
+                                        let totalBars = landing.guardrailBarsOverride !== undefined ? landing.guardrailBarsOverride : baseBars;
+                                        totalBars = Math.max(2, totalBars);
                                         
+                                        let numInterBars = totalBars - 2;
+                                        let numGaps = numInterBars + 1;
                                         let exactGap = (innerL - (numInterBars * 3)) / numGaps;
                                         
                                         let totalVerticalMeters = totalBars * (gHeight / 100);
                                         let totalHorizontalMeters = 2 * (gLength / 100);
                                         let gTotalMeters = totalVerticalMeters + totalHorizontalMeters;
                                         let currentGPrice = Math.round(gTotalMeters * gPricePerMeter);
+                                        
+                                        const gOptions = [
+                                            { bars: baseBars - 1, label: '-1 Barra' },
+                                            { bars: baseBars, label: 'Padrão' },
+                                            { bars: baseBars + 1, label: '+1 Barra' }
+                                        ].filter(o => o.bars >= 2);
 
                                         return (
                                             <div className="mt-2 space-y-3">
@@ -1069,14 +1073,37 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                                         <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] font-bold text-highlight">{gLength}cm</div>
                                                     </div>
 
-                                                    <div className="mt-6 text-xs text-gray-700 dark:text-gray-300">
-                                                        <div className="flex items-center justify-center gap-2 mb-2">
-                                                            <button type="button" onClick={() => updateLanding(landing.id, { guardrailBarsOverride: totalBars - 1 })} className="px-2 py-0.5 bg-gray-200 dark:bg-gray-600 rounded font-bold hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-800 dark:text-white text-[10px]">- BARRA</button>
-                                                            <p><strong>{totalBars}</strong> tubos verticais com vãos de <strong>{exactGap.toFixed(1)}cm</strong></p>
-                                                            <button type="button" onClick={() => updateLanding(landing.id, { guardrailBarsOverride: totalBars + 1 })} className="px-2 py-0.5 bg-gray-200 dark:bg-gray-600 rounded font-bold hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-800 dark:text-white text-[10px]">+ BARRA</button>
+                                                    <div className="mt-4 flex flex-col gap-2">
+                                                        <p className="text-[10px] font-bold text-gray-500 uppercase text-center">Opções de Divisão</p>
+                                                        <div className="grid grid-cols-1 gap-2">
+                                                            {gOptions.map(opt => {
+                                                                const optInter = opt.bars - 2;
+                                                                const optGaps = optInter + 1;
+                                                                const optGapSize = (innerL - (optInter * 3)) / optGaps;
+                                                                const optVertMeters = opt.bars * (gHeight / 100);
+                                                                const optTotalMeters = optVertMeters + totalHorizontalMeters;
+                                                                const optPrice = Math.round(optTotalMeters * gPricePerMeter);
+                                                                const isSelected = totalBars === opt.bars;
+                                                                
+                                                                return (
+                                                                    <div 
+                                                                        key={opt.bars}
+                                                                        onClick={() => updateLanding(landing.id, { guardrailBarsOverride: opt.bars })}
+                                                                        className={`p-2 rounded border cursor-pointer flex justify-between items-center transition-all ${isSelected ? 'bg-blue-50 border-blue-500 shadow-sm dark:bg-blue-900/30 dark:border-blue-500' : 'bg-gray-50 border-gray-200 hover:bg-gray-100 dark:bg-gray-700 dark:border-gray-600'}`}
+                                                                    >
+                                                                        <div className="flex flex-col text-left">
+                                                                            <span className={`text-xs font-bold ${isSelected ? 'text-blue-700 dark:text-blue-300' : 'text-gray-700 dark:text-gray-300'}`}>
+                                                                                {opt.bars} Tubos {opt.label !== 'Padrão' ? `(${opt.label})` : '(Padrão)'}
+                                                                            </span>
+                                                                            <span className="text-[10px] text-gray-500 dark:text-gray-400">Vãos de {optGapSize.toFixed(1)}cm</span>
+                                                                        </div>
+                                                                        <div className={`font-black text-sm ${isSelected ? 'text-blue-800 dark:text-blue-200' : 'text-gray-800 dark:text-gray-200'}`}>
+                                                                            R$ {optPrice}
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            })}
                                                         </div>
-                                                        <p>Tubos usados: <strong>{gTotalMeters.toFixed(2)} metros</strong></p>
-                                                        <p className="mt-1 font-black text-highlight">Valor Estimado: R$ {currentGPrice}</p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1103,21 +1130,26 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                         
                                         let innerL = gateLength - 6;
                                         if (innerL < 0) innerL = 0;
-                                        let numGaps = Math.max(1, Math.round(innerL / 18));
-                                        let numInterBars = numGaps - 1;
-                                        let totalBars = numInterBars + 2;
+                                        const baseGaps = Math.max(1, Math.round(innerL / 15));
+                                        const baseBars = baseGaps + 1;
                                         
-                                        if (landing.gateBarsOverride !== undefined) {
-                                            totalBars = Math.max(2, landing.gateBarsOverride);
-                                            numInterBars = totalBars - 2;
-                                            numGaps = numInterBars + 1;
-                                        }
+                                        let totalBars = landing.gateBarsOverride !== undefined ? landing.gateBarsOverride : baseBars;
+                                        totalBars = Math.max(2, totalBars);
                                         
+                                        let numInterBars = totalBars - 2;
+                                        let numGaps = numInterBars + 1;
                                         let exactGap = (innerL - (numInterBars * 3)) / numGaps;
+                                        
                                         let totalVerticalMeters = totalBars * (gateHeight / 100);
                                         let totalHorizontalMeters = 2 * (gateLength / 100);
                                         let gateTotalMeters = totalVerticalMeters + totalHorizontalMeters;
                                         let currentGatePrice = Math.round(gateTotalMeters * gatePricePerMeter);
+                                        
+                                        const gateOptions = [
+                                            { bars: baseBars - 1, label: '-1 Barra' },
+                                            { bars: baseBars, label: 'Padrão' },
+                                            { bars: baseBars + 1, label: '+1 Barra' }
+                                        ].filter(o => o.bars >= 2);
 
                                         return (
                                             <div className="mt-2 space-y-3">
@@ -1153,14 +1185,37 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                                             <div key={i} className="w-[4px] h-full bg-gray-800 dark:bg-gray-300"></div>
                                                         ))}
                                                     </div>
-                                                    <div className="mt-6 text-xs text-gray-700 dark:text-gray-300">
-                                                        <div className="flex items-center justify-center gap-2 mb-2">
-                                                            <button type="button" onClick={() => updateLanding(landing.id, { gateBarsOverride: totalBars - 1 })} className="px-2 py-0.5 bg-gray-200 dark:bg-gray-600 rounded font-bold hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-800 dark:text-white text-[10px]">- BARRA</button>
-                                                            <p><strong>{totalBars}</strong> tubos com vãos de <strong>{exactGap.toFixed(1)}cm</strong></p>
-                                                            <button type="button" onClick={() => updateLanding(landing.id, { gateBarsOverride: totalBars + 1 })} className="px-2 py-0.5 bg-gray-200 dark:bg-gray-600 rounded font-bold hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-800 dark:text-white text-[10px]">+ BARRA</button>
+                                                    <div className="mt-4 flex flex-col gap-2">
+                                                        <p className="text-[10px] font-bold text-gray-500 uppercase text-center">Opções de Divisão</p>
+                                                        <div className="grid grid-cols-1 gap-2">
+                                                            {gateOptions.map(opt => {
+                                                                const optInter = opt.bars - 2;
+                                                                const optGaps = optInter + 1;
+                                                                const optGapSize = (innerL - (optInter * 3)) / optGaps;
+                                                                const optVertMeters = opt.bars * (gateHeight / 100);
+                                                                const optTotalMeters = optVertMeters + totalHorizontalMeters;
+                                                                const optPrice = Math.round(optTotalMeters * gatePricePerMeter);
+                                                                const isSelected = totalBars === opt.bars;
+                                                                
+                                                                return (
+                                                                    <div 
+                                                                        key={opt.bars}
+                                                                        onClick={() => updateLanding(landing.id, { gateBarsOverride: opt.bars })}
+                                                                        className={`p-2 rounded border cursor-pointer flex justify-between items-center transition-all ${isSelected ? 'bg-blue-50 border-blue-500 shadow-sm dark:bg-blue-900/30 dark:border-blue-500' : 'bg-gray-50 border-gray-200 hover:bg-gray-100 dark:bg-gray-700 dark:border-gray-600'}`}
+                                                                    >
+                                                                        <div className="flex flex-col text-left">
+                                                                            <span className={`text-xs font-bold ${isSelected ? 'text-blue-700 dark:text-blue-300' : 'text-gray-700 dark:text-gray-300'}`}>
+                                                                                {opt.bars} Tubos {opt.label !== 'Padrão' ? `(${opt.label})` : '(Padrão)'}
+                                                                            </span>
+                                                                            <span className="text-[10px] text-gray-500 dark:text-gray-400">Vãos de {optGapSize.toFixed(1)}cm</span>
+                                                                        </div>
+                                                                        <div className={`font-black text-sm ${isSelected ? 'text-blue-800 dark:text-blue-200' : 'text-gray-800 dark:text-gray-200'}`}>
+                                                                            R$ {optPrice}
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            })}
                                                         </div>
-                                                        <p>Tubos usados: <strong>{gateTotalMeters.toFixed(2)} metros</strong></p>
-                                                        <p className="mt-1 font-black text-highlight">Valor Estimado: R$ {currentGatePrice}</p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1199,13 +1254,9 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                                 
                                                 let innerL = gLength - 6;
                                                 if (innerL < 0) innerL = 0;
-                                                let numGaps = Math.max(1, Math.round(innerL / 18));
-                                                let numInterBars = numGaps - 1;
-                                                let totalBars = numInterBars + 2;
-                                                
-                                                if (landing.guardrailBarsOverride !== undefined) {
-                                                    totalBars = Math.max(2, landing.guardrailBarsOverride);
-                                                }
+                                                const baseGaps = Math.max(1, Math.round(innerL / 15));
+                                                let totalBars = landing.guardrailBarsOverride !== undefined ? landing.guardrailBarsOverride : (baseGaps + 1);
+                                                totalBars = Math.max(2, totalBars);
                                                 
                                                 let totalVerticalMeters = totalBars * (gHeight / 100);
                                                 let totalHorizontalMeters = 2 * (gLength / 100);
@@ -1222,13 +1273,9 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                                 
                                                 let innerL = gateLength - 6;
                                                 if (innerL < 0) innerL = 0;
-                                                let numGaps = Math.max(1, Math.round(innerL / 18));
-                                                let numInterBars = numGaps - 1;
-                                                let totalBars = numInterBars + 2;
-                                                
-                                                if (landing.gateBarsOverride !== undefined) {
-                                                    totalBars = Math.max(2, landing.gateBarsOverride);
-                                                }
+                                                const baseGaps = Math.max(1, Math.round(innerL / 15));
+                                                let totalBars = landing.gateBarsOverride !== undefined ? landing.gateBarsOverride : (baseGaps + 1);
+                                                totalBars = Math.max(2, totalBars);
                                                 
                                                 let totalVerticalMeters = totalBars * (gateHeight / 100);
                                                 let totalHorizontalMeters = 2 * (gateLength / 100);
