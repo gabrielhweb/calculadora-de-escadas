@@ -750,7 +750,7 @@ export default function ProductionQueue() {
                                                                                                 trueLinear1 = Math.round((seg1.totalBars * h) + (2 * (l.guardrailLength || 0)));
                                                                                                 const price1 = Math.round((trueLinear1 / 100) * 10);
                                                                                                 totalPrice += price1;
-                                                                                                segmentsText.push(`Lado 1${sName1}: Comp. ${l.guardrailLength || 0}cm | Comp. Linear ${trueLinear1}cm (${seg1.totalBars}t/vãos ${gap1}cm) - R$ ${price1}`); 
+                                                                                                segmentsText.push(`Lado 1${sName1}: Comp. ${l.guardrailLength || 0}cm | Comp. Linear ${trueLinear1}cm | Altura ${h}cm (${seg1.totalBars}t/vãos ${gap1}cm) - R$ ${price1}`); 
                                                                                             }
                                                                                             if (numSides >= 2) { 
                                                                                                 const seg2 = calcSeg(l.guardrailLength2 || 0, l.guardrailBarsOverride2); 
@@ -760,7 +760,7 @@ export default function ProductionQueue() {
                                                                                                     trueLinear2 = Math.round((seg2.totalBars * h) + (2 * (l.guardrailLength2 || 0)));
                                                                                                     const price2 = Math.round((trueLinear2 / 100) * 10);
                                                                                                     totalPrice += price2;
-                                                                                                    segmentsText.push(`Lado 2${sName2}: Comp. ${l.guardrailLength2 || 0}cm | Comp. Linear ${trueLinear2}cm (${seg2.totalBars}t/vãos ${gap2}cm) - R$ ${price2}`); 
+                                                                                                    segmentsText.push(`Lado 2${sName2}: Comp. ${l.guardrailLength2 || 0}cm | Comp. Linear ${trueLinear2}cm | Altura ${h}cm (${seg2.totalBars}t/vãos ${gap2}cm) - R$ ${price2}`); 
                                                                                                 } 
                                                                                             }
                                                                                             if (numSides >= 3) { 
@@ -771,7 +771,7 @@ export default function ProductionQueue() {
                                                                                                     trueLinear3 = Math.round((seg3.totalBars * h) + (2 * (l.guardrailLength3 || 0)));
                                                                                                     const price3 = Math.round((trueLinear3 / 100) * 10);
                                                                                                     totalPrice += price3;
-                                                                                                    segmentsText.push(`Lado 3${sName3}: Comp. ${l.guardrailLength3 || 0}cm | Comp. Linear ${trueLinear3}cm (${seg3.totalBars}t/vãos ${gap3}cm) - R$ ${price3}`); 
+                                                                                                    segmentsText.push(`Lado 3${sName3}: Comp. ${l.guardrailLength3 || 0}cm | Comp. Linear ${trueLinear3}cm | Altura ${h}cm (${seg3.totalBars}t/vãos ${gap3}cm) - R$ ${price3}`); 
                                                                                                 } 
                                                                                             }
                                                                                             const totalGuardrailLinear = trueLinear1 + trueLinear2 + trueLinear3;
@@ -790,14 +790,14 @@ export default function ProductionQueue() {
                                                                                             const compText = l.hasGate ? `Comp. Total ${totalLinear}cm | Comp. Linear G.Corpo: ${totalGuardrailLinear}cm (Total c/ Portão: ${totalWithGate}cm)` : `Comp. Total ${totalLinear}cm | Comp. Linear: ${totalGuardrailLinear}cm`;
 
                                                                                             if (numSides > 1) {
-                                                                                                gMed = `G. Corpo (F: ${l.guardrailFormat || 'normal'}): ${compText} - Total ${totalOverallBars} tubos - R$ ${totalPrice}\n`;
+                                                                                                gMed = `G. Corpo (F: ${l.guardrailFormat || 'normal'}): ${compText} | Altura ${h}cm - Total ${totalOverallBars} tubos - R$ ${totalPrice}\n`;
                                                                                                 segmentsText.forEach((seg, idx) => {
                                                                                                     gMed += `  • ${seg}\n`;
                                                                                                 });
                                                                                             } else {
                                                                                                 const gap1 = seg1 ? (l.guardrailGapOverride !== undefined ? l.guardrailGapOverride : parseFloat(seg1.exactGap.toFixed(1))) : 0;
                                                                                                 const price1 = seg1 ? Math.round((trueLinear1 / 100) * 10) : 0;
-                                                                                                gMed = `G. Corpo: ${compText} - ${seg1 ? seg1.totalBars : 0} tubos (vãos ${gap1}cm) - R$ ${price1}`;
+                                                                                                gMed = `G. Corpo: ${compText} | Altura ${h}cm - ${seg1 ? seg1.totalBars : 0} tubos (vãos ${gap1}cm) - R$ ${price1}`;
                                                                                             }
                                                                                         }
                                                                                         

@@ -168,7 +168,7 @@ export const DeliveriesTable: React.FC = () => {
                         trueLinear1 = Math.round((seg1.totalBars * h) + (2 * (l.guardrailLength || 0)));
                         const price1 = Math.round((trueLinear1 / 100) * 10);
                         totalPrice += price1;
-                        segmentsText.push(`Lado 1${sName1}: Comp. ${l.guardrailLength || 0}cm | Comp. Linear ${trueLinear1}cm (${seg1.totalBars} tubos - vãos ${gap1}cm) - R$ ${price1}`);
+                        segmentsText.push(`Lado 1${sName1}: Comp. ${l.guardrailLength || 0}cm | Comp. Linear ${trueLinear1}cm | Altura ${h}cm (${seg1.totalBars} tubos - vãos ${gap1}cm) - R$ ${price1}`);
                     }
                     if (numSides >= 2) {
                         const seg2 = calcSeg(l.guardrailLength2 || 0, l.guardrailBarsOverride2);
@@ -178,7 +178,7 @@ export const DeliveriesTable: React.FC = () => {
                             trueLinear2 = Math.round((seg2.totalBars * h) + (2 * (l.guardrailLength2 || 0)));
                             const price2 = Math.round((trueLinear2 / 100) * 10);
                             totalPrice += price2;
-                            segmentsText.push(`Lado 2${sName2}: Comp. ${l.guardrailLength2 || 0}cm | Comp. Linear ${trueLinear2}cm (${seg2.totalBars} tubos - vãos ${gap2}cm) - R$ ${price2}`);
+                            segmentsText.push(`Lado 2${sName2}: Comp. ${l.guardrailLength2 || 0}cm | Comp. Linear ${trueLinear2}cm | Altura ${h}cm (${seg2.totalBars} tubos - vãos ${gap2}cm) - R$ ${price2}`);
                         }
                     }
                     if (numSides >= 3) {
@@ -189,7 +189,7 @@ export const DeliveriesTable: React.FC = () => {
                             trueLinear3 = Math.round((seg3.totalBars * h) + (2 * (l.guardrailLength3 || 0)));
                             const price3 = Math.round((trueLinear3 / 100) * 10);
                             totalPrice += price3;
-                            segmentsText.push(`Lado 3${sName3}: Comp. ${l.guardrailLength3 || 0}cm | Comp. Linear ${trueLinear3}cm (${seg3.totalBars} tubos - vãos ${gap3}cm) - R$ ${price3}`);
+                            segmentsText.push(`Lado 3${sName3}: Comp. ${l.guardrailLength3 || 0}cm | Comp. Linear ${trueLinear3}cm | Altura ${h}cm (${seg3.totalBars} tubos - vãos ${gap3}cm) - R$ ${price3}`);
                         }
                     }
 
