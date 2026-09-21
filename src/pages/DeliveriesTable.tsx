@@ -155,27 +155,30 @@ export const DeliveriesTable: React.FC = () => {
                     const sName1 = sideNames[0] ? ` (${sideNames[0]})` : '';
                     const sName2 = sideNames[1] ? ` (${sideNames[1]})` : '';
                     const sName3 = sideNames[2] ? ` (${sideNames[2]})` : '';
-                    const totalLinear = (l.guardrailLength || 0) + (numSides >= 2 ? (l.guardrailLength2 || 0) : 0) + (numSides >= 3 ? (l.guardrailLength3 || 0) : 0);
+                    const baseHorizontal = (l.guardrailLength || 0) + (numSides >= 2 ? (l.guardrailLength2 || 0) : 0) + (numSides >= 3 ? (l.guardrailLength3 || 0) : 0);
                     
                     const gPrice = l.guardrailPricePerMeter !== undefined ? l.guardrailPricePerMeter : 50;
                     let totalPrice = 0;
+                    let trueLinear1 = 0, trueLinear2 = 0, trueLinear3 = 0;
                     
                     const seg1 = calcSeg(l.guardrailLength || 0, l.guardrailBarsOverride);
                     if (seg1) {
                         totalOverallBars += seg1.totalBars;
                         const gap1 = l.guardrailGapOverride !== undefined ? l.guardrailGapOverride : parseFloat(seg1.exactGap.toFixed(1));
-                        const price1 = Math.round(((seg1.totalBars * (h / 100)) + (2 * ((l.guardrailLength || 0) / 100))) * 10);
+                        trueLinear1 = Math.round((seg1.totalBars * h) + (2 * (l.guardrailLength || 0)));
+                        const price1 = Math.round((trueLinear1 / 100) * 10);
                         totalPrice += price1;
-                        segmentsText.push(`Lado 1${sName1}: Comp. Linear ${l.guardrailLength || 0}cm (${seg1.totalBars} tubos - vãos ${gap1}cm) - R$ ${price1}`);
+                        segmentsText.push(`Lado 1${sName1}: Comp. Linear ${trueLinear1}cm (${seg1.totalBars} tubos - vãos ${gap1}cm) - R$ ${price1}`);
                     }
                     if (numSides >= 2) {
                         const seg2 = calcSeg(l.guardrailLength2 || 0, l.guardrailBarsOverride2);
                         if (seg2) {
                             totalOverallBars += seg2.totalBars - 1; // share corner
                             const gap2 = l.guardrailGapOverride2 !== undefined ? l.guardrailGapOverride2 : parseFloat(seg2.exactGap.toFixed(1));
-                            const price2 = Math.round(((seg2.totalBars * (h / 100)) + (2 * ((l.guardrailLength2 || 0) / 100))) * 10);
+                            trueLinear2 = Math.round((seg2.totalBars * h) + (2 * (l.guardrailLength2 || 0)));
+                            const price2 = Math.round((trueLinear2 / 100) * 10);
                             totalPrice += price2;
-                            segmentsText.push(`Lado 2${sName2}: Comp. Linear ${l.guardrailLength2 || 0}cm (${seg2.totalBars} tubos - vãos ${gap2}cm) - R$ ${price2}`);
+                            segmentsText.push(`Lado 2${sName2}: Comp. Linear ${trueLinear2}cm (${seg2.totalBars} tubos - vãos ${gap2}cm) - R$ ${price2}`);
                         }
                     }
                     if (numSides >= 3) {
@@ -183,14 +186,27 @@ export const DeliveriesTable: React.FC = () => {
                         if (seg3) {
                             totalOverallBars += seg3.totalBars - 1; // share corner
                             const gap3 = l.guardrailGapOverride3 !== undefined ? l.guardrailGapOverride3 : parseFloat(seg3.exactGap.toFixed(1));
-                            const price3 = Math.round(((seg3.totalBars * (h / 100)) + (2 * ((l.guardrailLength3 || 0) / 100))) * 10);
+                            trueLinear3 = Math.round((seg3.totalBars * h) + (2 * (l.guardrailLength3 || 0)));
+                            const price3 = Math.round((trueLinear3 / 100) * 10);
                             totalPrice += price3;
-                            segmentsText.push(`Lado 3${sName3}: Comp. Linear ${l.guardrailLength3 || 0}cm (${seg3.totalBars} tubos - vãos ${gap3}cm) - R$ ${price3}`);
+                            segmentsText.push(`Lado 3${sName3}: Comp. Linear ${trueLinear3}cm (${seg3.totalBars} tubos - vãos ${gap3}cm) - R$ ${price3}`);
                         }
                     }
 
-                    const totalWithGate = totalLinear + (l.hasGate ? (l.gateLength || 0) : 0);
-                    const compText = l.hasGate ? `Comp. Linear G.Corpo: ${totalLinear}cm (Total c/ Portão: ${totalWithGate}cm)` : `Comp. Linear: ${totalLinear}cm`;
+                    const totalGuardrailLinear = trueLinear1 + trueLinear2 + trueLinear3;
+                    let gateTrueLinear = 0;
+                    if (l.hasGate) {
+                        const gateLen = l.gateLength || 0;
+                        const gateH = l.gateHeight || 90;
+                        let innerL = gateLen - 6;
+                        if (innerL < 0) innerL = 0;
+                        const baseGaps = Math.max(1, Math.round(innerL / 15));
+                        let gateBars = l.gateBarsOverride !== undefined ? l.gateBarsOverride : (baseGaps + 1);
+                        gateBars = Math.max(2, gateBars);
+                        gateTrueLinear = Math.round((gateBars * gateH) + (2 * gateLen));
+                    }
+                    const totalWithGate = totalGuardrailLinear + gateTrueLinear;
+                    const compText = l.hasGate ? `Comp. Linear G.Corpo: ${totalGuardrailLinear}cm (Total c/ Portão: ${totalWithGate}cm)` : `Comp. Linear: ${totalGuardrailLinear}cm`;
 
                     if (numSides > 1) {
                         med += `  - G. Corpo (F: ${format}): ${compText} | Altura ${h}cm - Total: ${totalOverallBars} tubos - R$ ${totalPrice}\n`;
@@ -199,7 +215,7 @@ export const DeliveriesTable: React.FC = () => {
                         });
                     } else {
                         const gap1 = seg1 ? (l.guardrailGapOverride !== undefined ? l.guardrailGapOverride : parseFloat(seg1.exactGap.toFixed(1))) : 0;
-                        const price1 = seg1 ? Math.round(((seg1.totalBars * (h / 100)) + (2 * ((l.guardrailLength || 0) / 100))) * 10) : 0;
+                        const price1 = seg1 ? Math.round((trueLinear1 / 100) * 10) : 0;
                         med += `  - G. Corpo (F: ${format}): ${compText} | Altura ${h}cm${side} - ${seg1 ? seg1.totalBars : 0} tubos (vãos ${gap1}cm) - R$ ${price1}\n`;
                     }
                 }
@@ -215,9 +231,10 @@ export const DeliveriesTable: React.FC = () => {
                     totalBars = Math.max(2, totalBars);
                     let exactGap = (innerL - ((totalBars - 2) * 3)) / (totalBars - 1);
                     
-                    const gatePrice = Math.round(((totalBars * (h / 100)) + (2 * (len / 100))) * 10);
+                    const gateTrueLinear = Math.round((totalBars * h) + (2 * len));
+                    const gatePrice = Math.round((gateTrueLinear / 100) * 10);
 
-                    med += `  - Portão: Comp. Linear ${len}cm | Altura ${h}cm${side} - ${totalBars} tubos (vãos ${exactGap.toFixed(1)}cm) - R$ ${gatePrice}\n`;
+                    med += `  - Portão: Comp. Linear ${gateTrueLinear}cm | Altura ${h}cm${side} - ${totalBars} tubos (vãos ${exactGap.toFixed(1)}cm) - R$ ${gatePrice}\n`;
                 }
             });
         }
