@@ -132,12 +132,32 @@ export const DeliveriesTable: React.FC = () => {
                 const type = l.type === 'articulated' ? 'ARTICULADO' : 'FIXO';
                 med += `PATAMAR ${idx + 1} (${type}): ${l.length}cm x ${l.width}cm\n`;
                 if (l.hasGuardrail) {
+                    const format = l.guardrailFormat || 'normal';
                     const side = l.guardrailSide ? ` [Lado: ${l.guardrailSide}]` : '';
-                    med += `  - G. Corpo: ${l.guardrailLength}cm linear${side}\n`;
+                    const h = l.guardrailHeight || 90;
+                    
+                    let innerL = l.guardrailLength - 6;
+                    if (innerL < 0) innerL = 0;
+                    const baseGaps = Math.max(1, Math.round(innerL / 15));
+                    let totalBars = l.guardrailBarsOverride !== undefined ? l.guardrailBarsOverride : (baseGaps + 1);
+                    totalBars = Math.max(2, totalBars);
+                    let exactGap = (innerL - ((totalBars - 2) * 3)) / (totalBars - 1);
+
+                    med += `  - G. Corpo (F: ${format}): ${l.guardrailLength}cm comp x ${h}cm alt${side} - ${totalBars} tubos (vãos ${exactGap.toFixed(1)}cm)\n`;
                 }
                 if (l.hasGate) {
                     const side = l.gateSide ? ` [Lado: ${l.gateSide}]` : '';
-                    med += `  - Portão: ${l.gateLength || 0}cm linear${side}\n`;
+                    const len = l.gateLength || 0;
+                    const h = l.gateHeight || 90;
+                    
+                    let innerL = len - 6;
+                    if (innerL < 0) innerL = 0;
+                    const baseGaps = Math.max(1, Math.round(innerL / 15));
+                    let totalBars = l.gateBarsOverride !== undefined ? l.gateBarsOverride : (baseGaps + 1);
+                    totalBars = Math.max(2, totalBars);
+                    let exactGap = (innerL - ((totalBars - 2) * 3)) / (totalBars - 1);
+
+                    med += `  - Portão: ${len}cm comp x ${h}cm alt${side} - ${totalBars} tubos (vãos ${exactGap.toFixed(1)}cm)\n`;
                 }
             });
         }
