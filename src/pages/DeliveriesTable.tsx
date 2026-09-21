@@ -135,15 +135,16 @@ export const DeliveriesTable: React.FC = () => {
                     const format = l.guardrailFormat || 'normal';
                     const side = l.guardrailSide ? ` [Lado: ${l.guardrailSide}]` : '';
                     const h = l.guardrailHeight || 90;
+                    const gLen = l.guardrailLength || 0;
                     
-                    let innerL = l.guardrailLength - 6;
+                    let innerL = gLen - 6;
                     if (innerL < 0) innerL = 0;
                     const baseGaps = Math.max(1, Math.round(innerL / 15));
                     let totalBars = l.guardrailBarsOverride !== undefined ? l.guardrailBarsOverride : (baseGaps + 1);
                     totalBars = Math.max(2, totalBars);
                     let exactGap = (innerL - ((totalBars - 2) * 3)) / (totalBars - 1);
 
-                    med += `  - G. Corpo (F: ${format}): ${l.guardrailLength}cm comp x ${h}cm alt${side} - ${totalBars} tubos (vãos ${exactGap.toFixed(1)}cm)\n`;
+                    med += `  - G. Corpo (F: ${format}): ${gLen}cm comp x ${h}cm alt${side} - ${totalBars} tubos (vãos ${exactGap.toFixed(1)}cm)\n`;
                 }
                 if (l.hasGate) {
                     const side = l.gateSide ? ` [Lado: ${l.gateSide}]` : '';

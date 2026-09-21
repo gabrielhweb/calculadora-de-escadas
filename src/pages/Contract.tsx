@@ -1506,7 +1506,17 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                                     <input 
                                                         type="checkbox" 
                                                         checked={!!landing.hasGuardrail} 
-                                                        onChange={(e) => updateLanding(landing.id, { hasGuardrail: e.target.checked })} 
+                                                        onChange={(e) => {
+                                                            const isChecked = e.target.checked;
+                                                            updateLanding(landing.id, { 
+                                                                hasGuardrail: isChecked,
+                                                                ...(isChecked ? {
+                                                                    guardrailLength: landing.guardrailLength || landing.length || 0,
+                                                                    guardrailHeight: landing.guardrailHeight || 90,
+                                                                    guardrailFormat: landing.guardrailFormat || 'normal'
+                                                                } : {})
+                                                            });
+                                                        }}
                                                         className="w-4 h-4 accent-blue-600"
                                                     />
                                                     <span className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase">Possui Guarda Corpo?</span>
@@ -1563,7 +1573,16 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                                     <input 
                                                         type="checkbox" 
                                                         checked={!!landing.hasGate} 
-                                                        onChange={(e) => updateLanding(landing.id, { hasGate: e.target.checked })} 
+                                                        onChange={(e) => {
+                                                            const isChecked = e.target.checked;
+                                                            updateLanding(landing.id, { 
+                                                                hasGate: isChecked,
+                                                                ...(isChecked ? {
+                                                                    gateLength: landing.gateLength || 100,
+                                                                    gateHeight: landing.gateHeight || 90
+                                                                } : {})
+                                                            });
+                                                        }}
                                                         className="w-4 h-4 accent-blue-600"
                                                     />
                                                     <span className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase">Possui Portãozinho?</span>
