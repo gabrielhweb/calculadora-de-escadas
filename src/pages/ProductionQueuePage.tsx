@@ -750,7 +750,7 @@ export default function ProductionQueue() {
                                                                                                 trueLinear1 = Math.round((seg1.totalBars * h) + (2 * (l.guardrailLength || 0)));
                                                                                                 const price1 = Math.round((trueLinear1 / 100) * 10);
                                                                                                 totalPrice += price1;
-                                                                                                segmentsText.push(`Lado 1${sName1}: Comp. Linear ${trueLinear1}cm (${seg1.totalBars}t/vãos ${gap1}cm) - R$ ${price1}`); 
+                                                                                                segmentsText.push(`Lado 1${sName1}: Comp. ${l.guardrailLength || 0}cm | Comp. Linear ${trueLinear1}cm (${seg1.totalBars}t/vãos ${gap1}cm) - R$ ${price1}`); 
                                                                                             }
                                                                                             if (numSides >= 2) { 
                                                                                                 const seg2 = calcSeg(l.guardrailLength2 || 0, l.guardrailBarsOverride2); 
@@ -760,7 +760,7 @@ export default function ProductionQueue() {
                                                                                                     trueLinear2 = Math.round((seg2.totalBars * h) + (2 * (l.guardrailLength2 || 0)));
                                                                                                     const price2 = Math.round((trueLinear2 / 100) * 10);
                                                                                                     totalPrice += price2;
-                                                                                                    segmentsText.push(`Lado 2${sName2}: Comp. Linear ${trueLinear2}cm (${seg2.totalBars}t/vãos ${gap2}cm) - R$ ${price2}`); 
+                                                                                                    segmentsText.push(`Lado 2${sName2}: Comp. ${l.guardrailLength2 || 0}cm | Comp. Linear ${trueLinear2}cm (${seg2.totalBars}t/vãos ${gap2}cm) - R$ ${price2}`); 
                                                                                                 } 
                                                                                             }
                                                                                             if (numSides >= 3) { 
@@ -771,7 +771,7 @@ export default function ProductionQueue() {
                                                                                                     trueLinear3 = Math.round((seg3.totalBars * h) + (2 * (l.guardrailLength3 || 0)));
                                                                                                     const price3 = Math.round((trueLinear3 / 100) * 10);
                                                                                                     totalPrice += price3;
-                                                                                                    segmentsText.push(`Lado 3${sName3}: Comp. Linear ${trueLinear3}cm (${seg3.totalBars}t/vãos ${gap3}cm) - R$ ${price3}`); 
+                                                                                                    segmentsText.push(`Lado 3${sName3}: Comp. ${l.guardrailLength3 || 0}cm | Comp. Linear ${trueLinear3}cm (${seg3.totalBars}t/vãos ${gap3}cm) - R$ ${price3}`); 
                                                                                                 } 
                                                                                             }
                                                                                             const totalGuardrailLinear = trueLinear1 + trueLinear2 + trueLinear3;
@@ -787,7 +787,7 @@ export default function ProductionQueue() {
                                                                                                 gateTrueLinear = Math.round((gateBars * gateH) + (2 * gateLen));
                                                                                             }
                                                                                             const totalWithGate = totalGuardrailLinear + gateTrueLinear;
-                                                                                            const compText = l.hasGate ? `Comp. Linear G.Corpo: ${totalGuardrailLinear}cm (Total c/ Portão: ${totalWithGate}cm)` : `Comp. Linear: ${totalGuardrailLinear}cm`;
+                                                                                            const compText = l.hasGate ? `Comp. Total ${totalLinear}cm | Comp. Linear G.Corpo: ${totalGuardrailLinear}cm (Total c/ Portão: ${totalWithGate}cm)` : `Comp. Total ${totalLinear}cm | Comp. Linear: ${totalGuardrailLinear}cm`;
 
                                                                                             if (numSides > 1) {
                                                                                                 gMed = `G. Corpo (F: ${l.guardrailFormat || 'normal'}): ${compText} - Total ${totalOverallBars} tubos - R$ ${totalPrice}\n`;
@@ -830,7 +830,7 @@ export default function ProductionQueue() {
                                                                                                     const gPrice = Math.round((gateTrueLinearFinal / 100) * 10);
                                                                                                     return (
                                                                                                         <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                                                                                                            <span className="font-medium">Portãozinho:</span> Comp. Linear {gateTrueLinearFinal}cm | Altura {gateH}cm - {gateTubes} tubos (vãos {((gateInnerL - ((gateTubes - 2) * 3)) / gateGaps).toFixed(1)}cm) - R$ {gPrice}
+                                                                                                            <span className="font-medium">Portãozinho:</span> Comp. {gateLen}cm | Comp. Linear {gateTrueLinearFinal}cm | Altura {gateH}cm - {gateTubes} tubos (vãos {((gateInnerL - ((gateTubes - 2) * 3)) / gateGaps).toFixed(1)}cm) - R$ {gPrice}
                                                                                                             {l.gateSide && <><br/>Lado: <span className="font-medium">{l.gateSide}</span></>}
                                                                                                         </p>
                                                                                                     );
