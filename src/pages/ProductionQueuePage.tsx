@@ -746,7 +746,7 @@ export default function ProductionQueue() {
                                                                                             if (seg1) { 
                                                                                                 totalOverallBars += seg1.totalBars; 
                                                                                                 const gap1 = l.guardrailGapOverride !== undefined ? l.guardrailGapOverride : parseFloat(seg1.exactGap.toFixed(1));
-                                                                                                const price1 = Math.round(((l.guardrailLength || 0) / 100) * 10);
+                                                                                                const price1 = Math.round(((seg1.totalBars * (h / 100)) + (2 * ((l.guardrailLength || 0) / 100))) * 10);
                                                                                                 totalPrice += price1;
                                                                                                 segmentsText.push(`Lado 1${sName1}: Comp. Linear ${l.guardrailLength || 0}cm (${seg1.totalBars}t/vãos ${gap1}cm) - R$ ${price1}`); 
                                                                                             }
@@ -755,7 +755,7 @@ export default function ProductionQueue() {
                                                                                                 if (seg2) { 
                                                                                                     totalOverallBars += seg2.totalBars - 1; 
                                                                                                     const gap2 = l.guardrailGapOverride2 !== undefined ? l.guardrailGapOverride2 : parseFloat(seg2.exactGap.toFixed(1));
-                                                                                                    const price2 = Math.round(((l.guardrailLength2 || 0) / 100) * 10);
+                                                                                                    const price2 = Math.round(((seg2.totalBars * (h / 100)) + (2 * ((l.guardrailLength2 || 0) / 100))) * 10);
                                                                                                     totalPrice += price2;
                                                                                                     segmentsText.push(`Lado 2${sName2}: Comp. Linear ${l.guardrailLength2 || 0}cm (${seg2.totalBars}t/vãos ${gap2}cm) - R$ ${price2}`); 
                                                                                                 } 
@@ -765,7 +765,7 @@ export default function ProductionQueue() {
                                                                                                 if (seg3) { 
                                                                                                     totalOverallBars += seg3.totalBars - 1; 
                                                                                                     const gap3 = l.guardrailGapOverride3 !== undefined ? l.guardrailGapOverride3 : parseFloat(seg3.exactGap.toFixed(1));
-                                                                                                    const price3 = Math.round(((l.guardrailLength3 || 0) / 100) * 10);
+                                                                                                    const price3 = Math.round(((seg3.totalBars * (h / 100)) + (2 * ((l.guardrailLength3 || 0) / 100))) * 10);
                                                                                                     totalPrice += price3;
                                                                                                     segmentsText.push(`Lado 3${sName3}: Comp. Linear ${l.guardrailLength3 || 0}cm (${seg3.totalBars}t/vãos ${gap3}cm) - R$ ${price3}`); 
                                                                                                 } 
@@ -780,7 +780,7 @@ export default function ProductionQueue() {
                                                                                                 });
                                                                                             } else {
                                                                                                 const gap1 = seg1 ? (l.guardrailGapOverride !== undefined ? l.guardrailGapOverride : parseFloat(seg1.exactGap.toFixed(1))) : 0;
-                                                                                                const price1 = seg1 ? Math.round(((l.guardrailLength || 0) / 100) * 10) : 0;
+                                                                                                const price1 = seg1 ? Math.round(((seg1.totalBars * (h / 100)) + (2 * ((l.guardrailLength || 0) / 100))) * 10) : 0;
                                                                                                 gMed = `G. Corpo: ${compText} - ${seg1 ? seg1.totalBars : 0} tubos (vãos ${gap1}cm) - R$ ${price1}`;
                                                                                             }
                                                                                         }
@@ -809,7 +809,7 @@ export default function ProductionQueue() {
                                                                                                 {gateTubes > 0 && (() => {
                                                                                                     const gateLen = l.gateLength || 100;
                                                                                                     const gateH = l.gateHeight || 90;
-                                                                                                    const gPrice = Math.round((gateLen / 100) * 10);
+                                                                                                    const gPrice = Math.round(((gateTubes * (gateH / 100)) + (2 * (gateLen / 100))) * 10);
                                                                                                     return (
                                                                                                         <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                                                                                                             <span className="font-medium">Portãozinho:</span> Comp. Linear {gateLen}cm | Altura {gateH}cm - {gateTubes} tubos (vãos {((gateInnerL - ((gateTubes - 2) * 3)) / gateGaps).toFixed(1)}cm) - R$ {gPrice}
