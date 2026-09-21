@@ -195,21 +195,28 @@ export const DeliveriesTable: React.FC = () => {
 
                     const totalGuardrailLinear = trueLinear1 + trueLinear2 + trueLinear3;
                     let gateTrueLinear = 0;
+                    let gateBars = 0;
+                    let gatePriceTotal = 0;
+                    
                     if (l.hasGate) {
                         const gateLen = l.gateLength || 0;
                         const gateH = l.gateHeight || 90;
                         let innerL = gateLen - 6;
                         if (innerL < 0) innerL = 0;
                         const baseGaps = Math.max(1, Math.round(innerL / 15));
-                        let gateBars = l.gateBarsOverride !== undefined ? l.gateBarsOverride : (baseGaps + 1);
+                        gateBars = l.gateBarsOverride !== undefined ? l.gateBarsOverride : (baseGaps + 1);
                         gateBars = Math.max(2, gateBars);
                         gateTrueLinear = Math.round((gateBars * gateH) + (2 * gateLen));
+                        gatePriceTotal = Math.round((gateTrueLinear / 100) * 10);
                     }
+                    
                     const totalWithGate = totalGuardrailLinear + gateTrueLinear;
                     const compText = l.hasGate ? `Comp. Total ${baseHorizontal}cm | Comp. Linear G.Corpo: ${totalGuardrailLinear}cm (Total c/ Portão: ${totalWithGate}cm)` : `Comp. Total ${baseHorizontal}cm | Comp. Linear: ${totalGuardrailLinear}cm`;
 
-                    if (numSides > 1) {
-                        med += `  - G. Corpo (F: ${format}): ${compText} | Altura ${h}cm - Total: ${totalOverallBars} tubos - R$ ${totalPrice}\n`;
+                    if (numSides > 1 || l.hasGate) {
+                        const finalTubes = totalOverallBars + gateBars;
+                        const finalPrice = totalPrice + gatePriceTotal;
+                        med += `  - G. Corpo (F: ${format}): ${compText} | Altura ${h}cm - Total: ${finalTubes} tubos - R$ ${finalPrice}\n`;
                         segmentsText.forEach(seg => {
                             med += `    • ${seg}\n`;
                         });
@@ -230,11 +237,11 @@ export const DeliveriesTable: React.FC = () => {
                     let totalBars = l.gateBarsOverride !== undefined ? l.gateBarsOverride : (baseGaps + 1);
                     totalBars = Math.max(2, totalBars);
                     let exactGap = (innerL - ((totalBars - 2) * 3)) / (totalBars - 1);
-                    
-                    const gateTrueLinear = Math.round((totalBars * h) + (2 * len));
-                    const gatePrice = Math.round((gateTrueLinear / 100) * 10);
 
-                    med += `  - Portão: Comp. ${len}cm | Comp. Linear ${gateTrueLinear}cm | Altura ${h}cm${side} - ${totalBars} tubos (vãos ${exactGap.toFixed(1)}cm) - R$ ${gatePrice}\n`;
+                    const gateTrueLinearFinal = Math.round((totalBars * h) + (2 * len));
+                    const gatePriceFinal = Math.round((gateTrueLinearFinal / 100) * 10);
+
+                    med += `  - Portão: Comp. ${len}cm | Comp. Linear ${gateTrueLinearFinal}cm | Altura ${h}cm${side} - ${totalBars} tubos (vãos ${exactGap.toFixed(1)}cm) - R$ ${gatePriceFinal}\n`;
                 }
             });
         }

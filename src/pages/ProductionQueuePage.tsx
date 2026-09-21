@@ -776,21 +776,28 @@ export default function ProductionQueue() {
                                                                                             }
                                                                                             const totalGuardrailLinear = trueLinear1 + trueLinear2 + trueLinear3;
                                                                                             let gateTrueLinear = 0;
-                                                                                            if (l.hasGate) {
+                                                                                            let gateBars = 0;
+                                                                                            let gatePriceTotal = 0;
+
+                                                                                            if (l.hasGate && l.gateLength > 0 && l.gateHeight > 0) {
                                                                                                 const gateLen = l.gateLength || 0;
                                                                                                 const gateH = l.gateHeight || 90;
                                                                                                 let innerL = gateLen - 6;
                                                                                                 if (innerL < 0) innerL = 0;
                                                                                                 const baseGaps = Math.max(1, Math.round(innerL / 15));
-                                                                                                let gateBars = l.gateBarsOverride !== undefined ? l.gateBarsOverride : (baseGaps + 1);
+                                                                                                gateBars = l.gateBarsOverride !== undefined ? l.gateBarsOverride : (baseGaps + 1);
                                                                                                 gateBars = Math.max(2, gateBars);
                                                                                                 gateTrueLinear = Math.round((gateBars * gateH) + (2 * gateLen));
+                                                                                                gatePriceTotal = Math.round((gateTrueLinear / 100) * 10);
                                                                                             }
+
                                                                                             const totalWithGate = totalGuardrailLinear + gateTrueLinear;
                                                                                             const compText = l.hasGate ? `Comp. Total ${totalLinear}cm | Comp. Linear G.Corpo: ${totalGuardrailLinear}cm (Total c/ Portão: ${totalWithGate}cm)` : `Comp. Total ${totalLinear}cm | Comp. Linear: ${totalGuardrailLinear}cm`;
 
-                                                                                            if (numSides > 1) {
-                                                                                                gMed = `G. Corpo (F: ${l.guardrailFormat || 'normal'}): ${compText} | Altura ${h}cm - Total ${totalOverallBars} tubos - R$ ${totalPrice}\n`;
+                                                                                            if (numSides > 1 || l.hasGate) {
+                                                                                                const finalTubes = totalOverallBars + gateBars;
+                                                                                                const finalPrice = totalPrice + gatePriceTotal;
+                                                                                                gMed = `G. Corpo (F: ${l.guardrailFormat || 'normal'}): ${compText} | Altura ${h}cm - Total ${finalTubes} tubos - R$ ${finalPrice}\n`;
                                                                                                 segmentsText.forEach((seg, idx) => {
                                                                                                     gMed += `  • ${seg}\n`;
                                                                                                 });
