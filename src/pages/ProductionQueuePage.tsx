@@ -770,15 +770,18 @@ export default function ProductionQueue() {
                                                                                                     segmentsText.push(`Lado 3${sName3}: Comp. Linear ${l.guardrailLength3 || 0}cm (${seg3.totalBars}t/vãos ${gap3}cm) - R$ ${price3}`); 
                                                                                                 } 
                                                                                             }
+                                                                                            const totalWithGate = totalLinear + (l.hasGate ? (l.gateLength || 0) : 0);
+                                                                                            const compText = l.hasGate ? `Comp. Linear (+ Portão) ${totalWithGate}cm` : `Comp. Linear ${totalLinear}cm`;
+
                                                                                             if (numSides > 1) {
-                                                                                                gMed = `G. Corpo (F: ${l.guardrailFormat || 'normal'}): Comp. Linear ${totalLinear}cm - Total ${totalOverallBars} tubos - R$ ${totalPrice}\n`;
+                                                                                                gMed = `G. Corpo (F: ${l.guardrailFormat || 'normal'}): ${compText} - Total ${totalOverallBars} tubos - R$ ${totalPrice}\n`;
                                                                                                 segmentsText.forEach((seg, idx) => {
                                                                                                     gMed += `  • ${seg}\n`;
                                                                                                 });
                                                                                             } else {
                                                                                                 const gap1 = seg1 ? (l.guardrailGapOverride !== undefined ? l.guardrailGapOverride : parseFloat(seg1.exactGap.toFixed(1))) : 0;
                                                                                                 const price1 = seg1 ? Math.round(((l.guardrailLength || 0) / 100) * 10) : 0;
-                                                                                                gMed = `G. Corpo: Comp. Linear ${totalLinear}cm - ${seg1 ? seg1.totalBars : 0} tubos (vãos ${gap1}cm) - R$ ${price1}`;
+                                                                                                gMed = `G. Corpo: ${compText} - ${seg1 ? seg1.totalBars : 0} tubos (vãos ${gap1}cm) - R$ ${price1}`;
                                                                                             }
                                                                                         }
                                                                                         

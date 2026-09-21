@@ -189,15 +189,18 @@ export const DeliveriesTable: React.FC = () => {
                         }
                     }
 
+                    const totalWithGate = totalLinear + (l.hasGate ? (l.gateLength || 0) : 0);
+                    const compText = l.hasGate ? `Comp. Linear (+ Portão) ${totalWithGate}cm` : `Comp. Linear ${totalLinear}cm`;
+
                     if (numSides > 1) {
-                        med += `  - G. Corpo (F: ${format}): Comp. Linear ${totalLinear}cm | Altura ${h}cm - Total: ${totalOverallBars} tubos - R$ ${totalPrice}\n`;
+                        med += `  - G. Corpo (F: ${format}): ${compText} | Altura ${h}cm - Total: ${totalOverallBars} tubos - R$ ${totalPrice}\n`;
                         segmentsText.forEach(seg => {
                             med += `    • ${seg}\n`;
                         });
                     } else {
                         const gap1 = seg1 ? (l.guardrailGapOverride !== undefined ? l.guardrailGapOverride : parseFloat(seg1.exactGap.toFixed(1))) : 0;
                         const price1 = seg1 ? Math.round(((l.guardrailLength || 0) / 100) * 10) : 0;
-                        med += `  - G. Corpo (F: ${format}): Comp. Linear ${totalLinear}cm | Altura ${h}cm${side} - ${seg1 ? seg1.totalBars : 0} tubos (vãos ${gap1}cm) - R$ ${price1}\n`;
+                        med += `  - G. Corpo (F: ${format}): ${compText} | Altura ${h}cm${side} - ${seg1 ? seg1.totalBars : 0} tubos (vãos ${gap1}cm) - R$ ${price1}\n`;
                     }
                 }
                 if (l.hasGate) {
