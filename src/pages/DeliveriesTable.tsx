@@ -161,14 +161,14 @@ export const DeliveriesTable: React.FC = () => {
                     if (seg1) {
                         totalOverallBars += seg1.totalBars;
                         const gap1 = l.guardrailGapOverride !== undefined ? l.guardrailGapOverride : parseFloat(seg1.exactGap.toFixed(1));
-                        segmentsText.push(`Lado 1${sName1}: ${l.guardrailLength || 0}cm (${seg1.totalBars} tubos - vãos ${gap1}cm)`);
+                        segmentsText.push(`Lado 1${sName1}: Comp. Linear ${l.guardrailLength || 0}cm (${seg1.totalBars} tubos - vãos ${gap1}cm)`);
                     }
                     if (numSides >= 2) {
                         const seg2 = calcSeg(l.guardrailLength2 || 0, l.guardrailBarsOverride2);
                         if (seg2) {
                             totalOverallBars += seg2.totalBars - 1; // share corner
                             const gap2 = l.guardrailGapOverride2 !== undefined ? l.guardrailGapOverride2 : parseFloat(seg2.exactGap.toFixed(1));
-                            segmentsText.push(`Lado 2${sName2}: ${l.guardrailLength2 || 0}cm (${seg2.totalBars} tubos - vãos ${gap2}cm)`);
+                            segmentsText.push(`Lado 2${sName2}: Comp. Linear ${l.guardrailLength2 || 0}cm (${seg2.totalBars} tubos - vãos ${gap2}cm)`);
                         }
                     }
                     if (numSides >= 3) {
@@ -176,7 +176,7 @@ export const DeliveriesTable: React.FC = () => {
                         if (seg3) {
                             totalOverallBars += seg3.totalBars - 1; // share corner
                             const gap3 = l.guardrailGapOverride3 !== undefined ? l.guardrailGapOverride3 : parseFloat(seg3.exactGap.toFixed(1));
-                            segmentsText.push(`Lado 3${sName3}: ${l.guardrailLength3 || 0}cm (${seg3.totalBars} tubos - vãos ${gap3}cm)`);
+                            segmentsText.push(`Lado 3${sName3}: Comp. Linear ${l.guardrailLength3 || 0}cm (${seg3.totalBars} tubos - vãos ${gap3}cm)`);
                         }
                     }
 
