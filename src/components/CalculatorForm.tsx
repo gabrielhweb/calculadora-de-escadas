@@ -1150,7 +1150,17 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                         <input 
                                             type="checkbox"
                                             checked={!!landing.hasGate}
-                                            onChange={(e) => updateLanding(landing.id, { hasGate: e.target.checked })}
+                                            onChange={(e) => {
+                                                const isChecked = e.target.checked;
+                                                updateLanding(landing.id, { 
+                                                    hasGate: isChecked,
+                                                    ...(isChecked ? {
+                                                        gateLength: landing.gateLength || 100,
+                                                        gateHeight: landing.gateHeight || 90,
+                                                        gatePricePerMeter: landing.gatePricePerMeter !== undefined ? landing.gatePricePerMeter : 50
+                                                    } : {})
+                                                });
+                                            }}
                                             className="w-4 h-4 text-highlight rounded border-gray-300 focus:ring-highlight"
                                         />
                                         <span className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase">Possui Portãozinho?</span>
@@ -1169,10 +1179,6 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                         let totalBars = landing.gateBarsOverride !== undefined ? landing.gateBarsOverride : baseBars;
                                         totalBars = Math.max(2, totalBars);
                                         
-                                        let numInterBars = totalBars - 2;
-                                        let numGaps = numInterBars + 1;
-                                        let exactGap = (innerL - (numInterBars * 3)) / numGaps;
-                                        
                                         let totalVerticalMeters = totalBars * (gateHeight / 100);
                                         let totalHorizontalMeters = 2 * (gateLength / 100);
                                         let gateTotalMeters = totalVerticalMeters + totalHorizontalMeters;
@@ -1183,6 +1189,19 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                             { bars: baseBars, label: 'Padrão' },
                                             { bars: baseBars + 1, label: '+1 Barra' }
                                         ].filter(o => o.bars >= 2);
+
+                                        let numInterBars = totalBars - 2;
+                                        let numGaps = numInterBars + 1;
+                                        let exactGap = (innerL - (numInterBars * 3)) / numGaps;
+
+                                        const gateSidesOptions = ["Direita", "Esquerda", "Frente", "Atrás", "Início da escada", "Fim da escada"];
+                                        const gSide = (landing.guardrailSide || '').toLowerCase();
+                                        const availableGateSides = gateSidesOptions.filter(side => {
+                                            if (!landing.hasGuardrail || !gSide) return true;
+                                            const s = side.toLowerCase();
+                                            if (s.includes('escada')) return true;
+                                            return !gSide.includes(s);
+                                        });
 
                                         return (
                                             <div className="mt-2 space-y-3">
@@ -1195,12 +1214,9 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                                             className="w-full text-xs font-bold p-2 text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded border border-gray-300 dark:border-gray-600 outline-none focus:border-highlight"
                                                         >
                                                             <option value="">Selecione...</option>
-                                                            <option value="Direita">Direita</option>
-                                                            <option value="Esquerda">Esquerda</option>
-                                                            <option value="Frente">Frente</option>
-                                                            <option value="Atrás">Atrás</option>
-                                                            <option value="Início da escada">Início da escada</option>
-                                                            <option value="Fim da escada">Fim da escada</option>
+                                                            {availableGateSides.map(side => (
+                                                                <option key={side} value={side}>{side}</option>
+                                                            ))}
                                                         </select>
                                                     </div>
                                                 </div>

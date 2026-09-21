@@ -1587,38 +1587,46 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                                     />
                                                     <span className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase">Possui Portãozinho?</span>
                                                 </label>
-                                                {landing.hasGate && (
-                                                    <div className="mt-2 space-y-2 p-2 bg-gray-50 dark:bg-gray-700/50 rounded border border-gray-200 dark:border-gray-600">
-                                                        <div className="flex gap-2">
-                                                            <div className="flex-1">
-                                                                <label className="text-[10px] font-black text-gray-800 dark:text-gray-200 block mb-1">Lado/Orientação do Portão:</label>
-                                                                <select
-                                                                    value={landing.gateSide || ''}
-                                                                    onChange={(e) => updateLanding(landing.id, { gateSide: e.target.value })}
-                                                                    className="w-full text-xs p-1 rounded border border-gray-300 dark:border-gray-600"
-                                                                >
-                                                                    <option value="">Selecione...</option>
-                                                                    <option value="Direita">Direita</option>
-                                                                    <option value="Esquerda">Esquerda</option>
-                                                                    <option value="Frente">Frente</option>
-                                                                    <option value="Atrás">Atrás</option>
-                                                                    <option value="Início da escada">Início da escada</option>
-                                                                    <option value="Fim da escada">Fim da escada</option>
-                                                                </select>
+                                                {landing.hasGate && (() => {
+                                                    const gateSidesOptions = ["Direita", "Esquerda", "Frente", "Atrás", "Início da escada", "Fim da escada"];
+                                                    const gSide = (landing.guardrailSide || '').toLowerCase();
+                                                    const availableGateSides = gateSidesOptions.filter(side => {
+                                                        if (!landing.hasGuardrail || !gSide) return true;
+                                                        const s = side.toLowerCase();
+                                                        if (s.includes('escada')) return true;
+                                                        return !gSide.includes(s);
+                                                    });
+
+                                                    return (
+                                                        <div className="mt-2 space-y-2 p-2 bg-gray-50 dark:bg-gray-700/50 rounded border border-gray-200 dark:border-gray-600">
+                                                            <div className="flex gap-2">
+                                                                <div className="flex-1">
+                                                                    <label className="text-[10px] font-black text-gray-800 dark:text-gray-200 block mb-1">Lado/Orientação do Portão:</label>
+                                                                    <select
+                                                                        value={landing.gateSide || ''}
+                                                                        onChange={(e) => updateLanding(landing.id, { gateSide: e.target.value })}
+                                                                        className="w-full text-xs p-1 rounded border border-gray-300 dark:border-gray-600"
+                                                                    >
+                                                                        <option value="">Selecione...</option>
+                                                                        {availableGateSides.map(side => (
+                                                                            <option key={side} value={side}>{side}</option>
+                                                                        ))}
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex gap-2">
+                                                                <div className="flex-1">
+                                                                    <label className="text-[10px] font-black text-gray-800 dark:text-gray-200 block mb-1">Comp. Total (cm)</label>
+                                                                    <input type="number" value={landing.gateLength || 0} onChange={e => updateLanding(landing.id, { gateLength: parseFloat(e.target.value) || 0 })} className="w-full text-xs p-1 border rounded" />
+                                                                </div>
+                                                                <div className="flex-1">
+                                                                    <label className="text-[10px] font-black text-gray-800 dark:text-gray-200 block mb-1">Altura (cm)</label>
+                                                                    <input type="number" value={landing.gateHeight || 90} onChange={e => updateLanding(landing.id, { gateHeight: parseFloat(e.target.value) || 0 })} className="w-full text-xs p-1 border rounded" />
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                        <div className="flex gap-2">
-                                                            <div className="flex-1">
-                                                                <label className="text-[10px] font-black text-gray-800 dark:text-gray-200 block mb-1">Comp. Total (cm)</label>
-                                                                <input type="number" value={landing.gateLength || 0} onChange={e => updateLanding(landing.id, { gateLength: parseFloat(e.target.value) || 0 })} className="w-full text-xs p-1 border rounded" />
-                                                            </div>
-                                                            <div className="flex-1">
-                                                                <label className="text-[10px] font-black text-gray-800 dark:text-gray-200 block mb-1">Altura (cm)</label>
-                                                                <input type="number" value={landing.gateHeight || 90} onChange={e => updateLanding(landing.id, { gateHeight: parseFloat(e.target.value) || 0 })} className="w-full text-xs p-1 border rounded" />
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                )}
+                                                    );
+                                                })()}
                                             </div>
                                         </div>
                                     </div>
