@@ -4,6 +4,8 @@ import { GoogleGenAI } from "@google/genai";
 import { generateContractPDF } from '../utils/contractGenerator';
 import { generateAceiteObraPDF } from '../utils/aceiteObraGenerator';
 import { LandingInfo, OptionalItem } from '../types';
+import { GuardrailEditor } from '../components/GuardrailEditor';
+import { InputField, getAutoGuardrailLengths } from '../components/CalculatorForm';
 import { formatCurrencyBRL } from '../utils';
 import { TechnicalBudget } from '../components/TechnicalBudget';
 import { WeightCalculator } from '../components/WeightCalculator';
@@ -1508,10 +1510,18 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                                         checked={!!landing.hasGuardrail} 
                                                         onChange={(e) => {
                                                             const isChecked = e.target.checked;
+                                                            const autoLengths = getAutoGuardrailLengths(
+                                                                landing.guardrailFormat || 'normal',
+                                                                landing.guardrailSide || '',
+                                                                landing.width || 0,
+                                                                landing.length || 0
+                                                            );
                                                             updateLanding(landing.id, { 
                                                                 hasGuardrail: isChecked,
                                                                 ...(isChecked ? {
-                                                                    guardrailLength: landing.guardrailLength || landing.length || 0,
+                                                                    guardrailLength: landing.guardrailLength || autoLengths.guardrailLength,
+                                                                    guardrailLength2: landing.guardrailLength2 || autoLengths.guardrailLength2,
+                                                                    guardrailLength3: landing.guardrailLength3 || autoLengths.guardrailLength3,
                                                                     guardrailHeight: landing.guardrailHeight || 90,
                                                                     guardrailFormat: landing.guardrailFormat || 'normal'
                                                                 } : {})
@@ -1521,51 +1531,7 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                                     />
                                                     <span className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase">Possui Guarda Corpo?</span>
                                                 </label>
-                                                {landing.hasGuardrail && (
-                                                    <div className="mt-2 space-y-2 p-2 bg-gray-50 dark:bg-gray-700/50 rounded border border-gray-200 dark:border-gray-600">
-                                                        <div className="flex gap-2">
-                                                            <div className="flex-1">
-                                                                <label className="text-[10px] font-black text-gray-800 dark:text-gray-200 block mb-1">Formato:</label>
-                                                                <select
-                                                                    value={landing.guardrailFormat || 'normal'}
-                                                                    onChange={(e) => updateLanding(landing.id, { guardrailFormat: e.target.value as any })}
-                                                                    className="w-full text-xs p-1 rounded border border-gray-300 dark:border-gray-600"
-                                                                >
-                                                                    <option value="normal">Normal (Reto)</option>
-                                                                    <option value="L">Em L</option>
-                                                                    <option value="U">Em U</option>
-                                                                    <option value="frente">Apenas Frente</option>
-                                                                    <option value="atras">Apenas Atrás</option>
-                                                                </select>
-                                                            </div>
-                                                            <div className="flex-1">
-                                                                <label className="text-[10px] font-black text-gray-800 dark:text-gray-200 block mb-1">Lado/Orientação:</label>
-                                                                <select
-                                                                    value={landing.guardrailSide || ''}
-                                                                    onChange={(e) => updateLanding(landing.id, { guardrailSide: e.target.value })}
-                                                                    className="w-full text-xs p-1 rounded border border-gray-300 dark:border-gray-600"
-                                                                >
-                                                                    <option value="">Selecione...</option>
-                                                                    {(landing.guardrailFormat || 'normal') === 'normal' && <><option value="Direita">Direita</option><option value="Esquerda">Esquerda</option></>}
-                                                                    {landing.guardrailFormat === 'L' && <><option value="Frente e Direita">Frente e Direita</option><option value="Frente e Esquerda">Frente e Esquerda</option><option value="Atrás e Direita">Atrás e Direita</option><option value="Atrás e Esquerda">Atrás e Esquerda</option></>}
-                                                                    {landing.guardrailFormat === 'U' && <><option value="Esquerda, Frente, Direita">Esquerda, Frente, Direita</option><option value="Esquerda, Atrás, Direita">Esquerda, Atrás, Direita</option></>}
-                                                                    {landing.guardrailFormat === 'frente' && <option value="Frente">Frente</option>}
-                                                                    {landing.guardrailFormat === 'atras' && <option value="Atrás">Atrás</option>}
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                        <div className="flex gap-2">
-                                                            <div className="flex-1">
-                                                                <label className="text-[10px] font-black text-gray-800 dark:text-gray-200 block mb-1">Comp. Total (cm)</label>
-                                                                <input type="number" value={landing.guardrailLength || 0} onChange={e => updateLanding(landing.id, { guardrailLength: parseFloat(e.target.value) || 0 })} className="w-full text-xs p-1 border rounded" />
-                                                            </div>
-                                                            <div className="flex-1">
-                                                                <label className="text-[10px] font-black text-gray-800 dark:text-gray-200 block mb-1">Altura (cm)</label>
-                                                                <input type="number" value={landing.guardrailHeight || 90} onChange={e => updateLanding(landing.id, { guardrailHeight: parseFloat(e.target.value) || 0 })} className="w-full text-xs p-1 border rounded" />
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                )}
+                                                {landing.hasGuardrail && <GuardrailEditor landing={landing} updateLanding={updateLanding} InputField={InputField} />}
                                             </div>
                                             
                                             <div className="col-span-2 mt-1 pt-2 border-t border-gray-100 dark:border-gray-700">

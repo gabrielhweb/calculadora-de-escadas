@@ -714,33 +714,59 @@ export default function ProductionQueue() {
                                                                                 </h4>
                                                                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                                                                     {item.originalData.parsedContractData.landings.map((l: any, i: number) => {
-                                                                                        let guardrailTubes = 0;
-                                                                                        let guardrailGaps = 0;
-                                                                                        if (l.hasGuardrail && l.guardrailLength > 0 && l.guardrailHeight > 0) {
-                                                                                            const gaps = l.guardrailBarsOverride || Math.max(1, Math.round(l.guardrailLength / 15));
-                                                                                            guardrailGaps = gaps;
-                                                                                            guardrailTubes = gaps - 1;
+                                                                                        if (!l.hasGuardrail && !l.hasGate) return null;
+                                                                                        
+                                                                                        const calcSeg = (len: number, override?: number) => {
+                                                                                            if (!len) return null;
+                                                                                            let innerL = len - 6;
+                                                                                            if (innerL < 0) innerL = 0;
+                                                                                            const baseGaps = Math.max(1, Math.round(innerL / 15));
+                                                                                            let totalBars = override !== undefined ? override : (baseGaps + 1);
+                                                                                            totalBars = Math.max(2, totalBars);
+                                                                                            let exactGap = (innerL - ((totalBars - 2) * 3)) / (totalBars - 1);
+                                                                                            return { totalBars, exactGap };
+                                                                                        };
+
+                                                                                        let gMed = '';
+                                                                                        if (l.hasGuardrail) {
+                                                                                            const numSides = l.guardrailFormat === 'U' ? 3 : l.guardrailFormat === 'L' ? 2 : 1;
+                                                                                            let totalOverallBars = 0;
+                                                                                            let segmentsText: string[] = [];
+                                                                                            const seg1 = calcSeg(l.guardrailLength || 0, l.guardrailBarsOverride);
+                                                                                            if (seg1) { totalOverallBars += seg1.totalBars; segmentsText.push(`${l.guardrailLength || 0}cm (${seg1.totalBars}t/vãos ${seg1.exactGap.toFixed(1)}cm)`); }
+                                                                                            if (numSides >= 2) { const seg2 = calcSeg(l.guardrailLength2 || 0, l.guardrailBarsOverride2); if (seg2) { totalOverallBars += seg2.totalBars - 1; segmentsText.push(`${l.guardrailLength2 || 0}cm (${seg2.totalBars}t/vãos ${seg2.exactGap.toFixed(1)}cm)`); } }
+                                                                                            if (numSides >= 3) { const seg3 = calcSeg(l.guardrailLength3 || 0, l.guardrailBarsOverride3); if (seg3) { totalOverallBars += seg3.totalBars - 1; segmentsText.push(`${l.guardrailLength3 || 0}cm (${seg3.totalBars}t/vãos ${seg3.exactGap.toFixed(1)}cm)`); } }
+                                                                                            if (numSides > 1) {
+                                                                                                gMed = `G. Corpo (F: ${l.guardrailFormat || 'normal'}): [${segmentsText.join('] + [')}] - Total: ${totalOverallBars} tubos`;
+                                                                                            } else {
+                                                                                                gMed = `G. Corpo: ${l.guardrailLength || 0}cm comp - ${seg1 ? seg1.totalBars : 0} tubos (vãos ${seg1 ? seg1.exactGap.toFixed(1) : 0}cm)`;
+                                                                                            }
                                                                                         }
+                                                                                        
                                                                                         let gateTubes = 0;
                                                                                         let gateGaps = 0;
+                                                                                        let gateInnerL = (l.gateLength || 100) - 6;
+                                                                                        if (gateInnerL < 0) gateInnerL = 0;
                                                                                         if (l.hasGate && l.gateLength > 0 && l.gateHeight > 0) {
-                                                                                            const gaps = l.gateBarsOverride || Math.max(1, Math.round(l.gateLength / 15));
-                                                                                            gateGaps = gaps;
-                                                                                            gateTubes = gaps - 1;
+                                                                                            const baseGapsGate = Math.max(1, Math.round(gateInnerL / 15));
+                                                                                            let gb = l.gateBarsOverride !== undefined ? l.gateBarsOverride : (baseGapsGate + 1);
+                                                                                            gb = Math.max(2, gb);
+                                                                                            gateTubes = gb;
+                                                                                            gateGaps = gateTubes - 1;
                                                                                         }
-                                                                                        if (!guardrailTubes && !gateTubes) return null;
+
                                                                                         return (
                                                                                             <div key={i} className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded border border-gray-200 dark:border-gray-600">
-                                                                                                <p className="font-semibold text-gray-800 dark:text-gray-200 text-sm mb-1">Guarda-Corpo {i+1} ({l.shape})</p>
-                                                                                                {guardrailTubes > 0 && (
+                                                                                                <p className="font-semibold text-gray-800 dark:text-gray-200 text-sm mb-1">Patamar {i+1} ({l.shape})</p>
+                                                                                                {l.hasGuardrail && (
                                                                                                     <p className="text-xs text-gray-600 dark:text-gray-400">
-                                                                                                        <span className="font-medium">Tubos Guarda-Corpo:</span> {guardrailTubes} tubos ({guardrailGaps} vãos de {(l.guardrailLength / guardrailGaps).toFixed(1)}cm)
+                                                                                                        {gMed}
                                                                                                         {l.guardrailSide && <><br/>Lado: <span className="font-medium">{l.guardrailSide}</span></>}
                                                                                                     </p>
                                                                                                 )}
                                                                                                 {gateTubes > 0 && (
                                                                                                     <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                                                                                                        <span className="font-medium">Tubos Portão:</span> {gateTubes} tubos ({gateGaps} vãos de {(l.gateLength / gateGaps).toFixed(1)}cm)
+                                                                                                        <span className="font-medium">Portãozinho:</span> {gateTubes} tubos (vãos {((gateInnerL - ((gateTubes - 2) * 3)) / gateGaps).toFixed(1)}cm)
                                                                                                         {l.gateSide && <><br/>Lado: <span className="font-medium">{l.gateSide}</span></>}
                                                                                                     </p>
                                                                                                 )}

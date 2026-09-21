@@ -23,11 +23,15 @@ export interface LandingInfo {
   frenchBracketPrice?: number; // Preço unitário da mão francesa
   hasGuardrail?: boolean; // Novo: Possui Guarda Corpo
   guardrailFormat?: 'normal' | 'L' | 'U' | 'frente' | 'atras'; // Formato do Guarda Corpo
-  guardrailLength?: number; // Comprimento total (cm)
+  guardrailLength?: number; // Comprimento Lado 1 (cm)
+  guardrailLength2?: number; // Comprimento Lado 2 (cm)
+  guardrailLength3?: number; // Comprimento Lado 3 (cm)
   guardrailHeight?: number; // Altura (cm)
   guardrailPricePerMeter?: number; // Preço/metro
   guardrailCalculatedPrice?: number; // Preço salvo calculado
-  guardrailBarsOverride?: number; // Divisão manual (+/- barras)
+  guardrailBarsOverride?: number; // Divisão manual (+/- barras) Lado 1
+  guardrailBarsOverride2?: number; // Divisão manual Lado 2
+  guardrailBarsOverride3?: number; // Divisão manual Lado 3
   hasGate?: boolean; // Portãozinho
   gateLength?: number;
   gateHeight?: number;

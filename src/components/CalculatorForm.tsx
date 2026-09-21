@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { CalculatorInput, OptionalItem, LandingInfo, ReferenceDoor } from '../types';
+import { GuardrailEditor } from './GuardrailEditor';
 
 interface CalculatorFormProps {
   onCalculate: (data: CalculatorInput) => void;
@@ -24,7 +25,29 @@ const TooltipIcon: React.FC<{ text: string }> = ({ text }) => (
     </div>
 );
 
-const InputField: React.FC<{ 
+export const getAutoGuardrailLengths = (format: string, sideStr: string, width: number, length: number) => {
+    let l1 = length || 0;
+    let l2 = width || 0;
+    let l3 = length || 0;
+    
+    if (format === 'L') {
+        l1 = width || 0;
+        l2 = length || 0;
+    } else if (format === 'U') {
+        l1 = length || 0;
+        l2 = width || 0;
+        l3 = length || 0;
+    } else {
+        if ((sideStr || '').toLowerCase().includes('frente') || (sideStr || '').toLowerCase().includes('atrás')) {
+            l1 = width || 0;
+        } else {
+            l1 = length || 0;
+        }
+    }
+    return { guardrailLength: l1, guardrailLength2: l2, guardrailLength3: l3 };
+};
+
+export const InputField: React.FC<{ 
   label: string; 
   value: string; 
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; 
@@ -968,180 +991,32 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                         <input 
                                             type="checkbox"
                                             checked={!!landing.hasGuardrail}
-                                            onChange={(e) => updateLanding(landing.id, { hasGuardrail: e.target.checked })}
+                                            onChange={(e) => {
+                                                const isChecked = e.target.checked;
+                                                const autoLengths = getAutoGuardrailLengths(
+                                                    landing.guardrailFormat || 'normal',
+                                                    landing.guardrailSide || '',
+                                                    landing.width || 0,
+                                                    landing.length || 0
+                                                );
+                                                updateLanding(landing.id, { 
+                                                    hasGuardrail: isChecked,
+                                                    ...(isChecked ? {
+                                                        guardrailLength: landing.guardrailLength || autoLengths.guardrailLength,
+                                                        guardrailLength2: landing.guardrailLength2 || autoLengths.guardrailLength2,
+                                                        guardrailLength3: landing.guardrailLength3 || autoLengths.guardrailLength3,
+                                                        guardrailHeight: landing.guardrailHeight || 90,
+                                                        guardrailFormat: landing.guardrailFormat || 'normal',
+                                                        guardrailPricePerMeter: landing.guardrailPricePerMeter !== undefined ? landing.guardrailPricePerMeter : 50
+                                                    } : {})
+                                                });
+                                            }}
                                             className="w-4 h-4 text-highlight rounded border-gray-300 focus:ring-highlight"
                                         />
                                         <span className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase">Possui Guarda Corpo?</span>
                                     </label>
                                     
-                                    {landing.hasGuardrail && (() => {
-                                        const gFormat = landing.guardrailFormat || 'normal';
-                                        const gLength = landing.guardrailLength || 100;
-                                        const gHeight = landing.guardrailHeight || 90;
-                                        const gPricePerMeter = landing.guardrailPricePerMeter !== undefined ? landing.guardrailPricePerMeter : 50;
-                                        
-                                        let innerL = gLength - 6;
-                                        if (innerL < 0) innerL = 0;
-                                        const baseGaps = Math.max(1, Math.round(innerL / 15));
-                                        const baseBars = baseGaps + 1;
-                                        
-                                        let totalBars = landing.guardrailBarsOverride !== undefined ? landing.guardrailBarsOverride : baseBars;
-                                        totalBars = Math.max(2, totalBars);
-                                        
-                                        let numInterBars = totalBars - 2;
-                                        let numGaps = numInterBars + 1;
-                                        let exactGap = (innerL - (numInterBars * 3)) / numGaps;
-                                        
-                                        let totalVerticalMeters = totalBars * (gHeight / 100);
-                                        let totalHorizontalMeters = 2 * (gLength / 100);
-                                        let gTotalMeters = totalVerticalMeters + totalHorizontalMeters;
-                                        let currentGPrice = Math.round(gTotalMeters * gPricePerMeter);
-                                        
-                                        const gOptions = [
-                                            { bars: baseBars - 1, label: '-1 Barra' },
-                                            { bars: baseBars, label: 'Padrão' },
-                                            { bars: baseBars + 1, label: '+1 Barra' }
-                                        ].filter(o => o.bars >= 2);
-
-                                        return (
-                                            <div className="mt-2 space-y-3">
-                                                <div className="flex gap-2">
-                                                    <div className="flex-1">
-                                                        <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Formato:</label>
-                                                        <select
-                                                            value={gFormat}
-                                                            onChange={(e) => {
-                                                                const newFormat = e.target.value as any;
-                                                                let newLength = gLength;
-                                                                if (newFormat === 'normal') newLength = landing.length || 0;
-                                                                if (newFormat === 'L') newLength = (landing.length || 0) + (landing.width || 0);
-                                                                if (newFormat === 'U') newLength = (landing.length || 0) + ((landing.width || 0) * 2);
-                                                                if (newFormat === 'frente') newLength = landing.width || 0;
-                                                                if (newFormat === 'atras') newLength = landing.width || 0;
-                                                                
-                                                                updateLanding(landing.id, { 
-                                                                    guardrailFormat: newFormat,
-                                                                    guardrailLength: newLength
-                                                                });
-                                                            }}
-                                                            className="w-full text-xs font-bold p-2 text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 rounded border border-gray-300 dark:border-gray-600 outline-none focus:border-highlight"
-                                                        >
-                                                            <option value="normal">Normal (Reto)</option>
-                                                            <option value="L">Em L</option>
-                                                            <option value="U">Em U</option>
-                                                            <option value="frente">Apenas Frente</option>
-                                                            <option value="atras">Apenas Atrás</option>
-                                                        </select>
-                                                    </div>
-                                                    <div className="flex-1">
-                                                        <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Lado/Orientação:</label>
-                                                        <select
-                                                            value={landing.guardrailSide || ''}
-                                                            onChange={(e) => updateLanding(landing.id, { guardrailSide: e.target.value })}
-                                                            className="w-full text-xs font-bold p-2 text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded border border-gray-300 dark:border-gray-600 outline-none focus:border-highlight"
-                                                        >
-                                                            <option value="">Selecione...</option>
-                                                            {gFormat === 'normal' && (
-                                                                <>
-                                                                    <option value="Direita">Direita</option>
-                                                                    <option value="Esquerda">Esquerda</option>
-                                                                </>
-                                                            )}
-                                                            {gFormat === 'L' && (
-                                                                <>
-                                                                    <option value="Frente e Direita">Frente e Direita</option>
-                                                                    <option value="Frente e Esquerda">Frente e Esquerda</option>
-                                                                    <option value="Atrás e Direita">Atrás e Direita</option>
-                                                                    <option value="Atrás e Esquerda">Atrás e Esquerda</option>
-                                                                </>
-                                                            )}
-                                                            {gFormat === 'U' && (
-                                                                <>
-                                                                    <option value="Esquerda, Frente, Direita">Esquerda, Frente, Direita</option>
-                                                                    <option value="Esquerda, Atrás, Direita">Esquerda, Atrás, Direita</option>
-                                                                </>
-                                                            )}
-                                                            {gFormat === 'frente' && <option value="Frente">Frente</option>}
-                                                            {gFormat === 'atras' && <option value="Atrás">Atrás</option>}
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                                                    <InputField 
-                                                        label="Comp. Total" 
-                                                        value={gLength.toString()} 
-                                                        onChange={e => updateLanding(landing.id, { guardrailLength: parseFloat(e.target.value) || 0 })} 
-                                                        unit="cm" 
-                                                        className="mb-0"
-                                                    />
-                                                    <InputField 
-                                                        label="Altura" 
-                                                        value={gHeight.toString()} 
-                                                        onChange={e => updateLanding(landing.id, { guardrailHeight: parseFloat(e.target.value) || 0 })} 
-                                                        unit="cm" 
-                                                        className="mb-0"
-                                                    />
-                                                    <InputField 
-                                                        label="R$/Metro" 
-                                                        value={gPricePerMeter.toString()} 
-                                                        onChange={e => updateLanding(landing.id, { guardrailPricePerMeter: parseFloat(e.target.value) || 0 })} 
-                                                        unit="R$" 
-                                                        className="mb-0"
-                                                    />
-                                                </div>
-
-                                                {/* Visualizador */}
-                                                <div className="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-600 text-center">
-                                                    <p className="text-[10px] uppercase font-bold text-gray-500 mb-2">Prévia do Guarda-Corpo</p>
-                                                    
-                                                    {/* Desenho do Guarda Corpo */}
-                                                    <div className="relative w-full max-w-[200px] mx-auto h-[60px] border-t-4 border-b-4 border-gray-800 dark:border-gray-300 flex justify-between">
-                                                        {Array.from({length: totalBars}).map((_, i) => (
-                                                            <div key={i} className="w-[4px] h-full bg-gray-800 dark:bg-gray-300"></div>
-                                                        ))}
-                                                        
-                                                        {/* Labels no desenho */}
-                                                        <div className="absolute -left-6 top-1/2 -translate-y-1/2 text-[9px] font-bold text-highlight">{gHeight}cm</div>
-                                                        <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] font-bold text-highlight">{gLength}cm</div>
-                                                    </div>
-
-                                                    <div className="mt-4 flex flex-col gap-2">
-                                                        <p className="text-[10px] font-bold text-gray-500 uppercase text-center">Configuração de Barras</p>
-                                                        <div className="flex gap-2 items-center">
-                                                            <div className="flex-1">
-                                                                <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Qtd. Tubos</label>
-                                                                <input
-                                                                    type="number"
-                                                                    min="2"
-                                                                    value={totalBars}
-                                                                    onChange={e => {
-                                                                        const val = parseInt(e.target.value);
-                                                                        if (val >= 2) updateLanding(landing.id, { guardrailBarsOverride: val });
-                                                                    }}
-                                                                    className="w-full text-sm font-bold p-2 text-center text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded border border-gray-300 dark:border-gray-600 outline-none focus:border-highlight"
-                                                                />
-                                                            </div>
-                                                            <div className="flex-1 p-2 bg-gray-100 dark:bg-gray-700 rounded text-center border border-gray-200 dark:border-gray-600">
-                                                                <span className="text-[10px] text-gray-600 dark:text-gray-400 font-bold uppercase block mb-1">Vãos de</span>
-                                                                <span className="text-sm font-black text-highlight">{exactGap.toFixed(1)} cm</span>
-                                                            </div>
-                                                            <div className="flex-1 p-2 bg-blue-50 dark:bg-blue-900/30 rounded text-center border border-blue-200 dark:border-blue-700">
-                                                                <span className="text-[10px] text-blue-600 dark:text-blue-300 font-bold uppercase block mb-1">Total (R$)</span>
-                                                                <span className="text-sm font-black text-blue-800 dark:text-blue-200">{currentGPrice}</span>
-                                                            </div>
-                                                        </div>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => updateLanding(landing.id, { guardrailBarsOverride: undefined })}
-                                                            className="text-[10px] text-blue-500 hover:underline mt-1 self-center"
-                                                        >
-                                                            Restaurar Padrão Automático (~15cm)
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        );
-                                    })()}
+                                    {landing.hasGuardrail && <GuardrailEditor landing={landing} updateLanding={updateLanding} InputField={InputField} />}
                                 </div>
                                 {/* FIM GUARDA CORPO */}
                                 {/* INICIO PORTAO */}
@@ -1316,19 +1191,26 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                             
                                             // Soma o preço do Guarda Corpo (se houver)
                                             if (landing.hasGuardrail) {
-                                                const gLength = landing.guardrailLength || 100;
+                                                const gFormat = landing.guardrailFormat || "normal";
+                                                const numSides = gFormat === "U" ? 3 : gFormat === "L" ? 2 : 1;
                                                 const gHeight = landing.guardrailHeight || 90;
                                                 const gPricePerMeter = landing.guardrailPricePerMeter !== undefined ? landing.guardrailPricePerMeter : 50;
-                                                
-                                                let innerL = gLength - 6;
-                                                if (innerL < 0) innerL = 0;
-                                                const baseGaps = Math.max(1, Math.round(innerL / 15));
-                                                let totalBars = landing.guardrailBarsOverride !== undefined ? landing.guardrailBarsOverride : (baseGaps + 1);
-                                                totalBars = Math.max(2, totalBars);
-                                                
-                                                let totalVerticalMeters = totalBars * (gHeight / 100);
-                                                let totalHorizontalMeters = 2 * (gLength / 100);
-                                                let gTotalMeters = totalVerticalMeters + totalHorizontalMeters;
+
+                                                const calcSegment = (len: number, override?: number) => {
+                                                    if (!len) return 0;
+                                                    let innerL = len - 6;
+                                                    if (innerL < 0) innerL = 0;
+                                                    const baseGaps = Math.max(1, Math.round(innerL / 15));
+                                                    let totalBars = override !== undefined ? override : (baseGaps + 1);
+                                                    totalBars = Math.max(2, totalBars);
+                                                    let totalVerticalMeters = totalBars * (gHeight / 100);
+                                                    let totalHorizontalMeters = 2 * (len / 100);
+                                                    return totalVerticalMeters + totalHorizontalMeters;
+                                                };
+
+                                                let gTotalMeters = calcSegment(landing.guardrailLength || 0, landing.guardrailBarsOverride);
+                                                if (numSides >= 2) gTotalMeters += calcSegment(landing.guardrailLength2 || 0, landing.guardrailBarsOverride2);
+                                                if (numSides >= 3) gTotalMeters += calcSegment(landing.guardrailLength3 || 0, landing.guardrailBarsOverride3);
                                                 
                                                 calculatedPrice += Math.round(gTotalMeters * gPricePerMeter);
                                             }
