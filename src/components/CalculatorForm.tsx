@@ -1208,11 +1208,11 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                                     return totalVerticalMeters + totalHorizontalMeters;
                                                 };
 
-                                                let gTotalMeters = calcSegment(landing.guardrailLength || 0, landing.guardrailBarsOverride);
-                                                if (numSides >= 2) gTotalMeters += calcSegment(landing.guardrailLength2 || 0, landing.guardrailBarsOverride2);
-                                                if (numSides >= 3) gTotalMeters += calcSegment(landing.guardrailLength3 || 0, landing.guardrailBarsOverride3);
+                                                let p1 = landing.guardrailPriceOverride !== undefined ? landing.guardrailPriceOverride : Math.round(calcSegment(landing.guardrailLength || 0, landing.guardrailBarsOverride) * gPricePerMeter);
+                                                let p2 = numSides >= 2 ? (landing.guardrailPriceOverride2 !== undefined ? landing.guardrailPriceOverride2 : Math.round(calcSegment(landing.guardrailLength2 || 0, landing.guardrailBarsOverride2) * gPricePerMeter)) : 0;
+                                                let p3 = numSides >= 3 ? (landing.guardrailPriceOverride3 !== undefined ? landing.guardrailPriceOverride3 : Math.round(calcSegment(landing.guardrailLength3 || 0, landing.guardrailBarsOverride3) * gPricePerMeter)) : 0;
                                                 
-                                                calculatedPrice += Math.round(gTotalMeters * gPricePerMeter);
+                                                calculatedPrice += p1 + p2 + p3;
                                             }
                                             
                                             // Soma o preço do Portãozinho (se houver)

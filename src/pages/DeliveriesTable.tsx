@@ -154,27 +154,31 @@ export const DeliveriesTable: React.FC = () => {
                     const seg1 = calcSeg(l.guardrailLength || 0, l.guardrailBarsOverride);
                     if (seg1) {
                         totalOverallBars += seg1.totalBars;
-                        segmentsText.push(`Lado 1: ${l.guardrailLength || 0}cm (${seg1.totalBars} tubos - vãos ${seg1.exactGap.toFixed(1)}cm)`);
+                        const gap1 = l.guardrailGapOverride !== undefined ? l.guardrailGapOverride : parseFloat(seg1.exactGap.toFixed(1));
+                        segmentsText.push(`Lado 1: ${l.guardrailLength || 0}cm (${seg1.totalBars} tubos - vãos ${gap1}cm)`);
                     }
                     if (numSides >= 2) {
                         const seg2 = calcSeg(l.guardrailLength2 || 0, l.guardrailBarsOverride2);
                         if (seg2) {
                             totalOverallBars += seg2.totalBars - 1; // share corner
-                            segmentsText.push(`Lado 2: ${l.guardrailLength2 || 0}cm (${seg2.totalBars} tubos - vãos ${seg2.exactGap.toFixed(1)}cm)`);
+                            const gap2 = l.guardrailGapOverride2 !== undefined ? l.guardrailGapOverride2 : parseFloat(seg2.exactGap.toFixed(1));
+                            segmentsText.push(`Lado 2: ${l.guardrailLength2 || 0}cm (${seg2.totalBars} tubos - vãos ${gap2}cm)`);
                         }
                     }
                     if (numSides >= 3) {
                         const seg3 = calcSeg(l.guardrailLength3 || 0, l.guardrailBarsOverride3);
                         if (seg3) {
                             totalOverallBars += seg3.totalBars - 1; // share corner
-                            segmentsText.push(`Lado 3: ${l.guardrailLength3 || 0}cm (${seg3.totalBars} tubos - vãos ${seg3.exactGap.toFixed(1)}cm)`);
+                            const gap3 = l.guardrailGapOverride3 !== undefined ? l.guardrailGapOverride3 : parseFloat(seg3.exactGap.toFixed(1));
+                            segmentsText.push(`Lado 3: ${l.guardrailLength3 || 0}cm (${seg3.totalBars} tubos - vãos ${gap3}cm)`);
                         }
                     }
 
                     if (numSides > 1) {
                         med += `  - G. Corpo (F: ${format}): ${h}cm alt${side}\n    [${segmentsText.join('] + [')}] - Total: ${totalOverallBars} tubos\n`;
                     } else {
-                        med += `  - G. Corpo (F: ${format}): ${l.guardrailLength || 0}cm comp x ${h}cm alt${side} - ${seg1 ? seg1.totalBars : 0} tubos (vãos ${seg1 ? seg1.exactGap.toFixed(1) : 0}cm)\n`;
+                        const gap1 = seg1 ? (l.guardrailGapOverride !== undefined ? l.guardrailGapOverride : parseFloat(seg1.exactGap.toFixed(1))) : 0;
+                        med += `  - G. Corpo (F: ${format}): ${l.guardrailLength || 0}cm comp x ${h}cm alt${side} - ${seg1 ? seg1.totalBars : 0} tubos (vãos ${gap1}cm)\n`;
                     }
                 }
                 if (l.hasGate) {

@@ -7,7 +7,7 @@ export const GuardrailEditor = ({ landing, updateLanding, InputField }: any) => 
     const gHeight = landing.guardrailHeight || 90;
     const gPricePerMeter = landing.guardrailPricePerMeter !== undefined ? landing.guardrailPricePerMeter : 50;
 
-    const renderSegment = (length: number, override: number | undefined, updateOverride: (val: number | undefined) => void, label: string) => {
+    const renderSegment = (length: number, override: number | undefined, updateOverride: (val: number | undefined) => void, label: string, gapOverride: number | undefined, updateGap: (val: number | undefined) => void, priceOverride: number | undefined, updatePrice: (val: number | undefined) => void) => {
         let innerL = length - 6;
         if (innerL < 0) innerL = 0;
         const baseGaps = Math.max(1, Math.round(innerL / 15));
@@ -61,15 +61,21 @@ export const GuardrailEditor = ({ landing, updateLanding, InputField }: any) => 
                         </div>
                         <div className="flex-1 bg-gray-100 dark:bg-gray-700 p-2 rounded text-center">
                             <span className="block text-[10px] font-bold text-gray-500 uppercase mb-1">vãos exatos</span>
-                            <span className="font-bold text-highlight">{exactGap.toFixed(1)} cm</span>
+                            <div className="flex items-center justify-center">
+                                <input type="number" value={gapOverride !== undefined ? gapOverride : parseFloat(exactGap.toFixed(1))} onChange={(e: any) => updateGap(e.target.value === '' ? undefined : parseFloat(e.target.value))} className="w-16 text-center font-bold text-highlight text-sm bg-transparent outline-none border-b border-gray-300 focus:border-highlight" step="0.1" />
+                                <span className="text-highlight font-bold text-sm ml-1">cm</span>
+                            </div>
                         </div>
                         <div className="flex-1 bg-gray-100 dark:bg-gray-700 p-2 rounded text-center">
                             <span className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Total (R$)</span>
-                            <span className="font-bold text-blue-600">R$ {currentGPrice}</span>
+                            <div className="flex items-center justify-center">
+                                <span className="text-blue-600 font-bold text-sm mr-1">R$</span>
+                                <input type="number" value={priceOverride !== undefined ? priceOverride : currentGPrice} onChange={(e: any) => updatePrice(e.target.value === '' ? undefined : parseFloat(e.target.value))} className="w-16 text-center font-bold text-blue-600 text-sm bg-transparent outline-none border-b border-gray-300 focus:border-highlight" step="1" />
+                            </div>
                         </div>
                     </div>
                     <div className="flex justify-center gap-2 mt-3">
-                        <button onClick={() => updateOverride(undefined)} className="text-[10px] text-blue-500 hover:underline">Restaurar Padrão Automático</button>
+                        <button onClick={() => { updateOverride(undefined); updateGap(undefined); updatePrice(undefined); }} className="text-[10px] text-blue-500 hover:underline">Restaurar Padrão Automático</button>
                     </div>
                 </div>
             </div>
@@ -95,7 +101,7 @@ export const GuardrailEditor = ({ landing, updateLanding, InputField }: any) => 
                                 guardrailLength3: auto.guardrailLength3,
                                 guardrailBarsOverride: undefined,
                                 guardrailBarsOverride2: undefined,
-                                guardrailBarsOverride3: undefined
+                                guardrailBarsOverride3: undefined, guardrailGapOverride: undefined, guardrailGapOverride2: undefined, guardrailGapOverride3: undefined, guardrailPriceOverride: undefined, guardrailPriceOverride2: undefined, guardrailPriceOverride3: undefined
                             });
                         }}
                         className="w-full text-xs font-bold p-2 text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 rounded border border-gray-300 dark:border-gray-600 outline-none focus:border-highlight"
@@ -204,9 +210,9 @@ export const GuardrailEditor = ({ landing, updateLanding, InputField }: any) => 
             </div>
 
             <div className="mt-4">
-                {renderSegment(landing.guardrailLength || 0, landing.guardrailBarsOverride, (val) => updateLanding(landing.id, { guardrailBarsOverride: val }), numSides > 1 ? "LADO 1" : "GUARDA-CORPO")}
-                {numSides >= 2 && renderSegment(landing.guardrailLength2 || 0, landing.guardrailBarsOverride2, (val) => updateLanding(landing.id, { guardrailBarsOverride2: val }), "LADO 2")}
-                {numSides >= 3 && renderSegment(landing.guardrailLength3 || 0, landing.guardrailBarsOverride3, (val) => updateLanding(landing.id, { guardrailBarsOverride3: val }), "LADO 3")}
+                {renderSegment(landing.guardrailLength || 0, landing.guardrailBarsOverride, (val) => updateLanding(landing.id, { guardrailBarsOverride: val }), numSides > 1 ? "LADO 1" : "GUARDA-CORPO", landing.guardrailGapOverride, (val) => updateLanding(landing.id, { guardrailGapOverride: val }), landing.guardrailPriceOverride, (val) => updateLanding(landing.id, { guardrailPriceOverride: val }))}
+                {numSides >= 2 && renderSegment(landing.guardrailLength2 || 0, landing.guardrailBarsOverride2, (val) => updateLanding(landing.id, { guardrailBarsOverride2: val }), "LADO 2", landing.guardrailGapOverride2, (val) => updateLanding(landing.id, { guardrailGapOverride2: val }), landing.guardrailPriceOverride2, (val) => updateLanding(landing.id, { guardrailPriceOverride2: val }))}
+                {numSides >= 3 && renderSegment(landing.guardrailLength3 || 0, landing.guardrailBarsOverride3, (val) => updateLanding(landing.id, { guardrailBarsOverride3: val }), "LADO 3", landing.guardrailGapOverride3, (val) => updateLanding(landing.id, { guardrailGapOverride3: val }), landing.guardrailPriceOverride3, (val) => updateLanding(landing.id, { guardrailPriceOverride3: val }))}
             </div>
         </div>
     );

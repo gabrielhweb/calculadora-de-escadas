@@ -32,6 +32,12 @@ export interface LandingInfo {
   guardrailBarsOverride?: number; // Divisão manual (+/- barras) Lado 1
   guardrailBarsOverride2?: number; // Divisão manual Lado 2
   guardrailBarsOverride3?: number; // Divisão manual Lado 3
+  guardrailGapOverride?: number;
+  guardrailGapOverride2?: number;
+  guardrailGapOverride3?: number;
+  guardrailPriceOverride?: number;
+  guardrailPriceOverride2?: number;
+  guardrailPriceOverride3?: number;
   hasGate?: boolean; // Portãozinho
   gateLength?: number;
   gateHeight?: number;
