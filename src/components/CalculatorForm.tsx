@@ -1084,36 +1084,37 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                                     </div>
 
                                                     <div className="mt-4 flex flex-col gap-2">
-                                                        <p className="text-[10px] font-bold text-gray-500 uppercase text-center">Opções de Divisão</p>
-                                                        <div className="grid grid-cols-1 gap-2">
-                                                            {gOptions.map(opt => {
-                                                                const optInter = opt.bars - 2;
-                                                                const optGaps = optInter + 1;
-                                                                const optGapSize = (innerL - (optInter * 3)) / optGaps;
-                                                                const optVertMeters = opt.bars * (gHeight / 100);
-                                                                const optTotalMeters = optVertMeters + totalHorizontalMeters;
-                                                                const optPrice = Math.round(optTotalMeters * gPricePerMeter);
-                                                                const isSelected = totalBars === opt.bars;
-                                                                
-                                                                return (
-                                                                    <div 
-                                                                        key={opt.bars}
-                                                                        onClick={() => updateLanding(landing.id, { guardrailBarsOverride: opt.bars })}
-                                                                        className={`p-2 rounded border cursor-pointer flex justify-between items-center transition-all ${isSelected ? 'bg-blue-50 border-blue-500 shadow-sm dark:bg-blue-900/30 dark:border-blue-500' : 'bg-gray-50 border-gray-200 hover:bg-gray-100 dark:bg-gray-700 dark:border-gray-600'}`}
-                                                                    >
-                                                                        <div className="flex flex-col text-left">
-                                                                            <span className={`text-xs font-bold ${isSelected ? 'text-blue-700 dark:text-blue-300' : 'text-gray-700 dark:text-gray-300'}`}>
-                                                                                {opt.bars} Tubos {opt.label !== 'Padrão' ? `(${opt.label})` : '(Padrão)'}
-                                                                            </span>
-                                                                            <span className="text-[10px] text-gray-500 dark:text-gray-400">Vãos de {optGapSize.toFixed(1)}cm</span>
-                                                                        </div>
-                                                                        <div className={`font-black text-sm ${isSelected ? 'text-blue-800 dark:text-blue-200' : 'text-gray-800 dark:text-gray-200'}`}>
-                                                                            R$ {optPrice}
-                                                                        </div>
-                                                                    </div>
-                                                                );
-                                                            })}
+                                                        <p className="text-[10px] font-bold text-gray-500 uppercase text-center">Configuração de Barras</p>
+                                                        <div className="flex gap-2 items-center">
+                                                            <div className="flex-1">
+                                                                <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Qtd. Tubos</label>
+                                                                <input
+                                                                    type="number"
+                                                                    min="2"
+                                                                    value={totalBars}
+                                                                    onChange={e => {
+                                                                        const val = parseInt(e.target.value);
+                                                                        if (val >= 2) updateLanding(landing.id, { guardrailBarsOverride: val });
+                                                                    }}
+                                                                    className="w-full text-sm font-bold p-2 text-center text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded border border-gray-300 dark:border-gray-600 outline-none focus:border-highlight"
+                                                                />
+                                                            </div>
+                                                            <div className="flex-1 p-2 bg-gray-100 dark:bg-gray-700 rounded text-center border border-gray-200 dark:border-gray-600">
+                                                                <span className="text-[10px] text-gray-600 dark:text-gray-400 font-bold uppercase block mb-1">Vãos de</span>
+                                                                <span className="text-sm font-black text-highlight">{exactGap.toFixed(1)} cm</span>
+                                                            </div>
+                                                            <div className="flex-1 p-2 bg-blue-50 dark:bg-blue-900/30 rounded text-center border border-blue-200 dark:border-blue-700">
+                                                                <span className="text-[10px] text-blue-600 dark:text-blue-300 font-bold uppercase block mb-1">Total (R$)</span>
+                                                                <span className="text-sm font-black text-blue-800 dark:text-blue-200">{currentGPrice}</span>
+                                                            </div>
                                                         </div>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => updateLanding(landing.id, { guardrailBarsOverride: undefined })}
+                                                            className="text-[10px] text-blue-500 hover:underline mt-1 self-center"
+                                                        >
+                                                            Restaurar Padrão Automático (~15cm)
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1208,36 +1209,37 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                                         ))}
                                                     </div>
                                                     <div className="mt-4 flex flex-col gap-2">
-                                                        <p className="text-[10px] font-bold text-gray-500 uppercase text-center">Opções de Divisão</p>
-                                                        <div className="grid grid-cols-1 gap-2">
-                                                            {gateOptions.map(opt => {
-                                                                const optInter = opt.bars - 2;
-                                                                const optGaps = optInter + 1;
-                                                                const optGapSize = (innerL - (optInter * 3)) / optGaps;
-                                                                const optVertMeters = opt.bars * (gateHeight / 100);
-                                                                const optTotalMeters = optVertMeters + totalHorizontalMeters;
-                                                                const optPrice = Math.round(optTotalMeters * gatePricePerMeter);
-                                                                const isSelected = totalBars === opt.bars;
-                                                                
-                                                                return (
-                                                                    <div 
-                                                                        key={opt.bars}
-                                                                        onClick={() => updateLanding(landing.id, { gateBarsOverride: opt.bars })}
-                                                                        className={`p-2 rounded border cursor-pointer flex justify-between items-center transition-all ${isSelected ? 'bg-blue-50 border-blue-500 shadow-sm dark:bg-blue-900/30 dark:border-blue-500' : 'bg-gray-50 border-gray-200 hover:bg-gray-100 dark:bg-gray-700 dark:border-gray-600'}`}
-                                                                    >
-                                                                        <div className="flex flex-col text-left">
-                                                                            <span className={`text-xs font-bold ${isSelected ? 'text-blue-700 dark:text-blue-300' : 'text-gray-700 dark:text-gray-300'}`}>
-                                                                                {opt.bars} Tubos {opt.label !== 'Padrão' ? `(${opt.label})` : '(Padrão)'}
-                                                                            </span>
-                                                                            <span className="text-[10px] text-gray-500 dark:text-gray-400">Vãos de {optGapSize.toFixed(1)}cm</span>
-                                                                        </div>
-                                                                        <div className={`font-black text-sm ${isSelected ? 'text-blue-800 dark:text-blue-200' : 'text-gray-800 dark:text-gray-200'}`}>
-                                                                            R$ {optPrice}
-                                                                        </div>
-                                                                    </div>
-                                                                );
-                                                            })}
+                                                        <p className="text-[10px] font-bold text-gray-500 uppercase text-center">Configuração de Barras</p>
+                                                        <div className="flex gap-2 items-center">
+                                                            <div className="flex-1">
+                                                                <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Qtd. Tubos</label>
+                                                                <input
+                                                                    type="number"
+                                                                    min="2"
+                                                                    value={totalBars}
+                                                                    onChange={e => {
+                                                                        const val = parseInt(e.target.value);
+                                                                        if (val >= 2) updateLanding(landing.id, { gateBarsOverride: val });
+                                                                    }}
+                                                                    className="w-full text-sm font-bold p-2 text-center text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded border border-gray-300 dark:border-gray-600 outline-none focus:border-highlight"
+                                                                />
+                                                            </div>
+                                                            <div className="flex-1 p-2 bg-gray-100 dark:bg-gray-700 rounded text-center border border-gray-200 dark:border-gray-600">
+                                                                <span className="text-[10px] text-gray-600 dark:text-gray-400 font-bold uppercase block mb-1">Vãos de</span>
+                                                                <span className="text-sm font-black text-highlight">{exactGap.toFixed(1)} cm</span>
+                                                            </div>
+                                                            <div className="flex-1 p-2 bg-blue-50 dark:bg-blue-900/30 rounded text-center border border-blue-200 dark:border-blue-700">
+                                                                <span className="text-[10px] text-blue-600 dark:text-blue-300 font-bold uppercase block mb-1">Total (R$)</span>
+                                                                <span className="text-sm font-black text-blue-800 dark:text-blue-200">{currentGatePrice}</span>
+                                                            </div>
                                                         </div>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => updateLanding(landing.id, { gateBarsOverride: undefined })}
+                                                            className="text-[10px] text-blue-500 hover:underline mt-1 self-center"
+                                                        >
+                                                            Restaurar Padrão Automático (~15cm)
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </div>
