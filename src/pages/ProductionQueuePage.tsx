@@ -771,7 +771,7 @@ export default function ProductionQueue() {
                                                                                                 } 
                                                                                             }
                                                                                             const totalWithGate = totalLinear + (l.hasGate ? (l.gateLength || 0) : 0);
-                                                                                            const compText = l.hasGate ? `Comp. Linear (+ Portão) ${totalWithGate}cm` : `Comp. Linear ${totalLinear}cm`;
+                                                                                            const compText = l.hasGate ? `Comp. Linear G.Corpo: ${totalLinear}cm (Total c/ Portão: ${totalWithGate}cm)` : `Comp. Linear: ${totalLinear}cm`;
 
                                                                                             if (numSides > 1) {
                                                                                                 gMed = `G. Corpo (F: ${l.guardrailFormat || 'normal'}): ${compText} - Total ${totalOverallBars} tubos - R$ ${totalPrice}\n`;

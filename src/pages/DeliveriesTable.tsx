@@ -190,7 +190,7 @@ export const DeliveriesTable: React.FC = () => {
                     }
 
                     const totalWithGate = totalLinear + (l.hasGate ? (l.gateLength || 0) : 0);
-                    const compText = l.hasGate ? `Comp. Linear (+ Portão) ${totalWithGate}cm` : `Comp. Linear ${totalLinear}cm`;
+                    const compText = l.hasGate ? `Comp. Linear G.Corpo: ${totalLinear}cm (Total c/ Portão: ${totalWithGate}cm)` : `Comp. Linear: ${totalLinear}cm`;
 
                     if (numSides > 1) {
                         med += `  - G. Corpo (F: ${format}): ${compText} | Altura ${h}cm - Total: ${totalOverallBars} tubos - R$ ${totalPrice}\n`;
