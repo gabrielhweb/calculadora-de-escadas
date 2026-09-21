@@ -151,18 +151,24 @@ export const DeliveriesTable: React.FC = () => {
                     let totalOverallBars = 0;
                     let segmentsText: string[] = [];
                     
+                    const sideNames = l.guardrailSide ? l.guardrailSide.split(/ e |, /) : [];
+                    const sName1 = sideNames[0] ? ` (${sideNames[0]})` : '';
+                    const sName2 = sideNames[1] ? ` (${sideNames[1]})` : '';
+                    const sName3 = sideNames[2] ? ` (${sideNames[2]})` : '';
+                    const totalLinear = (l.guardrailLength || 0) + (numSides >= 2 ? (l.guardrailLength2 || 0) : 0) + (numSides >= 3 ? (l.guardrailLength3 || 0) : 0);
+                    
                     const seg1 = calcSeg(l.guardrailLength || 0, l.guardrailBarsOverride);
                     if (seg1) {
                         totalOverallBars += seg1.totalBars;
                         const gap1 = l.guardrailGapOverride !== undefined ? l.guardrailGapOverride : parseFloat(seg1.exactGap.toFixed(1));
-                        segmentsText.push(`Lado 1: ${l.guardrailLength || 0}cm (${seg1.totalBars} tubos - vãos ${gap1}cm)`);
+                        segmentsText.push(`Lado 1${sName1}: ${l.guardrailLength || 0}cm (${seg1.totalBars} tubos - vãos ${gap1}cm)`);
                     }
                     if (numSides >= 2) {
                         const seg2 = calcSeg(l.guardrailLength2 || 0, l.guardrailBarsOverride2);
                         if (seg2) {
                             totalOverallBars += seg2.totalBars - 1; // share corner
                             const gap2 = l.guardrailGapOverride2 !== undefined ? l.guardrailGapOverride2 : parseFloat(seg2.exactGap.toFixed(1));
-                            segmentsText.push(`Lado 2: ${l.guardrailLength2 || 0}cm (${seg2.totalBars} tubos - vãos ${gap2}cm)`);
+                            segmentsText.push(`Lado 2${sName2}: ${l.guardrailLength2 || 0}cm (${seg2.totalBars} tubos - vãos ${gap2}cm)`);
                         }
                     }
                     if (numSides >= 3) {
@@ -170,18 +176,18 @@ export const DeliveriesTable: React.FC = () => {
                         if (seg3) {
                             totalOverallBars += seg3.totalBars - 1; // share corner
                             const gap3 = l.guardrailGapOverride3 !== undefined ? l.guardrailGapOverride3 : parseFloat(seg3.exactGap.toFixed(1));
-                            segmentsText.push(`Lado 3: ${l.guardrailLength3 || 0}cm (${seg3.totalBars} tubos - vãos ${gap3}cm)`);
+                            segmentsText.push(`Lado 3${sName3}: ${l.guardrailLength3 || 0}cm (${seg3.totalBars} tubos - vãos ${gap3}cm)`);
                         }
                     }
 
                     if (numSides > 1) {
-                        med += `  - G. Corpo (F: ${format}): ${h}cm alt${side} - Total: ${totalOverallBars} tubos\n`;
+                        med += `  - G. Corpo (F: ${format}): Comp. Linear ${totalLinear}cm | Altura ${h}cm - Total: ${totalOverallBars} tubos\n`;
                         segmentsText.forEach(seg => {
                             med += `    • ${seg}\n`;
                         });
                     } else {
                         const gap1 = seg1 ? (l.guardrailGapOverride !== undefined ? l.guardrailGapOverride : parseFloat(seg1.exactGap.toFixed(1))) : 0;
-                        med += `  - G. Corpo (F: ${format}): ${l.guardrailLength || 0}cm comp x ${h}cm alt${side} - ${seg1 ? seg1.totalBars : 0} tubos (vãos ${gap1}cm)\n`;
+                        med += `  - G. Corpo (F: ${format}): Comp. Linear ${totalLinear}cm | Altura ${h}cm${side} - ${seg1 ? seg1.totalBars : 0} tubos (vãos ${gap1}cm)\n`;
                     }
                 }
                 if (l.hasGate) {
