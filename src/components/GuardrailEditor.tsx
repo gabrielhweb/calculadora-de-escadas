@@ -177,8 +177,8 @@ export const GuardrailEditor = ({ landing, updateLanding, InputField }: any) => 
                 </div>
             </div>
             
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
-                <div>
+            <div className="flex flex-wrap gap-2">
+                <div className="flex-1 min-w-[110px]">
                     <InputField 
                         label={numSides === 1 ? "Comp." : "Lado 1"} 
                         value={(landing.guardrailLength || 0).toString()} 
@@ -188,7 +188,7 @@ export const GuardrailEditor = ({ landing, updateLanding, InputField }: any) => 
                     />
                 </div>
                 {numSides >= 2 && (
-                    <div>
+                    <div className="flex-1 min-w-[110px]">
                         <InputField 
                             label="Lado 2" 
                             value={(landing.guardrailLength2 || 0).toString()} 
@@ -199,7 +199,7 @@ export const GuardrailEditor = ({ landing, updateLanding, InputField }: any) => 
                     </div>
                 )}
                 {numSides >= 3 && (
-                    <div>
+                    <div className="flex-1 min-w-[110px]">
                         <InputField 
                             label="Lado 3" 
                             value={(landing.guardrailLength3 || 0).toString()} 
@@ -209,16 +209,16 @@ export const GuardrailEditor = ({ landing, updateLanding, InputField }: any) => 
                         />
                     </div>
                 )}
-                <div>
+                <div className="flex-1 min-w-[110px]">
                     <InputField 
                         label="Altura" 
-                        value={(landing.guardrailHeight || 0).toString()} 
+                        value={(landing.guardrailHeight || 90).toString()} 
                         onChange={(e: any) => updateLanding(landing.id, { guardrailHeight: parseFloat(e.target.value) || 0 })} 
                         unit="cm" 
                         className="mb-0"
                     />
                 </div>
-                <div>
+                <div className="flex-1 min-w-[110px]">
                     <InputField 
                         label="R$/Metro" 
                         value={(landing.guardrailPricePerMeter !== undefined ? landing.guardrailPricePerMeter : 50).toString()} 
