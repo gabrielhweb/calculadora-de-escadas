@@ -69,10 +69,13 @@ export const GuardrailEditor = ({ landing, updateLanding, InputField }: any) => 
                                     onBlur={(e: any) => {
                                         const val = parseFloat(e.target.value);
                                         if (!isNaN(val) && val > 0) {
-                                            const impliedBars = Math.round(innerL / val) + 1;
+                                            const gapsCalc = (innerL + 3) / (val + 3);
+                                            const impliedBars = Math.round(gapsCalc) + 1;
                                             if (impliedBars >= 2 && impliedBars !== totalBars) {
                                                 if (window.confirm(`Com esse vão de ${val}cm, a quantidade ideal de tubos seria ${impliedBars} (atualmente está ${totalBars}). Deseja ajustar a quantidade de tubos automaticamente?`)) {
                                                     updateOverride(impliedBars);
+                                                } else {
+                                                    updateGap(undefined);
                                                 }
                                             }
                                         }
