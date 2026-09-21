@@ -812,7 +812,7 @@ export default function ProductionQueue() {
                                                                                                     const gPrice = Math.round((gateLen / 100) * 10);
                                                                                                     return (
                                                                                                         <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                                                                                                            <span className="font-medium">Portãozinho:</span> {gateTubes} tubos (vãos {((gateInnerL - ((gateTubes - 2) * 3)) / gateGaps).toFixed(1)}cm) - R$ {gPrice}
+                                                                                                            <span className="font-medium">Portãozinho:</span> Comp. Linear {gateLen}cm | Altura {gateH}cm - {gateTubes} tubos (vãos {((gateInnerL - ((gateTubes - 2) * 3)) / gateGaps).toFixed(1)}cm) - R$ {gPrice}
                                                                                                             {l.gateSide && <><br/>Lado: <span className="font-medium">{l.gateSide}</span></>}
                                                                                                         </p>
                                                                                                     );

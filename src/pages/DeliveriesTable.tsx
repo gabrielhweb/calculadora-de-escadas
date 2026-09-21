@@ -217,7 +217,7 @@ export const DeliveriesTable: React.FC = () => {
                     
                     const gatePrice = Math.round((len / 100) * 10);
 
-                    med += `  - Portão: ${len}cm comp x ${h}cm alt${side} - ${totalBars} tubos (vãos ${exactGap.toFixed(1)}cm) - R$ ${gatePrice}\n`;
+                    med += `  - Portão: Comp. Linear ${len}cm | Altura ${h}cm${side} - ${totalBars} tubos (vãos ${exactGap.toFixed(1)}cm) - R$ ${gatePrice}\n`;
                 }
             });
         }
