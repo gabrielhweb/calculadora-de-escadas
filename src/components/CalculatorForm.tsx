@@ -1035,13 +1035,35 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                                     </div>
                                                     <div className="flex-1">
                                                         <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Lado/Orientação:</label>
-                                                        <input
-                                                            type="text"
-                                                            placeholder="Ex: Direita, Esquerda..."
+                                                        <select
                                                             value={landing.guardrailSide || ''}
                                                             onChange={(e) => updateLanding(landing.id, { guardrailSide: e.target.value })}
                                                             className="w-full text-xs font-bold p-2 text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded border border-gray-300 dark:border-gray-600 outline-none focus:border-highlight"
-                                                        />
+                                                        >
+                                                            <option value="">Selecione...</option>
+                                                            {gFormat === 'normal' && (
+                                                                <>
+                                                                    <option value="Direita">Direita</option>
+                                                                    <option value="Esquerda">Esquerda</option>
+                                                                </>
+                                                            )}
+                                                            {gFormat === 'L' && (
+                                                                <>
+                                                                    <option value="Frente e Direita">Frente e Direita</option>
+                                                                    <option value="Frente e Esquerda">Frente e Esquerda</option>
+                                                                    <option value="Atrás e Direita">Atrás e Direita</option>
+                                                                    <option value="Atrás e Esquerda">Atrás e Esquerda</option>
+                                                                </>
+                                                            )}
+                                                            {gFormat === 'U' && (
+                                                                <>
+                                                                    <option value="Esquerda, Frente, Direita">Esquerda, Frente, Direita</option>
+                                                                    <option value="Esquerda, Atrás, Direita">Esquerda, Atrás, Direita</option>
+                                                                </>
+                                                            )}
+                                                            {gFormat === 'frente' && <option value="Frente">Frente</option>}
+                                                            {gFormat === 'atras' && <option value="Atrás">Atrás</option>}
+                                                        </select>
                                                     </div>
                                                 </div>
                                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -1167,13 +1189,19 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                                 <div className="flex gap-2">
                                                     <div className="flex-1">
                                                         <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Lado/Orientação do Portão:</label>
-                                                        <input
-                                                            type="text"
-                                                            placeholder="Ex: Direita, Início da escada..."
+                                                        <select
                                                             value={landing.gateSide || ''}
                                                             onChange={(e) => updateLanding(landing.id, { gateSide: e.target.value })}
                                                             className="w-full text-xs font-bold p-2 text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded border border-gray-300 dark:border-gray-600 outline-none focus:border-highlight"
-                                                        />
+                                                        >
+                                                            <option value="">Selecione...</option>
+                                                            <option value="Direita">Direita</option>
+                                                            <option value="Esquerda">Esquerda</option>
+                                                            <option value="Frente">Frente</option>
+                                                            <option value="Atrás">Atrás</option>
+                                                            <option value="Início da escada">Início da escada</option>
+                                                            <option value="Fim da escada">Fim da escada</option>
+                                                        </select>
                                                     </div>
                                                 </div>
                                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">

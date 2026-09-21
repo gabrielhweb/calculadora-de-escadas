@@ -137,7 +137,7 @@ export const DeliveriesTable: React.FC = () => {
                 }
                 if (l.hasGate) {
                     const side = l.gateSide ? ` [Lado: ${l.gateSide}]` : '';
-                    med += `  - Portão: ${l.gateLength}cm linear${side}\n`;
+                    med += `  - Portão: ${l.gateLength || 0}cm linear${side}\n`;
                 }
             });
         }
