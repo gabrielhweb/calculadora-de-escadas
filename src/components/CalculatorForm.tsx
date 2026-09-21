@@ -1033,6 +1033,16 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                                             <option value="atras">Apenas Atrás</option>
                                                         </select>
                                                     </div>
+                                                    <div className="flex-1">
+                                                        <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Lado/Orientação:</label>
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Ex: Direita, Esquerda..."
+                                                            value={landing.guardrailSide || ''}
+                                                            onChange={(e) => updateLanding(landing.id, { guardrailSide: e.target.value })}
+                                                            className="w-full text-xs font-bold p-2 text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded border border-gray-300 dark:border-gray-600 outline-none focus:border-highlight"
+                                                        />
+                                                    </div>
                                                 </div>
                                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                                                     <InputField 
@@ -1153,6 +1163,18 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
 
                                         return (
                                             <div className="mt-2 space-y-3">
+                                                <div className="flex gap-2">
+                                                    <div className="flex-1">
+                                                        <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Lado/Orientação do Portão:</label>
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Ex: Direita, Início da escada..."
+                                                            value={landing.gateSide || ''}
+                                                            onChange={(e) => updateLanding(landing.id, { gateSide: e.target.value })}
+                                                            className="w-full text-xs font-bold p-2 text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded border border-gray-300 dark:border-gray-600 outline-none focus:border-highlight"
+                                                        />
+                                                    </div>
+                                                </div>
                                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                                                     <InputField 
                                                         label="Comp. Total" 

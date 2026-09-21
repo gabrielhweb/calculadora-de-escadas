@@ -735,11 +735,13 @@ export default function ProductionQueue() {
                                                                                                 {guardrailTubes > 0 && (
                                                                                                     <p className="text-xs text-gray-600 dark:text-gray-400">
                                                                                                         <span className="font-medium">Tubos Guarda-Corpo:</span> {guardrailTubes} tubos ({guardrailGaps} vãos de {(l.guardrailLength / guardrailGaps).toFixed(1)}cm)
+                                                                                                        {l.guardrailSide && <><br/>Lado: <span className="font-medium">{l.guardrailSide}</span></>}
                                                                                                     </p>
                                                                                                 )}
                                                                                                 {gateTubes > 0 && (
                                                                                                     <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                                                                                                         <span className="font-medium">Tubos Portão:</span> {gateTubes} tubos ({gateGaps} vãos de {(l.gateLength / gateGaps).toFixed(1)}cm)
+                                                                                                        {l.gateSide && <><br/>Lado: <span className="font-medium">{l.gateSide}</span></>}
                                                                                                     </p>
                                                                                                 )}
                                                                                             </div>

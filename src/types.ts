@@ -35,6 +35,8 @@ export interface LandingInfo {
   gateBarsOverride?: number;
   isAngled?: boolean; // Patamar em Ângulo
   chapaPrice?: number; // Preço isolado da chapa do patamar
+  guardrailSide?: string; // NOVO: Orientação geográfica do guarda-corpo
+  gateSide?: string; // NOVO: Orientação geográfica do portãozinho
 }
 
 export interface LogisticsInfo {

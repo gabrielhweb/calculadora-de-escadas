@@ -131,6 +131,14 @@ export const DeliveriesTable: React.FC = () => {
             landings.forEach((l: any, idx: number) => {
                 const type = l.type === 'articulated' ? 'ARTICULADO' : 'FIXO';
                 med += `PATAMAR ${idx + 1} (${type}): ${l.length}cm x ${l.width}cm\n`;
+                if (l.hasGuardrail) {
+                    const side = l.guardrailSide ? ` [Lado: ${l.guardrailSide}]` : '';
+                    med += `  - G. Corpo: ${l.guardrailLength}cm linear${side}\n`;
+                }
+                if (l.hasGate) {
+                    const side = l.gateSide ? ` [Lado: ${l.gateSide}]` : '';
+                    med += `  - Portão: ${l.gateLength}cm linear${side}\n`;
+                }
             });
         }
         
