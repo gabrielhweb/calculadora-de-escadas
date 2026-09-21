@@ -740,12 +740,14 @@ export default function ProductionQueue() {
                                                                                             
                                                                                             const gPrice = l.guardrailPricePerMeter !== undefined ? l.guardrailPricePerMeter : 50;
                                                                                             const h = l.guardrailHeight || 90;
+                                                                                            let totalPrice = 0;
 
                                                                                             const seg1 = calcSeg(l.guardrailLength || 0, l.guardrailBarsOverride);
                                                                                             if (seg1) { 
                                                                                                 totalOverallBars += seg1.totalBars; 
                                                                                                 const gap1 = l.guardrailGapOverride !== undefined ? l.guardrailGapOverride : parseFloat(seg1.exactGap.toFixed(1));
                                                                                                 const price1 = l.guardrailPriceOverride !== undefined ? l.guardrailPriceOverride : Math.round(((seg1.totalBars * (h / 100)) + (2 * ((l.guardrailLength || 0) / 100))) * gPrice);
+                                                                                                totalPrice += price1;
                                                                                                 segmentsText.push(`Lado 1${sName1}: Comp. Linear ${l.guardrailLength || 0}cm (${seg1.totalBars}t/vãos ${gap1}cm) - R$ ${price1}`); 
                                                                                             }
                                                                                             if (numSides >= 2) { 
@@ -754,6 +756,7 @@ export default function ProductionQueue() {
                                                                                                     totalOverallBars += seg2.totalBars - 1; 
                                                                                                     const gap2 = l.guardrailGapOverride2 !== undefined ? l.guardrailGapOverride2 : parseFloat(seg2.exactGap.toFixed(1));
                                                                                                     const price2 = l.guardrailPriceOverride2 !== undefined ? l.guardrailPriceOverride2 : Math.round(((seg2.totalBars * (h / 100)) + (2 * ((l.guardrailLength2 || 0) / 100))) * gPrice);
+                                                                                                    totalPrice += price2;
                                                                                                     segmentsText.push(`Lado 2${sName2}: Comp. Linear ${l.guardrailLength2 || 0}cm (${seg2.totalBars}t/vãos ${gap2}cm) - R$ ${price2}`); 
                                                                                                 } 
                                                                                             }
@@ -763,11 +766,12 @@ export default function ProductionQueue() {
                                                                                                     totalOverallBars += seg3.totalBars - 1; 
                                                                                                     const gap3 = l.guardrailGapOverride3 !== undefined ? l.guardrailGapOverride3 : parseFloat(seg3.exactGap.toFixed(1));
                                                                                                     const price3 = l.guardrailPriceOverride3 !== undefined ? l.guardrailPriceOverride3 : Math.round(((seg3.totalBars * (h / 100)) + (2 * ((l.guardrailLength3 || 0) / 100))) * gPrice);
+                                                                                                    totalPrice += price3;
                                                                                                     segmentsText.push(`Lado 3${sName3}: Comp. Linear ${l.guardrailLength3 || 0}cm (${seg3.totalBars}t/vãos ${gap3}cm) - R$ ${price3}`); 
                                                                                                 } 
                                                                                             }
                                                                                             if (numSides > 1) {
-                                                                                                gMed = `G. Corpo (F: ${l.guardrailFormat || 'normal'}): Comp. Linear ${totalLinear}cm - Total ${totalOverallBars} tubos\n`;
+                                                                                                gMed = `G. Corpo (F: ${l.guardrailFormat || 'normal'}): Comp. Linear ${totalLinear}cm - Total ${totalOverallBars} tubos - R$ ${totalPrice}\n`;
                                                                                                 segmentsText.forEach((seg, idx) => {
                                                                                                     gMed += `  • ${seg}\n`;
                                                                                                 });

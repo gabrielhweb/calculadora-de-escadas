@@ -158,12 +158,14 @@ export const DeliveriesTable: React.FC = () => {
                     const totalLinear = (l.guardrailLength || 0) + (numSides >= 2 ? (l.guardrailLength2 || 0) : 0) + (numSides >= 3 ? (l.guardrailLength3 || 0) : 0);
                     
                     const gPrice = l.guardrailPricePerMeter !== undefined ? l.guardrailPricePerMeter : 50;
+                    let totalPrice = 0;
                     
                     const seg1 = calcSeg(l.guardrailLength || 0, l.guardrailBarsOverride);
                     if (seg1) {
                         totalOverallBars += seg1.totalBars;
                         const gap1 = l.guardrailGapOverride !== undefined ? l.guardrailGapOverride : parseFloat(seg1.exactGap.toFixed(1));
                         const price1 = l.guardrailPriceOverride !== undefined ? l.guardrailPriceOverride : Math.round(((seg1.totalBars * (h / 100)) + (2 * ((l.guardrailLength || 0) / 100))) * gPrice);
+                        totalPrice += price1;
                         segmentsText.push(`Lado 1${sName1}: Comp. Linear ${l.guardrailLength || 0}cm (${seg1.totalBars} tubos - vãos ${gap1}cm) - R$ ${price1}`);
                     }
                     if (numSides >= 2) {
@@ -172,6 +174,7 @@ export const DeliveriesTable: React.FC = () => {
                             totalOverallBars += seg2.totalBars - 1; // share corner
                             const gap2 = l.guardrailGapOverride2 !== undefined ? l.guardrailGapOverride2 : parseFloat(seg2.exactGap.toFixed(1));
                             const price2 = l.guardrailPriceOverride2 !== undefined ? l.guardrailPriceOverride2 : Math.round(((seg2.totalBars * (h / 100)) + (2 * ((l.guardrailLength2 || 0) / 100))) * gPrice);
+                            totalPrice += price2;
                             segmentsText.push(`Lado 2${sName2}: Comp. Linear ${l.guardrailLength2 || 0}cm (${seg2.totalBars} tubos - vãos ${gap2}cm) - R$ ${price2}`);
                         }
                     }
@@ -181,12 +184,13 @@ export const DeliveriesTable: React.FC = () => {
                             totalOverallBars += seg3.totalBars - 1; // share corner
                             const gap3 = l.guardrailGapOverride3 !== undefined ? l.guardrailGapOverride3 : parseFloat(seg3.exactGap.toFixed(1));
                             const price3 = l.guardrailPriceOverride3 !== undefined ? l.guardrailPriceOverride3 : Math.round(((seg3.totalBars * (h / 100)) + (2 * ((l.guardrailLength3 || 0) / 100))) * gPrice);
+                            totalPrice += price3;
                             segmentsText.push(`Lado 3${sName3}: Comp. Linear ${l.guardrailLength3 || 0}cm (${seg3.totalBars} tubos - vãos ${gap3}cm) - R$ ${price3}`);
                         }
                     }
 
                     if (numSides > 1) {
-                        med += `  - G. Corpo (F: ${format}): Comp. Linear ${totalLinear}cm | Altura ${h}cm - Total: ${totalOverallBars} tubos\n`;
+                        med += `  - G. Corpo (F: ${format}): Comp. Linear ${totalLinear}cm | Altura ${h}cm - Total: ${totalOverallBars} tubos - R$ ${totalPrice}\n`;
                         segmentsText.forEach(seg => {
                             med += `    • ${seg}\n`;
                         });
