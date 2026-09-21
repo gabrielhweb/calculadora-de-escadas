@@ -175,7 +175,10 @@ export const DeliveriesTable: React.FC = () => {
                     }
 
                     if (numSides > 1) {
-                        med += `  - G. Corpo (F: ${format}): ${h}cm alt${side}\n    [${segmentsText.join('] + [')}] - Total: ${totalOverallBars} tubos\n`;
+                        med += `  - G. Corpo (F: ${format}): ${h}cm alt${side} - Total: ${totalOverallBars} tubos\n`;
+                        segmentsText.forEach(seg => {
+                            med += `    • ${seg}\n`;
+                        });
                     } else {
                         const gap1 = seg1 ? (l.guardrailGapOverride !== undefined ? l.guardrailGapOverride : parseFloat(seg1.exactGap.toFixed(1))) : 0;
                         med += `  - G. Corpo (F: ${format}): ${l.guardrailLength || 0}cm comp x ${h}cm alt${side} - ${seg1 ? seg1.totalBars : 0} tubos (vãos ${gap1}cm)\n`;

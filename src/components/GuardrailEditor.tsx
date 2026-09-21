@@ -62,7 +62,24 @@ export const GuardrailEditor = ({ landing, updateLanding, InputField }: any) => 
                         <div className="flex-1 bg-gray-100 dark:bg-gray-700 p-2 rounded text-center">
                             <span className="block text-[10px] font-bold text-gray-500 uppercase mb-1">vãos exatos</span>
                             <div className="flex items-center justify-center">
-                                <input type="number" value={gapOverride !== undefined ? gapOverride : parseFloat(exactGap.toFixed(1))} onChange={(e: any) => updateGap(e.target.value === '' ? undefined : parseFloat(e.target.value))} className="w-16 text-center font-bold text-highlight text-sm bg-transparent outline-none border-b border-gray-300 focus:border-highlight" step="0.1" />
+                                <input 
+                                    type="number" 
+                                    value={gapOverride !== undefined ? gapOverride : parseFloat(exactGap.toFixed(1))} 
+                                    onChange={(e: any) => updateGap(e.target.value === '' ? undefined : parseFloat(e.target.value))} 
+                                    onBlur={(e: any) => {
+                                        const val = parseFloat(e.target.value);
+                                        if (!isNaN(val) && val > 0) {
+                                            const impliedBars = Math.round(innerL / val) + 1;
+                                            if (impliedBars >= 2 && impliedBars !== totalBars) {
+                                                if (window.confirm(`Com esse vão de ${val}cm, a quantidade ideal de tubos seria ${impliedBars} (atualmente está ${totalBars}). Deseja ajustar a quantidade de tubos automaticamente?`)) {
+                                                    updateOverride(impliedBars);
+                                                }
+                                            }
+                                        }
+                                    }}
+                                    className="w-16 text-center font-bold text-highlight text-sm bg-transparent outline-none border-b border-gray-300 focus:border-highlight" 
+                                    step="0.1" 
+                                />
                                 <span className="text-highlight font-bold text-sm ml-1">cm</span>
                             </div>
                         </div>
@@ -157,8 +174,8 @@ export const GuardrailEditor = ({ landing, updateLanding, InputField }: any) => 
                 </div>
             </div>
             
-            <div className="flex flex-wrap gap-2">
-                <div className="flex-1 min-w-[80px]">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+                <div>
                     <InputField 
                         label={numSides === 1 ? "Comp." : "Lado 1"} 
                         value={(landing.guardrailLength || 0).toString()} 
@@ -168,7 +185,7 @@ export const GuardrailEditor = ({ landing, updateLanding, InputField }: any) => 
                     />
                 </div>
                 {numSides >= 2 && (
-                    <div className="flex-1 min-w-[80px]">
+                    <div>
                         <InputField 
                             label="Lado 2" 
                             value={(landing.guardrailLength2 || 0).toString()} 
@@ -179,7 +196,7 @@ export const GuardrailEditor = ({ landing, updateLanding, InputField }: any) => 
                     </div>
                 )}
                 {numSides >= 3 && (
-                    <div className="flex-1 min-w-[80px]">
+                    <div>
                         <InputField 
                             label="Lado 3" 
                             value={(landing.guardrailLength3 || 0).toString()} 
@@ -189,19 +206,19 @@ export const GuardrailEditor = ({ landing, updateLanding, InputField }: any) => 
                         />
                     </div>
                 )}
-                <div className="flex-1 min-w-[80px]">
+                <div>
                     <InputField 
                         label="Altura" 
-                        value={gHeight.toString()} 
+                        value={(landing.guardrailHeight || 0).toString()} 
                         onChange={(e: any) => updateLanding(landing.id, { guardrailHeight: parseFloat(e.target.value) || 0 })} 
                         unit="cm" 
                         className="mb-0"
                     />
                 </div>
-                <div className="flex-1 min-w-[80px]">
+                <div>
                     <InputField 
                         label="R$/Metro" 
-                        value={gPricePerMeter.toString()} 
+                        value={(landing.guardrailPricePerMeter !== undefined ? landing.guardrailPricePerMeter : 50).toString()} 
                         onChange={(e: any) => updateLanding(landing.id, { guardrailPricePerMeter: parseFloat(e.target.value) || 0 })} 
                         unit="R$" 
                         className="mb-0"

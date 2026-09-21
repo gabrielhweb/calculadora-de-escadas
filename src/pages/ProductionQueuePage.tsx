@@ -755,7 +755,10 @@ export default function ProductionQueue() {
                                                                                                 } 
                                                                                             }
                                                                                             if (numSides > 1) {
-                                                                                                gMed = `G. Corpo (F: ${l.guardrailFormat || 'normal'}): [${segmentsText.join('] + [')}] - Total: ${totalOverallBars} tubos`;
+                                                                                                gMed = `G. Corpo (F: ${l.guardrailFormat || 'normal'}): Total ${totalOverallBars} tubos\n`;
+                                                                                                segmentsText.forEach((seg, idx) => {
+                                                                                                    gMed += `  • Lado ${idx + 1}: ${seg}\n`;
+                                                                                                });
                                                                                             } else {
                                                                                                 const gap1 = seg1 ? (l.guardrailGapOverride !== undefined ? l.guardrailGapOverride : parseFloat(seg1.exactGap.toFixed(1))) : 0;
                                                                                                 gMed = `G. Corpo: ${l.guardrailLength || 0}cm comp - ${seg1 ? seg1.totalBars : 0} tubos (vãos ${gap1}cm)`;
@@ -778,7 +781,7 @@ export default function ProductionQueue() {
                                                                                             <div key={i} className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded border border-gray-200 dark:border-gray-600">
                                                                                                 <p className="font-semibold text-gray-800 dark:text-gray-200 text-sm mb-1">Patamar {i+1} ({l.shape})</p>
                                                                                                 {l.hasGuardrail && (
-                                                                                                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                                                                                                    <p className="text-xs text-gray-600 dark:text-gray-400 whitespace-pre-wrap">
                                                                                                         {gMed}
                                                                                                         {l.guardrailSide && <><br/>Lado: <span className="font-medium">{l.guardrailSide}</span></>}
                                                                                                     </p>
