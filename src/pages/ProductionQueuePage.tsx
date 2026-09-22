@@ -638,25 +638,87 @@ export default function ProductionQueue() {
                             try {
                                 const qSnap = await getDocs(query(collection(db, 'production_queue')));
                                 const cSnap = await getDocs(query(collection(db, 'contracts')));
+                                const quotesSnap = await getDocs(query(collection(db, 'saved_quotes')));
+                                let updatedCount = 0;
+                                
+                                for (const d of cSnap.docs) {
+                                    const data = d.data();
+                                    let val = data.totalValue;
+                                    if (isNaN(Number(val)) || val === undefined || val === null || val === 0) {
+                                        try {
+                                            let parsedData = typeof data.contractData === "string" ? JSON.parse(data.contractData) : data.contractData;
+                                            while (typeof parsedData === "string") parsedData = JSON.parse(parsedData);
+                                            if (parsedData?.totalValue) val = parsedData.totalValue;
+                                            else if (parsedData?.contractData?.totalValue) val = parsedData.contractData.totalValue;
+                                            else if (parsedData?.contractData?.selectedOption?.totalPrice) val = parsedData.contractData.selectedOption.totalPrice;
+                                            else if (parsedData?.finalStairPrice) val = (parsedData.finalStairPrice || 0) + (parsedData.finalLandingsPrice || 0);
+                                        } catch(e) { val = 0; }
+                                    }
+                                    
+                                    let updates: any = {};
+                                    if (val && val !== data.totalValue) {
+                                        updates.totalValue = Number(val);
+                                    }
+                                    
+                                    try {
+                                        let pcd = typeof data.contractData === "string" ? JSON.parse(data.contractData) : data.contractData;
+                                        let maxIters = 5;
+                                        while (typeof pcd === "string" && maxIters > 0) { pcd = JSON.parse(pcd); maxIters--; }
+                                        if (pcd?.contractData) {
+                                            pcd = pcd.contractData;
+                                            maxIters = 5;
+                                            while (typeof pcd === "string" && maxIters > 0) { pcd = JSON.parse(pcd); maxIters--; }
+                                        }
+                                        if (pcd && typeof pcd === "object") {
+                                            const normalizedStr = JSON.stringify(pcd);
+                                            if (normalizedStr !== data.contractData && normalizedStr !== `"${data.contractData}"`) {
+                                                updates.contractData = normalizedStr;
+                                            }
+                                        }
+                                    } catch(e) {}
+                                    
+                                    if (Object.keys(updates).length > 0) {
+                                        await updateDoc(doc(db, "contracts", d.id), updates);
+                                        updatedCount++;
+                                    }
+                                }
+                                
+                                for (const d of quotesSnap.docs) {
+                                    const data = d.data();
+                                    let updates: any = {};
+                                    let val = data.totalValue || (data.inputData?.totalHeight * 100) || 0;
+                                    if (val && val !== data.totalValue) updates.totalValue = Number(val);
+                                    if (Object.keys(updates).length > 0) {
+                                        await updateDoc(doc(db, "saved_quotes", d.id), updates);
+                                        updatedCount++;
+                                    }
+                                }
+                                
                                 const contractsData: Record<string, any> = {};
                                 cSnap.forEach(c => { contractsData[c.id] = c.data(); });
                                 
-                                let updatedCount = 0;
                                 for (const docSnap of qSnap.docs) {
                                     const data = docSnap.data();
+                                    const updates: any = {};
+                                    
+                                    let val = (data.downPayment || 0) + (data.balanceDue || 0);
+                                    if (val === 0 && data.totalValue) {
+                                        updates.downPayment = data.totalValue / 2;
+                                        updates.balanceDue = data.totalValue / 2;
+                                    }
+                                    
                                     if (data.contractId && contractsData[data.contractId]) {
                                         const contract = contractsData[data.contractId];
-                                        const updates: any = {};
                                         if (!data.deliveryDate && contract.deliveryDate) updates.deliveryDate = contract.deliveryDate;
                                         if (!data.location && contract.customAddress) updates.location = contract.customAddress;
-                                        
-                                        if (Object.keys(updates).length > 0) {
-                                            await updateDoc(doc(db, 'production_queue', docSnap.id), updates);
-                                            updatedCount++;
-                                        }
+                                    }
+                                    
+                                    if (Object.keys(updates).length > 0) {
+                                        await updateDoc(doc(db, 'production_queue', docSnap.id), updates);
+                                        updatedCount++;
                                     }
                                 }
-                                alert(`Sincronização concluída! ${updatedCount} itens atualizados.`);
+                                alert(`Padronização e Sincronização concluída! ${updatedCount} itens atualizados.`);
                             } catch (e) {
                                 alert('Erro na sincronização.');
                                 console.error(e);
