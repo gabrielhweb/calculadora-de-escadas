@@ -15,24 +15,72 @@ export const fixAllContractsAndQueue = async () => {
     const errors: string[] = [];
 
     try {
-        // 1. SMART DEDUPLICATION: CONTRACTS
-        const cSnap = await getDocs(query(collection(db, "contracts")));
+        // 0. FETCH EVERYTHING
+        const quotesSnap = await getDocs(query(collection(db, "saved_quotes")));
+        const contractsSnap = await getDocs(query(collection(db, "contracts")));
+        const queueSnap = await getDocs(query(collection(db, "production_queue")));
+
+        const quotes = quotesSnap.docs.map(d => ({ id: d.id, ...(d.data() as any) }));
+        const contracts = contractsSnap.docs.map(d => ({ id: d.id, ...(d.data() as any) }));
+        const queue = queueSnap.docs.map(d => ({ id: d.id, ...(d.data() as any) }));
+
+        // 1. MERGE ORPHAN QUOTES INTO CONTRACTS (Cross-Collection Duplicates)
+        for (const q of quotes) {
+            const qName = (q.clientName || 'sem nome').trim().toLowerCase();
+            const matchedContract = contracts.find(c => (c.clientName || 'sem nome').trim().toLowerCase() === qName);
+            
+            if (matchedContract) {
+                let needsUpdate = false;
+                const cUpdate: any = { ...matchedContract };
+
+                const qLoc = q.location || q.customAddress;
+                const cLoc = cUpdate.location || cUpdate.customAddress;
+                if (qLoc && qLoc !== 'N/A' && qLoc.trim() !== '' && (!cLoc || cLoc === 'N/A' || cLoc.trim() === '')) {
+                    cUpdate.customAddress = qLoc;
+                    cUpdate.location = qLoc;
+                    needsUpdate = true;
+                }
+
+                if (q.deliveryDate && !cUpdate.deliveryDate) {
+                    cUpdate.deliveryDate = q.deliveryDate;
+                    needsUpdate = true;
+                }
+
+                if (needsUpdate) {
+                    try {
+                        const ref = doc(db, "contracts", matchedContract.id);
+                        const toSave = { ...cUpdate };
+                        delete toSave.id;
+                        await setDoc(ref, toSave, { merge: true });
+                        Object.assign(matchedContract, toSave);
+                    } catch(e: any) {
+                        errors.push(`Erro att contrato com dados do orçamento: ${e.message}`);
+                    }
+                }
+
+                // Delete duplicate quote
+                try {
+                    await deleteDoc(doc(db, "saved_quotes", q.id));
+                    deletedCount++;
+                } catch(e: any) {
+                    errors.push(`Erro apagar orçamento duplo: ${e.message}`);
+                }
+            }
+        }
+
+        // 2. DEDUPLICATE CONTRACTS (Smart Name-Based)
         const cGroups: Record<string, any[]> = {};
-        
-        cSnap.docs.forEach(d => {
-            const data = d.data();
-            const name = (data.clientName || 'Sem Nome').trim().toLowerCase();
+        contracts.forEach(c => {
+            const name = (c.clientName || 'Sem Nome').trim().toLowerCase();
             if (!cGroups[name]) cGroups[name] = [];
-            cGroups[name].push({ id: d.id, ...data });
+            cGroups[name].push(c);
         });
 
         for (const name in cGroups) {
-            // Ignore blank drafts if they somehow got here, we'll just deal with real names
             if (name === 'sem nome' || name === '') continue; 
             
             const list = cGroups[name];
             if (list.length > 1) {
-                // Score each contract to find the "best" one to keep
                 list.forEach(c => {
                     c._score = 0;
                     if (Number(c.totalValue) > 0) c._score += 100;
@@ -40,30 +88,28 @@ export const fixAllContractsAndQueue = async () => {
                     let hasLocation = false;
                     try {
                         const parsed = typeof c.contractData === 'string' ? JSON.parse(c.contractData) : c.contractData;
-                        const loc = parsed?.userData?.address || parsed?.location || c.customAddress;
+                        const loc = parsed?.userData?.address || parsed?.location || c.customAddress || c.location;
                         if (loc && loc !== 'N/A' && loc.trim() !== '') hasLocation = true;
                     } catch(e){}
                     if (hasLocation) c._score += 50;
                     
-                    // Newer gets slight bump
                     c._score += new Date(c.createdAt || 0).getTime() / 100000000000; 
                 });
                 
-                list.sort((a, b) => b._score - a._score); // Highest score first
+                list.sort((a, b) => b._score - a._score);
                 
-                // Delete all except index 0
                 for (let i = 1; i < list.length; i++) {
                     try {
                         await deleteDoc(doc(db, "contracts", list[i].id));
                         deletedCount++;
                     } catch (e: any) {
-                        errors.push(`Erro deletar duplicata ${list[i].clientName}: ${e.message}`);
+                        errors.push(`Erro deletar duplicata de contrato ${list[i].clientName}: ${e.message}`);
                     }
                 }
             }
         }
 
-        // 2. PROCESS REMAINING CONTRACTS
+        // 3. EXTRACT DIMENSIONS FOR REMAINING CONTRACTS
         const cSnapRemaining = await getDocs(query(collection(db, "contracts")));
         for (const d of cSnapRemaining.docs) {
             const data = d.data();
@@ -90,7 +136,6 @@ export const fixAllContractsAndQueue = async () => {
                     while (typeof pcd === "string" && maxIters > 0) { pcd = JSON.parse(pcd); maxIters--; }
                 }
                 
-                // Extract Dimensions and Force them into root
                 const treadNum = Number(getProp(pcd, 'treadDepth')) || Number(getProp(pcd, 'treadDepthCm')) || Number(getProp(pcd, 'pisante')) || 0;
                 const heightNum = Number(getProp(pcd, 'stepHeight')) || Number(getProp(pcd, 'stepHeightCm')) || Number(getProp(pcd, 'altura')) || 0;
                 const widthNum = Number(getProp(pcd, 'stairWidth')) || Number(getProp(pcd, 'widthCm')) || Number(getProp(pcd, 'largura')) || 0;
@@ -119,14 +164,55 @@ export const fixAllContractsAndQueue = async () => {
             }
         }
 
-        // 3. SMART DEDUPLICATION: PRODUCTION QUEUE
-        const qSnap = await getDocs(query(collection(db, "production_queue")));
+        // 4. AUTO-LINK: CREATE QUEUE ITEMS FOR CONTRACTS THAT DON'T HAVE ONE (AUTO-CORRIGIR VÍNCULO)
+        const finalQueueSnap = await getDocs(query(collection(db, "production_queue")));
+        const finalQueue = finalQueueSnap.docs.map(d => ({ id: d.id, ...(d.data() as any) }));
+        
+        const finalContractsSnap = await getDocs(query(collection(db, "contracts")));
+        const finalContracts = finalContractsSnap.docs.map(d => ({ id: d.id, ...(d.data() as any) }));
+
+        for (const c of finalContracts) {
+            // Check if queue item exists for this contract id or exact name
+            const hasQueue = finalQueue.find(q => q.contractId === c.id || (q.clientName || '').trim().toLowerCase() === (c.clientName || 'sem nome').trim().toLowerCase());
+            
+            // Only auto-link if no queue item exists, and it's not explicitly marked as just a quote in status
+            if (!hasQueue) {
+                try {
+                    let tVal = Number(c.totalValue);
+                    if (isNaN(tVal)) tVal = 0;
+                    
+                    const newOrder: any = {
+                        contractId: c.id,
+                        createdAt: new Date().toISOString(),
+                        clientName: c.clientName || 'Sem Nome',
+                        deliveryDate: c.deliveryDate || '',
+                        downPayment: tVal / 2,
+                        balanceDue: tVal / 2,
+                        status: 'in_queue',
+                        boardStage: 'contrato',
+                        location: c.location || c.customAddress || 'N/A',
+                        installments: [],
+                        paidInstallments: 0
+                    };
+                    
+                    Object.keys(newOrder).forEach(k => {
+                        if (newOrder[k] === undefined) delete newOrder[k];
+                    });
+                    
+                    await setDoc(doc(db, 'production_queue', Date.now().toString() + '_' + Math.floor(Math.random()*1000) + '_queue'), newOrder);
+                    successCount++;
+                } catch (e: any) {
+                    errors.push(`Erro criar vínculo auto para ${c.clientName}: ${e.message}`);
+                }
+            }
+        }
+
+        // 5. DEDUPLICATE QUEUE ITEMS
         const qGroups: Record<string, any[]> = {};
-        qSnap.docs.forEach(d => {
-            const data = d.data();
-            const name = (data.clientName || data.title || 'Sem Nome').trim().toLowerCase();
+        finalQueue.forEach(q => {
+            const name = (q.clientName || q.title || 'Sem Nome').trim().toLowerCase();
             if (!qGroups[name]) qGroups[name] = [];
-            qGroups[name].push({ id: d.id, ...data });
+            qGroups[name].push(q);
         });
 
         for (const name in qGroups) {
@@ -141,7 +227,7 @@ export const fixAllContractsAndQueue = async () => {
                     if (q.boardStage && q.boardStage !== 'contrato') q._score += 20;
                 });
                 
-                list.sort((a, b) => b._score - a._score); // Highest score first
+                list.sort((a, b) => b._score - a._score);
                 
                 for (let i = 1; i < list.length; i++) {
                     try {
@@ -154,32 +240,26 @@ export const fixAllContractsAndQueue = async () => {
             }
         }
 
-        // 4. FIX REMAINING QUEUE ITEMS
-        const qSnapRemaining = await getDocs(query(collection(db, "production_queue")));
-        const contractsData: Record<string, any> = {};
-        const cSnapNew = await getDocs(query(collection(db, "contracts")));
-        cSnapNew.forEach(c => { contractsData[c.id] = c.data(); });
-
-        for (const docSnap of qSnapRemaining.docs) {
+        // 6. UPDATE REMAINING QUEUE ITEMS WITH PARENT INFO
+        const latestQueueSnap = await getDocs(query(collection(db, "production_queue")));
+        for (const docSnap of latestQueueSnap.docs) {
             const data = docSnap.data();
             try {
                 const updates: any = { ...data };
                 let val = (Number(data.downPayment) || 0) + (Number(data.balanceDue) || 0);
                 
-                if (data.contractId && contractsData[data.contractId]) {
-                    const contract = contractsData[data.contractId];
-                    let cVal = Number(contract.totalValue);
-                    if (val === 0 && !isNaN(cVal)) {
-                        updates.downPayment = cVal / 2;
-                        updates.balanceDue = cVal / 2;
-                    }
-                    if (!data.deliveryDate && contract.deliveryDate) updates.deliveryDate = contract.deliveryDate;
-                    if (!data.location && contract.customAddress) updates.location = contract.customAddress;
-                } else {
-                    let cVal = Number(data.totalValue);
-                    if (val === 0 && !isNaN(cVal)) {
-                        updates.downPayment = cVal / 2;
-                        updates.balanceDue = cVal / 2;
+                if (data.contractId) {
+                    const contract = finalContracts.find(c => c.id === data.contractId);
+                    if (contract) {
+                        let cVal = Number(contract.totalValue);
+                        if (val === 0 && !isNaN(cVal)) {
+                            updates.downPayment = cVal / 2;
+                            updates.balanceDue = cVal / 2;
+                        }
+                        if (!data.deliveryDate && contract.deliveryDate) updates.deliveryDate = contract.deliveryDate;
+                        if ((!data.location || data.location === 'N/A') && (contract.location || contract.customAddress)) {
+                            updates.location = contract.location || contract.customAddress;
+                        }
                     }
                 }
 
@@ -208,13 +288,13 @@ export const fixAllContractsAndQueue = async () => {
             div.style.overflow = 'auto';
             div.style.border = '2px solid red';
             div.style.color = 'black';
-            div.innerHTML = `<h2>${errors.length} Erros Encontrados (Tire foto disso para o suporte):</h2>
+            div.innerHTML = `<h2>${errors.length} Erros Encontrados:</h2>
             <pre style="white-space: pre-wrap; font-size: 12px; margin-top: 10px;">${errors.join('\\n')}</pre>
             <button style="margin-top:20px; padding: 10px; background: red; color: white;" onclick="this.parentElement.remove()">Fechar</button>`;
             document.body.appendChild(div);
-            alert(`Sincronização com erros.\nRegistros consertados: ${successCount}\nDuplicatas apagadas: ${deletedCount}\nVeja a lista vermelha na tela.`);
+            alert(`Sincronização com erros.\nCorrigidos/Vinculados: ${successCount}\nDuplicatas apagadas: ${deletedCount}`);
         } else {
-            alert(`TUDO LIMPO! \n\nRegistros corrigidos: ${successCount}\nContratos Duplicados Apagados: ${deletedCount}\nMedidas injetadas!`);
+            alert(`TUDO LIMPO! \n\nRegistros corrigidos/vinculados: ${successCount}\nDuplicatas Apagadas: ${deletedCount}\nSem botões vermelhos agora!`);
         }
     } catch (e: any) {
         alert("Erro fatal ao tentar iniciar a correção: " + e.message);
