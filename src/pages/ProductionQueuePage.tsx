@@ -148,8 +148,28 @@ export default function ProductionQueue() {
             
             // Deduplicate by contractId to avoid ghosts where a contract is in queue and also matched incorrectly
             const seenContracts = new Set();
+            const validNames = new Set();
+            
+            // First pass: collect all names from contracts and queue
+            all.forEach(item => {
+                if (item.source === 'contract' || item.source === 'queue') {
+                    const name = (item.title || '').trim().toLowerCase();
+                    if (name && name !== 'sem nome') {
+                        validNames.add(name);
+                    }
+                }
+            });
+
             all = all.filter(item => {
-                if (item.source === 'quote') return true; // Quotes are standalone
+                const name = (item.title || '').trim().toLowerCase();
+                
+                // If it's a quote, hide it if a contract/queue item already exists with the same name
+                if (item.source === 'quote') {
+                    if (name && name !== 'sem nome' && validNames.has(name)) {
+                        return false;
+                    }
+                    return true;
+                }
                 
                 const cId = item.originalData?.contractId || item.id;
                 if (cId && seenContracts.has(cId)) return false;
