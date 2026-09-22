@@ -448,7 +448,7 @@ export default function ProductionQueue() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                    Fila de Produção
+                    Controle de Contratos
                 </h1>
                 
                 <div className="flex gap-2 flex-wrap">

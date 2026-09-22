@@ -11,7 +11,6 @@ import InstallationReceipt from './pages/InstallationReceipt';
 import CustomPaymentReceipt from './pages/CustomPaymentReceipt';
 import Carriers from './pages/Carriers';
 import { DeliveriesTable } from './pages/DeliveriesTable';
-import CostSettingsPage from './pages/CostSettings';
 import WeightCalculatorPage from './pages/WeightCalculatorPage';
 import PurchasesDashboard from './pages/Purchases/PurchasesDashboard';
 import ProductCatalog from './pages/Purchases/ProductCatalog';
@@ -56,7 +55,6 @@ function App() {
             <Route path="recibo-visita" element={<VisitReceipt />} />
             <Route path="transportadoras" element={<Carriers />} />
             <Route path="tabela-entregas" element={<DeliveriesTable />} />
-            <Route path="custos" element={<CostSettingsPage />} />
             <Route path="compras" element={<PurchasesDashboard />} />
             <Route path="compras/catalogo" element={<ProductCatalog />} />
             <Route path="compras/fornecedores" element={<SupplierCatalog />} />

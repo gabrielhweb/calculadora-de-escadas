@@ -106,13 +106,13 @@ const Layout: React.FC = () => {
                   to="/fila" 
                   className={`${isActive('/fila') ? 'text-highlight font-bold border-b-4 border-highlight' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'} px-2 pt-1 text-sm uppercase tracking-wide transition-all duration-200 h-full flex items-center font-bold`}
                 >
-                  Fila de Produção
+                  Controle de Contratos
                 </Link>
                 <Link 
                   to="/compras" 
                   className={`${isActive('/compras') ? 'text-highlight font-bold border-b-4 border-highlight' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'} px-2 pt-1 text-sm uppercase tracking-wide transition-all duration-200 h-full flex items-center font-bold`}
                 >
-                  📦 Compras
+                  📦 Compras & Config.
                 </Link>
                 <Link 
                   to="/transportadoras" 
@@ -149,12 +149,6 @@ const Layout: React.FC = () => {
                   className={`${isActive('/salvos') ? 'text-highlight font-bold border-b-4 border-highlight' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'} px-2 pt-1 text-sm uppercase tracking-wide transition-all duration-200 h-full flex items-center font-bold`}
                 >
                   Orçamentos Salvos
-                </Link>
-                <Link 
-                  to="/custos" 
-                  className={`${isActive('/custos') ? 'text-highlight font-bold border-b-4 border-highlight' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'} px-2 pt-1 text-sm uppercase tracking-wide transition-all duration-200 h-full flex items-center font-bold`}
-                >
-                  💰 Custos
                 </Link>
               </div>
 
