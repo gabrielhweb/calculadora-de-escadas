@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { GuardrailEditor } from '../components/GuardrailEditor';
-import { getAutoGuardrailLengths } from '../utils';
+import { getAutoGuardrailLengths } from '../components/CalculatorForm';
 
 export default function GuardrailCalculatorPage() {
     const [guardrails, setGuardrails] = useState<any[]>([]);
@@ -35,9 +35,9 @@ export default function GuardrailCalculatorPage() {
             if (updates.guardrailFormat || updates.guardrailSide) {
                 const auto = getAutoGuardrailLengths(updated.guardrailFormat, updated.guardrailSide, 100, 100);
                 if (auto) {
-                    updated.guardrailLength = auto.l1;
-                    updated.guardrailLength2 = auto.l2;
-                    updated.guardrailLength3 = auto.l3;
+                    updated.guardrailLength = auto.guardrailLength;
+                    updated.guardrailLength2 = auto.guardrailLength2;
+                    updated.guardrailLength3 = auto.guardrailLength3;
                 }
             }
             return updated;
