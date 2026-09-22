@@ -225,33 +225,47 @@ export default function ProductionQueue() {
                         }
                     });
                     
-                    // Calcular Peso do Aço (Baseado no WeightCalculator)
+                    // Calcular Peso do Aço (Baseado no DeliveriesTable.tsx)
                     const pcd = item.originalData.parsedContractData;
                     const STEEL_DENSITY = 7850;
-                    const thicknessM = 4.75 / 1000;
+                    const thicknessM = 3.0 / 1000;
                     
-                    if (pcd.stairGeometry !== 'hide' && pcd.stairWidth && pcd.treadDepth && pcd.structureSteps) {
-                        const stepArea = ((pcd.treadDepth + 6) / 100) * (pcd.stairWidth / 100);
-                        const stepsWeight = stepArea * thicknessM * pcd.structureSteps * STEEL_DENSITY;
-                        pesoAcoKg += stepsWeight;
-                    }
+                    const getProp = (parsed: any, key: string) => {
+                        if (parsed?.selectedOption && parsed.selectedOption[key] !== undefined && parsed.selectedOption[key] !== '') return parsed.selectedOption[key];
+                        if (parsed?.inputData && parsed.inputData[key] !== undefined && parsed.inputData[key] !== '') return parsed.inputData[key];
+                        if (parsed && parsed[key] !== undefined && parsed[key] !== '') return parsed[key];
+                        return undefined;
+                    };
                     
-                    if (pcd.landings) {
-                        let lArea = 0;
-                        pcd.landings.forEach((l: any) => {
-                            if (l.hasLanding && l.landingLength > 0 && l.landingWidth > 0) {
-                                lArea += ((l.landingLength + 20)/100) * ((l.landingWidth + 20)/100);
-                            }
-                        });
-                        const patamarWeight = lArea * (3.34 / 1000) * STEEL_DENSITY;
-                        pesoAcoKg += patamarWeight;
-                    }
+                    const treadNum = Number(getProp(pcd, 'treadDepth')) || 0;
+                    const heightNum = Number(getProp(pcd, 'stepHeight')) || 0;
+                    const widthNum = Number(getProp(pcd, 'stairWidth')) || 0;
+                    const stepsNum = Number(getProp(pcd, 'structureSteps')) || 0;
                     
-                    if (pcd.stairGeometry && pcd.stairGeometry.includes('Zigue-Zague')) {
-                        const redLine = Math.sqrt(Math.pow(pcd.treadDepth || 0, 2) + Math.pow(pcd.stepHeight || 0, 2));
-                        const stringerArea = (redLine / 100) * (15 / 100) * 2; 
-                        const stringerWeight = stringerArea * thicknessM * STEEL_DENSITY;
-                        pesoAcoKg += stringerWeight;
+                    if (treadNum > 0 && heightNum > 0 && widthNum > 0 && stepsNum > 0) {
+                        const stepAreaM2 = ((treadNum + 6) / 100) * (widthNum / 100);
+                        const stepsWeight = stepAreaM2 * thicknessM * stepsNum * STEEL_DENSITY;
+                        
+                        let landingsAreaM2 = 0;
+                        const landingsList = getProp(pcd, 'landings');
+                        if (landingsList && landingsList.length > 0) {
+                            landingsList.forEach((l: any) => {
+                                const lLen = (Number(l.length) || 0) + 20;
+                                const lWid = (Number(l.width) || 0) + 20;
+                                landingsAreaM2 += (lLen * lWid) / 10000;
+                            });
+                        }
+                        const landingsWeight = landingsAreaM2 * (3.34 / 1000) * STEEL_DENSITY;
+                        
+                        const stepHypotenuseCm = Math.sqrt(Math.pow(treadNum, 2) + Math.pow(heightNum, 2));
+                        const redLineCm = stepHypotenuseCm * stepsNum;
+                        const blueLineCm = (treadNum * heightNum) / stepHypotenuseCm;
+                        const stringerWidthCm = blueLineCm + 16.5;
+                        const stringerAreaM2 = (redLineCm / 100) * (stringerWidthCm / 100) * 2;
+                        const stringerWeight = stringerAreaM2 * thicknessM * STEEL_DENSITY;
+                        
+                        const escadaWeight = stepsWeight + stringerWeight;
+                        pesoAcoKg = escadaWeight + landingsWeight;
                     }
                     
                     autoCost += (totalTubosLinear * TUBE_PRICE_PER_METER) + (pesoAcoKg * STEEL_PRICE_PER_KG);
