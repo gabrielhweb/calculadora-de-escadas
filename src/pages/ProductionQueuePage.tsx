@@ -175,21 +175,36 @@ export default function ProductionQueue() {
             all = all.map(item => {
                 let autoCost = 0;
                 
-                // Garantir pcd
-                let pcd = item.originalData?.parsedContractData;
+                // Garantir pcd com extração profunda (mesma lógica do ContractsList)
+                let pcd: any = item.originalData?.parsedContractData;
                 if (!pcd && item.originalData?.contractData) {
-                    try {
-                        pcd = typeof item.originalData.contractData === 'string' ? JSON.parse(item.originalData.contractData) : item.originalData.contractData;
-                        item.originalData.parsedContractData = pcd;
-                    } catch(e) {}
+                    pcd = item.originalData.contractData;
                 }
                 if (!pcd && item.source === 'quote') {
                     pcd = item.originalData;
                 }
                 
+                let maxIters = 5;
+                while (typeof pcd === 'string' && maxIters > 0) {
+                    try { pcd = JSON.parse(pcd); } catch(e) { break; }
+                    maxIters--;
+                }
+                if (pcd?.contractData) {
+                    pcd = pcd.contractData;
+                    maxIters = 5;
+                    while (typeof pcd === 'string' && maxIters > 0) {
+                        try { pcd = JSON.parse(pcd); } catch(e) { break; }
+                        maxIters--;
+                    }
+                }
+                if (item.originalData) item.originalData.parsedContractData = pcd;
+                
                 let val = item.value || 0;
-                if (val === 0 && item.originalData?.totalValue) {
-                    val = item.originalData.totalValue;
+                if (val === 0) {
+                    if (pcd?.totalValue) val = pcd.totalValue;
+                    else if (pcd?.selectedOption?.totalPrice) val = pcd.selectedOption.totalPrice;
+                    else if (pcd?.finalStairPrice) val = (pcd.finalStairPrice || 0) + (pcd.finalLandingsPrice || 0);
+                    else if (item.originalData?.totalValue) val = item.originalData.totalValue;
                 }
                 item.value = val;
                 
@@ -256,10 +271,10 @@ export default function ProductionQueue() {
                         return undefined;
                     };
                     
-                    const treadNum = Number(getProp(pcd, 'treadDepth')) || 0;
-                    const heightNum = Number(getProp(pcd, 'stepHeight')) || 0;
-                    const widthNum = Number(getProp(pcd, 'stairWidth')) || 0;
-                    const stepsNum = Number(getProp(pcd, 'structureSteps')) || 0;
+                    const treadNum = Number(getProp(pcd, 'treadDepth')) || Number(getProp(pcd, 'treadDepthCm')) || Number(getProp(pcd, 'pisante')) || 0;
+                    const heightNum = Number(getProp(pcd, 'stepHeight')) || Number(getProp(pcd, 'stepHeightCm')) || Number(getProp(pcd, 'altura')) || 0;
+                    const widthNum = Number(getProp(pcd, 'stairWidth')) || Number(getProp(pcd, 'widthCm')) || Number(getProp(pcd, 'largura')) || 0;
+                    const stepsNum = Number(getProp(pcd, 'structureSteps')) || Number(getProp(pcd, 'steps')) || Number(getProp(pcd, 'desiredSteps')) || Number(getProp(pcd, 'degraus')) || 0;
                     
                     if (treadNum > 0 && heightNum > 0 && widthNum > 0 && stepsNum > 0) {
                         const stepAreaM2 = ((treadNum + 6) / 100) * (widthNum / 100);
@@ -833,19 +848,23 @@ export default function ProductionQueue() {
                                                                 </div>
                                                             </td>
                                                             <td className="px-4 py-3 text-center">
-                                                                {item.source === 'queue' ? (
-                                                                    <button 
-                                                                        onClick={() => setExpandedItemId(isExpanded ? null : item.id)}
-                                                                        className={`flex items-center justify-center w-full gap-1 p-1 rounded transition-colors ${isExpanded ? 'bg-gray-200 dark:bg-gray-700' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`}
-                                                                    >
-                                                                        <span className="font-bold text-green-600 dark:text-green-400 text-xs">{formatCurrencyBRL(item.profit || 0)}</span>
+                                                                <button 
+                                                                    onClick={() => {
+                                                                        if (item.source === 'queue' || item.source === 'contract') {
+                                                                            setExpandedItemId(isExpanded ? null : item.id);
+                                                                        }
+                                                                    }}
+                                                                    className={`flex items-center justify-center w-full gap-1 p-1 rounded transition-colors ${(item.source === 'queue' || item.source === 'contract') ? (isExpanded ? 'bg-gray-200 dark:bg-gray-700' : 'hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer') : 'cursor-default'}`}
+                                                                >
+                                                                    <span className="font-bold text-green-600 dark:text-green-400 text-xs">
+                                                                        {formatCurrencyBRL(item.profit || 0)}
+                                                                    </span>
+                                                                    {(item.source === 'queue' || item.source === 'contract') && (
                                                                         <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} viewBox="0 0 20 20" fill="currentColor">
                                                                             <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
                                                                         </svg>
-                                                                    </button>
-                                                                ) : (
-                                                                    <span className="text-gray-400 text-xs">⚠ N/A</span>
-                                                                )}
+                                                                    )}
+                                                                </button>
                                                             </td>
                                                             <td className="px-2 py-3 text-center">
                                                                 <button 
