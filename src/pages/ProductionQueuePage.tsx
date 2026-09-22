@@ -343,8 +343,6 @@ export default function ProductionQueue() {
                 if (pcd) {
                     builtinCosts += Number(pcd.freightCost) || 0;
                     builtinCosts += Number(pcd.tollCost) || 0;
-                    builtinCosts += Number(pcd.installationCost) || 0;
-                    builtinCosts += Number(pcd.extrasCost) || 0;
                 }
                 
                 // Taxes & Commissions
@@ -1131,8 +1129,6 @@ export default function ProductionQueue() {
                                                                                                         if (pcd) {
                                                                                                             builtin += Number(pcd.freightCost) || 0;
                                                                                                             builtin += Number(pcd.tollCost) || 0;
-                                                                                                            builtin += Number(pcd.installationCost) || 0;
-                                                                                                            builtin += Number(pcd.extrasCost) || 0;
                                                                                                         }
                                                                                                         const customT = item.customCosts?.reduce((a,c)=>a+c.value,0) || 0;
                                                                                                         return formatCurrencyBRL((item.cost || 0) - customT - builtin);
@@ -1148,29 +1144,15 @@ export default function ProductionQueue() {
                                                                                                     <>
                                                                                                         {Number(pcd.freightCost) > 0 && (
                                                                                                             <tr className="hover:bg-gray-50 dark:hover:bg-gray-750">
-                                                                                                                <td className="px-4 py-2 text-gray-600 dark:text-gray-400 border-l-4 border-indigo-500 pl-3">Frete (Contrato)</td>
+                                                                                                                <td className="px-4 py-2 text-gray-600 dark:text-gray-400 border-l-4 border-indigo-500 pl-3">Custo de Deslocamento (Distância IA)</td>
                                                                                                                 <td className="px-4 py-2 text-right text-indigo-600 dark:text-indigo-400 font-medium">{formatCurrencyBRL(Number(pcd.freightCost))}</td>
                                                                                                                 <td></td>
                                                                                                             </tr>
                                                                                                         )}
                                                                                                         {Number(pcd.tollCost) > 0 && (
                                                                                                             <tr className="hover:bg-gray-50 dark:hover:bg-gray-750">
-                                                                                                                <td className="px-4 py-2 text-gray-600 dark:text-gray-400 border-l-4 border-indigo-500 pl-3">Pedágios (Contrato)</td>
+                                                                                                                <td className="px-4 py-2 text-gray-600 dark:text-gray-400 border-l-4 border-indigo-500 pl-3">Custo de Pedágios (IA)</td>
                                                                                                                 <td className="px-4 py-2 text-right text-indigo-600 dark:text-indigo-400 font-medium">{formatCurrencyBRL(Number(pcd.tollCost))}</td>
-                                                                                                                <td></td>
-                                                                                                            </tr>
-                                                                                                        )}
-                                                                                                        {Number(pcd.installationCost) > 0 && (
-                                                                                                            <tr className="hover:bg-gray-50 dark:hover:bg-gray-750">
-                                                                                                                <td className="px-4 py-2 text-gray-600 dark:text-gray-400 border-l-4 border-indigo-500 pl-3">Instalação (Contrato)</td>
-                                                                                                                <td className="px-4 py-2 text-right text-indigo-600 dark:text-indigo-400 font-medium">{formatCurrencyBRL(Number(pcd.installationCost))}</td>
-                                                                                                                <td></td>
-                                                                                                            </tr>
-                                                                                                        )}
-                                                                                                        {Number(pcd.extrasCost) > 0 && (
-                                                                                                            <tr className="hover:bg-gray-50 dark:hover:bg-gray-750">
-                                                                                                                <td className="px-4 py-2 text-gray-600 dark:text-gray-400 border-l-4 border-indigo-500 pl-3">Adicionais (Contrato)</td>
-                                                                                                                <td className="px-4 py-2 text-right text-indigo-600 dark:text-indigo-400 font-medium">{formatCurrencyBRL(Number(pcd.extrasCost))}</td>
                                                                                                                 <td></td>
                                                                                                             </tr>
                                                                                                         )}
