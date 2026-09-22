@@ -656,7 +656,7 @@ export default function ProductionQueue() {
                                     }
                                     
                                     let updates: any = {};
-                                    if (val && val !== data.totalValue) {
+                                    if (val && val !== data.totalValue && !isNaN(Number(val))) {
                                         updates.totalValue = Number(val);
                                     }
                                     
@@ -687,7 +687,7 @@ export default function ProductionQueue() {
                                     const data = d.data();
                                     let updates: any = {};
                                     let val = data.totalValue || (data.inputData?.totalHeight * 100) || 0;
-                                    if (val && val !== data.totalValue) updates.totalValue = Number(val);
+                                    if (val && val !== data.totalValue && !isNaN(Number(val))) updates.totalValue = Number(val);
                                     if (Object.keys(updates).length > 0) {
                                         await updateDoc(doc(db, "saved_quotes", d.id), updates);
                                         updatedCount++;
@@ -701,10 +701,10 @@ export default function ProductionQueue() {
                                     const data = docSnap.data();
                                     const updates: any = {};
                                     
-                                    let val = (data.downPayment || 0) + (data.balanceDue || 0);
-                                    if (val === 0 && data.totalValue) {
-                                        updates.downPayment = data.totalValue / 2;
-                                        updates.balanceDue = data.totalValue / 2;
+                                    let val = (Number(data.downPayment) || 0) + (Number(data.balanceDue) || 0);
+                                    if (val === 0 && data.totalValue && !isNaN(Number(data.totalValue))) {
+                                        updates.downPayment = Number(data.totalValue) / 2;
+                                        updates.balanceDue = Number(data.totalValue) / 2;
                                     }
                                     
                                     if (data.contractId && contractsData[data.contractId]) {
@@ -719,8 +719,8 @@ export default function ProductionQueue() {
                                     }
                                 }
                                 alert(`Padronização e Sincronização concluída! ${updatedCount} itens atualizados.`);
-                            } catch (e) {
-                                alert('Erro na sincronização.');
+                            } catch (e: any) {
+                                alert('Erro na sincronização: ' + e.message);
                                 console.error(e);
                             }
                         }}
