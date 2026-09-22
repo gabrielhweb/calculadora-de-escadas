@@ -215,11 +215,16 @@ export const fixAllContractsAndQueue = async () => {
                     while (typeof pcd === "string" && maxIters > 0) { pcd = JSON.parse(pcd); maxIters--; }
                 }
 
-                const dataToSave = {
+                const dataToSave: Record<string, any> = {
                     ...data,
                     totalValue: val,
-                    contractData: JSON.stringify(pcd)
+                    contractData: pcd === undefined ? "" : JSON.stringify(pcd)
                 };
+                
+                // Firestore doesn't accept undefined values
+                Object.keys(dataToSave).forEach(k => {
+                    if (dataToSave[k] === undefined) delete dataToSave[k];
+                });
 
                 await setDoc(doc(db, "contracts", d.id), dataToSave, { merge: true });
                 successCount++;
@@ -243,16 +248,24 @@ export const fixAllContractsAndQueue = async () => {
                 
                 if (data.contractId && contractsData[data.contractId]) {
                     const contract = contractsData[data.contractId];
-                    if (val === 0 && contract.totalValue) {
-                        updates.downPayment = contract.totalValue / 2;
-                        updates.balanceDue = contract.totalValue / 2;
+                    let cVal = Number(contract.totalValue);
+                    if (val === 0 && !isNaN(cVal)) {
+                        updates.downPayment = cVal / 2;
+                        updates.balanceDue = cVal / 2;
                     }
                     if (!data.deliveryDate && contract.deliveryDate) updates.deliveryDate = contract.deliveryDate;
                     if (!data.location && contract.customAddress) updates.location = contract.customAddress;
-                } else if (val === 0 && data.totalValue) {
-                    updates.downPayment = Number(data.totalValue) / 2;
-                    updates.balanceDue = Number(data.totalValue) / 2;
+                } else {
+                    let cVal = Number(data.totalValue);
+                    if (val === 0 && !isNaN(cVal)) {
+                        updates.downPayment = cVal / 2;
+                        updates.balanceDue = cVal / 2;
+                    }
                 }
+
+                Object.keys(updates).forEach(k => {
+                    if (updates[k] === undefined) delete updates[k];
+                });
 
                 await setDoc(doc(db, "production_queue", docSnap.id), updates, { merge: true });
                 successCount++;
@@ -263,8 +276,23 @@ export const fixAllContractsAndQueue = async () => {
         }
 
         if (errors.length > 0) {
-            alert(`Sincronização terminou com ${errors.length} erros. Veja o console.\nSucessos: ${successCount}`);
-            console.warn("Errors during fix:", errors);
+            const div = document.createElement('div');
+            div.style.position = 'fixed';
+            div.style.zIndex = '9999';
+            div.style.background = 'white';
+            div.style.padding = '20px';
+            div.style.top = '10%';
+            div.style.left = '10%';
+            div.style.width = '80%';
+            div.style.height = '80%';
+            div.style.overflow = 'auto';
+            div.style.border = '2px solid red';
+            div.style.color = 'black';
+            div.innerHTML = `<h2>${errors.length} Erros Encontrados (Tire foto disso para o suporte):</h2>
+            <pre style="white-space: pre-wrap; font-size: 12px; margin-top: 10px;">${errors.join('\\n')}</pre>
+            <button style="margin-top:20px; padding: 10px; background: red; color: white;" onclick="this.parentElement.remove()">Fechar</button>`;
+            document.body.appendChild(div);
+            alert(`Sincronização terminou com ${errors.length} erros.\nVeja a lista na tela.\nSucessos: ${successCount}`);
         } else {
             alert(`Padronização profunda concluída! ${successCount} registros corrigidos com sucesso!`);
         }
