@@ -1,4 +1,4 @@
-import { collection, getDocs, doc, updateDoc, setDoc, deleteDoc, query } from 'firebase/firestore';
+import { collection, getDocs, doc, setDoc, deleteDoc, query } from 'firebase/firestore';
 import { db } from '../firebase';
 
 const getProp = (obj: any, key: string) => {
@@ -15,43 +15,55 @@ export const fixAllContractsAndQueue = async () => {
     const errors: string[] = [];
 
     try {
-        // 1. FIX CONTRACTS AND REMOVE DUPLICATES
+        // 1. SMART DEDUPLICATION: CONTRACTS
         const cSnap = await getDocs(query(collection(db, "contracts")));
+        const cGroups: Record<string, any[]> = {};
         
-        // Find duplicates
-        const contractsByNameAndValue: Record<string, any[]> = {};
         cSnap.docs.forEach(d => {
             const data = d.data();
-            const clientName = (data.clientName || 'Sem Nome').trim().toLowerCase();
-            const key = `${clientName}_${data.totalValue}`;
-            if (!contractsByNameAndValue[key]) contractsByNameAndValue[key] = [];
-            contractsByNameAndValue[key].push({ id: d.id, ...data });
+            const name = (data.clientName || 'Sem Nome').trim().toLowerCase();
+            if (!cGroups[name]) cGroups[name] = [];
+            cGroups[name].push({ id: d.id, ...data });
         });
 
-        // Delete duplicates
-        for (const key in contractsByNameAndValue) {
-            const list = contractsByNameAndValue[key];
+        for (const name in cGroups) {
+            // Ignore blank drafts if they somehow got here, we'll just deal with real names
+            if (name === 'sem nome' || name === '') continue; 
+            
+            const list = cGroups[name];
             if (list.length > 1) {
-                // sort by createdAt desc
-                list.sort((a, b) => {
-                    const d1 = new Date(a.createdAt || 0).getTime();
-                    const d2 = new Date(b.createdAt || 0).getTime();
-                    return d2 - d1;
+                // Score each contract to find the "best" one to keep
+                list.forEach(c => {
+                    c._score = 0;
+                    if (Number(c.totalValue) > 0) c._score += 100;
+                    
+                    let hasLocation = false;
+                    try {
+                        const parsed = typeof c.contractData === 'string' ? JSON.parse(c.contractData) : c.contractData;
+                        const loc = parsed?.userData?.address || parsed?.location || c.customAddress;
+                        if (loc && loc !== 'N/A' && loc.trim() !== '') hasLocation = true;
+                    } catch(e){}
+                    if (hasLocation) c._score += 50;
+                    
+                    // Newer gets slight bump
+                    c._score += new Date(c.createdAt || 0).getTime() / 100000000000; 
                 });
                 
-                // Keep the first (newest), delete the rest
+                list.sort((a, b) => b._score - a._score); // Highest score first
+                
+                // Delete all except index 0
                 for (let i = 1; i < list.length; i++) {
                     try {
                         await deleteDoc(doc(db, "contracts", list[i].id));
                         deletedCount++;
                     } catch (e: any) {
-                        errors.push(`Erro ao deletar duplicada ${list[i].id}: ${e.message}`);
+                        errors.push(`Erro deletar duplicata ${list[i].clientName}: ${e.message}`);
                     }
                 }
             }
         }
 
-        // Process remaining contracts
+        // 2. PROCESS REMAINING CONTRACTS
         const cSnapRemaining = await getDocs(query(collection(db, "contracts")));
         for (const d of cSnapRemaining.docs) {
             const data = d.data();
@@ -78,7 +90,7 @@ export const fixAllContractsAndQueue = async () => {
                     while (typeof pcd === "string" && maxIters > 0) { pcd = JSON.parse(pcd); maxIters--; }
                 }
                 
-                // Extract Dimensions and Force them into root to fix Steel calculation
+                // Extract Dimensions and Force them into root
                 const treadNum = Number(getProp(pcd, 'treadDepth')) || Number(getProp(pcd, 'treadDepthCm')) || Number(getProp(pcd, 'pisante')) || 0;
                 const heightNum = Number(getProp(pcd, 'stepHeight')) || Number(getProp(pcd, 'stepHeightCm')) || Number(getProp(pcd, 'altura')) || 0;
                 const widthNum = Number(getProp(pcd, 'stairWidth')) || Number(getProp(pcd, 'widthCm')) || Number(getProp(pcd, 'largura')) || 0;
@@ -95,7 +107,6 @@ export const fixAllContractsAndQueue = async () => {
                 if (widthNum > 0) dataToSave.stairWidth = String(widthNum);
                 if (stepsNum > 0) dataToSave.totalSteps = String(stepsNum);
 
-                // Firestore doesn't accept undefined values
                 Object.keys(dataToSave).forEach(k => {
                     if (dataToSave[k] === undefined) delete dataToSave[k];
                 });
@@ -108,13 +119,48 @@ export const fixAllContractsAndQueue = async () => {
             }
         }
 
-        // 2. FIX PRODUCTION QUEUE
+        // 3. SMART DEDUPLICATION: PRODUCTION QUEUE
         const qSnap = await getDocs(query(collection(db, "production_queue")));
+        const qGroups: Record<string, any[]> = {};
+        qSnap.docs.forEach(d => {
+            const data = d.data();
+            const name = (data.clientName || data.title || 'Sem Nome').trim().toLowerCase();
+            if (!qGroups[name]) qGroups[name] = [];
+            qGroups[name].push({ id: d.id, ...data });
+        });
+
+        for (const name in qGroups) {
+            if (name === 'sem nome' || name === '') continue;
+            const list = qGroups[name];
+            if (list.length > 1) {
+                list.forEach(q => {
+                    q._score = 0;
+                    const val = (Number(q.downPayment) || 0) + (Number(q.balanceDue) || 0);
+                    if (val > 0) q._score += 100;
+                    if (q.location && q.location !== 'N/A' && q.location.trim() !== '') q._score += 50;
+                    if (q.boardStage && q.boardStage !== 'contrato') q._score += 20;
+                });
+                
+                list.sort((a, b) => b._score - a._score); // Highest score first
+                
+                for (let i = 1; i < list.length; i++) {
+                    try {
+                        await deleteDoc(doc(db, "production_queue", list[i].id));
+                        deletedCount++;
+                    } catch (e: any) {
+                        errors.push(`Erro deletar fila dupla ${list[i].title}: ${e.message}`);
+                    }
+                }
+            }
+        }
+
+        // 4. FIX REMAINING QUEUE ITEMS
+        const qSnapRemaining = await getDocs(query(collection(db, "production_queue")));
         const contractsData: Record<string, any> = {};
         const cSnapNew = await getDocs(query(collection(db, "contracts")));
         cSnapNew.forEach(c => { contractsData[c.id] = c.data(); });
 
-        for (const docSnap of qSnap.docs) {
+        for (const docSnap of qSnapRemaining.docs) {
             const data = docSnap.data();
             try {
                 const updates: any = { ...data };
