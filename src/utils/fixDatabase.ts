@@ -9,21 +9,20 @@ const getProp = (obj: any, key: string) => {
     return null;
 };
 
-export const fixAllContractsAndQueue = async () => {
+export const fixAllContractsAndQueue = async (localQuotes?: any[], localContracts?: any[], localQueue?: any[]) => {
     let successCount = 0;
     let deletedCount = 0;
     const errors: string[] = [];
 
     try {
         // 0. FETCH EVERYTHING SAFELY
-        let quotesSnap, contractsSnap, queueSnap;
-        let quotes: any[] = [];
-        let contracts: any[] = [];
-        let queue: any[] = [];
+        let quotes: any[] = localQuotes || [];
+        let contracts: any[] = localContracts || [];
+        let queue: any[] = localQueue || [];
 
-        try { quotesSnap = await getDocs(query(collection(db, "saved_quotes"))); quotes = quotesSnap.docs.map(d => ({ id: d.id, ...(d.data() as any) })); } catch(e) { console.warn("saved_quotes query failed", e); }
-        try { contractsSnap = await getDocs(query(collection(db, "contracts"))); contracts = contractsSnap.docs.map(d => ({ id: d.id, ...(d.data() as any) })); } catch(e) { console.warn("contracts query failed", e); }
-        try { queueSnap = await getDocs(query(collection(db, "production_queue"))); queue = queueSnap.docs.map(d => ({ id: d.id, ...(d.data() as any) })); } catch(e) { console.warn("production_queue query failed", e); }
+        if (!localQuotes) try { const snap = await getDocs(query(collection(db, "saved_quotes"))); quotes = snap.docs.map(d => ({ id: d.id, ...(d.data() as any) })); } catch(e) {}
+        if (!localContracts) try { const snap = await getDocs(query(collection(db, "contracts"))); contracts = snap.docs.map(d => ({ id: d.id, ...(d.data() as any) })); } catch(e) {}
+        if (!localQueue) try { const snap = await getDocs(query(collection(db, "production_queue"))); queue = snap.docs.map(d => ({ id: d.id, ...(d.data() as any) })); } catch(e) {}
 
         // 1. MERGE ORPHAN QUOTES INTO CONTRACTS (Cross-Collection Duplicates)
         for (const q of quotes) {
@@ -111,10 +110,8 @@ export const fixAllContractsAndQueue = async () => {
         }
 
         // 3. EXTRACT DIMENSIONS FOR REMAINING CONTRACTS
-        let cSnapRemaining: any = { docs: [] };
-        try { cSnapRemaining = await getDocs(query(collection(db, "contracts"))); } catch(e){}
-        for (const d of cSnapRemaining.docs) {
-            const data = d.data();
+        for (const d of contracts) {
+            const data = d;
             try {
                 let parsedData: any = {};
                 try {
@@ -167,10 +164,8 @@ export const fixAllContractsAndQueue = async () => {
         }
 
         // 4. AUTO-LINK: CREATE QUEUE ITEMS FOR CONTRACTS THAT DON'T HAVE ONE (AUTO-CORRIGIR VÍNCULO)
-        let finalQueue: any[] = [];
-        let finalContracts: any[] = [];
-        try { const finalQueueSnap = await getDocs(query(collection(db, "production_queue"))); finalQueue = finalQueueSnap.docs.map(d => ({ id: d.id, ...(d.data() as any) })); } catch(e){}
-        try { const finalContractsSnap = await getDocs(query(collection(db, "contracts"))); finalContracts = finalContractsSnap.docs.map(d => ({ id: d.id, ...(d.data() as any) })); } catch(e){}
+        let finalQueue: any[] = queue;
+        let finalContracts: any[] = contracts;
 
         for (const c of finalContracts) {
             // Check if queue item exists for this contract id or exact name
@@ -242,10 +237,8 @@ export const fixAllContractsAndQueue = async () => {
         }
 
         // 6. UPDATE REMAINING QUEUE ITEMS WITH PARENT INFO
-        let latestQueueSnap: any = { docs: [] };
-        try { latestQueueSnap = await getDocs(query(collection(db, "production_queue"))); } catch(e){}
-        for (const docSnap of latestQueueSnap.docs) {
-            const data = docSnap.data();
+        for (const docSnap of finalQueue) {
+            const data = docSnap;
             try {
                 const updates: any = { ...data };
                 let val = (Number(data.downPayment) || 0) + (Number(data.balanceDue) || 0);

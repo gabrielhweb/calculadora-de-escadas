@@ -73,6 +73,7 @@ export default function ProductionQueue() {
 
     // Global settings for tax/commission
     const [globalSettings, setGlobalSettings] = useState({ taxPercentage: 0, commissionPercentage: 0 });
+    const [rawContractsMap, setRawContractsMap] = useState<Record<string, any>>({});
 
     useEffect(() => {
         if (!user) return;
@@ -390,6 +391,7 @@ export default function ProductionQueue() {
                     });
                 }
             });
+            setRawContractsMap(rawContractsData);
             updateItems();
         }, (err) => handleFirestoreError(err, OperationType.LIST, 'contracts'));
 
@@ -662,7 +664,13 @@ export default function ProductionQueue() {
                         onClick={async () => {
                             if (!window.confirm('Sincronizar e padronizar TODOS os contratos e fila? Essa ação vai corrigir valores zerados e formatações json duplas.')) return;
                             const { fixAllContractsAndQueue } = await import('../utils/fixDatabase');
-                            await fixAllContractsAndQueue();
+                            
+                            // Pass the raw data we already fetched locally to avoid permission errors!
+                            const rawQuotes = items.filter(i => i.source === 'quote').map(i => ({ id: i.id, ...i.originalData }));
+                            const rawContracts = Object.keys(rawContractsMap).map(id => ({ id, ...rawContractsMap[id] }));
+                            const rawQueue = items.filter(i => i.source === 'queue').map(i => ({ id: i.id, ...i.originalData }));
+                            
+                            await fixAllContractsAndQueue(rawQuotes, rawContracts, rawQueue);
                         }}
                         className="bg-yellow-500 hover:bg-yellow-600 text-white border border-yellow-600 rounded-lg px-4 py-2 text-sm font-bold shadow-sm transition-colors"
                     >
