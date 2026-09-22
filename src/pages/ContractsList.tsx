@@ -4,6 +4,7 @@ import { SavedContract, ContractStatus } from '../types';
 import { formatCurrencyBRL } from '../utils';
 import { generateContractPDF } from '../utils/contractGenerator';
 import { generateUnifiedTechnicalPDF } from '../utils/technicalPdfGenerator';
+import { generateGuardrailsOnlyPDF } from '../utils/productionPdfGenerator';
 import { generatePaymentReceiptPDF } from '../utils/paymentReceiptGenerator';
 import { collection, query, where, onSnapshot, doc, updateDoc, deleteDoc, getDocs, addDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
@@ -520,6 +521,47 @@ export const ContractsList: React.FC = () => {
         }
     };
 
+    const handleDownloadGuardrail = (contract: SavedContract) => {
+        if (!contract.contractData) {
+            alert("Contrato sem medidas!");
+            return;
+        }
+        try {
+            let parsedData: any = contract.contractData;
+            let maxIters = 5;
+            while (typeof parsedData === 'string' && maxIters > 0) {
+                try { parsedData = JSON.parse(parsedData); } catch(e){ break; }
+                maxIters--;
+            }
+            if (parsedData?.contractData) {
+                parsedData = parsedData.contractData;
+                maxIters = 5;
+                while (typeof parsedData === 'string' && maxIters > 0) {
+                    try { parsedData = JSON.parse(parsedData); } catch(e){ break; }
+                    maxIters--;
+                }
+            }
+
+            const landings = parsedData?.landings || parsedData?.inputData?.landings || [];
+            if (!landings || !Array.isArray(landings)) {
+                alert("Nenhum patamar encontrado neste contrato.");
+                return;
+            }
+
+            const hasGuardrailOrGate = landings.some(l => l.hasGuardrail || l.hasGate);
+            if (!hasGuardrailOrGate) {
+                alert("Nenhum guarda-corpo ou portão cadastrado neste projeto.");
+                return;
+            }
+
+            const cName = parsedData?.userData?.name || contract.clientName || 'CLIENTE NÃO INFORMADO';
+            generateGuardrailsOnlyPDF(landings, cName);
+        } catch (error) {
+            console.error("Erro ao gerar PDF do Guarda-Corpo:", error);
+            alert("Erro ao ler os dados do contrato.");
+        }
+    };
+
     if (!user) {
         return (
             <div className="max-w-7xl mx-auto p-4 sm:p-6 flex flex-col items-center justify-center h-[50vh]">
@@ -669,6 +711,13 @@ export const ContractsList: React.FC = () => {
                                                 title="Baixar Ficha Técnica (Produção + Matéria Prima)"
                                             >
                                                 ⚙️ Ficha Técnica
+                                            </button>
+                                            <button 
+                                                onClick={() => handleDownloadGuardrail(contract)}
+                                                className="flex-1 bg-pink-100 hover:bg-pink-200 dark:bg-pink-900 dark:hover:bg-pink-800 text-pink-700 dark:text-pink-200 text-xs py-1.5 rounded font-medium transition-colors"
+                                                title="Baixar PDF de Guarda-Corpo e Portão"
+                                            >
+                                                🚧 G. Corpo
                                             </button>
                                             <button
                                                 onClick={() => {
