@@ -680,6 +680,7 @@ export default function ProductionQueue() {
                             
                             let count = 0;
                             let errors = 0;
+                            const failedNames: string[] = [];
                             
                             // Get items that don't have freightCost in pcd and have a valid address
                             const toUpdate = items.filter(i => {
@@ -716,17 +717,26 @@ export default function ProductionQueue() {
                                             contractData: pcd
                                         });
                                         count++;
+                                    } else {
+                                        errors++;
+                                        failedNames.push(item.title || 'Desconhecido');
                                     }
                                 } catch(e) {
                                     console.error(e);
                                     errors++;
+                                    failedNames.push(item.title || 'Desconhecido');
                                 }
                                 
                                 // Sleep 1.5s to avoid rate limits
                                 await new Promise(r => setTimeout(r, 1500));
                             }
                             
-                            alert(`Concluído! ${count} fretes calculados com sucesso. ${errors} erros.`);
+                            let msg = `Concluído! ${count} fretes calculados com sucesso. ${errors} erros.`;
+                            if (failedNames.length > 0) {
+                                msg += `\n\nContratos que falharam (Endereço inválido/vago): \n- ${failedNames.join('\n- ')}`;
+                            }
+                            
+                            alert(msg);
                             window.location.reload();
                         }}
                         className="bg-indigo-600 hover:bg-indigo-700 text-white border border-indigo-800 rounded-lg px-4 py-2 text-sm font-bold shadow-sm transition-colors"
@@ -1113,12 +1123,61 @@ export default function ProductionQueue() {
                                                                                     <table className="w-full text-sm text-left">
                                                                                         <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                                                                                             <tr className="bg-gray-50 dark:bg-gray-800/50">
-                                                                                                <td className="px-4 py-2 text-gray-600 dark:text-gray-400">Custos Base Calculadora (Aço, Madeira, Impostos)</td>
+                                                                                                <td className="px-4 py-2 text-gray-600 dark:text-gray-400">Custos Base Calculadora (Aço, Tubos, Impostos)</td>
                                                                                                 <td className="px-4 py-2 text-right font-medium text-gray-800 dark:text-gray-200">
-                                                                                                    {formatCurrencyBRL((item.cost || 0) - (item.customCosts?.reduce((a,c)=>a+c.value,0) || 0))}
+                                                                                                    {(() => {
+                                                                                                        const pcd = item.originalData?.parsedContractData || item.originalData?.contractData;
+                                                                                                        let builtin = 0;
+                                                                                                        if (pcd) {
+                                                                                                            builtin += Number(pcd.freightCost) || 0;
+                                                                                                            builtin += Number(pcd.tollCost) || 0;
+                                                                                                            builtin += Number(pcd.installationCost) || 0;
+                                                                                                            builtin += Number(pcd.extrasCost) || 0;
+                                                                                                        }
+                                                                                                        const customT = item.customCosts?.reduce((a,c)=>a+c.value,0) || 0;
+                                                                                                        return formatCurrencyBRL((item.cost || 0) - customT - builtin);
+                                                                                                    })()}
                                                                                                 </td>
                                                                                                 <td className="w-10"></td>
                                                                                             </tr>
+                                                                                            
+                                                                                            {(() => {
+                                                                                                const pcd = item.originalData?.parsedContractData || item.originalData?.contractData;
+                                                                                                if (!pcd) return null;
+                                                                                                return (
+                                                                                                    <>
+                                                                                                        {Number(pcd.freightCost) > 0 && (
+                                                                                                            <tr className="hover:bg-gray-50 dark:hover:bg-gray-750">
+                                                                                                                <td className="px-4 py-2 text-gray-600 dark:text-gray-400 border-l-4 border-indigo-500 pl-3">Frete (Contrato)</td>
+                                                                                                                <td className="px-4 py-2 text-right text-indigo-600 dark:text-indigo-400 font-medium">{formatCurrencyBRL(Number(pcd.freightCost))}</td>
+                                                                                                                <td></td>
+                                                                                                            </tr>
+                                                                                                        )}
+                                                                                                        {Number(pcd.tollCost) > 0 && (
+                                                                                                            <tr className="hover:bg-gray-50 dark:hover:bg-gray-750">
+                                                                                                                <td className="px-4 py-2 text-gray-600 dark:text-gray-400 border-l-4 border-indigo-500 pl-3">Pedágios (Contrato)</td>
+                                                                                                                <td className="px-4 py-2 text-right text-indigo-600 dark:text-indigo-400 font-medium">{formatCurrencyBRL(Number(pcd.tollCost))}</td>
+                                                                                                                <td></td>
+                                                                                                            </tr>
+                                                                                                        )}
+                                                                                                        {Number(pcd.installationCost) > 0 && (
+                                                                                                            <tr className="hover:bg-gray-50 dark:hover:bg-gray-750">
+                                                                                                                <td className="px-4 py-2 text-gray-600 dark:text-gray-400 border-l-4 border-indigo-500 pl-3">Instalação (Contrato)</td>
+                                                                                                                <td className="px-4 py-2 text-right text-indigo-600 dark:text-indigo-400 font-medium">{formatCurrencyBRL(Number(pcd.installationCost))}</td>
+                                                                                                                <td></td>
+                                                                                                            </tr>
+                                                                                                        )}
+                                                                                                        {Number(pcd.extrasCost) > 0 && (
+                                                                                                            <tr className="hover:bg-gray-50 dark:hover:bg-gray-750">
+                                                                                                                <td className="px-4 py-2 text-gray-600 dark:text-gray-400 border-l-4 border-indigo-500 pl-3">Adicionais (Contrato)</td>
+                                                                                                                <td className="px-4 py-2 text-right text-indigo-600 dark:text-indigo-400 font-medium">{formatCurrencyBRL(Number(pcd.extrasCost))}</td>
+                                                                                                                <td></td>
+                                                                                                            </tr>
+                                                                                                        )}
+                                                                                                    </>
+                                                                                                );
+                                                                                            })()}
+
                                                                                             {item.customCosts?.map(cost => (
                                                                                                 <tr key={cost.id} className="hover:bg-gray-50 dark:hover:bg-gray-750">
                                                                                                     <td className="px-4 py-2 font-medium text-gray-800 dark:text-gray-200">
