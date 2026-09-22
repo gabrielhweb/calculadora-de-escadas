@@ -6,6 +6,7 @@ import { formatCurrencyBRL } from '../utils';
 import { useAuth } from '../components/AuthProvider';
 import { Link } from 'react-router-dom';
 import ExtraCostsModal from '../components/ExtraCostsModal';
+import { normalizeStr } from '../utils/fixDatabase';
 
 enum OperationType {
   LIST = 'list',
@@ -145,7 +146,7 @@ export default function ProductionQueue() {
                 };
             });
 
-            let all = [...loadedQuotes, ...loadedContracts, ...missingContracts, ...queueWithSyncedDates];
+            let all = [...loadedQuotes, ...loadedContracts, ...queueWithSyncedDates, ...missingContracts];
             
             // Deduplicate by contractId to avoid ghosts where a contract is in queue and also matched incorrectly
             const seenContracts = new Set();
@@ -154,7 +155,7 @@ export default function ProductionQueue() {
             // First pass: collect all names from contracts and queue
             all.forEach(item => {
                 if (item.source === 'contract' || item.source === 'queue') {
-                    const name = (item.title || '').trim().toLowerCase();
+                    const name = normalizeStr(item.title);
                     if (name && name !== 'sem nome') {
                         validNames.add(name);
                     }
@@ -162,7 +163,7 @@ export default function ProductionQueue() {
             });
 
             all = all.filter(item => {
-                const name = (item.title || '').trim().toLowerCase();
+                const name = normalizeStr(item.title);
                 
                 // If it's a quote, hide it if a contract/queue item already exists with the same name
                 if (item.source === 'quote') {

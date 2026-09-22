@@ -9,6 +9,8 @@ const getProp = (obj: any, key: string) => {
     return null;
 };
 
+export const normalizeStr = (str: string) => (str || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
+
 export const fixAllContractsAndQueue = async (localQuotes?: any[], localContracts?: any[], localQueue?: any[]) => {
     let successCount = 0;
     let deletedCount = 0;
@@ -26,8 +28,10 @@ export const fixAllContractsAndQueue = async (localQuotes?: any[], localContract
 
         // 1. MERGE ORPHAN QUOTES INTO CONTRACTS (Cross-Collection Duplicates)
         for (const q of quotes) {
-            const qName = (q.clientName || 'sem nome').trim().toLowerCase();
-            const matchedContract = contracts.find(c => (c.clientName || 'sem nome').trim().toLowerCase() === qName);
+            const qName = normalizeStr(q.clientName || 'sem nome');
+            if (qName === 'sem nome' || qName === '') continue;
+
+            const matchedContract = contracts.find(c => normalizeStr(c.clientName || 'sem nome') === qName);
             
             if (matchedContract) {
                 let needsUpdate = false;
@@ -71,7 +75,7 @@ export const fixAllContractsAndQueue = async (localQuotes?: any[], localContract
         // 2. DEDUPLICATE CONTRACTS (Smart Name-Based)
         const cGroups: Record<string, any[]> = {};
         contracts.forEach(c => {
-            const name = (c.clientName || 'Sem Nome').trim().toLowerCase();
+            const name = normalizeStr(c.clientName || 'sem nome');
             if (!cGroups[name]) cGroups[name] = [];
             cGroups[name].push(c);
         });
@@ -168,11 +172,26 @@ export const fixAllContractsAndQueue = async (localQuotes?: any[], localContract
         let finalContracts: any[] = contracts;
 
         for (const c of finalContracts) {
-            // Check if queue item exists for this contract id or exact name
-            const hasQueue = finalQueue.find(q => q.contractId === c.id || (q.clientName || '').trim().toLowerCase() === (c.clientName || 'sem nome').trim().toLowerCase());
+            const cName = normalizeStr(c.clientName || 'sem nome');
+            if (cName === 'sem nome' || cName === '') continue; // Skip ghost contracts
+
+            let existingQueue = finalQueue.find(q => q.contractId === c.id);
+            if (!existingQueue) {
+                existingQueue = finalQueue.find(q => normalizeStr(q.clientName || q.title) === cName);
+                if (existingQueue) {
+                    // It matched by name, but is missing contractId. Fix it!
+                    try {
+                        await setDoc(doc(db, "production_queue", existingQueue.id), { contractId: c.id }, { merge: true });
+                        existingQueue.contractId = c.id; // update local
+                        successCount++;
+                    } catch(e: any) {
+                        errors.push(`Erro ao injetar ID na fila ${c.clientName}: ${e.message}`);
+                    }
+                }
+            }
             
-            // Only auto-link if no queue item exists, and it's not explicitly marked as just a quote in status
-            if (!hasQueue) {
+            // Only auto-link if NO queue item exists at all
+            if (!existingQueue) {
                 try {
                     let tVal = Number(c.totalValue);
                     if (isNaN(tVal)) tVal = 0;
@@ -206,7 +225,7 @@ export const fixAllContractsAndQueue = async (localQuotes?: any[], localContract
         // 5. DEDUPLICATE QUEUE ITEMS
         const qGroups: Record<string, any[]> = {};
         finalQueue.forEach(q => {
-            const name = (q.clientName || q.title || 'Sem Nome').trim().toLowerCase();
+            const name = normalizeStr(q.clientName || q.title || 'sem nome');
             if (!qGroups[name]) qGroups[name] = [];
             qGroups[name].push(q);
         });
