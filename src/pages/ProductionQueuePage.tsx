@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, onSnapshot, doc, updateDoc, deleteDoc, setDoc } from 'firebase/firestore';
+import { collection, query, onSnapshot, doc, updateDoc, deleteDoc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ProductionOrder, SavedQuote, SavedContract, BoardStage, CustomCost } from '../types';
 import { formatCurrencyBRL } from '../utils';
 import { useAuth } from '../components/AuthProvider';
 import { Link } from 'react-router-dom';
+import ExtraCostsModal from '../components/ExtraCostsModal';
 
 enum OperationType {
   LIST = 'list',
@@ -66,6 +67,24 @@ export default function ProductionQueue() {
     const [paidModalItem, setPaidModalItem] = useState<DashboardItem | null>(null);
     const [paidModalPercent, setPaidModalPercent] = useState('');
     const [paidModalValue, setPaidModalValue] = useState('');
+
+    const [extraCostsModalOpen, setExtraCostsModalOpen] = useState(false);
+    const [extraCostsModalItem, setExtraCostsModalItem] = useState<DashboardItem | null>(null);
+
+    // Global settings for tax/commission
+    const [globalSettings, setGlobalSettings] = useState({ taxPercentage: 0, commissionPercentage: 0 });
+
+    useEffect(() => {
+        if (!user) return;
+        getDoc(doc(db, 'settings', 'production_costs')).then(snap => {
+            if (snap.exists()) {
+                setGlobalSettings({
+                    taxPercentage: snap.data().taxPercentage || 0,
+                    commissionPercentage: snap.data().commissionPercentage || 0
+                });
+            }
+        }).catch(e => console.error("Error fetching settings", e));
+    }, [user]);
 
     useEffect(() => {
         if (!user) return;
@@ -152,6 +171,117 @@ export default function ProductionQueue() {
                     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
                 }
             });
+            // COMPUTAR CUSTOS REAIS
+            all = all.map(item => {
+                let autoCost = 0;
+                
+                // Calculo de chapas, patamar e tubos
+                if (item.originalData?.parsedContractData?.landings) {
+                    const STEEL_PRICE_PER_KG = 13.80;
+                    const TUBE_PRICE_PER_METER = 10;
+                    let totalTubosLinear = 0;
+                    let pesoAcoKg = 0;
+                    
+                    item.originalData.parsedContractData.landings.forEach((l: any) => {
+                        // Guarda-corpo
+                        if (l.hasGuardrail) {
+                            const numSides = l.guardrailFormat === 'U' ? 3 : l.guardrailFormat === 'L' ? 2 : 1;
+                            const totalLinear = (l.guardrailLength || 0) + (numSides >= 2 ? (l.guardrailLength2 || 0) : 0) + (numSides >= 3 ? (l.guardrailLength3 || 0) : 0);
+                            const h = l.guardrailHeight || 90;
+                            
+                            const innerL1 = Math.max(0, (l.guardrailLength || 0) - 6);
+                            const t1 = Math.max(2, Math.max(1, Math.round(innerL1 / 15)) + 1);
+                            const hL1 = ((h - 6) / 100) * t1;
+                            
+                            let hL2 = 0;
+                            if (numSides >= 2) {
+                                const innerL2 = Math.max(0, (l.guardrailLength2 || 0) - 6);
+                                const t2 = Math.max(2, Math.max(1, Math.round(innerL2 / 15)) + 1);
+                                hL2 = ((h - 6) / 100) * t2;
+                            }
+                            
+                            let hL3 = 0;
+                            if (numSides >= 3) {
+                                const innerL3 = Math.max(0, (l.guardrailLength3 || 0) - 6);
+                                const t3 = Math.max(2, Math.max(1, Math.round(innerL3 / 15)) + 1);
+                                hL3 = ((h - 6) / 100) * t3;
+                            }
+                            
+                            const totalVertical = hL1 + hL2 + hL3;
+                            const baseLinear = (totalLinear / 100) * 2; // 2 barras horizontais
+                            totalTubosLinear += totalVertical + baseLinear;
+                        }
+                        
+                        // Portão
+                        if (l.hasGate && l.gateLength > 0 && l.gateHeight > 0) {
+                            const gateLen = l.gateLength;
+                            const gateH = l.gateHeight;
+                            const innerL = Math.max(0, gateLen - 6);
+                            const t = Math.max(2, Math.max(1, Math.round(innerL / 15)) + 1);
+                            
+                            const horiz = (gateLen / 100) * 2;
+                            const vert = ((gateH - 6) / 100) * t;
+                            totalTubosLinear += horiz + vert;
+                        }
+                    });
+                    
+                    // Calcular Peso do Aço (Baseado no WeightCalculator)
+                    const pcd = item.originalData.parsedContractData;
+                    const STEEL_DENSITY = 7850;
+                    const thicknessM = 4.75 / 1000;
+                    
+                    if (pcd.stairGeometry !== 'hide' && pcd.stairWidth && pcd.treadDepth && pcd.structureSteps) {
+                        const stepArea = ((pcd.treadDepth + 6) / 100) * (pcd.stairWidth / 100);
+                        const stepsWeight = stepArea * thicknessM * pcd.structureSteps * STEEL_DENSITY;
+                        pesoAcoKg += stepsWeight;
+                    }
+                    
+                    if (pcd.landings) {
+                        let lArea = 0;
+                        pcd.landings.forEach((l: any) => {
+                            if (l.hasLanding && l.landingLength > 0 && l.landingWidth > 0) {
+                                lArea += ((l.landingLength + 20)/100) * ((l.landingWidth + 20)/100);
+                            }
+                        });
+                        const patamarWeight = lArea * (3.34 / 1000) * STEEL_DENSITY;
+                        pesoAcoKg += patamarWeight;
+                    }
+                    
+                    if (pcd.stairGeometry && pcd.stairGeometry.includes('Zigue-Zague')) {
+                        const redLine = Math.sqrt(Math.pow(pcd.treadDepth || 0, 2) + Math.pow(pcd.stepHeight || 0, 2));
+                        const stringerArea = (redLine / 100) * (15 / 100) * 2; 
+                        const stringerWeight = stringerArea * thicknessM * STEEL_DENSITY;
+                        pesoAcoKg += stringerWeight;
+                    }
+                    
+                    autoCost += (totalTubosLinear * TUBE_PRICE_PER_METER) + (pesoAcoKg * STEEL_PRICE_PER_KG);
+                }
+
+                // Extras + Legacy
+                let extraCostsTotal = 0;
+                if (item.originalData?.extraCosts) {
+                    extraCostsTotal = item.originalData.extraCosts.reduce((acc: number, c: any) => acc + (c.total || 0), 0);
+                }
+                
+                let legacyCustomTotal = 0;
+                if ((item as any).customCosts) {
+                    legacyCustomTotal = (item as any).customCosts.reduce((acc: number, c: any) => acc + (c.value || 0), 0);
+                }
+                
+                // Taxes & Commissions
+                const val = item.value || 0;
+                const taxCost = val * (globalSettings.taxPercentage / 100);
+                const commCost = val * (globalSettings.commissionPercentage / 100);
+                
+                const finalTotalCost = autoCost + extraCostsTotal + legacyCustomTotal + taxCost + commCost;
+                const finalProfit = val - finalTotalCost;
+
+                return {
+                    ...item,
+                    cost: finalTotalCost,
+                    profit: finalProfit
+                };
+            });
             setItems(all);
         };
 
@@ -224,7 +354,7 @@ export default function ProductionQueue() {
             unSubContracts();
             unSubQueue();
         };
-    }, [user]);
+    }, [user, globalSettings]);
 
     // Filtering Logic
     const filteredItems = items.filter(item => {
@@ -927,47 +1057,29 @@ export default function ProductionQueue() {
                                                                                 </div>
                                                                             </div>
 
-                                                                            {/* Right: Quick Actions */}
-                                                                            <div className="flex-1 flex flex-col">
-                                                                                <h4 className="font-bold text-gray-900 dark:text-white mb-4 text-sm">Adicionar Custo Extra</h4>
-                                                                                
-                                                                                <div className="grid grid-cols-2 gap-2 mb-4">
-                                                                                    {QUICK_COSTS.map((qCost, idx) => (
-                                                                                        <button 
-                                                                                            key={idx}
-                                                                                            onClick={() => {
-                                                                                                const val = prompt(`Digite o valor para: ${qCost}\n(Apenas números e ponto para centavos. Ex: 150.50)`);
-                                                                                                if (val) handleAddCost(item, qCost, val.replace(',','.'));
-                                                                                            }}
-                                                                                            className="text-xs text-left bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 hover:border-indigo-400 dark:hover:border-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 text-gray-700 dark:text-gray-300 px-3 py-2 rounded transition-colors"
-                                                                                        >
-                                                                                            + {qCost}
-                                                                                        </button>
-                                                                                    ))}
-                                                                                </div>
-
-                                                                                <div className="flex gap-2">
-                                                                                    <input 
-                                                                                        type="text" 
-                                                                                        placeholder="Outro gasto..." 
-                                                                                        value={newCostName}
-                                                                                        onChange={e => setNewCostName(e.target.value)}
-                                                                                        className="flex-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded px-3 py-2 text-sm text-gray-900 dark:text-white outline-none focus:border-indigo-500"
-                                                                                    />
-                                                                                    <input 
-                                                                                        type="number" 
-                                                                                        placeholder="R$" 
-                                                                                        value={newCostValue}
-                                                                                        onChange={e => setNewCostValue(e.target.value)}
-                                                                                        className="w-24 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded px-3 py-2 text-sm text-gray-900 dark:text-white outline-none focus:border-indigo-500"
-                                                                                    />
-                                                                                    <button 
-                                                                                        onClick={() => handleAddCost(item, newCostName, newCostValue)}
-                                                                                        className="bg-indigo-600 text-white px-4 py-2 rounded font-bold hover:bg-indigo-700 transition-colors text-sm whitespace-nowrap"
-                                                                                    >
-                                                                                        Incluir
-                                                                                    </button>
-                                                                                </div>
+                                                                            {/* Right: Quick Actions (Custos Extras) */}
+                                                                            <div className="flex-1 flex flex-col border-l border-gray-200 dark:border-gray-700 pl-6">
+                                                                                <h4 className="font-bold text-gray-900 dark:text-white mb-4 text-sm flex items-center gap-2">
+                                                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-indigo-500" viewBox="0 0 20 20" fill="currentColor">
+                                                                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                                                                                    </svg>
+                                                                                    Custos Extras e Material
+                                                                                </h4>
+                                                                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-6 leading-relaxed">
+                                                                                    Adicione gastos adicionais específicos deste contrato (ex: parafusos, selante, frete extra).
+                                                                                </p>
+                                                                                <button 
+                                                                                    onClick={() => {
+                                                                                        setExtraCostsModalItem(item);
+                                                                                        setExtraCostsModalOpen(true);
+                                                                                    }}
+                                                                                    className="bg-highlight hover:bg-yellow-600 text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 mb-6"
+                                                                                >
+                                                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                                                                    </svg>
+                                                                                    Lançar Custos Extras
+                                                                                </button>
                                                                                 <div className="flex-1 flex flex-col mt-6">
                                                                                     <h4 className="font-bold text-gray-900 dark:text-white mb-4 text-sm">Fotos da Instalação</h4>
                                                                                     <div className="flex gap-2 flex-wrap mb-2">
@@ -1071,6 +1183,17 @@ export default function ProductionQueue() {
                         <button onClick={() => savePaidModal(null)} className="mt-2 text-sm text-gray-400 hover:text-pink-500 underline text-center">Voltar para cálculo automático</button>
                     </div>
                 </div>
+            )}
+            {/* Modal de Custos Extras */}
+            {extraCostsModalItem && (
+                <ExtraCostsModal
+                    isOpen={extraCostsModalOpen}
+                    item={extraCostsModalItem}
+                    onClose={() => setExtraCostsModalOpen(false)}
+                    onSave={() => {
+                        setExtraCostsModalOpen(false);
+                    }}
+                />
             )}
         </div>
     );
