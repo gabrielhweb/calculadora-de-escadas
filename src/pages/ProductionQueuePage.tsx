@@ -337,13 +337,22 @@ export default function ProductionQueue() {
                 if ((item as any).customCosts) {
                     legacyCustomTotal = (item as any).customCosts.reduce((acc: number, c: any) => acc + (c.value || 0), 0);
                 }
+
+                // Add built-in costs from the contract if they exist (Freight, Toll, Installation, etc)
+                let builtinCosts = 0;
+                if (pcd) {
+                    builtinCosts += Number(pcd.freightCost) || 0;
+                    builtinCosts += Number(pcd.tollCost) || 0;
+                    builtinCosts += Number(pcd.installationCost) || 0;
+                    builtinCosts += Number(pcd.extrasCost) || 0;
+                }
                 
                 // Taxes & Commissions
                 const finalVal = item.value || 0;
                 const taxCost = finalVal * (globalSettings.taxPercentage / 100);
                 const commCost = finalVal * (globalSettings.commissionPercentage / 100);
                 
-                const finalTotalCost = autoCost + extraCostsTotal + legacyCustomTotal + taxCost + commCost;
+                const finalTotalCost = autoCost + extraCostsTotal + legacyCustomTotal + builtinCosts + taxCost + commCost;
                 const finalProfit = finalVal - finalTotalCost;
 
                 return {
@@ -661,6 +670,69 @@ export default function ProductionQueue() {
                 </h1>
                 
                 <div className="flex gap-2 flex-wrap">
+                    <button
+                        onClick={async () => {
+                            if (!window.confirm('Calcular frete via IA para TODOS os contratos que ainda não tem frete calculado? Isso pode demorar alguns minutos.')) return;
+                            
+                            const { getRouteInfoFromGemini } = await import('../utils');
+                            const { updateDoc, doc } = await import('firebase/firestore');
+                            const { db } = await import('../firebase');
+                            
+                            let count = 0;
+                            let errors = 0;
+                            
+                            // Get items that don't have freightCost in pcd and have a valid address
+                            const toUpdate = items.filter(i => {
+                                if (i.source !== 'queue') return false;
+                                const pcd = i.originalData?.parsedContractData || i.originalData?.contractData;
+                                if (pcd && pcd.freightCost > 0) return false; // Already has it
+                                const addr = i.originalData?.location;
+                                return addr && addr !== 'N/A' && addr.trim().length > 5;
+                            });
+
+                            if (toUpdate.length === 0) {
+                                alert('Nenhum contrato antigo elegível para cálculo (ou todos já têm frete).');
+                                return;
+                            }
+                            
+                            alert(`Iniciando cálculo para ${toUpdate.length} contratos. Por favor, aguarde e não feche a página!`);
+
+                            for (const item of toUpdate) {
+                                try {
+                                    const addr = item.originalData.location;
+                                    const { distance, tolls } = await getRouteInfoFromGemini('13104-096', addr);
+                                    
+                                    if (distance > 0) {
+                                        const fuelPrice = 6.20;
+                                        const consumption = 7;
+                                        const distanceCost = (distance * 2 / consumption) * fuelPrice;
+                                        const totalTolls = tolls * 2;
+                                        const finalFreight = distanceCost + totalTolls;
+                                        
+                                        const pcd = item.originalData?.parsedContractData || item.originalData?.contractData || {};
+                                        pcd.freightCost = finalFreight;
+                                        
+                                        await updateDoc(doc(db, 'production_queue', item.id), {
+                                            contractData: pcd
+                                        });
+                                        count++;
+                                    }
+                                } catch(e) {
+                                    console.error(e);
+                                    errors++;
+                                }
+                                
+                                // Sleep 1.5s to avoid rate limits
+                                await new Promise(r => setTimeout(r, 1500));
+                            }
+                            
+                            alert(`Concluído! ${count} fretes calculados com sucesso. ${errors} erros.`);
+                            window.location.reload();
+                        }}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white border border-indigo-800 rounded-lg px-4 py-2 text-sm font-bold shadow-sm transition-colors"
+                    >
+                        Calcular Fretes Antigos (IA)
+                    </button>
                     <select 
                         value={stageFilter}
                         onChange={(e) => setStageFilter(e.target.value as any)}
