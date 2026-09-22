@@ -913,7 +913,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
                                     <InputField 
                                         label="Preço da Chapa (R$)" 
-                                        value={(landing.chapaPrice || landing.price || 0).toString()} 
+                                        value={landing.chapaPrice !== undefined ? landing.chapaPrice.toString() : (landing.price !== undefined ? landing.price.toString() : '0')} 
                                         onChange={e => updateLanding(landing.id, { chapaPrice: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} 
                                         unit="R$" 
                                         className="mb-0"
@@ -938,7 +938,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                     <div className="col-span-1">
                                         <InputField 
                                             label="Preço/Peso Base" 
-                                            value={(landing.weightPerSqm || 29).toString()} 
+                                            value={landing.weightPerSqm !== undefined ? landing.weightPerSqm.toString() : '29'} 
                                             onChange={e => updateLanding(landing.id, { weightPerSqm: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} 
                                             unit="R$" 
                                             className="mb-0"
@@ -1042,8 +1042,8 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                     </label>
                                     
                                     {landing.hasGate && (() => {
-                                        const gateLength = landing.gateLength || 100;
-                                        const gateHeight = landing.gateHeight || 90;
+                                        const gateLength = landing.gateLength !== undefined ? landing.gateLength : 100;
+                                        const gateHeight = landing.gateHeight !== undefined ? landing.gateHeight : 90;
                                         const gatePricePerMeter = landing.gatePricePerMeter !== undefined ? landing.gatePricePerMeter : 50;
                                         
                                         let innerL = gateLength - 6;
@@ -1189,7 +1189,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                             if (landing.hasGuardrail) {
                                                 const gFormat = landing.guardrailFormat || "normal";
                                                 const numSides = gFormat === "U" ? 3 : gFormat === "L" ? 2 : 1;
-                                                const gHeight = landing.guardrailHeight || 90;
+                                                const gHeight = landing.guardrailHeight !== undefined ? landing.guardrailHeight : 90;
                                                 const gPricePerMeter = landing.guardrailPricePerMeter !== undefined ? landing.guardrailPricePerMeter : 50;
 
                                                 const calcSegment = (len: number, override?: number) => {
@@ -1213,8 +1213,8 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                             
                                             // Soma o preço do Portãozinho (se houver)
                                             if (landing.hasGate) {
-                                                const gateLength = landing.gateLength || 100;
-                                                const gateHeight = landing.gateHeight || 90;
+                                                const gateLength = landing.gateLength !== undefined ? landing.gateLength : 100;
+                                                const gateHeight = landing.gateHeight !== undefined ? landing.gateHeight : 90;
                                                 const gatePricePerMeter = landing.gatePricePerMeter !== undefined ? landing.gatePricePerMeter : 50;
                                                 
                                                 let innerL = gateLength - 6;

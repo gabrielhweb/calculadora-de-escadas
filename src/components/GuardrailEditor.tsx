@@ -5,7 +5,7 @@ import { GuardrailPreview } from "./GuardrailPreview";
 
 export const GuardrailEditor = ({ landing, updateLanding, InputField, isGate = false }: any) => {
     const gFormat = landing.guardrailFormat || "normal";
-    const gHeight = landing.guardrailHeight || 90;
+    const gHeight = landing.guardrailHeight !== undefined ? landing.guardrailHeight : 90;
     const gPricePerMeter = landing.guardrailPricePerMeter !== undefined ? landing.guardrailPricePerMeter : 50;
 
     const renderSegment = (length: number, override: number | undefined, updateOverride: (val: number | undefined) => void, label: string, gapOverride: number | undefined, updateGap: (val: number | undefined) => void, priceOverride: number | undefined, updatePrice: (val: number | undefined) => void) => {
@@ -174,7 +174,7 @@ export const GuardrailEditor = ({ landing, updateLanding, InputField, isGate = f
                 <div className="flex-1 min-w-[110px]">
                     <InputField 
                         label={numSides === 1 ? "Comp." : "Lado 1"} 
-                        value={(landing.guardrailLength || 0).toString()} 
+                        value={landing.guardrailLength !== undefined ? landing.guardrailLength.toString() : '0'} 
                         onChange={(e: any) => updateLanding(landing.id, { guardrailLength: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} 
                         unit="cm" 
                         className="mb-0"
@@ -184,7 +184,7 @@ export const GuardrailEditor = ({ landing, updateLanding, InputField, isGate = f
                     <div className="flex-1 min-w-[110px]">
                         <InputField 
                             label="Lado 2" 
-                            value={(landing.guardrailLength2 || 0).toString()} 
+                            value={landing.guardrailLength2 !== undefined ? landing.guardrailLength2.toString() : '0'} 
                             onChange={(e: any) => updateLanding(landing.id, { guardrailLength2: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} 
                             unit="cm" 
                             className="mb-0"
@@ -195,7 +195,7 @@ export const GuardrailEditor = ({ landing, updateLanding, InputField, isGate = f
                     <div className="flex-1 min-w-[110px]">
                         <InputField 
                             label="Lado 3" 
-                            value={(landing.guardrailLength3 || 0).toString()} 
+                            value={landing.guardrailLength3 !== undefined ? landing.guardrailLength3.toString() : '0'} 
                             onChange={(e: any) => updateLanding(landing.id, { guardrailLength3: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} 
                             unit="cm" 
                             className="mb-0"
@@ -205,7 +205,7 @@ export const GuardrailEditor = ({ landing, updateLanding, InputField, isGate = f
                 <div className="flex-1 min-w-[110px]">
                     <InputField 
                         label="Altura" 
-                        value={(landing.guardrailHeight || 90).toString()} 
+                        value={landing.guardrailHeight !== undefined ? landing.guardrailHeight.toString() : '90'} 
                         onChange={(e: any) => updateLanding(landing.id, { guardrailHeight: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} 
                         unit="cm" 
                         className="mb-0"
