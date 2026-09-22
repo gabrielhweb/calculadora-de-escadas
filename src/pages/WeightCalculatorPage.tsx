@@ -70,7 +70,7 @@ export default function WeightCalculatorPage() {
               <input 
                 type="number" 
                 value={totalSteps} 
-                onChange={(e) => setTotalSteps(Number(e.target.value) || 0)}
+                onChange={(e) => setTotalSteps(e.target.value === '' ? ('' as any) : Number(e.target.value))}
                 className="w-full border border-slate-300 rounded-lg p-3 text-lg text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all" 
               />
             </div>
@@ -79,7 +79,7 @@ export default function WeightCalculatorPage() {
               <input 
                 type="number" 
                 value={treadDepthCm} 
-                onChange={(e) => setTreadDepthCm(Number(e.target.value) || 0)}
+                onChange={(e) => setTreadDepthCm(e.target.value === '' ? ('' as any) : Number(e.target.value))}
                 className="w-full border border-slate-300 rounded-lg p-3 text-lg text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all" 
               />
             </div>
@@ -88,7 +88,7 @@ export default function WeightCalculatorPage() {
               <input 
                 type="number" 
                 value={stepHeightCm} 
-                onChange={(e) => setStepHeightCm(Number(e.target.value) || 0)}
+                onChange={(e) => setStepHeightCm(e.target.value === '' ? ('' as any) : Number(e.target.value))}
                 className="w-full border border-slate-300 rounded-lg p-3 text-lg text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all" 
               />
             </div>
@@ -97,7 +97,7 @@ export default function WeightCalculatorPage() {
               <input 
                 type="number" 
                 value={widthCm} 
-                onChange={(e) => setWidthCm(Number(e.target.value) || 0)}
+                onChange={(e) => setWidthCm(e.target.value === '' ? ('' as any) : Number(e.target.value))}
                 className="w-full border border-slate-300 rounded-lg p-3 text-lg text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all" 
               />
             </div>
@@ -138,7 +138,7 @@ export default function WeightCalculatorPage() {
                                   <input
                                       type="number"
                                       value={landing.length || ''}
-                                      onChange={e => updateLanding(landing.id, { length: parseFloat(e.target.value) || 0 })}
+                                      onChange={e => updateLanding(landing.id, { length: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })}
                                       className="w-full p-2 rounded border border-slate-300 focus:outline-none focus:border-indigo-500"
                                   />
                               </div>
@@ -147,7 +147,7 @@ export default function WeightCalculatorPage() {
                                   <input
                                       type="number"
                                       value={landing.width || ''}
-                                      onChange={e => updateLanding(landing.id, { width: parseFloat(e.target.value) || 0 })}
+                                      onChange={e => updateLanding(landing.id, { width: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })}
                                       className="w-full p-2 rounded border border-slate-300 focus:outline-none focus:border-indigo-500"
                                   />
                               </div>

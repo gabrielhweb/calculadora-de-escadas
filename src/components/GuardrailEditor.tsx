@@ -175,7 +175,7 @@ export const GuardrailEditor = ({ landing, updateLanding, InputField, isGate = f
                     <InputField 
                         label={numSides === 1 ? "Comp." : "Lado 1"} 
                         value={(landing.guardrailLength || 0).toString()} 
-                        onChange={(e: any) => updateLanding(landing.id, { guardrailLength: parseFloat(e.target.value) || 0 })} 
+                        onChange={(e: any) => updateLanding(landing.id, { guardrailLength: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} 
                         unit="cm" 
                         className="mb-0"
                     />
@@ -185,7 +185,7 @@ export const GuardrailEditor = ({ landing, updateLanding, InputField, isGate = f
                         <InputField 
                             label="Lado 2" 
                             value={(landing.guardrailLength2 || 0).toString()} 
-                            onChange={(e: any) => updateLanding(landing.id, { guardrailLength2: parseFloat(e.target.value) || 0 })} 
+                            onChange={(e: any) => updateLanding(landing.id, { guardrailLength2: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} 
                             unit="cm" 
                             className="mb-0"
                         />
@@ -196,7 +196,7 @@ export const GuardrailEditor = ({ landing, updateLanding, InputField, isGate = f
                         <InputField 
                             label="Lado 3" 
                             value={(landing.guardrailLength3 || 0).toString()} 
-                            onChange={(e: any) => updateLanding(landing.id, { guardrailLength3: parseFloat(e.target.value) || 0 })} 
+                            onChange={(e: any) => updateLanding(landing.id, { guardrailLength3: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} 
                             unit="cm" 
                             className="mb-0"
                         />
@@ -206,7 +206,7 @@ export const GuardrailEditor = ({ landing, updateLanding, InputField, isGate = f
                     <InputField 
                         label="Altura" 
                         value={(landing.guardrailHeight || 90).toString()} 
-                        onChange={(e: any) => updateLanding(landing.id, { guardrailHeight: parseFloat(e.target.value) || 0 })} 
+                        onChange={(e: any) => updateLanding(landing.id, { guardrailHeight: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} 
                         unit="cm" 
                         className="mb-0"
                     />
@@ -215,7 +215,7 @@ export const GuardrailEditor = ({ landing, updateLanding, InputField, isGate = f
                     <InputField 
                         label="R$/Metro" 
                         value={(landing.guardrailPricePerMeter !== undefined ? landing.guardrailPricePerMeter : 50).toString()} 
-                        onChange={(e: any) => updateLanding(landing.id, { guardrailPricePerMeter: parseFloat(e.target.value) || 0 })} 
+                        onChange={(e: any) => updateLanding(landing.id, { guardrailPricePerMeter: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} 
                         unit="R$" 
                         className="mb-0"
                     />

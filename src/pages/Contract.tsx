@@ -85,13 +85,17 @@ const SectionTitle = ({ title, icon }: { title: string; icon?: React.ReactNode }
     </h2>
 );
 
-const ContractInput = ({ label, value, onChange, type = "text", placeholder = "", className = "", disabled=false, maxLength, onBlur, isLoading }: any) => (
+const ContractInput = ({ label, value, onChange, type = "text", placeholder = "", className = "", disabled=false, maxLength, onBlur, isLoading }: any) => {
+    // Para corrigir o bug do mobile onde o 0 trava o campo, renderizamos string vazia se o valor for exatamente 0
+    const displayValue = (type === 'number' && (value === 0 || value === '0')) ? '' : value;
+    
+    return (
     <div className={className}>
         <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">{label}</label>
         <div className="relative">
             <input 
                 type={type} 
-                value={value} 
+                value={displayValue} 
                 onChange={onChange} 
                 onBlur={onBlur}
                 disabled={disabled}
@@ -102,7 +106,7 @@ const ContractInput = ({ label, value, onChange, type = "text", placeholder = ""
             {isLoading && <span className="absolute right-3 top-3 text-xs text-gray-500 dark:text-gray-400">Bus...</span>}
         </div>
     </div>
-);
+)};
 
 // Máscaras
 const maskCPF = (value: string) => value.replace(/\D/g, '').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})/, '$1-$2').replace(/(-\d{2})\d+?$/, '$1');

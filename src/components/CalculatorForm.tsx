@@ -821,7 +821,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                         type="number"
                                         value={landing.isLastStep ? "" : landing.step.toString()}
                                         disabled={landing.isLastStep}
-                                        onChange={e => updateLanding(landing.id, { step: parseFloat(e.target.value) })}
+                                        onChange={e => updateLanding(landing.id, { step: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })}
                                         className={`w-full p-2 rounded border-2 focus:outline-none transition font-bold ${landing.isLastStep ? 'bg-gray-200 dark:bg-gray-600 border-gray-300 dark:border-gray-500 text-gray-400 dark:text-gray-300' : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 focus:border-highlight text-black dark:text-white'}`}
                                         placeholder={landing.isLastStep ? "Automático (Último Degrau)" : "Nº do Degrau (Ex: 5)"}
                                     />
@@ -914,7 +914,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                     <InputField 
                                         label="Preço da Chapa (R$)" 
                                         value={(landing.chapaPrice || landing.price || 0).toString()} 
-                                        onChange={e => updateLanding(landing.id, { chapaPrice: parseFloat(e.target.value) || 0 })} 
+                                        onChange={e => updateLanding(landing.id, { chapaPrice: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} 
                                         unit="R$" 
                                         className="mb-0"
                                         tooltip="Custo apenas da chapa do patamar."
@@ -922,7 +922,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                     <InputField 
                                         label="Comp. (cm)" 
                                         value={landing.length.toString()} 
-                                        onChange={e => updateLanding(landing.id, { length: parseFloat(e.target.value) })} 
+                                        onChange={e => updateLanding(landing.id, { length: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} 
                                         unit="cm" 
                                         className="mb-0"
                                         tooltip="Comprimento do patamar no sentido da subida."
@@ -930,7 +930,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                     <InputField 
                                         label="Larg. (cm)" 
                                         value={landing.width.toString()} 
-                                        onChange={e => updateLanding(landing.id, { width: parseFloat(e.target.value) })} 
+                                        onChange={e => updateLanding(landing.id, { width: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} 
                                         unit="cm" 
                                         className="mb-0"
                                         tooltip="Largura lateral do patamar."
@@ -939,7 +939,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                         <InputField 
                                             label="Preço/Peso Base" 
                                             value={(landing.weightPerSqm || 29).toString()} 
-                                            onChange={e => updateLanding(landing.id, { weightPerSqm: parseFloat(e.target.value) })} 
+                                            onChange={e => updateLanding(landing.id, { weightPerSqm: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} 
                                             unit="R$" 
                                             className="mb-0"
                                             tooltip="Valor base para cálculo automático (R$ 29/kg padrão)."
@@ -964,7 +964,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                                     <InputField 
                                                         label="Qtd." 
                                                         value={(landing.frenchBrackets !== undefined ? landing.frenchBrackets : 2).toString()} 
-                                                        onChange={e => updateLanding(landing.id, { frenchBrackets: parseInt(e.target.value) || 0 })} 
+                                                        onChange={e => updateLanding(landing.id, { frenchBrackets: e.target.value === '' ? ('' as any) : parseInt(e.target.value) })} 
                                                         className="mb-0"
                                                     />
                                                 </div>
@@ -972,7 +972,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                                     <InputField 
                                                         label="Preço Unit." 
                                                         value={(landing.frenchBracketPrice !== undefined ? landing.frenchBracketPrice : 140).toString()} 
-                                                        onChange={e => updateLanding(landing.id, { frenchBracketPrice: parseFloat(e.target.value) || 0 })} 
+                                                        onChange={e => updateLanding(landing.id, { frenchBracketPrice: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} 
                                                         unit="R$" 
                                                         className="mb-0"
                                                     />
@@ -1099,21 +1099,21 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                                     <InputField 
                                                         label="Comp. Total" 
                                                         value={gateLength.toString()} 
-                                                        onChange={e => updateLanding(landing.id, { gateLength: parseFloat(e.target.value) || 0 })} 
+                                                        onChange={e => updateLanding(landing.id, { gateLength: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} 
                                                         unit="cm" 
                                                         className="mb-0"
                                                     />
                                                     <InputField 
                                                         label="Altura" 
                                                         value={gateHeight.toString()} 
-                                                        onChange={e => updateLanding(landing.id, { gateHeight: parseFloat(e.target.value) || 0 })} 
+                                                        onChange={e => updateLanding(landing.id, { gateHeight: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} 
                                                         unit="cm" 
                                                         className="mb-0"
                                                     />
                                                     <InputField 
                                                         label="R$/Metro" 
                                                         value={gatePricePerMeter.toString()} 
-                                                        onChange={e => updateLanding(landing.id, { gatePricePerMeter: parseFloat(e.target.value) || 0 })} 
+                                                        onChange={e => updateLanding(landing.id, { gatePricePerMeter: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} 
                                                         unit="R$" 
                                                         className="mb-0"
                                                     />
