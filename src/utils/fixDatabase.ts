@@ -1,4 +1,4 @@
-import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, setDoc, query } from 'firebase/firestore';
 import { db } from '../firebase';
 
 const getProp = (obj: any, key: string) => {
@@ -180,5 +180,96 @@ export const fixDatabaseCalculations = async () => {
     } catch (e) {
         console.error(e);
         alert("Erro ao ler banco.");
+    }
+};
+
+export const fixAllContractsAndQueue = async () => {
+    let successCount = 0;
+    const errors: string[] = [];
+
+    try {
+        // 1. FIX CONTRACTS
+        const cSnap = await getDocs(query(collection(db, "contracts")));
+        for (const d of cSnap.docs) {
+            const data = d.data();
+            try {
+                let parsedData: any = {};
+                try {
+                    parsedData = typeof data.contractData === "string" ? JSON.parse(data.contractData) : data.contractData;
+                    while (typeof parsedData === "string") parsedData = JSON.parse(parsedData);
+                } catch(e) {}
+
+                let val = data.totalValue;
+                if (isNaN(Number(val)) || val === undefined || val === null || val === 0) {
+                    if (parsedData?.totalValue) val = parsedData.totalValue;
+                    else if (parsedData?.contractData?.totalValue) val = parsedData.contractData.totalValue;
+                    else if (parsedData?.contractData?.selectedOption?.totalPrice) val = parsedData.contractData.selectedOption.totalPrice;
+                    else if (parsedData?.finalStairPrice) val = (parsedData.finalStairPrice || 0) + (parsedData.finalLandingsPrice || 0);
+                }
+                val = Number(val) || 0;
+
+                let pcd = parsedData;
+                if (pcd?.contractData) {
+                    pcd = pcd.contractData;
+                    let maxIters = 5;
+                    while (typeof pcd === "string" && maxIters > 0) { pcd = JSON.parse(pcd); maxIters--; }
+                }
+
+                const dataToSave = {
+                    ...data,
+                    totalValue: val,
+                    contractData: JSON.stringify(pcd)
+                };
+
+                await setDoc(doc(db, "contracts", d.id), dataToSave, { merge: true });
+                successCount++;
+            } catch (err: any) {
+                console.error("Failed to fix contract", d.id, err);
+                errors.push(`Contrato ${data.clientName || d.id}: ${err.message}`);
+            }
+        }
+
+        // 2. FIX PRODUCTION QUEUE
+        const qSnap = await getDocs(query(collection(db, "production_queue")));
+        const contractsData: Record<string, any> = {};
+        const cSnapNew = await getDocs(query(collection(db, "contracts")));
+        cSnapNew.forEach(c => { contractsData[c.id] = c.data(); });
+
+        for (const docSnap of qSnap.docs) {
+            const data = docSnap.data();
+            try {
+                const updates: any = { ...data };
+                let val = (Number(data.downPayment) || 0) + (Number(data.balanceDue) || 0);
+                
+                if (data.contractId && contractsData[data.contractId]) {
+                    const contract = contractsData[data.contractId];
+                    if (val === 0 && contract.totalValue) {
+                        updates.downPayment = contract.totalValue / 2;
+                        updates.balanceDue = contract.totalValue / 2;
+                    }
+                    if (!data.deliveryDate && contract.deliveryDate) updates.deliveryDate = contract.deliveryDate;
+                    if (!data.location && contract.customAddress) updates.location = contract.customAddress;
+                } else if (val === 0 && data.totalValue) {
+                    updates.downPayment = Number(data.totalValue) / 2;
+                    updates.balanceDue = Number(data.totalValue) / 2;
+                }
+
+                await setDoc(doc(db, "production_queue", docSnap.id), updates, { merge: true });
+                successCount++;
+            } catch (err: any) {
+                console.error("Failed to fix queue item", docSnap.id, err);
+                errors.push(`Fila ${data.title || docSnap.id}: ${err.message}`);
+            }
+        }
+
+        if (errors.length > 0) {
+            alert(`Sincronização terminou com ${errors.length} erros. Veja o console.\nSucessos: ${successCount}`);
+            console.warn("Errors during fix:", errors);
+        } else {
+            alert(`Padronização profunda concluída! ${successCount} registros corrigidos com sucesso!`);
+        }
+    } catch (e: any) {
+        alert("Erro fatal ao tentar iniciar a correção: " + e.message);
+        console.error(e);
     }
 };
