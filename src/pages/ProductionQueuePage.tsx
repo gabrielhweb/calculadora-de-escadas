@@ -678,8 +678,12 @@ export default function ProductionQueue() {
                                     } catch(e) {}
                                     
                                     if (Object.keys(updates).length > 0) {
-                                        await updateDoc(doc(db, "contracts", d.id), updates);
-                                        updatedCount++;
+                                        try {
+                                            await updateDoc(doc(db, "contracts", d.id), updates);
+                                            updatedCount++;
+                                        } catch (e) {
+                                            console.warn("Sem permissão para atualizar contrato:", d.id);
+                                        }
                                     }
                                 }
                                 
@@ -689,8 +693,12 @@ export default function ProductionQueue() {
                                     let val = data.totalValue || (data.inputData?.totalHeight * 100) || 0;
                                     if (val && val !== data.totalValue && !isNaN(Number(val))) updates.totalValue = Number(val);
                                     if (Object.keys(updates).length > 0) {
-                                        await updateDoc(doc(db, "saved_quotes", d.id), updates);
-                                        updatedCount++;
+                                        try {
+                                            await updateDoc(doc(db, "saved_quotes", d.id), updates);
+                                            updatedCount++;
+                                        } catch(e) {
+                                            console.warn("Sem permissão para atualizar orçamento:", d.id);
+                                        }
                                     }
                                 }
                                 
@@ -714,13 +722,17 @@ export default function ProductionQueue() {
                                     }
                                     
                                     if (Object.keys(updates).length > 0) {
-                                        await updateDoc(doc(db, 'production_queue', docSnap.id), updates);
-                                        updatedCount++;
+                                        try {
+                                            await updateDoc(doc(db, 'production_queue', docSnap.id), updates);
+                                            updatedCount++;
+                                        } catch(e) {
+                                            console.warn("Sem permissão para atualizar fila:", docSnap.id);
+                                        }
                                     }
                                 }
-                                alert(`Padronização e Sincronização concluída! ${updatedCount} itens atualizados.`);
+                                alert(`Padronização e Sincronização concluída! ${updatedCount} itens atualizados com sucesso (verifique o console para itens ignorados por falta de permissão).`);
                             } catch (e: any) {
-                                alert('Erro na sincronização: ' + e.message);
+                                alert('Erro geral na sincronização: ' + e.message);
                                 console.error(e);
                             }
                         }}

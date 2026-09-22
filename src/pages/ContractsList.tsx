@@ -243,9 +243,18 @@ export const ContractsList: React.FC = () => {
         const sWidth = getProp('stairWidth') ?? getProp('widthCm') ?? getProp('width') ?? getProp('largura');
         const sSteps = getProp('steps') ?? getProp('desiredSteps') ?? getProp('totalSteps') ?? getProp('degraus');
 
+        let val = contract.totalValue;
+        if (isNaN(Number(val)) || val === undefined || val === null || val === 0) {
+            if (parsed?.totalValue) val = parsed.totalValue;
+            else if (parsed?.contractData?.totalValue) val = parsed.contractData.totalValue;
+            else if (parsed?.contractData?.selectedOption?.totalPrice) val = parsed.contractData.selectedOption.totalPrice;
+            else if (parsed?.finalStairPrice) val = (parsed.finalStairPrice || 0) + (parsed.finalLandingsPrice || 0);
+        }
+        val = Number(val) || 0;
+
         setFormData({
             clientName: contract.clientName || '',
-            totalValue: contract.totalValue || 0,
+            totalValue: val,
             createdAt: dateString,
             status: contract.status || 'pendente',
             paymentStatus: contract.paymentStatus || 'a_receber',
