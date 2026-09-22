@@ -175,16 +175,35 @@ export default function ProductionQueue() {
             all = all.map(item => {
                 let autoCost = 0;
                 
+                // Garantir pcd
+                let pcd = item.originalData?.parsedContractData;
+                if (!pcd && item.originalData?.contractData) {
+                    try {
+                        pcd = typeof item.originalData.contractData === 'string' ? JSON.parse(item.originalData.contractData) : item.originalData.contractData;
+                        item.originalData.parsedContractData = pcd;
+                    } catch(e) {}
+                }
+                if (!pcd && item.source === 'quote') {
+                    pcd = item.originalData;
+                }
+                
+                let val = item.value || 0;
+                if (val === 0 && item.originalData?.totalValue) {
+                    val = item.originalData.totalValue;
+                }
+                item.value = val;
+                
                 // Calculo de chapas, patamar e tubos
-                if (item.originalData?.parsedContractData?.landings) {
+                if (pcd) {
                     const STEEL_PRICE_PER_KG = 13.80;
                     const TUBE_PRICE_PER_METER = 10;
                     let totalTubosLinear = 0;
                     let pesoAcoKg = 0;
                     
-                    item.originalData.parsedContractData.landings.forEach((l: any) => {
-                        // Guarda-corpo
-                        if (l.hasGuardrail) {
+                    if (pcd.landings) {
+                        pcd.landings.forEach((l: any) => {
+                            // Guarda-corpo
+                            if (l.hasGuardrail) {
                             const numSides = l.guardrailFormat === 'U' ? 3 : l.guardrailFormat === 'L' ? 2 : 1;
                             const totalLinear = (l.guardrailLength || 0) + (numSides >= 2 ? (l.guardrailLength2 || 0) : 0) + (numSides >= 3 ? (l.guardrailLength3 || 0) : 0);
                             const h = l.guardrailHeight || 90;
@@ -223,10 +242,10 @@ export default function ProductionQueue() {
                             const vert = ((gateH - 6) / 100) * t;
                             totalTubosLinear += horiz + vert;
                         }
-                    });
+                        });
+                    }
                     
                     // Calcular Peso do Aço (Baseado no DeliveriesTable.tsx)
-                    const pcd = item.originalData.parsedContractData;
                     const STEEL_DENSITY = 7850;
                     const thicknessM = 3.0 / 1000;
                     
@@ -283,12 +302,12 @@ export default function ProductionQueue() {
                 }
                 
                 // Taxes & Commissions
-                const val = item.value || 0;
-                const taxCost = val * (globalSettings.taxPercentage / 100);
-                const commCost = val * (globalSettings.commissionPercentage / 100);
+                const finalVal = item.value || 0;
+                const taxCost = finalVal * (globalSettings.taxPercentage / 100);
+                const commCost = finalVal * (globalSettings.commissionPercentage / 100);
                 
                 const finalTotalCost = autoCost + extraCostsTotal + legacyCustomTotal + taxCost + commCost;
-                const finalProfit = val - finalTotalCost;
+                const finalProfit = finalVal - finalTotalCost;
 
                 return {
                     ...item,
