@@ -668,79 +668,6 @@ export default function ProductionQueue() {
                 </h1>
                 
                 <div className="flex gap-2 flex-wrap">
-                    <button
-                        onClick={async () => {
-                            if (!window.confirm('Calcular frete via IA para TODOS os contratos que ainda não tem frete calculado? Isso pode demorar alguns minutos.')) return;
-                            
-                            const { getRouteInfoFromGemini } = await import('../utils');
-                            const { updateDoc, doc } = await import('firebase/firestore');
-                            const { db } = await import('../firebase');
-                            
-                            let count = 0;
-                            let errors = 0;
-                            const failedNames: string[] = [];
-                            
-                            // Get items that don't have freightCost in pcd and have a valid address
-                            const toUpdate = items.filter(i => {
-                                if (i.source !== 'queue') return false;
-                                const pcd = i.originalData?.parsedContractData || i.originalData?.contractData;
-                                if (pcd && pcd.freightCost > 0) return false; // Already has it
-                                const addr = i.originalData?.location;
-                                return addr && addr !== 'N/A' && addr.trim().length > 5;
-                            });
-
-                            if (toUpdate.length === 0) {
-                                alert('Nenhum contrato antigo elegível para cálculo (ou todos já têm frete).');
-                                return;
-                            }
-                            
-                            alert(`Iniciando cálculo para ${toUpdate.length} contratos. Por favor, aguarde e não feche a página!`);
-
-                            for (const item of toUpdate) {
-                                try {
-                                    const addr = item.originalData.location;
-                                    const { distance, tolls } = await getRouteInfoFromGemini('13104-096', addr);
-                                    
-                                    if (distance > 0) {
-                                        const fuelPrice = 6.20;
-                                        const consumption = 7;
-                                        const distanceCost = (distance * 2 / consumption) * fuelPrice;
-                                        const totalTolls = tolls * 2;
-                                        const finalFreight = distanceCost + totalTolls;
-                                        
-                                        const pcd = item.originalData?.parsedContractData || item.originalData?.contractData || {};
-                                        pcd.freightCost = finalFreight;
-                                        
-                                        await updateDoc(doc(db, 'production_queue', item.id), {
-                                            contractData: pcd
-                                        });
-                                        count++;
-                                    } else {
-                                        errors++;
-                                        failedNames.push(item.title || 'Desconhecido');
-                                    }
-                                } catch(e) {
-                                    console.error(e);
-                                    errors++;
-                                    failedNames.push(item.title || 'Desconhecido');
-                                }
-                                
-                                // Sleep 1.5s to avoid rate limits
-                                await new Promise(r => setTimeout(r, 1500));
-                            }
-                            
-                            let msg = `Concluído! ${count} fretes calculados com sucesso. ${errors} erros.`;
-                            if (failedNames.length > 0) {
-                                msg += `\n\nContratos que falharam (Endereço inválido/vago): \n- ${failedNames.join('\n- ')}`;
-                            }
-                            
-                            alert(msg);
-                            window.location.reload();
-                        }}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white border border-indigo-800 rounded-lg px-4 py-2 text-sm font-bold shadow-sm transition-colors"
-                    >
-                        Calcular Fretes Antigos (IA)
-                    </button>
                     <select 
                         value={stageFilter}
                         onChange={(e) => setStageFilter(e.target.value as any)}
@@ -931,9 +858,10 @@ export default function ProductionQueue() {
                                                                     }}
                                                                     className={`flex items-center justify-center w-full gap-1 p-1 rounded transition-colors ${(item.source === 'queue' || item.source === 'contract') ? (isExpanded ? 'bg-gray-200 dark:bg-gray-700' : 'hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer') : 'cursor-default'}`}
                                                                 >
-                                                                    <span className="font-bold text-green-600 dark:text-green-400 text-xs">
-                                                                        {formatCurrencyBRL(item.profit || 0)}
-                                                                    </span>
+                                                                      <span className="font-bold text-green-600 dark:text-green-400 text-xs flex gap-1 items-center justify-center whitespace-nowrap">
+                                                                          {formatCurrencyBRL(item.profit || 0)}
+                                                                          {item.value ? <span className="text-[10px] font-normal text-green-700/60 dark:text-green-300/60">({(((item.profit || 0) / item.value) * 100).toFixed(1)}%)</span> : null}
+                                                                      </span>
                                                                     {(item.source === 'queue' || item.source === 'contract') && (
                                                                         <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} viewBox="0 0 20 20" fill="currentColor">
                                                                             <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -1122,7 +1050,7 @@ export default function ProductionQueue() {
                                                                                         <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                                                                                             <tr className="bg-gray-50 dark:bg-gray-800/50">
                                                                                                 <td className="px-4 py-2 text-gray-600 dark:text-gray-400">Custos Base Calculadora (Aço, Tubos, Impostos)</td>
-                                                                                                <td className="px-4 py-2 text-right font-medium text-gray-800 dark:text-gray-200">
+                                                                                                <td className="px-4 py-2 text-right font-medium text-gray-800 dark:text-gray-200 whitespace-nowrap">
                                                                                                     {(() => {
                                                                                                         const pcd = item.originalData?.parsedContractData || item.originalData?.contractData;
                                                                                                         let builtin = 0;
@@ -1131,7 +1059,13 @@ export default function ProductionQueue() {
                                                                                                             builtin += Number(pcd.tollCost) || 0;
                                                                                                         }
                                                                                                         const customT = item.customCosts?.reduce((a,c)=>a+c.value,0) || 0;
-                                                                                                        return formatCurrencyBRL((item.cost || 0) - customT - builtin);
+                                                                                                        const val = (item.cost || 0) - customT - builtin;
+                                                                                                        return (
+                                                                                                            <>
+                                                                                                              {formatCurrencyBRL(val)}
+                                                                                                              {item.value ? <span className="text-xs text-gray-400 ml-2 font-normal">({((val / item.value) * 100).toFixed(1)}%)</span> : null}
+                                                                                                            </>
+                                                                                                        );
                                                                                                     })()}
                                                                                                 </td>
                                                                                                 <td className="w-10"></td>
@@ -1145,14 +1079,20 @@ export default function ProductionQueue() {
                                                                                                         {Number(pcd.freightCost) > 0 && (
                                                                                                             <tr className="hover:bg-gray-50 dark:hover:bg-gray-750">
                                                                                                                 <td className="px-4 py-2 text-gray-600 dark:text-gray-400 border-l-4 border-indigo-500 pl-3">Custo de Deslocamento (Distância IA)</td>
-                                                                                                                <td className="px-4 py-2 text-right text-indigo-600 dark:text-indigo-400 font-medium">{formatCurrencyBRL(Number(pcd.freightCost))}</td>
+                                                                                                                <td className="px-4 py-2 text-right text-indigo-600 dark:text-indigo-400 font-medium whitespace-nowrap">
+                                                                                                                    {formatCurrencyBRL(Number(pcd.freightCost))}
+                                                                                                                    {item.value ? <span className="text-xs text-indigo-300 ml-2 font-normal">({((Number(pcd.freightCost) / item.value) * 100).toFixed(1)}%)</span> : null}
+                                                                                                                </td>
                                                                                                                 <td></td>
                                                                                                             </tr>
                                                                                                         )}
                                                                                                         {Number(pcd.tollCost) > 0 && (
                                                                                                             <tr className="hover:bg-gray-50 dark:hover:bg-gray-750">
                                                                                                                 <td className="px-4 py-2 text-gray-600 dark:text-gray-400 border-l-4 border-indigo-500 pl-3">Custo de Pedágios (IA)</td>
-                                                                                                                <td className="px-4 py-2 text-right text-indigo-600 dark:text-indigo-400 font-medium">{formatCurrencyBRL(Number(pcd.tollCost))}</td>
+                                                                                                                <td className="px-4 py-2 text-right text-indigo-600 dark:text-indigo-400 font-medium whitespace-nowrap">
+                                                                                                                    {formatCurrencyBRL(Number(pcd.tollCost))}
+                                                                                                                    {item.value ? <span className="text-xs text-indigo-300 ml-2 font-normal">({((Number(pcd.tollCost) / item.value) * 100).toFixed(1)}%)</span> : null}
+                                                                                                                </td>
                                                                                                                 <td></td>
                                                                                                             </tr>
                                                                                                         )}
@@ -1166,7 +1106,7 @@ export default function ProductionQueue() {
                                                                                                         <div className="flex items-center gap-2">
                                                                                                             {cost.name}
                                                                                                             {cost.receiptUrl ? (
-                                                                                                                <a href={cost.receiptUrl} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600 text-xs flex items-center gap-1" title="Ver Comprovante">
+                                                                                                                <a href={cost.receiptUrl} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-700" title="Ver Comprovante">
                                                                                                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                                                                                                         <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
                                                                                                                     </svg>
@@ -1186,8 +1126,9 @@ export default function ProductionQueue() {
                                                                                                                                 
                                                                                                                                 const { updateDoc, doc } = await import('firebase/firestore');
                                                                                                                                 const { db } = await import('../firebase');
-                                                                                                                                await updateDoc(doc(db, 'production_queue', item.id), { customCosts: newCosts });
-                                                                                                                                alert('Comprovante anexado!');
+                                                                                                                                await updateDoc(doc(db, 'production_queue', item.id), {
+                                                                                                                                    customCosts: newCosts
+                                                                                                                                });
                                                                                                                             } catch (err) {
                                                                                                                                 alert('Erro ao anexar comprovante.');
                                                                                                                             }
@@ -1197,7 +1138,10 @@ export default function ProductionQueue() {
                                                                                                             )}
                                                                                                         </div>
                                                                                                     </td>
-                                                                                                    <td className="px-4 py-2 text-right text-red-500">{formatCurrencyBRL(cost.value)}</td>
+                                                                                                    <td className="px-4 py-2 text-right text-red-500 whitespace-nowrap">
+                                                                                                      {formatCurrencyBRL(cost.value)}
+                                                                                                      {item.value ? <span className="text-xs text-red-300 ml-2 font-normal">({((cost.value / item.value) * 100).toFixed(1)}%)</span> : null}
+                                                                                                    </td>
                                                                                                     <td className="px-4 py-2 text-right">
                                                                                                         <button onClick={() => handleDeleteCost(item, cost.id)} className="text-gray-400 hover:text-red-500 p-1">
                                                                                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1207,9 +1151,12 @@ export default function ProductionQueue() {
                                                                                                     </td>
                                                                                                 </tr>
                                                                                             ))}
-                                                                                            <tr className="bg-gray-50 dark:bg-gray-800/80">
+                                                                                            <tr className="bg-gray-50 dark:bg-gray-800/80 border-t-2 border-gray-200 dark:border-gray-600">
                                                                                                 <td className="px-4 py-3 font-bold text-gray-900 dark:text-white text-right">CUSTO TOTAL</td>
-                                                                                                <td className="px-4 py-3 font-black text-red-500 text-right">{formatCurrencyBRL(item.cost || 0)}</td>
+                                                                                                <td className="px-4 py-3 font-black text-red-500 text-right whitespace-nowrap">
+                                                                                                  {formatCurrencyBRL(item.cost || 0)}
+                                                                                                  {item.value ? <span className="text-xs text-red-400 ml-2 font-normal">({(((item.cost || 0) / item.value) * 100).toFixed(1)}%)</span> : null}
+                                                                                                </td>
                                                                                                 <td></td>
                                                                                             </tr>
                                                                                         </tbody>
