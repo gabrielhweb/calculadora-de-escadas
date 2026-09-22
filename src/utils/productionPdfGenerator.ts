@@ -358,7 +358,7 @@ export const drawGuardrailsPage = (doc: jsPDF, landings: any[], clientName: stri
         if (isGate) {
             doc.setFontSize(16);
             doc.setTextColor(200, 200, 200);
-            doc.text('PORTÃO', startX + drawW / 2, startY - 20, { align: 'center' });
+            doc.text('PORTÃO', startX + drawW / 2, startY - 25, { align: 'center' });
         }
 
         doc.setLineWidth(1);
@@ -386,8 +386,8 @@ export const drawGuardrailsPage = (doc: jsPDF, landings: any[], clientName: stri
         doc.setFillColor(31, 41, 55);
         doc.rect(startX, startY, drawW, 4, 'F');
         doc.rect(startX + 4, startY + drawH - 4, drawW - 8, 4, 'F');
-        doc.rect(startX, startY, 4, drawH, 'F');
-        doc.rect(startX + drawW - 4, startY, 4, drawH, 'F');
+        doc.rect(startX, startY, 4, drawH + 15, 'F');
+        doc.rect(startX + drawW - 4, startY, 4, drawH + 15, 'F');
 
         for (let i = 0; i < numInnerBars; i++) {
             const step = (drawW - 8) / (numInnerBars + 1);
@@ -425,4 +425,18 @@ export const drawGuardrailsPage = (doc: jsPDF, landings: any[], clientName: stri
         doc.setTextColor(59, 130, 246); doc.text(numInnerBars + 'x Tubos Internos de ' + (gHeight - 13) + 'cm', listX, listY + 26);
         doc.setTextColor(236, 72, 153); doc.text('Afastamento (folga) das barras: ' + gapCm.toFixed(1) + 'cm', listX, listY + 32);
     });
+};
+
+export const generateGuardrailsOnlyPDF = (landings: any[], clientName: string) => {
+    const hasAny = landings.some(l => l.hasGuardrail || l.hasGate);
+    if (!hasAny) return;
+
+    const doc = new jsPDF('l', 'mm', 'a4');
+    
+    // Create pages, but remove the first blank one if it exists
+    // Actually drawGuardrailsPage just adds pages. So we can delete the first empty page after calling it.
+    drawGuardrailsPage(doc, landings, clientName);
+    doc.deletePage(1);
+
+    doc.save(`PROJETO_GUARDA_CORPO_${clientName.replace(/\s+/g, '_')}.pdf`);
 };

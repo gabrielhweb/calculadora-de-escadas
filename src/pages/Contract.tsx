@@ -1112,9 +1112,21 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                 treadDepthCm: parseFloat(treadDepth) || 0,
                 widthCm: parseFloat(width) || 0,
                 cutStepType,
-                clientName: clientName || '',
-                landings: landings
+                clientName,
+                landings,
+                wallFixation
             });
+        });
+    };
+
+    const handleGenerateGuardrailPDF = () => {
+        const hasGuardrailOrGate = landings.some(l => l.hasGuardrail || l.hasGate);
+        if (!hasGuardrailOrGate) {
+            alert('Nenhum guarda-corpo ou portão cadastrado neste projeto.');
+            return;
+        }
+        import('../utils/productionPdfGenerator').then(({ generateGuardrailsOnlyPDF }) => {
+            generateGuardrailsOnlyPDF(landings, clientName);
         });
     };
 
@@ -2223,6 +2235,11 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                 </button>
                                 <button onClick={() => setShowWeightCalculator(true)} className="flex-1 bg-teal-600 text-white font-black py-3 rounded-lg shadow-lg hover:bg-teal-700 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2">
                                     <span>⚖️</span> Calcular Peso (KG)
+                                </button>
+                            </div>
+                            <div className="flex gap-4 mt-4">
+                                <button onClick={handleGenerateGuardrailPDF} className="flex-1 bg-pink-600 text-white font-black py-3 rounded-lg shadow-lg hover:bg-pink-700 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2">
+                                    <span>🚧</span> Imprimir Guarda-Corpo / Portão
                                 </button>
                             </div>
                         </div>

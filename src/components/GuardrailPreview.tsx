@@ -20,25 +20,25 @@ export const GuardrailPreview: React.FC<GuardrailPreviewProps> = ({ length, heig
     
     return (
        <div className="flex flex-col items-center justify-center w-full">
-           <svg viewBox={`0 0 ${svgW} ${svgH}`} className="w-full max-w-md font-sans overflow-visible">
+           <svg viewBox={`0 0 ${svgW} ${svgH + 15}`} className="w-full max-w-md font-sans overflow-visible">
                 {/* Title */}
-                {isGate && <text x={svgW/2} y={15} textAnchor="middle" fill="#6b7280" className="font-bold text-xs uppercase opacity-50">PORTÃO</text>}
+                {isGate && <text x={svgW/2} y={12} textAnchor="middle" fill="#6b7280" className="font-black text-sm uppercase opacity-50">PORTÃO</text>}
                 
                 {/* Lines - Top Green */}
                 <line x1={margin.left} y1={margin.top - 8} x2={svgW - margin.right} y2={margin.top - 8} stroke="#22c55e" strokeWidth="2" />
-                <text x={svgW/2} y={margin.top - 15} textAnchor="middle" fill="#22c55e" fontSize="10" fontWeight="bold">{length}cm</text>
+                <text x={svgW/2} y={margin.top - 15} textAnchor="middle" fill="#22c55e" fontSize="11" fontWeight="bold">{length}cm</text>
                 
                 {/* Lines - Bottom Orange */}
                 <line x1={margin.left + 5} y1={svgH - margin.bottom + 12} x2={svgW - margin.right - 5} y2={svgH - margin.bottom + 12} stroke="#f97316" strokeWidth="2" />
-                <text x={svgW/2} y={svgH - margin.bottom + 25} textAnchor="middle" fill="#f97316" fontSize="10" fontWeight="bold">{length - 4}cm</text>
+                <text x={svgW/2} y={svgH - margin.bottom + 25} textAnchor="middle" fill="#f97316" fontSize="11" fontWeight="bold">{length - 4}cm</text>
                 
                 {/* Lines - Right Red (Altura) */}
                 <line x1={svgW - margin.right + 12} y1={margin.top} x2={svgW - margin.right + 12} y2={svgH - margin.bottom} stroke="#ef4444" strokeWidth="2" />
-                <text x={svgW - margin.right + 16} y={svgH/2} textAnchor="start" fill="#ef4444" fontSize="10" fontWeight="bold">{height}cm</text>
+                <text x={svgW - margin.right + 16} y={svgH/2} textAnchor="start" fill="#ef4444" fontSize="11" fontWeight="bold">{height}cm</text>
 
                 {/* Lines - Left Blue (Altura - 13) */}
                 <line x1={margin.left - 18} y1={margin.top + 10} x2={margin.left - 18} y2={svgH - margin.bottom} stroke="#3b82f6" strokeWidth="2" />
-                <text x={margin.left - 22} y={svgH/2 + 10} textAnchor="end" fill="#3b82f6" fontSize="10" fontWeight="bold">{height - 13}cm</text>
+                <text x={margin.left - 22} y={svgH/2 + 10} textAnchor="end" fill="#3b82f6" fontSize="11" fontWeight="bold">{height - 13}cm</text>
 
                 {/* STRUCTURE (Black) */}
                 {/* Top horizontal */}
@@ -46,9 +46,9 @@ export const GuardrailPreview: React.FC<GuardrailPreviewProps> = ({ length, heig
                 {/* Bottom horizontal */}
                 <rect x={margin.left + 4} y={svgH - margin.bottom - 4} width={drawW - 8} height={4} fill="#1f2937" />
                 
-                {/* Outer Posts */}
-                <rect x={margin.left} y={margin.top} width={4} height={drawH} fill="#1f2937" />
-                <rect x={svgW - margin.right - 4} y={margin.top} width={4} height={drawH} fill="#1f2937" />
+                {/* Outer Posts (WITH FEET) */}
+                <rect x={margin.left} y={margin.top} width={4} height={drawH + 15} fill="#1f2937" />
+                <rect x={svgW - margin.right - 4} y={margin.top} width={4} height={drawH + 15} fill="#1f2937" />
                 
                 {/* Inner Posts */}
                 {Array.from({ length: numInnerBars }).map((_, i) => {

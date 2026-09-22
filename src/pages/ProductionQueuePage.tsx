@@ -55,7 +55,9 @@ const QUICK_COSTS = [
 
 export default function ProductionQueue() {
     const [items, setItems] = useState<DashboardItem[]>([]);
-    const [timeFilter, setTimeFilter] = useState<'all' | 'month' | 'week'>('all');
+    const [timeFilter, setTimeFilter] = useState<'all' | 'month' | 'week' | 'custom'>('all');
+    const [customStart, setCustomStart] = useState('');
+    const [customEnd, setCustomEnd] = useState('');
     const [stageFilter, setStageFilter] = useState<'all' | BoardStage>('all');
     const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
     const { user } = useAuth();
@@ -449,6 +451,20 @@ export default function ProductionQueue() {
         } else if (timeFilter === 'week') {
             const firstDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
             return itemDate >= firstDayOfWeek;
+        } else if (timeFilter === 'custom') {
+            let passStart = true;
+            let passEnd = true;
+            if (customStart) {
+                const s = new Date(customStart);
+                s.setHours(0, 0, 0, 0);
+                passStart = itemDate >= s;
+            }
+            if (customEnd) {
+                const e = new Date(customEnd);
+                e.setHours(23, 59, 59, 999);
+                passEnd = itemDate <= e;
+            }
+            return passStart && passEnd;
         }
         return true;
     });
@@ -684,9 +700,23 @@ export default function ProductionQueue() {
                         <option value="week">Esta Semana</option>
                         <option value="month">Este Mês</option>
                         <option value="all">Período Geral</option>
+                        <option value="custom">Personalizado (Datas)</option>
                     </select>
                 </div>
             </div>
+
+            {timeFilter === 'custom' && (
+                <div className="flex gap-4 mb-6 items-end bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                    <div className="flex-1 max-w-[200px]">
+                        <label className="block text-xs font-bold text-gray-500 mb-1">Data Início</label>
+                        <input type="date" value={customStart} onChange={e => setCustomStart(e.target.value)} className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm font-bold text-gray-700 dark:text-gray-200 outline-none focus:ring-2 focus:ring-highlight" />
+                    </div>
+                    <div className="flex-1 max-w-[200px]">
+                        <label className="block text-xs font-bold text-gray-500 mb-1">Data Fim</label>
+                        <input type="date" value={customEnd} onChange={e => setCustomEnd(e.target.value)} className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm font-bold text-gray-700 dark:text-gray-200 outline-none focus:ring-2 focus:ring-highlight" />
+                    </div>
+                </div>
+            )}
 
             {/* Top Stats Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -860,7 +890,7 @@ export default function ProductionQueue() {
                                                                 >
                                                                       <span className="font-bold text-green-600 dark:text-green-400 text-xs flex gap-1 items-center justify-center whitespace-nowrap">
                                                                           {formatCurrencyBRL(item.profit || 0)}
-                                                                          {item.value ? <span className="text-[10px] font-normal text-green-700/60 dark:text-green-300/60">({(((item.profit || 0) / item.value) * 100).toFixed(1)}%)</span> : null}
+                                                                          {item.value ? <span className="text-sm font-black text-green-700/90 dark:text-green-300/90 ml-1">({(((item.profit || 0) / item.value) * 100).toFixed(1)}%)</span> : null}
                                                                       </span>
                                                                     {(item.source === 'queue' || item.source === 'contract') && (
                                                                         <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} viewBox="0 0 20 20" fill="currentColor">
@@ -1063,7 +1093,7 @@ export default function ProductionQueue() {
                                                                                                         return (
                                                                                                             <>
                                                                                                               {formatCurrencyBRL(val)}
-                                                                                                              {item.value ? <span className="text-xs text-gray-400 ml-2 font-normal">({((val / item.value) * 100).toFixed(1)}%)</span> : null}
+                                                                                                              {item.value ? <span className="text-sm text-gray-500 ml-2 font-bold">({((val / item.value) * 100).toFixed(1)}%)</span> : null}
                                                                                                             </>
                                                                                                         );
                                                                                                     })()}
@@ -1081,7 +1111,7 @@ export default function ProductionQueue() {
                                                                                                                 <td className="px-4 py-2 text-gray-600 dark:text-gray-400 border-l-4 border-indigo-500 pl-3">Custo de Deslocamento (Distância IA)</td>
                                                                                                                 <td className="px-4 py-2 text-right text-indigo-600 dark:text-indigo-400 font-medium whitespace-nowrap">
                                                                                                                     {formatCurrencyBRL(Number(pcd.freightCost))}
-                                                                                                                    {item.value ? <span className="text-xs text-indigo-300 ml-2 font-normal">({((Number(pcd.freightCost) / item.value) * 100).toFixed(1)}%)</span> : null}
+                                                                                                                    {item.value ? <span className="text-sm text-indigo-400 ml-2 font-bold">({((Number(pcd.freightCost) / item.value) * 100).toFixed(1)}%)</span> : null}
                                                                                                                 </td>
                                                                                                                 <td></td>
                                                                                                             </tr>
@@ -1091,7 +1121,7 @@ export default function ProductionQueue() {
                                                                                                                 <td className="px-4 py-2 text-gray-600 dark:text-gray-400 border-l-4 border-indigo-500 pl-3">Custo de Pedágios (IA)</td>
                                                                                                                 <td className="px-4 py-2 text-right text-indigo-600 dark:text-indigo-400 font-medium whitespace-nowrap">
                                                                                                                     {formatCurrencyBRL(Number(pcd.tollCost))}
-                                                                                                                    {item.value ? <span className="text-xs text-indigo-300 ml-2 font-normal">({((Number(pcd.tollCost) / item.value) * 100).toFixed(1)}%)</span> : null}
+                                                                                                                    {item.value ? <span className="text-sm text-indigo-400 ml-2 font-bold">({((Number(pcd.tollCost) / item.value) * 100).toFixed(1)}%)</span> : null}
                                                                                                                 </td>
                                                                                                                 <td></td>
                                                                                                             </tr>
@@ -1140,7 +1170,7 @@ export default function ProductionQueue() {
                                                                                                     </td>
                                                                                                     <td className="px-4 py-2 text-right text-red-500 whitespace-nowrap">
                                                                                                       {formatCurrencyBRL(cost.value)}
-                                                                                                      {item.value ? <span className="text-xs text-red-300 ml-2 font-normal">({((cost.value / item.value) * 100).toFixed(1)}%)</span> : null}
+                                                                                                      {item.value ? <span className="text-sm text-red-400 ml-2 font-bold">({((cost.value / item.value) * 100).toFixed(1)}%)</span> : null}
                                                                                                     </td>
                                                                                                     <td className="px-4 py-2 text-right">
                                                                                                         <button onClick={() => handleDeleteCost(item, cost.id)} className="text-gray-400 hover:text-red-500 p-1">
@@ -1155,7 +1185,7 @@ export default function ProductionQueue() {
                                                                                                 <td className="px-4 py-3 font-bold text-gray-900 dark:text-white text-right">CUSTO TOTAL</td>
                                                                                                 <td className="px-4 py-3 font-black text-red-500 text-right whitespace-nowrap">
                                                                                                   {formatCurrencyBRL(item.cost || 0)}
-                                                                                                  {item.value ? <span className="text-xs text-red-400 ml-2 font-normal">({(((item.cost || 0) / item.value) * 100).toFixed(1)}%)</span> : null}
+                                                                                                  {item.value ? <span className="text-sm text-red-400 ml-2 font-bold">({(((item.cost || 0) / item.value) * 100).toFixed(1)}%)</span> : null}
                                                                                                 </td>
                                                                                                 <td></td>
                                                                                             </tr>
