@@ -230,7 +230,7 @@ export const generateMaterialDataText = (props: TechnicalDataProps) => {
   return report;
 };
 
-import { drawProductionPage, drawLandingsPage } from './productionPdfGenerator';
+import { drawProductionPage, drawLandingsPage, drawGuardrailsPage } from './productionPdfGenerator';
 
 export const drawPristineTechnicalPage = (doc: jsPDF, props: TechnicalDataProps) => {
     const {
@@ -374,6 +374,7 @@ export const generateUnifiedTechnicalPDF = (props: TechnicalDataProps) => {
 
   if (props.landings && props.landings.length > 0) {
       drawLandingsPage(doc, props.landings, props.clientName, props.totalSteps, props.wallFixation);
+      drawGuardrailsPage(doc, props.landings, props.clientName);
   }
 
   // Página 2: Documento Técnico Pristine

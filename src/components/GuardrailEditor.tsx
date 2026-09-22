@@ -1,8 +1,9 @@
 import React from "react";
 import { LandingInfo } from "../types";
 import { getAutoGuardrailLengths } from "./CalculatorForm";
+import { GuardrailPreview } from "./GuardrailPreview";
 
-export const GuardrailEditor = ({ landing, updateLanding, InputField }: any) => {
+export const GuardrailEditor = ({ landing, updateLanding, InputField, isGate = false }: any) => {
     const gFormat = landing.guardrailFormat || "normal";
     const gHeight = landing.guardrailHeight || 90;
     const gPricePerMeter = landing.guardrailPricePerMeter !== undefined ? landing.guardrailPricePerMeter : 50;
@@ -34,17 +35,9 @@ export const GuardrailEditor = ({ landing, updateLanding, InputField }: any) => 
         return (
             <div className="flex flex-col mb-4 p-2 border border-gray-200 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-800">
                 <p className="text-xs font-bold text-gray-500 mb-2">{label}</p>
-                <div className="flex flex-col items-center justify-center p-4">
-                    <p className="text-[10px] uppercase font-bold text-gray-500 mb-2">Prévia do Guarda-Corpo</p>
-                    <div className="flex items-end justify-center">
-                        <div className="flex" style={{ height: "40px", borderBottom: "3px solid #333", borderTop: "3px solid #333", position: "relative" }}>
-                            {Array.from({ length: totalBars }).map((_, i) => (
-                                <div key={i} style={{ width: "3px", height: "100%", backgroundColor: "#333", marginLeft: i === 0 ? "0" : "12px" }} />
-                            ))}
-                            <div className="absolute top-1/2 -left-8 transform -translate-y-1/2 text-[10px] font-bold text-gray-400">{gHeight}cm</div>
-                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 text-[10px] font-bold text-gray-400">{length}cm</div>
-                        </div>
-                    </div>
+                <div className="flex flex-col items-center justify-center p-4 w-full">
+                    <p className="text-[10px] uppercase font-bold text-gray-500 mb-2">Prévia do {isGate ? 'Portão' : 'Guarda-Corpo'}</p>
+                    <GuardrailPreview length={length} height={gHeight} totalBars={totalBars} isGate={isGate} />
                     <div className="flex gap-2 w-full max-w-[400px] mx-auto mt-6">
                         <div className="flex-1 bg-gray-100 dark:bg-gray-700 p-2 rounded text-center">
                             <span className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Qtd. Tubos</span>

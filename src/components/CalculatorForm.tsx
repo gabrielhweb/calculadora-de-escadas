@@ -1,7 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { CalculatorInput, OptionalItem, LandingInfo, ReferenceDoor } from '../types';
 import { GuardrailEditor } from './GuardrailEditor';
+import { GuardrailPreview } from './GuardrailPreview';
 
 interface CalculatorFormProps {
   onCalculate: (data: CalculatorInput) => void;
@@ -1122,11 +1122,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                                 {/* Visualizador */}
                                                 <div className="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-600 text-center">
                                                     <p className="text-[10px] uppercase font-bold text-gray-500 mb-2">Prévia do Portão</p>
-                                                    <div className="relative w-full max-w-[200px] mx-auto h-[60px] border-t-4 border-b-4 border-gray-800 dark:border-gray-300 flex justify-between border-l-4 border-r-4">
-                                                        {Array.from({length: totalBars}).map((_, i) => (
-                                                            <div key={i} className="w-[4px] h-full bg-gray-800 dark:bg-gray-300"></div>
-                                                        ))}
-                                                    </div>
+                                                    <GuardrailPreview length={gateLength} height={gateHeight} totalBars={totalBars} isGate={true} />
                                                     <div className="mt-4 flex flex-col gap-2">
                                                         <p className="text-[10px] font-bold text-gray-500 uppercase text-center">Configuração de Barras</p>
                                                         <div className="flex gap-2 items-center">
