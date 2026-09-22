@@ -509,19 +509,27 @@ export default function ProductionQueue() {
 
     const fixQueueLink = async (item: DashboardItem) => {
         try {
-            const newOrder = {
+            let tVal = Number(item.originalData?.totalValue);
+            if (isNaN(tVal)) tVal = 0;
+            
+            const newOrder: any = {
                 contractId: item.id,
                 createdAt: new Date().toISOString(),
-                clientName: item.title,
-                deliveryDate: item.originalData.deliveryDate || '',
-                downPayment: item.originalData.totalValue ? item.originalData.totalValue / 2 : 0,
-                balanceDue: item.originalData.totalValue ? item.originalData.totalValue / 2 : 0,
+                clientName: item.title || 'Sem Nome',
+                deliveryDate: item.originalData?.deliveryDate || '',
+                downPayment: tVal / 2,
+                balanceDue: tVal / 2,
                 status: 'in_queue',
                 boardStage: 'contrato',
-                location: item.originalData.location || item.originalData.customAddress || 'N/A',
+                location: item.originalData?.location || item.originalData?.customAddress || 'N/A',
                 installments: [],
                 paidInstallments: 0
             };
+            
+            Object.keys(newOrder).forEach(k => {
+                if (newOrder[k] === undefined) delete newOrder[k];
+            });
+            
             await setDoc(doc(db, 'production_queue', Date.now().toString() + '_queue'), newOrder);
             alert("Vínculo criado com sucesso! Agora você pode editar as datas, o estágio e ver a ficha.");
         } catch (e) {
