@@ -12,6 +12,7 @@ import CustomPaymentReceipt from './pages/CustomPaymentReceipt';
 import Carriers from './pages/Carriers';
 import { DeliveriesTable } from './pages/DeliveriesTable';
 import WeightCalculatorPage from './pages/WeightCalculatorPage';
+import GuardrailCalculatorPage from './pages/GuardrailCalculatorPage';
 import PurchasesDashboard from './pages/Purchases/PurchasesDashboard';
 import ProductCatalog from './pages/Purchases/ProductCatalog';
 import SupplierCatalog from './pages/Purchases/SupplierCatalog';
@@ -47,6 +48,7 @@ function App() {
             <Route index element={<Calculator />} />
             <Route path="contrato" element={<Contract />} />
             <Route path="calculadora-peso" element={<WeightCalculatorPage />} />
+            <Route path="calculadora-guarda-corpo" element={<GuardrailCalculatorPage />} />
             <Route path="salvos" element={<SavedQuotes />} />
             <Route path="contratos" element={<ContractsList />} />
             <Route path="fila" element={<ProductionQueuePage />} />
