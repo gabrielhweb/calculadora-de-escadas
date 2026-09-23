@@ -373,7 +373,8 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
     });
 
     if (inputData?.landings && inputData.landings.length > 0) {
-        currentY = drawProposalSummaryPage(doc, inputData.landings);
+        currentY = drawProposalSummaryPage(doc, inputData.landings, currentY);
+        doc.setTextColor(0, 0, 0); // Prevenção extra
     }
 
     // --- RODAPÉ ---

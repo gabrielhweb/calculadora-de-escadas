@@ -471,17 +471,24 @@ export const drawGuardrailsPage = (doc: jsPDF, landings: any[], clientName: stri
 
 import { patamarGenericoBase64 } from './patamarGenericoBase64';
 
-export const drawProposalSummaryPage = (doc: jsPDF, landings: any[]): number => {
-    let finalY = 20;
+export const drawProposalSummaryPage = (doc: jsPDF, landings: any[], startY: number = 20): number => {
+    let finalY = startY;
 
     landings.forEach((landing: any, index: number) => {
         let hasG = landing.hasGuardrail;
         let hasGate = landing.hasGate;
         if (!hasG && !hasGate && !landing.length && !landing.width) return;
 
-        doc.addPage('a4', 'p');
         const pageWidth = 210;
-        let currentY = 15;
+        let currentY = finalY;
+
+        // Verifica se há espaço suficiente (precisamos de uns 150 de altura)
+        if (currentY + 150 > 280) {
+            doc.addPage('a4', 'p');
+            currentY = 20;
+        } else {
+            currentY += 10; // Espaçamento do conteúdo anterior
+        }
 
         // LADO ESQUERDO: Patamar
         const leftX = 10;
@@ -722,6 +729,7 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[]): number => 
         });
     });
 
+    doc.setTextColor(0, 0, 0); // Garante que o texto volte a ser preto para o restante do documento
     return finalY;
 };
 
