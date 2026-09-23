@@ -602,10 +602,10 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[]) => {
         pieces.forEach((p, idx) => {
             const box = bboxes[idx];
             if (!box) return;
-            const padding = 15;
+            const padding = 10;
             
             const maxW = box.w - padding * 2;
-            const maxH = box.h - 45; // Aproveita o máximo de altura da caixa (deixando margem para textos)
+            const maxH = box.h - 32; // Aumentado para usar mais o espaço vertical
 
             // Calculate proportional size
             const scale = Math.min(maxW / Math.max(p.length, 50), maxH / Math.max(p.outerH, 50));
@@ -614,12 +614,12 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[]) => {
 
             // Center in the box
             const px = box.x + (box.w - drawW) / 2;
-            const py = box.y + 25 + (maxH - drawH) / 2;
+            const py = box.y + 18 + (maxH - drawH) / 2;
 
             doc.setFontSize(11);
             doc.setFont('helvetica', 'bold');
             doc.setTextColor(0,0,0);
-            doc.text(p.title, box.x + box.w / 2, py - 12, { align: 'center' });
+            doc.text(p.title, box.x + box.w / 2, py - 10, { align: 'center' });
 
             // Espessuras bem mais finas para os desenhos do orçamento não ficarem "borrados"
             const outThick = 1.5;
@@ -678,10 +678,18 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[]) => {
                 doc.setLineDashPattern([1, 1], 0);
                 doc.line(gapStartX, py + drawH / 2, gapEndX, py + drawH / 2);
                 doc.setLineDashPattern([], 0);
+                
+                // Desenha uma "máscara" branca atrás do texto para ele não se misturar com as barras pretas
+                const gapText = gapCm.toFixed(1) + 'cm';
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'bold');
+                const tw = doc.getTextWidth(gapText);
+                
+                doc.setFillColor(255, 255, 255);
+                doc.rect((gapStartX + gapEndX) / 2 - tw / 2 - 0.5, py + drawH / 2 - 3.5, tw + 1, 4, 'F');
+                
                 doc.setTextColor(236, 72, 153);
-                doc.setFontSize(7);
-                // Eleva levemente o texto se o espaço for muito pequeno para evitar que bata na linha
-                doc.text(gapCm.toFixed(1) + 'cm', (gapStartX + gapEndX) / 2, py + drawH / 2 - 1.5, { align: 'center' });
+                doc.text(gapText, (gapStartX + gapEndX) / 2, py + drawH / 2 - 0.5, { align: 'center' });
             }
 
             // Detalhes do Portão
