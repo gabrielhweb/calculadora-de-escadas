@@ -670,9 +670,30 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[]) => {
                 doc.rect(barX, py + horizThick, inThick, drawH - horizThick * 2, 'F');
             }
 
-            // Folga (Distância entre os ferros) escrita como texto embaixo
+            // Folga (Distância entre os ferros) escrita como texto embaixo + Seta indicativa no desenho
             if (numInner > 0) {
-                const gapText = `Folga interna: ${gapCm.toFixed(1)}cm`;
+                // Seta indicativa no primeiro vão (rosa)
+                const gapStartX = px + outThick;
+                const gapEndX = px + outThick + step - (inThick / 2);
+                const lineY = py + drawH * 0.75; // 3/4 da altura, não atrapalha
+                
+                doc.setDrawColor(236, 72, 153);
+                doc.setLineWidth(0.4);
+                
+                // Linha principal
+                doc.line(gapStartX, lineY, gapEndX, lineY);
+                // Marcações verticais (ticks)
+                doc.line(gapStartX, lineY - 1.5, gapStartX, lineY + 1.5);
+                doc.line(gapEndX, lineY - 1.5, gapEndX, lineY + 1.5);
+                // Pontas da seta esquerda
+                doc.line(gapStartX, lineY, gapStartX + 1.5, lineY - 1);
+                doc.line(gapStartX, lineY, gapStartX + 1.5, lineY + 1);
+                // Pontas da seta direita
+                doc.line(gapEndX, lineY, gapEndX - 1.5, lineY - 1);
+                doc.line(gapEndX, lineY, gapEndX - 1.5, lineY + 1);
+
+                // Texto descritivo na parte de baixo
+                const gapText = `Folga interna (seta rosa): ${gapCm.toFixed(1)}cm`;
                 doc.setFontSize(8);
                 doc.setFont('helvetica', 'normal');
                 doc.setTextColor(236, 72, 153);
