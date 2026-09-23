@@ -554,6 +554,9 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[]) => {
                 }
                 
                 title = `Imagem ${pieces.length + 1}: ${title}`;
+                if (isFixed) {
+                    title += ' (Fixo)';
+                }
                 
                 pieces.push({ type: 'guardrail', title, length: gL, outerH, innerH, isFixed });
             }
@@ -641,13 +644,17 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[]) => {
             doc.setTextColor(249, 115, 22);
             doc.text((p.length - 4) + 'cm', px + drawW / 2, py + drawH + 7, { align: 'center' });
 
-            // Laterais (Vermelho)
+            // Lateral Esquerda (Altura Total - Vermelho)
             doc.setDrawColor(239, 68, 68);
             doc.line(px - 3, py, px - 3, py + drawH);
-            doc.line(px + drawW + 3, py, px + drawW + 3, py + drawH);
             doc.setTextColor(239, 68, 68);
             doc.text(p.outerH + 'cm', px - 4, py + drawH / 2 + 1, { align: 'right' });
-            doc.text(p.outerH + 'cm', px + drawW + 4, py + drawH / 2 + 1, { align: 'left' });
+
+            // Lateral Direita (Altura Interna - Azul)
+            doc.setDrawColor(59, 130, 246);
+            doc.line(px + drawW + 3, py + horizThick, px + drawW + 3, py + drawH - horizThick);
+            doc.setTextColor(59, 130, 246);
+            doc.text((p.outerH - 13) + 'cm', px + drawW + 4, py + drawH / 2 + 1, { align: 'left' });
 
             // DESENHO DA ESTRUTURA (Preto)
             doc.setFillColor(31, 41, 55);
@@ -699,17 +706,6 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[]) => {
                 doc.setTextColor(236, 72, 153);
                 doc.text(gapText, px + drawW / 2, py + drawH + 11, { align: 'center' });
 
-                // Medida dos tubos internos (Azul) - desenhada no segundo vão
-                const firstBarX = gapEndX; // x do primeiro tubo interno
-                const blueX = firstBarX + inThick + 2; // 2mm à direita da barra
-                doc.setDrawColor(59, 130, 246); // Azul
-                doc.line(blueX, py + horizThick, blueX, py + drawH - horizThick);
-                // Ticks da linha azul
-                doc.line(blueX - 1, py + horizThick, blueX + 1, py + horizThick);
-                doc.line(blueX - 1, py + drawH - horizThick, blueX + 1, py + drawH - horizThick);
-                doc.setTextColor(59, 130, 246);
-                doc.setFontSize(7);
-                doc.text(`${p.outerH - 13}cm`, blueX + 1, py + drawH / 2 + 1, { align: 'left' });
             }
 
             // Detalhes do Portão
