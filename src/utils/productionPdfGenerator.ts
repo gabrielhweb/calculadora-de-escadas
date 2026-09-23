@@ -698,6 +698,18 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[]) => {
                 doc.setFont('helvetica', 'normal');
                 doc.setTextColor(236, 72, 153);
                 doc.text(gapText, px + drawW / 2, py + drawH + 11, { align: 'center' });
+
+                // Medida dos tubos internos (Azul) - desenhada no segundo vão
+                const firstBarX = gapEndX; // x do primeiro tubo interno
+                const blueX = firstBarX + inThick + 2; // 2mm à direita da barra
+                doc.setDrawColor(59, 130, 246); // Azul
+                doc.line(blueX, py + horizThick, blueX, py + drawH - horizThick);
+                // Ticks da linha azul
+                doc.line(blueX - 1, py + horizThick, blueX + 1, py + horizThick);
+                doc.line(blueX - 1, py + drawH - horizThick, blueX + 1, py + drawH - horizThick);
+                doc.setTextColor(59, 130, 246);
+                doc.setFontSize(7);
+                doc.text(`${p.outerH - 13}cm`, blueX + 1, py + drawH / 2 + 1, { align: 'left' });
             }
 
             // Detalhes do Portão
