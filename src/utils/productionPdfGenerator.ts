@@ -396,20 +396,20 @@ export const drawGuardrailsPage = (doc: jsPDF, landings: any[], clientName: stri
             }
 
             doc.setLineWidth(1);
-            doc.setDrawColor(34, 197, 94);
+            doc.setDrawColor(0, 0, 0);
             doc.line(startX, startY - 10, startX + drawW, startY - 10);
             doc.setFontSize(10);
-            doc.setTextColor(34, 197, 94);
+            doc.setTextColor(0, 0, 0);
             doc.text(gLength + 'cm', startX + drawW / 2, startY - 12, { align: 'center' });
 
-            doc.setDrawColor(249, 115, 22);
+            doc.setDrawColor(0, 0, 0);
             doc.line(startX + 5, startY + drawH + 10, startX + drawW - 5, startY + drawH + 10);
-            doc.setTextColor(249, 115, 22);
+            doc.setTextColor(0, 0, 0);
             doc.text((gLength - 4) + 'cm', startX + drawW / 2, startY + drawH + 15, { align: 'center' });
 
-            doc.setDrawColor(239, 68, 68);
+            doc.setDrawColor(0, 0, 0);
             doc.line(startX + drawW + 10, startY, startX + drawW + 10, startY + drawH);
-            doc.setTextColor(239, 68, 68);
+            doc.setTextColor(0, 0, 0);
             doc.text(outerHeight + 'cm', startX + drawW + 15, startY + drawH / 2);
             if (isFixed) {
                 doc.setFontSize(8);
@@ -417,9 +417,9 @@ export const drawGuardrailsPage = (doc: jsPDF, landings: any[], clientName: stri
                 doc.setFontSize(10);
             }
 
-            doc.setDrawColor(59, 130, 246);
+            doc.setDrawColor(0, 0, 0);
             doc.line(startX - 15, startY + 5, startX - 15, startY + drawH);
-            doc.setTextColor(59, 130, 246);
+            doc.setTextColor(0, 0, 0);
             doc.text(innerHeight + 'cm', startX - 18, startY + drawH / 2, { align: 'right' });
 
             doc.setFillColor(31, 41, 55);
@@ -460,10 +460,10 @@ export const drawGuardrailsPage = (doc: jsPDF, landings: any[], clientName: stri
             doc.setTextColor(0, 0, 0);
             doc.text('Lista de Cortes:', listX, listY);
             doc.setFontSize(12);
-            doc.setTextColor(34, 197, 94); doc.text('1x Tubo Superior de ' + gLength + 'cm', listX, listY + 8);
-            doc.setTextColor(249, 115, 22); doc.text('1x Tubo Inferior de ' + (gLength - 4) + 'cm', listX, listY + 14);
-            doc.setTextColor(239, 68, 68); doc.text('2x Tubos Laterais (Pontas) de ' + outerHeight + 'cm' + (isFixed ? ' (inclui +10cm)' : ''), listX, listY + 20);
-            doc.setTextColor(59, 130, 246); doc.text(numInnerBars + 'x Tubos Internos de ' + innerHeight + 'cm', listX, listY + 26);
+            doc.setTextColor(0, 0, 0); doc.text('1x Tubo Superior de ' + gLength + 'cm', listX, listY + 8);
+            doc.setTextColor(0, 0, 0); doc.text('1x Tubo Inferior de ' + (gLength - 4) + 'cm', listX, listY + 14);
+            doc.setTextColor(0, 0, 0); doc.text('2x Tubos Laterais (Pontas) de ' + outerHeight + 'cm' + (isFixed ? ' (inclui +10cm)' : ''), listX, listY + 20);
+            doc.setTextColor(0, 0, 0); doc.text(numInnerBars + 'x Tubos Internos de ' + innerHeight + 'cm', listX, listY + 26);
             doc.setTextColor(236, 72, 153); doc.text('Afastamento (folga) das barras: ' + gapCm.toFixed(1) + 'cm', listX, listY + 32);
         }
     });
@@ -482,13 +482,17 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[], startY: num
         const pageWidth = 210;
         let currentY = finalY;
 
-        // Verifica se há espaço suficiente (precisamos de uns 150 de altura)
-        if (currentY + 150 > 280) {
+        // Verifica o espaço disponível. Precisamos de pelo menos 90 de altura
+        if (currentY + 90 > 280) {
             doc.addPage('a4', 'p');
             currentY = 20;
         } else {
             currentY += 10; // Espaçamento do conteúdo anterior
         }
+        
+        let availH = Math.min(140, 280 - currentY - 20);
+        // Garantir que a imagem do patamar caiba
+        const patamarImgH = Math.min(60, availH - 25);
 
         // LADO ESQUERDO: Patamar
         const leftX = 10;
@@ -503,7 +507,6 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[], startY: num
         doc.setFont('helvetica', 'normal');
         doc.text(`Medidas: ${landing.width || 0}cm x ${landing.length || 0}cm`, leftX + leftW / 2, currentY + 6, { align: 'center' });
         
-        const patamarImgH = 60;
         const maxPatamarW = leftW - 10;
         try {
             doc.addImage(patamarGenericoBase64, 'JPEG', leftX + leftW / 2 - maxPatamarW / 2, currentY + 12, maxPatamarW, patamarImgH);
@@ -578,7 +581,6 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[], startY: num
         
         const startX = rightX;
         const startY = currentY + 6;
-        const availH = 140; // Altura fixa para os desenhos ocuparem até o meio da página
         const availW = rightW;
 
         if (totalPieces === 1) {
@@ -641,28 +643,28 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[], startY: num
             // DIMENSÕES (Linhas Coloridas)
             // Topo (Verde)
             doc.setLineWidth(0.5);
-            doc.setDrawColor(34, 197, 94);
+            doc.setDrawColor(0, 0, 0);
             doc.line(px, py - 3, px + drawW, py - 3);
             doc.setFontSize(8);
-            doc.setTextColor(34, 197, 94);
+            doc.setTextColor(0, 0, 0);
             doc.text(p.length + 'cm', px + drawW / 2, py - 4, { align: 'center' });
 
             // Base (Laranja)
-            doc.setDrawColor(249, 115, 22);
+            doc.setDrawColor(0, 0, 0);
             doc.line(px + outThick, py + drawH + 4, px + drawW - outThick, py + drawH + 4);
-            doc.setTextColor(249, 115, 22);
+            doc.setTextColor(0, 0, 0);
             doc.text((p.length - 4) + 'cm', px + drawW / 2, py + drawH + 7, { align: 'center' });
 
             // Lateral Esquerda (Altura Total - Vermelho)
-            doc.setDrawColor(239, 68, 68);
+            doc.setDrawColor(0, 0, 0);
             doc.line(px - 3, py, px - 3, py + drawH);
-            doc.setTextColor(239, 68, 68);
+            doc.setTextColor(0, 0, 0);
             doc.text(p.outerH + 'cm', px - 4, py + drawH / 2 + 1, { align: 'right' });
 
             // Lateral Direita (Altura Interna - Azul)
-            doc.setDrawColor(59, 130, 246);
+            doc.setDrawColor(0, 0, 0);
             doc.line(px + drawW + 3, py + horizThick, px + drawW + 3, py + drawH - horizThick);
-            doc.setTextColor(59, 130, 246);
+            doc.setTextColor(0, 0, 0);
             doc.text((p.outerH - 13) + 'cm', px + drawW + 4, py + drawH / 2 + 1, { align: 'left' });
 
             // DESENHO DA ESTRUTURA (Preto)
