@@ -469,6 +469,162 @@ export const drawGuardrailsPage = (doc: jsPDF, landings: any[], clientName: stri
     });
 };
 
+export const drawProposalSummaryPage = (doc: jsPDF, landings: any[]) => {
+    landings.forEach((landing: any, index: number) => {
+        let hasG = landing.hasGuardrail;
+        let hasGate = landing.hasGate;
+        if (!hasG && !hasGate && !landing.length && !landing.width) return;
+
+        doc.addPage('a4', 'p');
+        const pageWidth = 210;
+        const pageHeight = 297;
+        let currentY = 20;
+
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(0, 0, 0);
+        doc.text(`Patamar ${index + 1}`, pageWidth / 2, currentY, { align: 'center' });
+        currentY += 10;
+        
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Medidas: ${landing.width || 0}cm x ${landing.length || 0}cm`, pageWidth / 2, currentY, { align: 'center' });
+        currentY += 10;
+
+        const patamarImgH = 60;
+        doc.setDrawColor(200, 200, 200);
+        doc.setLineWidth(0.5);
+        doc.rect(20, currentY, pageWidth - 40, patamarImgH);
+        doc.setTextColor(150, 150, 150);
+        doc.text("IMAGEM DO PATAMAR AQUI (AGUARDANDO UPLOAD)", pageWidth / 2, currentY + patamarImgH / 2, { align: 'center' });
+        currentY += patamarImgH + 15;
+
+        if (!hasG && !hasGate) return;
+
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(0, 0, 0);
+        doc.text('Guarda-Corpo e Portão', pageWidth / 2, currentY, { align: 'center' });
+        currentY += 15;
+
+        const pieces: any[] = [];
+        if (hasG) {
+            const format = landing.guardrailFormat || 'straight';
+            const numSides = format === 'U' ? 3 : format === 'L' ? 2 : 1;
+            for (let i = 1; i <= numSides; i++) {
+                let gL = 0;
+                if (i===1) gL = landing.guardrailLength || 0;
+                else if (i===2) gL = landing.guardrailLength2 || 0;
+                else if (i===3) gL = landing.guardrailLength3 || 0;
+                
+                let isFixed = false;
+                if (landing.guardrailFixedToLanding) {
+                    isFixed = numSides === 1 ? true : (landing.guardrailFixedSides || []).includes(i);
+                }
+                const gH = landing.guardrailHeight || 90;
+                const outerH = isFixed ? gH + 10 : gH;
+                const innerH = gH - 13;
+                
+                pieces.push({ type: 'guardrail', title: numSides > 1 ? `Lado ${i}` : 'Guarda-Corpo', length: gL, outerH, innerH, isFixed });
+            }
+        }
+        if (hasGate) {
+            pieces.push({ type: 'gate', title: 'Portão', length: landing.gateLength || 100, outerH: landing.gateHeight || 90, innerH: (landing.gateHeight || 90) - 13 });
+        }
+
+        const totalPieces = pieces.length;
+        if (totalPieces === 0) return;
+
+        const availH = pageHeight - currentY - 20; 
+        const availW = pageWidth - 20; 
+        const startX = 10;
+        const startY = currentY;
+
+        const bboxes: any[] = [];
+        if (totalPieces === 1) {
+            bboxes.push({ x: startX, y: startY, w: availW, h: availH });
+        } else if (totalPieces === 2) {
+            const w = availW / 2;
+            bboxes.push({ x: startX, y: startY, w: w, h: availH });
+            bboxes.push({ x: startX + w, y: startY, w: w, h: availH });
+            doc.setDrawColor(200); doc.line(startX + w, startY, startX + w, startY + availH);
+        } else if (totalPieces === 3) {
+            const h = availH / 2;
+            const w2 = availW / 2;
+            bboxes.push({ x: startX, y: startY, w: availW, h: h });
+            bboxes.push({ x: startX, y: startY + h, w: w2, h: h });
+            bboxes.push({ x: startX + w2, y: startY + h, w: w2, h: h });
+            doc.setDrawColor(200); 
+            doc.line(startX, startY + h, startX + availW, startY + h); 
+            doc.line(startX + w2, startY + h, startX + w2, startY + availH); 
+        } else if (totalPieces >= 4) {
+            const w = availW / 2;
+            const h = availH / 2;
+            bboxes.push({ x: startX, y: startY, w: w, h: h });
+            bboxes.push({ x: startX + w, y: startY, w: w, h: h });
+            bboxes.push({ x: startX, y: startY + h, w: w, h: h });
+            bboxes.push({ x: startX + w, y: startY + h, w: w, h: h });
+            doc.setDrawColor(200); 
+            doc.line(startX, startY + h, startX + availW, startY + h);
+            doc.line(startX + w, startY, startX + w, startY + availH);
+        }
+
+        pieces.forEach((p, idx) => {
+            const box = bboxes[idx];
+            if (!box) return;
+            const padding = 15;
+            const drawW = box.w - padding * 2;
+            const drawH = (box.h - 30) * 0.55; 
+
+            const px = box.x + padding;
+            const py = box.y + 25; 
+
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(0,0,0);
+            doc.text(p.title, box.x + box.w / 2, box.y + 15, { align: 'center' });
+
+            doc.setLineWidth(1);
+            doc.setDrawColor(34, 197, 94);
+            doc.line(px, py, px + drawW, py);
+            doc.setFontSize(9);
+            doc.setTextColor(34, 197, 94);
+            doc.text(p.length + 'cm', px + drawW / 2, py - 2, { align: 'center' });
+
+            doc.setDrawColor(239, 68, 68);
+            doc.line(px, py + 5, px, py + 5 + drawH);
+            doc.line(px + drawW, py + 5, px + drawW, py + 5 + drawH);
+            doc.setTextColor(239, 68, 68);
+            doc.text(p.outerH + 'cm', px - 2, py + 5 + drawH / 2, { align: 'right' });
+            doc.text(p.outerH + 'cm', px + drawW + 2, py + 5 + drawH / 2, { align: 'left' });
+
+            if (p.type === 'gate') {
+                doc.setFillColor(107, 114, 128);
+                doc.circle(px - 1, py + 5 + drawH * 0.2, 2, 'F');
+                doc.circle(px - 1, py + 5 + drawH * 0.8, 2, 'F');
+                doc.rect(px + drawW - 3, py + 5 + drawH / 2 - 4, 4, 8, 'F');
+            }
+
+            const gBars = Math.max(2, Math.round((p.length - 6) / 15) + 1);
+            const numInner = Math.max(0, gBars - 2);
+            doc.setFillColor(31, 41, 55);
+            doc.rect(px, py + 5, drawW, 2, 'F');
+            doc.rect(px + 2, py + 5 + drawH - 2, drawW - 4, 2, 'F');
+            
+            for (let i = 0; i < numInner; i++) {
+                const step = (drawW - 4) / (numInner + 1);
+                const barX = px + 2 + step * (i + 1) - 1;
+                doc.rect(barX, py + 7, 2, drawH - 4, 'F');
+            }
+
+            doc.setDrawColor(249, 115, 22);
+            doc.line(px + 2, py + 10 + drawH, px + drawW - 2, py + 10 + drawH);
+            doc.setTextColor(249, 115, 22);
+            doc.text((p.length - 4) + 'cm', px + drawW / 2, py + 14 + drawH, { align: 'center' });
+        });
+    });
+};
+
 export const generateGuardrailsOnlyPDF = (landings: any[], clientName: string) => {
     const hasAny = landings.some(l => l.hasGuardrail || l.hasGate);
     if (!hasAny) return;

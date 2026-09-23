@@ -26,6 +26,7 @@ export default function GuardrailCalculatorPage() {
     const handleAddGuardrail = () => {
         setGuardrails([...guardrails, { 
             id: Date.now().toString(), 
+            hasGuardrail: true,
             guardrailFormat: "normal", 
             guardrailSide: "left",
             guardrailLength: 100, 
