@@ -771,23 +771,10 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
       setIsExportWizardOpen(true);
   };
 
-  // Captura automática quando o wizard abrir ou avançar passo
+  // O usuário fará a captura manualmente através do botão "Capturar e Próximo"
+  // para permitir que ele tenha tempo de girar e alinhar o desenho 3D.
   const isCapturing = useRef(false);
-  useEffect(() => {
-      if (isExportWizardOpen && exportQueue.length > 0 && captureRef.current && !isCapturing.current) {
-          isCapturing.current = true;
-          // Pequeno delay para garantir que a renderização 3D/2D foi concluída
-          const timer = setTimeout(() => {
-              // Se for a última etapa e for attach, não fecha o wizard ainda, mas roda
-              captureCurrentStepAndNext();
-          }, 800);
-          return () => {
-              clearTimeout(timer);
-              isCapturing.current = false;
-          };
-      }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isExportWizardOpen, currentExportIndex]);
+
 
   const captureCurrentStepAndNext = async () => {
       console.log("captureCurrentStepAndNext chamado");
