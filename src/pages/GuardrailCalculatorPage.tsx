@@ -66,6 +66,16 @@ export default function GuardrailCalculatorPage() {
         setGuardrails(guardrails.filter(g => g.id !== id));
     };
 
+    const handlePrintGuardrails = () => {
+        if (guardrails.length === 0) {
+            alert('Adicione pelo menos um guarda-corpo ou portão para imprimir.');
+            return;
+        }
+        import('../utils/productionPdfGenerator').then(({ generateGuardrailsOnlyPDF }) => {
+            generateGuardrailsOnlyPDF(guardrails, 'Projeto_Avulso');
+        });
+    };
+
     return (
         <div className="p-4 sm:p-6 h-[calc(100vh-64px)] overflow-y-auto pb-24">
             <div className="max-w-4xl mx-auto">
@@ -80,6 +90,9 @@ export default function GuardrailCalculatorPage() {
                         </p>
                     </div>
                     <div className="flex gap-2">
+                        <button onClick={handlePrintGuardrails} className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-bold shadow transition-colors text-sm flex items-center gap-2">
+                            🖨️ Imprimir
+                        </button>
                         <button onClick={handleAddGuardrail} className="bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded-lg font-bold shadow transition-colors text-sm">
                             + Guarda-Corpo
                         </button>

@@ -2,6 +2,7 @@
 import jsPDF from 'jspdf';
 import { UserData, ProposalOption, CalculatorInput } from '../types';
 import { formatCurrencyBRL } from '../utils';
+import { drawLandingsPage, drawGuardrailsPage } from './productionPdfGenerator';
 
 export interface ContractData {
   userData: UserData;
@@ -534,6 +535,11 @@ export const generateContractPDF = (data: ContractData) => {
   currentY += 5;
   doc.setFont('helvetica', 'normal');
   doc.text(`CPF/CNPJ ${data.userData?.cpf || 'Não Informado'}`, pageWidth / 2, currentY, { align: 'center' });
+
+  if (data.inputData?.landings && data.inputData.landings.length > 0) {
+      drawLandingsPage(doc, data.inputData.landings, data.userData?.name || 'Cliente', data.inputData.totalSteps, undefined);
+      drawGuardrailsPage(doc, data.inputData.landings, data.userData?.name || 'Cliente');
+  }
 
   doc.save(`contrato_${(data.userData?.name || 'cliente').toLowerCase().replace(/\s/g, '_')}.pdf`);
 };

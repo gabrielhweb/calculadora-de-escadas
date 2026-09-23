@@ -4,6 +4,7 @@ import jsPDF from 'jspdf';
 import { useNavigate } from 'react-router-dom';
 import { ProposalOption, UserData, CalculatorInput } from '../types';
 import { formatCurrencyBRL, generateProposalDescription } from '../utils';
+import { drawLandingsPage, drawGuardrailsPage } from '../utils/productionPdfGenerator';
 
 interface ProposalDocumentProps {
   options: ProposalOption[];
@@ -438,6 +439,11 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
     const splitInstall2 = doc.splitTextToSize(installText2, pageWidth - (pageMargin * 2));
     doc.text(splitInstall2, pageMargin, currentY);
     currentY += (splitInstall2.length * 5) + 4;
+
+    if (inputData?.landings && inputData.landings.length > 0) {
+        drawLandingsPage(doc, inputData.landings, userData?.name || 'Cliente', inputData.desiredSteps, undefined);
+        drawGuardrailsPage(doc, inputData.landings, userData?.name || 'Cliente');
+    }
 
     return doc;
   }, [options, userData, inputData, freightCost, tollCost, installationCost, selectedOptionIndices]);
