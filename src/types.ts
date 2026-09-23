@@ -38,6 +38,8 @@ export interface LandingInfo {
   guardrailPriceOverride?: number;
   guardrailPriceOverride2?: number;
   guardrailPriceOverride3?: number;
+  guardrailFixedToLanding?: boolean; // Novo: fixo no patamar?
+  guardrailFixedSides?: number[]; // Novo: quais lados sao fixos (1, 2, 3)
   hasGate?: boolean; // Portãozinho
   gateLength?: number;
   gateHeight?: number;

@@ -222,6 +222,38 @@ export const GuardrailEditor = ({ landing, updateLanding, InputField, isGate = f
                 </div>
             </div>
 
+            <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded border border-gray-200 dark:border-gray-700">
+                <label className="flex items-center gap-2 cursor-pointer mb-1">
+                    <input 
+                        type="checkbox" 
+                        checked={!!landing.guardrailFixedToLanding} 
+                        onChange={(e) => updateLanding(landing.id, { guardrailFixedToLanding: e.target.checked })}
+                        className="w-4 h-4 accent-highlight"
+                    />
+                    <span className="text-sm font-bold text-gray-800 dark:text-gray-200">Será fixado no patamar (+10cm nas pontas)?</span>
+                </label>
+                {landing.guardrailFixedToLanding && numSides > 1 && (
+                    <div className="flex gap-4 ml-6 mt-2">
+                        <span className="text-xs text-gray-500 font-bold self-center mr-1">Quais lados?</span>
+                        {[1, 2, 3].slice(0, numSides).map(side => (
+                            <label key={side} className="flex items-center gap-1 cursor-pointer">
+                                <input 
+                                    type="checkbox" 
+                                    checked={(landing.guardrailFixedSides || []).includes(side)}
+                                    onChange={(e) => {
+                                        const curr = landing.guardrailFixedSides || [];
+                                        const next = e.target.checked ? [...curr, side] : curr.filter((s: number) => s !== side);
+                                        updateLanding(landing.id, { guardrailFixedSides: next });
+                                    }}
+                                    className="w-3 h-3 accent-highlight"
+                                />
+                                <span className="text-xs font-bold text-gray-700 dark:text-gray-300">Lado {side}</span>
+                            </label>
+                        ))}
+                    </div>
+                )}
+            </div>
+
             <div className="mt-4">
                 {renderSegment(landing.guardrailLength || 0, landing.guardrailBarsOverride, (val) => updateLanding(landing.id, { guardrailBarsOverride: val }), numSides > 1 ? "LADO 1" : "GUARDA-CORPO", landing.guardrailGapOverride, (val) => updateLanding(landing.id, { guardrailGapOverride: val }), landing.guardrailPriceOverride, (val) => updateLanding(landing.id, { guardrailPriceOverride: val }))}
                 {numSides >= 2 && renderSegment(landing.guardrailLength2 || 0, landing.guardrailBarsOverride2, (val) => updateLanding(landing.id, { guardrailBarsOverride2: val }), "LADO 2", landing.guardrailGapOverride2, (val) => updateLanding(landing.id, { guardrailGapOverride2: val }), landing.guardrailPriceOverride2, (val) => updateLanding(landing.id, { guardrailPriceOverride2: val }))}

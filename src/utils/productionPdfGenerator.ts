@@ -325,105 +325,147 @@ export const generateProductionPDF = (props: ProductionPdfProps) => {
 export const drawGuardrailsPage = (doc: jsPDF, landings: any[], clientName: string) => {
     landings.forEach((landing: any, index: number) => {
         if (!landing.hasGuardrail && !landing.hasGate) return;
-        doc.addPage('a4', 'l');
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(24);
-        doc.setTextColor(0, 0, 0);
-        const safeClientName = clientName ? clientName.toUpperCase() : 'CLIENTE NÃO INFORMADO';
-        doc.text(doc.splitTextToSize(safeClientName, 120), 10, 20);
-        doc.setFontSize(14);
-        doc.setTextColor(255, 0, 0);
-        const titleStr = landing.hasGate ? 'PROJETO DE PORTÃO' : 'PROJETO DE GUARDA-CORPO';
-        doc.text(`${titleStr} - PATAMAR ${index + 1}`, 10, 30);
 
-        let gLength = landing.guardrailLength || 0;
-        let gHeight = landing.guardrailHeight || 90;
-        let gBars = landing.guardrailBarsOverride || Math.max(2, Math.round((gLength - 6) / 15) + 1);
         let isGate = !!landing.hasGate;
+        const format = landing.guardrailFormat || 'straight';
+        const numSides = isGate ? 1 : (format === 'U' ? 3 : format === 'L' ? 2 : 1);
 
-        if (isGate) {
-            gLength = landing.gateLength || 100;
-            gHeight = landing.gateHeight || 90;
-            gBars = landing.gateBarsOverride || Math.max(2, Math.round((gLength - 6) / 15) + 1);
+        for (let sideIndex = 1; sideIndex <= numSides; sideIndex++) {
+            doc.addPage('a4', 'l');
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(24);
+            doc.setTextColor(0, 0, 0);
+            const safeClientName = clientName ? clientName.toUpperCase() : 'CLIENTE NÃO INFORMADO';
+            doc.text(doc.splitTextToSize(safeClientName, 120), 10, 20);
+            doc.setFontSize(14);
+            doc.setTextColor(255, 0, 0);
+            
+            let titleStr = isGate ? 'PROJETO DE PORTÃO' : 'PROJETO DE GUARDA-CORPO';
+            let subtitle = ` - PATAMAR ${index + 1}`;
+            if (!isGate && numSides > 1) {
+                subtitle += ` (LADO ${sideIndex})`;
+            }
+            doc.text(`${titleStr}${subtitle}`, 10, 30);
+
+            let gLength = 0;
+            let gHeight = landing.guardrailHeight || 90;
+            let gBarsOverride: number | undefined;
+
+            if (isGate) {
+                gLength = landing.gateLength || 100;
+                gHeight = landing.gateHeight || 90;
+                gBarsOverride = landing.gateBarsOverride;
+            } else {
+                if (sideIndex === 1) {
+                    gLength = landing.guardrailLength || 0;
+                    gBarsOverride = landing.guardrailBarsOverride;
+                } else if (sideIndex === 2) {
+                    gLength = landing.guardrailLength2 || 0;
+                    gBarsOverride = landing.guardrailBarsOverride2;
+                } else if (sideIndex === 3) {
+                    gLength = landing.guardrailLength3 || 0;
+                    gBarsOverride = landing.guardrailBarsOverride3;
+                }
+            }
+
+            let gBars = gBarsOverride || Math.max(2, Math.round((gLength - 6) / 15) + 1);
+            let numInnerBars = Math.max(0, gBars - 2);
+            let gapCm = numInnerBars >= 0 ? ((gLength - 4 - (numInnerBars * 3)) / (numInnerBars + 1)) : 0;
+
+            // Fixo no patamar (+10 nas pontas)
+            let isFixed = false;
+            if (!isGate && landing.guardrailFixedToLanding) {
+                if (numSides === 1) {
+                    isFixed = true;
+                } else {
+                    isFixed = (landing.guardrailFixedSides || []).includes(sideIndex);
+                }
+            }
+            const outerHeight = isFixed ? gHeight + 10 : gHeight;
+            const innerHeight = gHeight - 13;
+
+            const startX = 60;
+            const startY = 60;
+            const drawW = 180;
+            const drawH = 100;
+
+            if (isGate) {
+                doc.setFontSize(16);
+                doc.setTextColor(200, 200, 200);
+                doc.text('PORTÃO', startX + drawW / 2, startY - 25, { align: 'center' });
+            }
+
+            doc.setLineWidth(1);
+            doc.setDrawColor(34, 197, 94);
+            doc.line(startX, startY - 10, startX + drawW, startY - 10);
+            doc.setFontSize(10);
+            doc.setTextColor(34, 197, 94);
+            doc.text(gLength + 'cm', startX + drawW / 2, startY - 12, { align: 'center' });
+
+            doc.setDrawColor(249, 115, 22);
+            doc.line(startX + 5, startY + drawH + 10, startX + drawW - 5, startY + drawH + 10);
+            doc.setTextColor(249, 115, 22);
+            doc.text((gLength - 4) + 'cm', startX + drawW / 2, startY + drawH + 15, { align: 'center' });
+
+            doc.setDrawColor(239, 68, 68);
+            doc.line(startX + drawW + 10, startY, startX + drawW + 10, startY + drawH);
+            doc.setTextColor(239, 68, 68);
+            doc.text(outerHeight + 'cm', startX + drawW + 15, startY + drawH / 2);
+            if (isFixed) {
+                doc.setFontSize(8);
+                doc.text('(+10cm na ponta)', startX + drawW + 15, startY + drawH / 2 + 5);
+                doc.setFontSize(10);
+            }
+
+            doc.setDrawColor(59, 130, 246);
+            doc.line(startX - 15, startY + 5, startX - 15, startY + drawH);
+            doc.setTextColor(59, 130, 246);
+            doc.text(innerHeight + 'cm', startX - 18, startY + drawH / 2, { align: 'right' });
+
+            doc.setFillColor(31, 41, 55);
+            doc.rect(startX, startY, drawW, 4, 'F');
+            doc.rect(startX + 4, startY + drawH - 4, drawW - 8, 4, 'F');
+            
+            const visualExtraH = isFixed ? 10 : 0;
+            doc.rect(startX, startY, 4, drawH + 15 + visualExtraH, 'F');
+            doc.rect(startX + drawW - 4, startY, 4, drawH + 15 + visualExtraH, 'F');
+
+            for (let i = 0; i < numInnerBars; i++) {
+                const step = (drawW - 8) / (numInnerBars + 1);
+                const x = startX + 4 + step * (i + 1) - 1.5;
+                doc.rect(x, startY + 5, 3, drawH - 9, 'F');
+            }
+
+            if (numInnerBars > 0) {
+                doc.setDrawColor(236, 72, 153);
+                doc.setLineDashPattern([2, 2], 0);
+                const gapStartX = startX + 4;
+                const gapEndX = startX + 4 + (drawW - 8) / (numInnerBars + 1) - 1.5;
+                doc.line(gapStartX, startY + drawH / 2, gapEndX, startY + drawH / 2);
+                doc.setLineDashPattern([], 0);
+                doc.setTextColor(236, 72, 153);
+                doc.text(gapCm.toFixed(1) + 'cm', (gapStartX + gapEndX) / 2, startY + drawH / 2 - 2, { align: 'center' });
+            }
+
+            if (isGate) {
+                doc.setFillColor(107, 114, 128);
+                doc.circle(startX - 2, startY + 15, 3, 'F');
+                doc.circle(startX - 2, startY + drawH - 15, 3, 'F');
+                doc.rect(startX + drawW - 6, startY + drawH / 2 - 5, 8, 12, 'F');
+            }
+
+            const listX = 10;
+            const listY = 180;
+            doc.setFontSize(14);
+            doc.setTextColor(0, 0, 0);
+            doc.text('Lista de Cortes:', listX, listY);
+            doc.setFontSize(12);
+            doc.setTextColor(34, 197, 94); doc.text('1x Tubo Superior de ' + gLength + 'cm', listX, listY + 8);
+            doc.setTextColor(249, 115, 22); doc.text('1x Tubo Inferior de ' + (gLength - 4) + 'cm', listX, listY + 14);
+            doc.setTextColor(239, 68, 68); doc.text('2x Tubos Laterais (Pontas) de ' + outerHeight + 'cm' + (isFixed ? ' (inclui +10cm)' : ''), listX, listY + 20);
+            doc.setTextColor(59, 130, 246); doc.text(numInnerBars + 'x Tubos Internos de ' + innerHeight + 'cm', listX, listY + 26);
+            doc.setTextColor(236, 72, 153); doc.text('Afastamento (folga) das barras: ' + gapCm.toFixed(1) + 'cm', listX, listY + 32);
         }
-
-        let numInnerBars = Math.max(0, gBars - 2);
-        let gapCm = numInnerBars >= 0 ? ((gLength - 4 - (numInnerBars * 3)) / (numInnerBars + 1)) : 0;
-
-        const startX = 60;
-        const startY = 60;
-        const drawW = 180;
-        const drawH = 100;
-
-        if (isGate) {
-            doc.setFontSize(16);
-            doc.setTextColor(200, 200, 200);
-            doc.text('PORTÃO', startX + drawW / 2, startY - 25, { align: 'center' });
-        }
-
-        doc.setLineWidth(1);
-        doc.setDrawColor(34, 197, 94);
-        doc.line(startX, startY - 10, startX + drawW, startY - 10);
-        doc.setFontSize(10);
-        doc.setTextColor(34, 197, 94);
-        doc.text(gLength + 'cm', startX + drawW / 2, startY - 12, { align: 'center' });
-
-        doc.setDrawColor(249, 115, 22);
-        doc.line(startX + 5, startY + drawH + 10, startX + drawW - 5, startY + drawH + 10);
-        doc.setTextColor(249, 115, 22);
-        doc.text((gLength - 4) + 'cm', startX + drawW / 2, startY + drawH + 15, { align: 'center' });
-
-        doc.setDrawColor(239, 68, 68);
-        doc.line(startX + drawW + 10, startY, startX + drawW + 10, startY + drawH);
-        doc.setTextColor(239, 68, 68);
-        doc.text(gHeight + 'cm', startX + drawW + 15, startY + drawH / 2);
-
-        doc.setDrawColor(59, 130, 246);
-        doc.line(startX - 15, startY + 5, startX - 15, startY + drawH);
-        doc.setTextColor(59, 130, 246);
-        doc.text((gHeight - 13) + 'cm', startX - 18, startY + drawH / 2, { align: 'right' });
-
-        doc.setFillColor(31, 41, 55);
-        doc.rect(startX, startY, drawW, 4, 'F');
-        doc.rect(startX + 4, startY + drawH - 4, drawW - 8, 4, 'F');
-        doc.rect(startX, startY, 4, drawH + 15, 'F');
-        doc.rect(startX + drawW - 4, startY, 4, drawH + 15, 'F');
-
-        for (let i = 0; i < numInnerBars; i++) {
-            const step = (drawW - 8) / (numInnerBars + 1);
-            const x = startX + 4 + step * (i + 1) - 1.5;
-            doc.rect(x, startY + 5, 3, drawH - 9, 'F');
-        }
-
-        if (numInnerBars > 0) {
-            doc.setDrawColor(236, 72, 153);
-            doc.setLineDashPattern([2, 2], 0);
-            const gapStartX = startX + 4;
-            const gapEndX = startX + 4 + (drawW - 8) / (numInnerBars + 1) - 1.5;
-            doc.line(gapStartX, startY + drawH / 2, gapEndX, startY + drawH / 2);
-            doc.setLineDashPattern([], 0);
-            doc.setTextColor(236, 72, 153);
-            doc.text(gapCm.toFixed(1) + 'cm', (gapStartX + gapEndX) / 2, startY + drawH / 2 - 2, { align: 'center' });
-        }
-
-        if (isGate) {
-            doc.setFillColor(107, 114, 128);
-            doc.circle(startX - 2, startY + 15, 3, 'F');
-            doc.circle(startX - 2, startY + drawH - 15, 3, 'F');
-            doc.rect(startX + drawW - 6, startY + drawH / 2 - 5, 8, 12, 'F');
-        }
-
-        const listX = 10;
-        const listY = 180;
-        doc.setFontSize(14);
-        doc.setTextColor(0, 0, 0);
-        doc.text('Lista de Cortes:', listX, listY);
-        doc.setFontSize(12);
-        doc.setTextColor(34, 197, 94); doc.text('1x Tubo Superior de ' + gLength + 'cm', listX, listY + 8);
-        doc.setTextColor(249, 115, 22); doc.text('1x Tubo Inferior de ' + (gLength - 4) + 'cm', listX, listY + 14);
-        doc.setTextColor(239, 68, 68); doc.text('2x Tubos Laterais (Pontas) de ' + gHeight + 'cm', listX, listY + 20);
-        doc.setTextColor(59, 130, 246); doc.text(numInnerBars + 'x Tubos Internos de ' + (gHeight - 13) + 'cm', listX, listY + 26);
-        doc.setTextColor(236, 72, 153); doc.text('Afastamento (folga) das barras: ' + gapCm.toFixed(1) + 'cm', listX, listY + 32);
     });
 };
 
