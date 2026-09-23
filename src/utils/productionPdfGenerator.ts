@@ -605,7 +605,7 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[]) => {
             const padding = 15;
             
             const maxW = box.w - padding * 2;
-            const maxH = (box.h - 30) * 0.6; 
+            const maxH = box.h - 45; // Aproveita o máximo de altura da caixa (deixando margem para textos)
 
             // Calculate proportional size
             const scale = Math.min(maxW / Math.max(p.length, 50), maxH / Math.max(p.outerH, 50));
@@ -619,11 +619,12 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[]) => {
             doc.setFontSize(11);
             doc.setFont('helvetica', 'bold');
             doc.setTextColor(0,0,0);
-            doc.text(p.title, box.x + box.w / 2, box.y + 12, { align: 'center' });
+            doc.text(p.title, box.x + box.w / 2, py - 12, { align: 'center' });
 
-            const outThick = 2.5;
-            const inThick = 1.5;
-            const horizThick = 2;
+            // Espessuras bem mais finas para os desenhos do orçamento não ficarem "borrados"
+            const outThick = 1.5;
+            const inThick = 0.8;
+            const horizThick = 1.2;
 
             // DIMENSÕES (Linhas Coloridas)
             // Topo (Verde)
@@ -679,7 +680,8 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[]) => {
                 doc.setLineDashPattern([], 0);
                 doc.setTextColor(236, 72, 153);
                 doc.setFontSize(7);
-                doc.text(gapCm.toFixed(1) + 'cm', (gapStartX + gapEndX) / 2, py + drawH / 2 - 1, { align: 'center' });
+                // Eleva levemente o texto se o espaço for muito pequeno para evitar que bata na linha
+                doc.text(gapCm.toFixed(1) + 'cm', (gapStartX + gapEndX) / 2, py + drawH / 2 - 1.5, { align: 'center' });
             }
 
             // Detalhes do Portão
@@ -689,7 +691,7 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[]) => {
                 doc.circle(px - 1, py + drawH * 0.2, 1.5, 'F');
                 doc.circle(px - 1, py + drawH * 0.8, 1.5, 'F');
                 // Fechadura
-                doc.rect(px + drawW - outThick - 1.5, py + drawH / 2 - 4, outThick + 3, 8, 'F');
+                doc.rect(px + drawW - outThick - 1.5, py + drawH / 2 - 4, outThick + 2, 8, 'F');
             }
         });
     });
