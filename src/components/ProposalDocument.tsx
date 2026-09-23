@@ -218,16 +218,16 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
                 let typeText = "Articulado"; 
                 if (landing.type === 'fixed') typeText = "Fixo";
                 
-                let guardText = "";
-                if (landing.hasSideGuardrail && landing.hasFrontGuardrail) guardText = " + GC Lat/Front";
-                else if (landing.hasSideGuardrail) guardText = " + GC Lateral";
-                else if (landing.hasFrontGuardrail) guardText = " + GC Frontal";
+                let flushText = landing.isFlushWithSlab ? " Rente a Laje" : " 1 abaixo da Laje";
 
-                let flushText = landing.isFlushWithSlab ? " (Rente)" : "";
+                let guardText = "";
+                if (landing.hasSideGuardrail && landing.hasFrontGuardrail) guardText = " + Guarda Corpo Lat/Front";
+                else if (landing.hasSideGuardrail) guardText = " + Guarda Corpo Lateral";
+                else if (landing.hasFrontGuardrail) guardText = " + Guarda Corpo Frontal";
 
                 // Monta a linha com o tipo explícito
                 // CORREÇÃO: Removemos a indentação (espaços) do início da string
-                const description = `- Patamar ${typeText} de ${lM}m x ${wM}m${guardText}${flushText}`;
+                const description = `- Patamar ${typeText}${flushText} de ${lM}m (C) x ${wM}m (L)${guardText}`;
                 const price = formatCurrencyBRL(landing.price);
                 
                 // Calcula espaço disponível para o texto (total - margens - espaço pro preço - folga)
