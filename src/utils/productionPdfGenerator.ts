@@ -670,26 +670,13 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[]) => {
                 doc.rect(barX, py + horizThick, inThick, drawH - horizThick * 2, 'F');
             }
 
-            // Folga (Distância entre os ferros) - Linha tracejada rosa
+            // Folga (Distância entre os ferros) escrita como texto embaixo
             if (numInner > 0) {
-                const gapStartX = px + outThick;
-                const gapEndX = px + outThick + step - (inThick / 2);
-                doc.setDrawColor(236, 72, 153);
-                doc.setLineDashPattern([1, 1], 0);
-                doc.line(gapStartX, py + drawH / 2, gapEndX, py + drawH / 2);
-                doc.setLineDashPattern([], 0);
-                
-                // Desenha uma "máscara" branca atrás do texto para ele não se misturar com as barras pretas
-                const gapText = gapCm.toFixed(1) + 'cm';
+                const gapText = `Folga interna: ${gapCm.toFixed(1)}cm`;
                 doc.setFontSize(8);
-                doc.setFont('helvetica', 'bold');
-                const tw = doc.getTextWidth(gapText);
-                
-                doc.setFillColor(255, 255, 255);
-                doc.rect((gapStartX + gapEndX) / 2 - tw / 2 - 0.5, py + drawH / 2 - 3.5, tw + 1, 4, 'F');
-                
+                doc.setFont('helvetica', 'normal');
                 doc.setTextColor(236, 72, 153);
-                doc.text(gapText, (gapStartX + gapEndX) / 2, py + drawH / 2 - 0.5, { align: 'center' });
+                doc.text(gapText, px + drawW / 2, py + drawH + 11, { align: 'center' });
             }
 
             // Detalhes do Portão
