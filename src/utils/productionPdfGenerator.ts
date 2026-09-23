@@ -605,13 +605,10 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[]) => {
             const padding = 15;
             
             const maxW = box.w - padding * 2;
-            const maxH = (box.h - 30) * 0.55; 
+            const maxH = (box.h - 30) * 0.6; 
 
             // Calculate proportional size
-            const lengthScale = Math.max(p.length, 50);
-            const heightScale = Math.max(p.outerH, 50);
-            const scale = Math.min(maxW / lengthScale, maxH / heightScale);
-            
+            const scale = Math.min(maxW / Math.max(p.length, 50), maxH / Math.max(p.outerH, 50));
             const drawW = p.length * scale;
             const drawH = p.outerH * scale;
 
@@ -619,48 +616,81 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[]) => {
             const px = box.x + (box.w - drawW) / 2;
             const py = box.y + 25 + (maxH - drawH) / 2;
 
-            doc.setFontSize(12);
+            doc.setFontSize(11);
             doc.setFont('helvetica', 'bold');
             doc.setTextColor(0,0,0);
-            doc.text(p.title, box.x + box.w / 2, box.y + 15, { align: 'center' });
+            doc.text(p.title, box.x + box.w / 2, box.y + 12, { align: 'center' });
 
-            doc.setLineWidth(1);
+            const outThick = 2.5;
+            const inThick = 1.5;
+            const horizThick = 2;
+
+            // DIMENSÕES (Linhas Coloridas)
+            // Topo (Verde)
+            doc.setLineWidth(0.5);
             doc.setDrawColor(34, 197, 94);
-            doc.line(px, py, px + drawW, py);
-            doc.setFontSize(9);
+            doc.line(px, py - 3, px + drawW, py - 3);
+            doc.setFontSize(8);
             doc.setTextColor(34, 197, 94);
-            doc.text(p.length + 'cm', px + drawW / 2, py - 2, { align: 'center' });
+            doc.text(p.length + 'cm', px + drawW / 2, py - 4, { align: 'center' });
 
+            // Base (Laranja)
+            doc.setDrawColor(249, 115, 22);
+            doc.line(px + outThick, py + drawH + 4, px + drawW - outThick, py + drawH + 4);
+            doc.setTextColor(249, 115, 22);
+            doc.text((p.length - 4) + 'cm', px + drawW / 2, py + drawH + 7, { align: 'center' });
+
+            // Laterais (Vermelho)
             doc.setDrawColor(239, 68, 68);
-            doc.line(px, py + 5, px, py + 5 + drawH);
-            doc.line(px + drawW, py + 5, px + drawW, py + 5 + drawH);
+            doc.line(px - 3, py, px - 3, py + drawH);
+            doc.line(px + drawW + 3, py, px + drawW + 3, py + drawH);
             doc.setTextColor(239, 68, 68);
-            doc.text(p.outerH + 'cm', px - 2, py + 5 + drawH / 2, { align: 'right' });
-            doc.text(p.outerH + 'cm', px + drawW + 2, py + 5 + drawH / 2, { align: 'left' });
+            doc.text(p.outerH + 'cm', px - 4, py + drawH / 2 + 1, { align: 'right' });
+            doc.text(p.outerH + 'cm', px + drawW + 4, py + drawH / 2 + 1, { align: 'left' });
 
-            if (p.type === 'gate') {
-                doc.setFillColor(107, 114, 128);
-                doc.circle(px - 1, py + 5 + drawH * 0.2, 2, 'F');
-                doc.circle(px - 1, py + 5 + drawH * 0.8, 2, 'F');
-                doc.rect(px + drawW - 3, py + 5 + drawH / 2 - 4, 4, 8, 'F');
-            }
-
+            // DESENHO DA ESTRUTURA (Preto)
+            doc.setFillColor(31, 41, 55);
+            // Barra superior
+            doc.rect(px, py, drawW, horizThick, 'F');
+            // Barra inferior
+            doc.rect(px + outThick, py + drawH - horizThick, drawW - outThick * 2, horizThick, 'F');
+            // Postes laterais (Pontas)
+            doc.rect(px, py, outThick, drawH + 2, 'F');
+            doc.rect(px + drawW - outThick, py, outThick, drawH + 2, 'F');
+            
+            // Barras internas
             const gBars = Math.max(2, Math.round((p.length - 6) / 15) + 1);
             const numInner = Math.max(0, gBars - 2);
-            doc.setFillColor(31, 41, 55);
-            doc.rect(px, py + 5, drawW, 2, 'F');
-            doc.rect(px + 2, py + 5 + drawH - 2, drawW - 4, 2, 'F');
-            
+            const gapCm = numInner >= 0 ? ((p.length - 4 - (numInner * 3)) / (numInner + 1)) : 0;
+            const step = (drawW - outThick * 2) / (numInner + 1);
+
             for (let i = 0; i < numInner; i++) {
-                const step = (drawW - 4) / (numInner + 1);
-                const barX = px + 2 + step * (i + 1) - 1;
-                doc.rect(barX, py + 7, 2, drawH - 4, 'F');
+                const barX = px + outThick + step * (i + 1) - (inThick / 2);
+                doc.rect(barX, py + horizThick, inThick, drawH - horizThick * 2, 'F');
             }
 
-            doc.setDrawColor(249, 115, 22);
-            doc.line(px + 2, py + 10 + drawH, px + drawW - 2, py + 10 + drawH);
-            doc.setTextColor(249, 115, 22);
-            doc.text((p.length - 4) + 'cm', px + drawW / 2, py + 14 + drawH, { align: 'center' });
+            // Folga (Distância entre os ferros) - Linha tracejada rosa
+            if (numInner > 0) {
+                const gapStartX = px + outThick;
+                const gapEndX = px + outThick + step - (inThick / 2);
+                doc.setDrawColor(236, 72, 153);
+                doc.setLineDashPattern([1, 1], 0);
+                doc.line(gapStartX, py + drawH / 2, gapEndX, py + drawH / 2);
+                doc.setLineDashPattern([], 0);
+                doc.setTextColor(236, 72, 153);
+                doc.setFontSize(7);
+                doc.text(gapCm.toFixed(1) + 'cm', (gapStartX + gapEndX) / 2, py + drawH / 2 - 1, { align: 'center' });
+            }
+
+            // Detalhes do Portão
+            if (p.type === 'gate') {
+                doc.setFillColor(107, 114, 128);
+                // Dobradiças
+                doc.circle(px - 1, py + drawH * 0.2, 1.5, 'F');
+                doc.circle(px - 1, py + drawH * 0.8, 1.5, 'F');
+                // Fechadura
+                doc.rect(px + drawW - outThick - 1.5, py + drawH / 2 - 4, outThick + 3, 8, 'F');
+            }
         });
     });
 };
