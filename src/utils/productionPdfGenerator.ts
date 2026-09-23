@@ -469,6 +469,8 @@ export const drawGuardrailsPage = (doc: jsPDF, landings: any[], clientName: stri
     });
 };
 
+import { patamarGenericoBase64 } from './patamarGenericoBase64';
+
 export const drawProposalSummaryPage = (doc: jsPDF, landings: any[]) => {
     landings.forEach((landing: any, index: number) => {
         let hasG = landing.hasGuardrail;
@@ -492,11 +494,20 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[]) => {
         currentY += 10;
 
         const patamarImgH = 60;
-        doc.setDrawColor(200, 200, 200);
-        doc.setLineWidth(0.5);
-        doc.rect(20, currentY, pageWidth - 40, patamarImgH);
-        doc.setTextColor(150, 150, 150);
-        doc.text("IMAGEM DO PATAMAR AQUI (AGUARDANDO UPLOAD)", pageWidth / 2, currentY + patamarImgH / 2, { align: 'center' });
+        // Desenha a imagem base64
+        try {
+            // Calculamos um aspect ratio razoável para a imagem
+            // Se a imagem for 16:9, por exemplo. Mas aqui forçaremos a altura e largura será proporcional ou fixa.
+            // A largura disponível é pageWidth - 40 (margens). Vamos centrar.
+            const maxW = pageWidth - 60; 
+            doc.addImage(patamarGenericoBase64, 'JPEG', pageWidth / 2 - maxW / 2, currentY, maxW, patamarImgH);
+        } catch(e) {
+            doc.setDrawColor(200, 200, 200);
+            doc.setLineWidth(0.5);
+            doc.rect(20, currentY, pageWidth - 40, patamarImgH);
+            doc.setTextColor(150, 150, 150);
+            doc.text("IMAGEM DO PATAMAR AQUI", pageWidth / 2, currentY + patamarImgH / 2, { align: 'center' });
+        }
         currentY += patamarImgH + 15;
 
         if (!hasG && !hasGate) return;
@@ -525,11 +536,30 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[]) => {
                 const outerH = isFixed ? gH + 10 : gH;
                 const innerH = gH - 13;
                 
-                pieces.push({ type: 'guardrail', title: numSides > 1 ? `Lado ${i}` : 'Guarda-Corpo', length: gL, outerH, innerH, isFixed });
+                let title = `Lado ${i}`;
+                if (numSides === 1) {
+                    title = landing.guardrailSide ? `G.C. (${landing.guardrailSide})` : 'Guarda-Corpo';
+                } else if (numSides === 2) {
+                    if (landing.guardrailSide?.toLowerCase().includes('esquerdo')) {
+                        title = i === 1 ? 'G.C. (Esquerdo)' : 'G.C. (Frontal)';
+                    } else if (landing.guardrailSide?.toLowerCase().includes('direito')) {
+                        title = i === 1 ? 'G.C. (Direito)' : 'G.C. (Frontal)';
+                    } else {
+                        title = i === 1 ? 'G.C. (Lateral)' : 'G.C. (Frontal)';
+                    }
+                } else if (numSides === 3) {
+                    if (i === 1) title = 'G.C. (Esquerdo)';
+                    else if (i === 2) title = 'G.C. (Frontal)';
+                    else if (i === 3) title = 'G.C. (Direito)';
+                }
+                
+                title = `Imagem ${pieces.length + 1}: ${title}`;
+                
+                pieces.push({ type: 'guardrail', title, length: gL, outerH, innerH, isFixed });
             }
         }
         if (hasGate) {
-            pieces.push({ type: 'gate', title: 'Portão', length: landing.gateLength || 100, outerH: landing.gateHeight || 90, innerH: (landing.gateHeight || 90) - 13 });
+            pieces.push({ type: 'gate', title: `Imagem ${pieces.length + 1}: Portão`, length: landing.gateLength || 100, outerH: landing.gateHeight || 90, innerH: (landing.gateHeight || 90) - 13 });
         }
 
         const totalPieces = pieces.length;
