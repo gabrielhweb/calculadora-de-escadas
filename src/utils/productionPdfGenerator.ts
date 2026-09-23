@@ -471,7 +471,9 @@ export const drawGuardrailsPage = (doc: jsPDF, landings: any[], clientName: stri
 
 import { patamarGenericoBase64 } from './patamarGenericoBase64';
 
-export const drawProposalSummaryPage = (doc: jsPDF, landings: any[]) => {
+export const drawProposalSummaryPage = (doc: jsPDF, landings: any[]): number => {
+    let finalY = 20;
+
     landings.forEach((landing: any, index: number) => {
         let hasG = landing.hasGuardrail;
         let hasGate = landing.hasGate;
@@ -479,44 +481,43 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[]) => {
 
         doc.addPage('a4', 'p');
         const pageWidth = 210;
-        const pageHeight = 297;
-        let currentY = 20;
+        let currentY = 15;
 
-        doc.setFontSize(16);
+        // LADO ESQUERDO: Patamar
+        const leftX = 10;
+        const leftW = 90;
+        
+        doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(0, 0, 0);
-        doc.text(`Patamar ${index + 1}`, pageWidth / 2, currentY, { align: 'center' });
-        currentY += 10;
+        doc.text(`Patamar ${index + 1}`, leftX + leftW / 2, currentY, { align: 'center' });
         
-        doc.setFontSize(12);
+        doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
-        doc.text(`Medidas: ${landing.width || 0}cm x ${landing.length || 0}cm`, pageWidth / 2, currentY, { align: 'center' });
-        currentY += 10;
-
+        doc.text(`Medidas: ${landing.width || 0}cm x ${landing.length || 0}cm`, leftX + leftW / 2, currentY + 6, { align: 'center' });
+        
         const patamarImgH = 60;
-        // Desenha a imagem base64
+        const maxPatamarW = leftW - 10;
         try {
-            // Calculamos um aspect ratio razoável para a imagem
-            // Se a imagem for 16:9, por exemplo. Mas aqui forçaremos a altura e largura será proporcional ou fixa.
-            // A largura disponível é pageWidth - 40 (margens). Vamos centrar.
-            const maxW = pageWidth - 60; 
-            doc.addImage(patamarGenericoBase64, 'JPEG', pageWidth / 2 - maxW / 2, currentY, maxW, patamarImgH);
+            doc.addImage(patamarGenericoBase64, 'JPEG', leftX + leftW / 2 - maxPatamarW / 2, currentY + 12, maxPatamarW, patamarImgH);
         } catch(e) {
             doc.setDrawColor(200, 200, 200);
             doc.setLineWidth(0.5);
-            doc.rect(20, currentY, pageWidth - 40, patamarImgH);
+            doc.rect(leftX + leftW / 2 - maxPatamarW / 2, currentY + 12, maxPatamarW, patamarImgH);
             doc.setTextColor(150, 150, 150);
-            doc.text("IMAGEM DO PATAMAR AQUI", pageWidth / 2, currentY + patamarImgH / 2, { align: 'center' });
+            doc.text("IMAGEM", leftX + leftW / 2, currentY + 12 + patamarImgH / 2, { align: 'center' });
         }
-        currentY += patamarImgH + 15;
 
-        if (!hasG && !hasGate) return;
+        // LADO DIREITO: Guarda-Corpo e Portão
+        const rightX = 105;
+        const rightW = 95;
 
-        doc.setFontSize(16);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(0, 0, 0);
-        doc.text('Guarda-Corpo e Portão', pageWidth / 2, currentY, { align: 'center' });
-        currentY += 15;
+        if (hasG || hasGate) {
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(0, 0, 0);
+            doc.text('Guarda-Corpo e Portão', rightX + rightW / 2, currentY, { align: 'center' });
+        }
 
         const pieces: any[] = [];
         if (hasG) {
@@ -566,30 +567,29 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[]) => {
         }
 
         const totalPieces = pieces.length;
-        if (totalPieces === 0) return;
-
-        const availH = pageHeight - currentY - 20; 
-        const availW = pageWidth - 20; 
-        const startX = 10;
-        const startY = currentY;
-
         const bboxes: any[] = [];
+        
+        const startX = rightX;
+        const startY = currentY + 6;
+        const availH = 140; // Altura fixa para os desenhos ocuparem até o meio da página
+        const availW = rightW;
+
         if (totalPieces === 1) {
             bboxes.push({ x: startX, y: startY, w: availW, h: availH });
         } else if (totalPieces === 2) {
-            const w = availW / 2;
-            bboxes.push({ x: startX, y: startY, w: w, h: availH });
-            bboxes.push({ x: startX + w, y: startY, w: w, h: availH });
-            doc.setDrawColor(200); doc.line(startX + w, startY, startX + w, startY + availH);
-        } else if (totalPieces === 3) {
             const h = availH / 2;
-            const w2 = availW / 2;
             bboxes.push({ x: startX, y: startY, w: availW, h: h });
-            bboxes.push({ x: startX, y: startY + h, w: w2, h: h });
-            bboxes.push({ x: startX + w2, y: startY + h, w: w2, h: h });
+            bboxes.push({ x: startX, y: startY + h, w: availW, h: h });
+            doc.setDrawColor(200); doc.line(startX + 10, startY + h, startX + availW - 10, startY + h);
+        } else if (totalPieces === 3) {
+            const w2 = availW / 2;
+            const h = availH / 2;
+            bboxes.push({ x: startX, y: startY, w: w2, h: h });
+            bboxes.push({ x: startX + w2, y: startY, w: w2, h: h });
+            bboxes.push({ x: startX, y: startY + h, w: availW, h: h });
             doc.setDrawColor(200); 
-            doc.line(startX, startY + h, startX + availW, startY + h); 
-            doc.line(startX + w2, startY + h, startX + w2, startY + availH); 
+            doc.line(startX + 10, startY + h, startX + availW - 10, startY + h); 
+            doc.line(startX + w2, startY + 5, startX + w2, startY + h - 5); 
         } else if (totalPieces >= 4) {
             const w = availW / 2;
             const h = availH / 2;
@@ -598,9 +598,11 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[]) => {
             bboxes.push({ x: startX, y: startY + h, w: w, h: h });
             bboxes.push({ x: startX + w, y: startY + h, w: w, h: h });
             doc.setDrawColor(200); 
-            doc.line(startX, startY + h, startX + availW, startY + h);
-            doc.line(startX + w, startY, startX + w, startY + availH);
+            doc.line(startX + 10, startY + h, startX + availW - 10, startY + h);
+            doc.line(startX + w, startY + 5, startX + w, startY + availH - 5);
         }
+
+        finalY = startY + availH + 15;
 
         pieces.forEach((p, idx) => {
             const box = bboxes[idx];
@@ -719,6 +721,8 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[]) => {
             }
         });
     });
+
+    return finalY;
 };
 
 export const generateGuardrailsOnlyPDF = (landings: any[], clientName: string) => {

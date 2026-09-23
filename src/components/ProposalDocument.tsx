@@ -425,23 +425,31 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
     doc.text(splitDelivery, pageMargin, currentY);
     currentY += (splitDelivery.length * 5) + 4;
 
-    doc.setFont('helvetica', 'bold');
-    doc.text('Condições para Instalação', pageMargin, currentY);
-    currentY += 6;
+    const printOrientacoes = (startY: number) => {
+        let y = startY;
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Condições para Instalação', pageMargin, y);
+        y += 6;
 
-    doc.setFont('helvetica', 'normal');
-    const installText1 = '• É fundamental que o prumo e esquadro da parede estejam corretos, pois irregularidades podem comprometer a instalação e o perfeito funcionamento da escada.';
-    const splitInstall1 = doc.splitTextToSize(installText1, pageWidth - (pageMargin * 2));
-    doc.text(splitInstall1, pageMargin, currentY);
-    currentY += (splitInstall1.length * 5) + 2;
+        doc.setFont('helvetica', 'normal');
+        const installText1 = '• É fundamental que o prumo e esquadro da parede estejam corretos, pois irregularidades podem comprometer a instalação e o perfeito funcionamento da escada.';
+        const splitInstall1 = doc.splitTextToSize(installText1, pageWidth - (pageMargin * 2));
+        doc.text(splitInstall1, pageMargin, y);
+        y += (splitInstall1.length * 5) + 2;
 
-    const installText2 = '• O cliente deve informar previamente a existência de canos, eletrodutos, fiações ou qualquer item embutido no local onde serão realizadas fixações e perfurações.';
-    const splitInstall2 = doc.splitTextToSize(installText2, pageWidth - (pageMargin * 2));
-    doc.text(splitInstall2, pageMargin, currentY);
-    currentY += (splitInstall2.length * 5) + 4;
+        const installText2 = '• O cliente deve informar previamente a existência de canos, eletrodutos, fiações ou qualquer item embutido no local onde serão realizadas fixações e perfurações.';
+        const splitInstall2 = doc.splitTextToSize(installText2, pageWidth - (pageMargin * 2));
+        doc.text(splitInstall2, pageMargin, y);
+        y += (splitInstall2.length * 5) + 4;
+        return y;
+    };
 
     if (inputData?.landings && inputData.landings.length > 0) {
-        drawProposalSummaryPage(doc, inputData.landings);
+        currentY = drawProposalSummaryPage(doc, inputData.landings);
+        printOrientacoes(currentY);
+    } else {
+        printOrientacoes(currentY);
     }
 
     return doc;
