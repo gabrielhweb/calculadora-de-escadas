@@ -22,6 +22,7 @@ const InputField = ({ label, value, onChange, type = "text", placeholder, icon, 
 
 export default function GuardrailCalculatorPage() {
     const [guardrails, setGuardrails] = useState<any[]>([]);
+    const [clientName, setClientName] = useState('');
 
     const handleAddGuardrail = () => {
         setGuardrails([...guardrails, { 
@@ -72,8 +73,12 @@ export default function GuardrailCalculatorPage() {
             alert('Adicione pelo menos um guarda-corpo ou portão para imprimir.');
             return;
         }
+        if (!clientName.trim()) {
+            alert('Por favor, informe o nome do projeto ou do cliente.');
+            return;
+        }
         import('../utils/productionPdfGenerator').then(({ generateGuardrailsOnlyPDF }) => {
-            generateGuardrailsOnlyPDF(guardrails, 'Projeto_Avulso');
+            generateGuardrailsOnlyPDF(guardrails, clientName);
         });
     };
 
@@ -90,8 +95,15 @@ export default function GuardrailCalculatorPage() {
                             Adicione guarda-corpos e portõezinhos avulsos para orçar e ver o esquema de montagem.
                         </p>
                     </div>
-                    <div className="flex gap-2">
-                        <button onClick={handlePrintGuardrails} className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-bold shadow transition-colors text-sm flex items-center gap-2">
+                    <div className="flex flex-col md:flex-row gap-2">
+                        <input 
+                            type="text" 
+                            placeholder="Nome do Cliente/Projeto" 
+                            value={clientName}
+                            onChange={e => setClientName(e.target.value)}
+                            className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm font-bold text-gray-900 dark:text-gray-100 outline-none focus:border-highlight focus:ring-1 focus:ring-highlight"
+                        />
+                        <button onClick={handlePrintGuardrails} className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-bold shadow transition-colors text-sm flex items-center justify-center gap-2">
                             🖨️ Imprimir
                         </button>
                         <button onClick={handleAddGuardrail} className="bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded-lg font-bold shadow transition-colors text-sm">

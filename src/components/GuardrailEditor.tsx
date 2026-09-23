@@ -8,7 +8,7 @@ export const GuardrailEditor = ({ landing, updateLanding, InputField, isGate = f
     const gHeight = landing.guardrailHeight !== undefined ? landing.guardrailHeight : 90;
     const gPricePerMeter = landing.guardrailPricePerMeter !== undefined ? landing.guardrailPricePerMeter : 50;
 
-    const renderSegment = (length: number, override: number | undefined, updateOverride: (val: number | undefined) => void, label: string, gapOverride: number | undefined, updateGap: (val: number | undefined) => void, priceOverride: number | undefined, updatePrice: (val: number | undefined) => void) => {
+    const renderSegment = (length: number, override: number | undefined, updateOverride: (val: number | undefined) => void, label: string, gapOverride: number | undefined, updateGap: (val: number | undefined) => void, priceOverride: number | undefined, updatePrice: (val: number | undefined) => void, isFixed: boolean = false) => {
         let innerL = length - 6;
         if (innerL < 0) innerL = 0;
         const baseGaps = Math.max(1, Math.round(innerL / 15));
@@ -37,7 +37,7 @@ export const GuardrailEditor = ({ landing, updateLanding, InputField, isGate = f
                 <p className="text-xs font-bold text-gray-500 mb-2">{label}</p>
                 <div className="flex flex-col items-center justify-center p-4 w-full">
                     <p className="text-[10px] uppercase font-bold text-gray-500 mb-2">Prévia do {isGate ? 'Portão' : 'Guarda-Corpo'}</p>
-                    <GuardrailPreview length={length} height={gHeight} totalBars={totalBars} isGate={isGate} />
+                    <GuardrailPreview length={length} height={gHeight} totalBars={totalBars} isGate={isGate} isFixed={isFixed} />
                     <div className="flex gap-2 w-full max-w-[400px] mx-auto mt-6">
                         <div className="flex-1 bg-gray-100 dark:bg-gray-700 p-2 rounded text-center">
                             <span className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Qtd. Tubos</span>
@@ -255,9 +255,9 @@ export const GuardrailEditor = ({ landing, updateLanding, InputField, isGate = f
             </div>
 
             <div className="mt-4">
-                {renderSegment(landing.guardrailLength || 0, landing.guardrailBarsOverride, (val) => updateLanding(landing.id, { guardrailBarsOverride: val }), numSides > 1 ? "LADO 1" : "GUARDA-CORPO", landing.guardrailGapOverride, (val) => updateLanding(landing.id, { guardrailGapOverride: val }), landing.guardrailPriceOverride, (val) => updateLanding(landing.id, { guardrailPriceOverride: val }))}
-                {numSides >= 2 && renderSegment(landing.guardrailLength2 || 0, landing.guardrailBarsOverride2, (val) => updateLanding(landing.id, { guardrailBarsOverride2: val }), "LADO 2", landing.guardrailGapOverride2, (val) => updateLanding(landing.id, { guardrailGapOverride2: val }), landing.guardrailPriceOverride2, (val) => updateLanding(landing.id, { guardrailPriceOverride2: val }))}
-                {numSides >= 3 && renderSegment(landing.guardrailLength3 || 0, landing.guardrailBarsOverride3, (val) => updateLanding(landing.id, { guardrailBarsOverride3: val }), "LADO 3", landing.guardrailGapOverride3, (val) => updateLanding(landing.id, { guardrailGapOverride3: val }), landing.guardrailPriceOverride3, (val) => updateLanding(landing.id, { guardrailPriceOverride3: val }))}
+                {renderSegment(landing.guardrailLength || 0, landing.guardrailBarsOverride, (val) => updateLanding(landing.id, { guardrailBarsOverride: val }), numSides > 1 ? "LADO 1" : "GUARDA-CORPO", landing.guardrailGapOverride, (val) => updateLanding(landing.id, { guardrailGapOverride: val }), landing.guardrailPriceOverride, (val) => updateLanding(landing.id, { guardrailPriceOverride: val }), !!(landing.guardrailFixedToLanding && (numSides === 1 || (landing.guardrailFixedSides || []).includes(1))))}
+                {numSides >= 2 && renderSegment(landing.guardrailLength2 || 0, landing.guardrailBarsOverride2, (val) => updateLanding(landing.id, { guardrailBarsOverride2: val }), "LADO 2", landing.guardrailGapOverride2, (val) => updateLanding(landing.id, { guardrailGapOverride2: val }), landing.guardrailPriceOverride2, (val) => updateLanding(landing.id, { guardrailPriceOverride2: val }), !!(landing.guardrailFixedToLanding && (landing.guardrailFixedSides || []).includes(2)))}
+                {numSides >= 3 && renderSegment(landing.guardrailLength3 || 0, landing.guardrailBarsOverride3, (val) => updateLanding(landing.id, { guardrailBarsOverride3: val }), "LADO 3", landing.guardrailGapOverride3, (val) => updateLanding(landing.id, { guardrailGapOverride3: val }), landing.guardrailPriceOverride3, (val) => updateLanding(landing.id, { guardrailPriceOverride3: val }), !!(landing.guardrailFixedToLanding && (landing.guardrailFixedSides || []).includes(3)))}
             </div>
         </div>
     );

@@ -323,6 +323,8 @@ export const generateProductionPDF = (props: ProductionPdfProps) => {
 };
 
 export const drawGuardrailsPage = (doc: jsPDF, landings: any[], clientName: string) => {
+    let drawCount = 0;
+    
     landings.forEach((landing: any, index: number) => {
         if (!landing.hasGuardrail && !landing.hasGate) return;
 
@@ -331,13 +333,19 @@ export const drawGuardrailsPage = (doc: jsPDF, landings: any[], clientName: stri
         const numSides = isGate ? 1 : (format === 'U' ? 3 : format === 'L' ? 2 : 1);
 
         for (let sideIndex = 1; sideIndex <= numSides; sideIndex++) {
-            doc.addPage('a4', 'l');
+            if (drawCount % 2 === 0) {
+                doc.addPage('a4', 'p');
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(16);
+                doc.setTextColor(0, 0, 0);
+                const safeClientName = clientName ? clientName.toUpperCase() : 'CLIENTE NÃO INFORMADO';
+                doc.text(doc.splitTextToSize(safeClientName, 190), 10, 15);
+            }
+            
+            const yOffset = (drawCount % 2 === 0) ? 30 : 160;
+
             doc.setFont('helvetica', 'bold');
-            doc.setFontSize(24);
-            doc.setTextColor(0, 0, 0);
-            const safeClientName = clientName ? clientName.toUpperCase() : 'CLIENTE NÃO INFORMADO';
-            doc.text(doc.splitTextToSize(safeClientName, 120), 10, 20);
-            doc.setFontSize(14);
+            doc.setFontSize(12);
             doc.setTextColor(255, 0, 0);
             
             let titleStr = isGate ? 'PROJETO DE PORTÃO' : 'PROJETO DE GUARDA-CORPO';
@@ -345,11 +353,11 @@ export const drawGuardrailsPage = (doc: jsPDF, landings: any[], clientName: stri
             if (!isGate && numSides > 1) {
                 subtitle += ` (LADO ${sideIndex})`;
             }
-            doc.text(`${titleStr}${subtitle}`, 10, 30);
+            doc.text(`${titleStr}${subtitle}`, 10, yOffset);
 
             let gLength = 0;
             let gHeight = landing.guardrailHeight || 90;
-            let gBarsOverride: number | undefined;
+            let gBarsOverride;
 
             if (isGate) {
                 gLength = landing.gateLength || 100;
@@ -384,63 +392,63 @@ export const drawGuardrailsPage = (doc: jsPDF, landings: any[], clientName: stri
             const outerHeight = isFixed ? gHeight + 10 : gHeight;
             const innerHeight = gHeight - 13;
 
-            const startX = 60;
-            const startY = 60;
-            const drawW = 180;
-            const drawH = 100;
+            const startX = 40;
+            const startY = yOffset + 20;
+            const drawW = 120;
+            const drawH = 65;
 
             if (isGate) {
-                doc.setFontSize(16);
+                doc.setFontSize(14);
                 doc.setTextColor(200, 200, 200);
-                doc.text('PORTÃO', startX + drawW / 2, startY - 25, { align: 'center' });
+                doc.text('PORTÃO', startX + drawW / 2, startY - 15, { align: 'center' });
             }
 
             doc.setLineWidth(1);
             doc.setDrawColor(0, 0, 0);
-            doc.line(startX, startY - 10, startX + drawW, startY - 10);
-            doc.setFontSize(10);
+            doc.line(startX, startY - 7, startX + drawW, startY - 7);
+            doc.setFontSize(9);
             doc.setTextColor(0, 0, 0);
-            doc.text(gLength + 'cm', startX + drawW / 2, startY - 12, { align: 'center' });
+            doc.text(gLength + 'cm', startX + drawW / 2, startY - 9, { align: 'center' });
 
             doc.setDrawColor(0, 0, 0);
-            doc.line(startX + 5, startY + drawH + 10, startX + drawW - 5, startY + drawH + 10);
+            doc.line(startX + 5, startY + drawH + 7, startX + drawW - 5, startY + drawH + 7);
             doc.setTextColor(0, 0, 0);
-            doc.text((gLength - 4) + 'cm', startX + drawW / 2, startY + drawH + 15, { align: 'center' });
+            doc.text((gLength - 4) + 'cm', startX + drawW / 2, startY + drawH + 11, { align: 'center' });
 
             doc.setDrawColor(0, 0, 0);
-            doc.line(startX + drawW + 10, startY, startX + drawW + 10, startY + drawH);
+            doc.line(startX + drawW + 7, startY, startX + drawW + 7, startY + drawH);
             doc.setTextColor(0, 0, 0);
-            doc.text(outerHeight + 'cm', startX + drawW + 15, startY + drawH / 2);
+            doc.text(outerHeight + 'cm', startX + drawW + 10, startY + drawH / 2);
             if (isFixed) {
-                doc.setFontSize(8);
-                doc.text('(+10cm na ponta)', startX + drawW + 15, startY + drawH / 2 + 5);
-                doc.setFontSize(10);
+                doc.setFontSize(7);
+                doc.text('(+10cm na ponta)', startX + drawW + 10, startY + drawH / 2 + 4);
+                doc.setFontSize(9);
             }
 
             doc.setDrawColor(0, 0, 0);
-            doc.line(startX - 15, startY + 5, startX - 15, startY + drawH);
+            doc.line(startX - 10, startY + 4, startX - 10, startY + drawH);
             doc.setTextColor(0, 0, 0);
-            doc.text(innerHeight + 'cm', startX - 18, startY + drawH / 2, { align: 'right' });
+            doc.text(innerHeight + 'cm', startX - 12, startY + drawH / 2, { align: 'right' });
 
             doc.setFillColor(31, 41, 55);
-            doc.rect(startX, startY, drawW, 4, 'F');
-            doc.rect(startX + 4, startY + drawH - 4, drawW - 8, 4, 'F');
+            doc.rect(startX, startY, drawW, 3, 'F');
+            doc.rect(startX + 3, startY + drawH - 3, drawW - 6, 3, 'F');
             
-            const visualExtraH = isFixed ? 10 : 0;
-            doc.rect(startX, startY, 4, drawH + 15 + visualExtraH, 'F');
-            doc.rect(startX + drawW - 4, startY, 4, drawH + 15 + visualExtraH, 'F');
+            const visualExtraH = isFixed ? 7 : 0;
+            doc.rect(startX, startY, 3, drawH + 10 + visualExtraH, 'F');
+            doc.rect(startX + drawW - 3, startY, 3, drawH + 10 + visualExtraH, 'F');
 
             for (let i = 0; i < numInnerBars; i++) {
-                const step = (drawW - 8) / (numInnerBars + 1);
-                const x = startX + 4 + step * (i + 1) - 1.5;
-                doc.rect(x, startY + 5, 3, drawH - 9, 'F');
+                const step = (drawW - 6) / (numInnerBars + 1);
+                const x = startX + 3 + step * (i + 1) - 1.5;
+                doc.rect(x, startY + 4, 2, drawH - 7, 'F');
             }
 
             if (numInnerBars > 0) {
                 doc.setDrawColor(236, 72, 153);
                 doc.setLineDashPattern([2, 2], 0);
-                const gapStartX = startX + 4;
-                const gapEndX = startX + 4 + (drawW - 8) / (numInnerBars + 1) - 1.5;
+                const gapStartX = startX + 3;
+                const gapEndX = startX + 3 + (drawW - 6) / (numInnerBars + 1) - 1.5;
                 doc.line(gapStartX, startY + drawH / 2, gapEndX, startY + drawH / 2);
                 doc.setLineDashPattern([], 0);
                 doc.setTextColor(236, 72, 153);
@@ -449,22 +457,25 @@ export const drawGuardrailsPage = (doc: jsPDF, landings: any[], clientName: stri
 
             if (isGate) {
                 doc.setFillColor(107, 114, 128);
-                doc.circle(startX - 2, startY + 15, 3, 'F');
-                doc.circle(startX - 2, startY + drawH - 15, 3, 'F');
-                doc.rect(startX + drawW - 6, startY + drawH / 2 - 5, 8, 12, 'F');
+                doc.circle(startX - 1, startY + 10, 2, 'F');
+                doc.circle(startX - 1, startY + drawH - 10, 2, 'F');
+                doc.rect(startX + drawW - 4, startY + drawH / 2 - 4, 6, 8, 'F');
             }
 
             const listX = 10;
-            const listY = 180;
-            doc.setFontSize(14);
+            const listY = startY + drawH + 20;
+            doc.setFontSize(11);
             doc.setTextColor(0, 0, 0);
             doc.text('Lista de Cortes:', listX, listY);
-            doc.setFontSize(12);
-            doc.setTextColor(0, 0, 0); doc.text('1x Tubo Superior de ' + gLength + 'cm', listX, listY + 8);
-            doc.setTextColor(0, 0, 0); doc.text('1x Tubo Inferior de ' + (gLength - 4) + 'cm', listX, listY + 14);
-            doc.setTextColor(0, 0, 0); doc.text('2x Tubos Laterais (Pontas) de ' + outerHeight + 'cm' + (isFixed ? ' (inclui +10cm)' : ''), listX, listY + 20);
-            doc.setTextColor(0, 0, 0); doc.text(numInnerBars + 'x Tubos Internos de ' + innerHeight + 'cm', listX, listY + 26);
-            doc.setTextColor(236, 72, 153); doc.text('Afastamento (folga) das barras: ' + gapCm.toFixed(1) + 'cm', listX, listY + 32);
+            doc.setFontSize(10);
+            doc.text('1x Tubo Superior de ' + gLength + 'cm', listX, listY + 6);
+            doc.text('1x Tubo Inferior de ' + (gLength - 4) + 'cm', listX, listY + 11);
+            doc.text('2x Tubos Laterais (Pontas) de ' + outerHeight + 'cm' + (isFixed ? ' (inclui +10cm)' : ''), listX, listY + 16);
+            doc.text(numInnerBars + 'x Tubos Internos de ' + innerHeight + 'cm', listX, listY + 21);
+            doc.setTextColor(236, 72, 153); 
+            doc.text('Afastamento (folga) das barras: ' + gapCm.toFixed(1) + 'cm', listX, listY + 26);
+            
+            drawCount++;
         }
     });
 };
@@ -739,7 +750,7 @@ export const generateGuardrailsOnlyPDF = (landings: any[], clientName: string) =
     const hasAny = landings.some(l => l.hasGuardrail || l.hasGate);
     if (!hasAny) return;
 
-    const doc = new jsPDF('l', 'mm', 'a4');
+    const doc = new jsPDF('p', 'mm', 'a4');
     
     // Create pages, but remove the first blank one if it exists
     // Actually drawGuardrailsPage just adds pages. So we can delete the first empty page after calling it.
