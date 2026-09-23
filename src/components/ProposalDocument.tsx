@@ -372,6 +372,10 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
         currentY += 10; // Espaço final entre opções
     });
 
+    if (inputData?.landings && inputData.landings.length > 0) {
+        currentY = drawProposalSummaryPage(doc, inputData.landings);
+    }
+
     // --- RODAPÉ ---
     if (currentY > 200) { doc.addPage(); currentY = 20; }
 
@@ -445,12 +449,7 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
         return y;
     };
 
-    if (inputData?.landings && inputData.landings.length > 0) {
-        currentY = drawProposalSummaryPage(doc, inputData.landings);
-        printOrientacoes(currentY);
-    } else {
-        printOrientacoes(currentY);
-    }
+    printOrientacoes(currentY);
 
     return doc;
   }, [options, userData, inputData, freightCost, tollCost, installationCost, selectedOptionIndices]);
