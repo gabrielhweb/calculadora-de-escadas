@@ -2,6 +2,24 @@ import React, { useState } from 'react';
 import { WeightCalculator } from '../components/WeightCalculator';
 import { GuardrailEditor } from '../components/GuardrailEditor';
 
+// Global InputField for GuardrailEditor
+const InputField = ({ label, value, onChange, type = "text", placeholder, icon, addon }: any) => (
+    <div className="flex flex-col">
+        <label className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">{label}</label>
+        <div className="relative">
+            {icon && <span className="absolute left-2.5 top-2.5 text-gray-400">{icon}</span>}
+            <input
+                type={type}
+                value={value === 0 ? '' : value}
+                onChange={onChange}
+                placeholder={placeholder}
+                className={`w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg p-2 text-sm font-medium focus:ring-2 focus:ring-highlight focus:border-highlight outline-none ${icon ? 'pl-8' : ''} ${addon ? 'pr-8' : ''}`}
+            />
+            {addon && <span className="absolute right-3 top-2 text-xs font-bold text-gray-400">{addon}</span>}
+        </div>
+    </div>
+);
+
 export default function WeightCalculatorPage() {
   const [treadDepthCm, setTreadDepthCm] = useState(25);
   const [stepHeightCm, setStepHeightCm] = useState(20);
@@ -34,23 +52,7 @@ export default function WeightCalculatorPage() {
     setGuardrails(guardrails.filter(g => g.id !== id));
   };
 
-  // Dummy InputField for GuardrailEditor
-  const InputField = ({ label, value, onChange, type = "text", placeholder, icon, addon }: any) => (
-      <div className="flex flex-col">
-          <label className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">{label}</label>
-          <div className="relative">
-              {icon && <span className="absolute left-2.5 top-2.5 text-gray-400">{icon}</span>}
-              <input
-                  type={type}
-                  value={value === 0 ? '' : value}
-                  onChange={onChange}
-                  placeholder={placeholder}
-                  className={`w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg p-2 text-sm font-medium focus:ring-2 focus:ring-highlight focus:border-highlight outline-none ${icon ? 'pl-8' : ''} ${addon ? 'pr-8' : ''}`}
-              />
-              {addon && <span className="absolute right-3 top-2 text-xs font-bold text-gray-400">{addon}</span>}
-          </div>
-      </div>
-  );
+
 
   return (
     <div className="p-6 h-[calc(100vh-64px)] overflow-y-auto pb-24">

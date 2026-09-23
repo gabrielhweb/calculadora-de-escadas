@@ -2,6 +2,24 @@ import React, { useState } from 'react';
 import { GuardrailEditor } from '../components/GuardrailEditor';
 import { getAutoGuardrailLengths } from '../components/CalculatorForm';
 
+// Global InputField for GuardrailEditor
+const InputField = ({ label, value, onChange, type = "text", placeholder, icon, addon }: any) => (
+    <div className="flex flex-col">
+        <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 mb-1 uppercase">{label}</label>
+        <div className="relative">
+            {icon && <span className="absolute left-2.5 top-2.5 text-gray-400">{icon}</span>}
+            <input
+                type={type}
+                value={value === 0 ? '' : value}
+                onChange={onChange}
+                placeholder={placeholder}
+                className={`w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded p-2 text-sm font-bold text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-highlight focus:border-highlight outline-none ${icon ? 'pl-8' : ''} ${addon ? 'pr-8' : ''}`}
+            />
+            {addon && <span className="absolute right-3 top-2 text-xs font-bold text-gray-400">{addon}</span>}
+        </div>
+    </div>
+);
+
 export default function GuardrailCalculatorPage() {
     const [guardrails, setGuardrails] = useState<any[]>([]);
 
@@ -47,24 +65,6 @@ export default function GuardrailCalculatorPage() {
     const handleRemoveGuardrail = (id: string) => {
         setGuardrails(guardrails.filter(g => g.id !== id));
     };
-
-    // Dummy InputField for GuardrailEditor
-    const InputField = ({ label, value, onChange, type = "text", placeholder, icon, addon }: any) => (
-        <div className="flex flex-col">
-            <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 mb-1 uppercase">{label}</label>
-            <div className="relative">
-                {icon && <span className="absolute left-2.5 top-2.5 text-gray-400">{icon}</span>}
-                <input
-                    type={type}
-                    value={value === 0 ? '' : value}
-                    onChange={onChange}
-                    placeholder={placeholder}
-                    className={`w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded p-2 text-sm font-bold text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-highlight focus:border-highlight outline-none ${icon ? 'pl-8' : ''} ${addon ? 'pr-8' : ''}`}
-                />
-                {addon && <span className="absolute right-3 top-2 text-xs font-bold text-gray-400">{addon}</span>}
-            </div>
-        </div>
-    );
 
     return (
         <div className="p-4 sm:p-6 h-[calc(100vh-64px)] overflow-y-auto pb-24">
