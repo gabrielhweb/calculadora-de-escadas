@@ -603,11 +603,21 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[]) => {
             const box = bboxes[idx];
             if (!box) return;
             const padding = 15;
-            const drawW = box.w - padding * 2;
-            const drawH = (box.h - 30) * 0.55; 
+            
+            const maxW = box.w - padding * 2;
+            const maxH = (box.h - 30) * 0.55; 
 
-            const px = box.x + padding;
-            const py = box.y + 25; 
+            // Calculate proportional size
+            const lengthScale = Math.max(p.length, 50);
+            const heightScale = Math.max(p.outerH, 50);
+            const scale = Math.min(maxW / lengthScale, maxH / heightScale);
+            
+            const drawW = p.length * scale;
+            const drawH = p.outerH * scale;
+
+            // Center in the box
+            const px = box.x + (box.w - drawW) / 2;
+            const py = box.y + 25 + (maxH - drawH) / 2;
 
             doc.setFontSize(12);
             doc.setFont('helvetica', 'bold');

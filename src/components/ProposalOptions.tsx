@@ -772,14 +772,19 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
   };
 
   // Captura automática quando o wizard abrir ou avançar passo
+  const isCapturing = useRef(false);
   useEffect(() => {
-      if (isExportWizardOpen && exportQueue.length > 0 && captureRef.current) {
+      if (isExportWizardOpen && exportQueue.length > 0 && captureRef.current && !isCapturing.current) {
+          isCapturing.current = true;
           // Pequeno delay para garantir que a renderização 3D/2D foi concluída
           const timer = setTimeout(() => {
               // Se for a última etapa e for attach, não fecha o wizard ainda, mas roda
               captureCurrentStepAndNext();
           }, 800);
-          return () => clearTimeout(timer);
+          return () => {
+              clearTimeout(timer);
+              isCapturing.current = false;
+          };
       }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isExportWizardOpen, currentExportIndex]);
@@ -788,6 +793,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
       console.log("captureCurrentStepAndNext chamado");
       if (!captureRef.current) {
           console.error("captureRef.current is null");
+          isCapturing.current = false;
           return;
       }
 
@@ -815,14 +821,17 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
 
           if (currentExportIndex < exportQueue.length - 1) {
               console.log("Avançando para o próximo step:", currentExportIndex + 1);
+              isCapturing.current = false;
               setCurrentExportIndex(prev => prev + 1);
           } else {
               console.log("Último step, finalizando...");
+              isCapturing.current = false;
               finishExport();
           }
 
       } catch (e) {
           console.error("Erro na captura:", e);
+          isCapturing.current = false;
           alert("Erro ao capturar imagem. Tente novamente.");
       }
   };
