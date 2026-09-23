@@ -20,7 +20,7 @@ export const GuardrailPreview: React.FC<GuardrailPreviewProps> = ({ length, heig
     
     return (
        <div className="flex flex-col items-center justify-center w-full">
-           <svg viewBox={`0 0 ${svgW} ${svgH + 15}`} className="w-full max-w-md font-sans overflow-visible">
+           <svg viewBox={`0 0 ${svgW} ${svgH + 15}`} className="w-full max-w-md font-sans overflow-visible text-gray-800 dark:text-gray-300">
                 {/* Title */}
                 {isGate && <text x={svgW/2} y={12} textAnchor="middle" fill="#6b7280" className="font-black text-sm uppercase opacity-50">PORTÃO</text>}
                 
@@ -42,20 +42,20 @@ export const GuardrailPreview: React.FC<GuardrailPreviewProps> = ({ length, heig
 
                 {/* STRUCTURE (Black) */}
                 {/* Top horizontal */}
-                <rect x={margin.left} y={margin.top} width={drawW} height={4} fill="#1f2937" />
+                <rect x={margin.left} y={margin.top} width={drawW} height={4} fill="currentColor" />
                 {/* Bottom horizontal */}
-                <rect x={margin.left + 4} y={svgH - margin.bottom - 4} width={drawW - 8} height={4} fill="#1f2937" />
+                <rect x={margin.left + 4} y={svgH - margin.bottom - 4} width={drawW - 8} height={4} fill="currentColor" />
                 
                 {/* Outer Posts (WITH FEET) */}
-                <rect x={margin.left} y={margin.top} width={4} height={drawH + 15} fill="#1f2937" />
-                <rect x={svgW - margin.right - 4} y={margin.top} width={4} height={drawH + 15} fill="#1f2937" />
+                <rect x={margin.left} y={margin.top} width={4} height={drawH + 15} fill="currentColor" />
+                <rect x={svgW - margin.right - 4} y={margin.top} width={4} height={drawH + 15} fill="currentColor" />
                 
                 {/* Inner Posts */}
                 {Array.from({ length: numInnerBars }).map((_, i) => {
                     const step = (drawW - 8) / (numInnerBars + 1);
                     const x = margin.left + 4 + step * (i + 1) - 1.5; 
                     return (
-                        <rect key={i} x={x} y={margin.top + 10} width={3} height={drawH - 14} fill="#1f2937" />
+                        <rect key={i} x={x} y={margin.top + 10} width={3} height={drawH - 14} fill="currentColor" />
                     )
                 })}
                 
