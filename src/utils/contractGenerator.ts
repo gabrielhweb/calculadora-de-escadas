@@ -218,7 +218,14 @@ export const generateContractPDF = (data: ContractData) => {
           if (landing.frenchBrackets === 1) bracketText = ' (1 mão francesa)';
           else if (landing.frenchBrackets === 2) bracketText = ' (2 mãos francesas)';
           
-          addText(`-Patamar ${idx+1} (${typeText} - ${dirText})${bracketText}: Medidas ${lM}m x ${wM}m`, 11, false, 'left');
+          let flushText = landing.isFlushWithSlab ? "Rente a Laje" : "1 abaixo da Laje";
+          
+          let guardText = "";
+          if (landing.hasSideGuardrail && landing.hasFrontGuardrail) guardText = " + Guarda Corpo Lat/Front";
+          else if (landing.hasSideGuardrail) guardText = " + Guarda Corpo Lateral";
+          else if (landing.hasFrontGuardrail) guardText = " + Guarda Corpo Frontal";
+          
+          addText(`-Patamar ${idx+1} (${typeText} - ${dirText})${bracketText}: ${flushText} de ${lM}m (C) x ${wM}m (L)${guardText}`, 11, false, 'left');
       });
       const totalMaoFrancesa = data.selectedOption.landings.reduce((sum, l) => sum + (l.frenchBrackets || 0), 0);
       if (totalMaoFrancesa > 0) {
