@@ -22,10 +22,7 @@ export interface ContractData {
       hybridSignalAmount?: number; // Valor manual exato do sinal
       pixTiming?: 'entry' | 'delivery'; // Momento do pagamento Pix
       remainderText?: string; // NOVO: Texto personalizado para a forma de pagamento do restante
-  cashMethodName?: string;
-        isCustomPix?: boolean;
-        pixInstallmentsList?: { value: number; description: string }[];
-    };
+  };
   additionalClauses?: string[]; 
   
   // PREÇOS SEPARADOS EXPLICITAMENTE
@@ -179,17 +176,14 @@ export const generateContractPDF = (data: ContractData) => {
       dampersText = ' com rodinhas de avanço';
   }
 
-  const numLandings = data.selectedOption.landings ? data.selectedOption.landings.length : 0;
-  const computedStructureSteps = data.selectedOption.structureSteps ?? (data.selectedOption.steps - numLandings);
-
   let objText = '';
   let stepsText = '';
   if (data.inputData.isFixedStair) {
       objText = `Escada fixa em aço carbono com corte à laser, com medidas de: ${alturaM}m de altura, ${compM}m de comprimento, ${widthM}m de largura e com corrimão de 80cm.`;
-      stepsText = `- Com ${computedStructureSteps} degraus fixos com dimensões de ${stepH}cm de altura e pisante de ${treadMaterialStr} de ${tread}cm.`;
+      stepsText = `- Com ${data.selectedOption.structureSteps} degraus fixos com dimensões de ${stepH}cm de altura e pisante de ${treadMaterialStr} de ${tread}cm.`;
   } else {
       objText = `Escada articulada lateral em aço carbono com corte à laser, ${fixationText}, com medidas de: ${alturaM}m de altura, ${compM}m de comprimento, ${widthM}m de largura e com corrimão de 80cm.`;
-      stepsText = `- Com ${computedStructureSteps} degraus articulados com dimensões de ${stepH}cm de altura e pisante de ${treadMaterialStr} de ${tread}cm${dampersText}.`;
+      stepsText = `- Com ${data.selectedOption.structureSteps} degraus articulados com dimensões de ${stepH}cm de altura e pisante de ${treadMaterialStr} de ${tread}cm${dampersText}.`;
   }
   
   addText(objText, 11, false, 'left');
@@ -218,14 +212,7 @@ export const generateContractPDF = (data: ContractData) => {
           if (landing.frenchBrackets === 1) bracketText = ' (1 mão francesa)';
           else if (landing.frenchBrackets === 2) bracketText = ' (2 mãos francesas)';
           
-          let flushText = landing.isFlushWithSlab ? "Rente a Laje" : "1 abaixo da Laje";
-          
-          let guardText = "";
-          if (landing.hasSideGuardrail && landing.hasFrontGuardrail) guardText = " + Guarda Corpo Lat/Front";
-          else if (landing.hasSideGuardrail) guardText = " + Guarda Corpo Lateral";
-          else if (landing.hasFrontGuardrail) guardText = " + Guarda Corpo Frontal";
-          
-          addText(`-Patamar ${idx+1} (${typeText} - ${dirText})${bracketText}: ${flushText} de ${lM}m (C) x ${wM}m (L)${guardText}`, 11, false, 'left');
+          addText(`-Patamar ${idx+1} (${typeText} - ${dirText})${bracketText}: Medidas ${lM}m x ${wM}m`, 11, false, 'left');
       });
       const totalMaoFrancesa = data.selectedOption.landings.reduce((sum, l) => sum + (l.frenchBrackets || 0), 0);
       if (totalMaoFrancesa > 0) {
@@ -236,7 +223,7 @@ export const generateContractPDF = (data: ContractData) => {
   // --- PRECIFICAÇÃO SEPARADA (ESCADA vs PATAMARES) ---
   // USAMOS OS VALORES EXPLICITOS PASSADOS PELA TELA AGORA
   
-  addText(`-Valor Escada (${computedStructureSteps} degraus): ${formatCurrencyBRL(data.finalStairPrice)}`, 11, false, 'left');
+  addText(`-Valor Escada (${data.selectedOption.structureSteps} degraus): ${formatCurrencyBRL(data.finalStairPrice)}`, 11, false, 'left');
 
   if (data.finalLandingsPrice > 0) {
       addText(`-Valor Patamares (Total): ${formatCurrencyBRL(data.finalLandingsPrice)}`, 11, false, 'left');
@@ -362,7 +349,7 @@ export const generateContractPDF = (data: ContractData) => {
       ? `menos ${discountP.toFixed(2).replace('.00', '')}% de desconto`
       : `menos desconto de ${formatCurrencyBRL(discountVal)}`;
 
-  if (false) {
+  if (isTransportadora && (data.paymentMethod === 'hybrid' || data.paymentMethod === 'pix')) {
       if (discountVal > 0) {
           addText(`Total: ${formatCurrencyBRL(totalGeral)} ${discountText} = ${formatCurrencyBRL(totalComDesconto)}`, 11, false, 'left');
       } else {
@@ -383,35 +370,19 @@ export const generateContractPDF = (data: ContractData) => {
       addText('6.2 Antes do envio, a CONTRATADA encaminhará vídeos ao cliente demonstrando o funcionamento da escada.', 11, false, 'justify');
       addText('6.3 Após a emissão da nota fiscal, o pagamento do saldo permite o devido despacho do produto na transportadora.', 11, false, 'justify');
   } else {
-      const cashMethod = (data.paymentDetails as any).cashMethodName || 'PIX';
-      const cashMethodLower = cashMethod.toLowerCase();
-
       if (data.paymentMethod === 'pix') {
+          const signalP = data.paymentDetails.signalPercent || 50;
+          const valorSinal = totalComDesconto * (signalP / 100);
+          const valorEntrega = totalComDesconto - valorSinal;
+          
           if (discountVal > 0) {
               addText(`Total ${formatCurrencyBRL(totalGeral)} ${discountText} = ${formatCurrencyBRL(totalComDesconto)}`, 11, false, 'left');
           } else {
               addText(`Total ${formatCurrencyBRL(totalGeral)}`, 11, false, 'left');
           }
-          
-          if ((data.paymentDetails as any).isCustomPix && (data.paymentDetails as any).pixInstallmentsList && (data.paymentDetails as any).pixInstallmentsList.length > 0) {
-              addText(`Sendo pago de forma parcelada via ${cashMethodLower} nas seguintes condições:`, 11, false, 'left');
-              (data.paymentDetails as any).pixInstallmentsList.forEach((inst: any, idx: number) => {
-                  addText(`Parcela ${idx + 1}: ${formatCurrencyBRL(inst.value)} - ${inst.description}`, 11, false, 'left');
-              });
-          } else {
-              const signalP = data.paymentDetails.signalPercent || 50;
-              const valorSinal = totalComDesconto * (signalP / 100);
-              const valorEntrega = totalComDesconto - valorSinal;
-              
-              addText(`Sendo pago ${formatCurrencyBRL(valorSinal)} via ${cashMethodLower} de sinal e ${formatCurrencyBRL(valorEntrega)} no dia entrega e instalação`, 11, false, 'left');
-          }
-          
+          addText(`Sendo pago ${formatCurrencyBRL(valorSinal)} via pix de sinal e ${formatCurrencyBRL(valorEntrega)} no dia entrega e instalação`, 11, false, 'left');
           currentY += 2;
           addText(`Chave PIX (CNPJ): 28.869.537/0001-01`, 11, true, 'left');
-          
-          if (cashMethod === 'Transferência Bancária') {
-              addText(`Banco Itaú - Ag: 3176 Conta: 29775-8`, 11, true, 'left');
-          }
       
       } else if (data.paymentMethod === 'hybrid') {
           // Usa o valor manual se disponível, senão calcula pela %
@@ -430,8 +401,8 @@ export const generateContractPDF = (data: ContractData) => {
           // Determina o texto baseado no momento do pagamento (Timing)
           const isPixOnDelivery = data.paymentDetails.pixTiming === 'delivery';
           const timingText = isPixOnDelivery
-              ? `via ${cashMethodLower} no ato da entrega/retirada` 
-              : `via ${cashMethodLower} de entrada`;
+              ? "via pix/dinheiro no ato da entrega/retirada" 
+              : "via pix de entrada";
 
           // Texto flexível do restante
           const remainderMethodName = data.paymentDetails.remainderText || "Link de Pagamento (Cartão de Crédito)";
@@ -544,5 +515,4 @@ export const generateContractPDF = (data: ContractData) => {
 
   doc.save(`contrato_${(data.userData?.name || 'cliente').toLowerCase().replace(/\s/g, '_')}.pdf`);
 };
-
 

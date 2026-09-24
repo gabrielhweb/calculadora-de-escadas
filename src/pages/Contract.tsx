@@ -246,7 +246,7 @@ const Contract = () => {
     
     // Configurações do Contrato
     const [paymentMethod, setPaymentMethod] = useState<'pix' | 'card' | 'hybrid'>('pix');
-    const [cashMethodName, setCashMethodName] = useState<'PIX' | 'Transferência Bancária'>('PIX');
+    const [cashMethodName, setCashMethodName] = useState<string>('PIX');
     const [isCustomPix, setIsCustomPix] = useState(false);
     const [pixInstallmentsList, setPixInstallmentsList] = useState<{value: number; description: string}[]>([
         { value: 0, description: 'Sinal na assinatura' }, 
@@ -616,7 +616,7 @@ const Contract = () => {
         ? Math.max(0, discountedBase - hybridEntryPix)
         : discountedBase;
 
-    const interestMoney = enableInterest ? (parseFloat(interestValue) || 0) : 0;
+    const interestMoney = enableInterest ? (parseFloat(interestValue.replace(',', '.')) || 0) : 0;
     const totalFinanciadoReal = baseAmountForCard + interestMoney;
     const finalInstallmentVal = totalFinanciadoReal / (installments || 1);
     const totalGeralFinal = (paymentMethod === 'hybrid' ? hybridEntryPix : 0) + totalFinanciadoReal;
@@ -1975,10 +1975,17 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                         {(paymentMethod === 'pix' || paymentMethod === 'hybrid') && (
                             <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded mb-4 border border-gray-300 dark:border-gray-600 space-y-3">
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-600 dark:text-gray-300 uppercase mb-2">Forma de pagamento à vista:</label>
-                                    <div className="flex gap-2">
-                                        <button onClick={() => setCashMethodName('PIX')} className={`flex-1 py-1.5 rounded text-sm font-bold transition ${cashMethodName === 'PIX' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-400'}`}>PIX</button>
-                                        <button onClick={() => setCashMethodName('Transferência Bancária')} className={`flex-1 py-1.5 rounded text-sm font-bold transition ${cashMethodName === 'Transferência Bancária' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-400'}`}>Transferência</button>
+                                    <label className="block text-xs font-bold text-gray-600 dark:text-gray-300 uppercase mb-2">Como será pago o Sinal/Primeiro? (Texto do Contrato)</label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {['PIX', 'Cartão (Link/Maquininha)', 'Transferência Bancária', 'Boleto Bancário', 'Dinheiro'].map(opt => (
+                                            <button 
+                                                key={opt}
+                                                onClick={() => setCashMethodName(opt)} 
+                                                className={`flex-1 py-1.5 px-2 rounded text-xs font-bold transition whitespace-nowrap ${cashMethodName === opt ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-400'}`}
+                                            >
+                                                {opt}
+                                            </button>
+                                        ))}
                                     </div>
                                 </div>
                                 {paymentMethod === 'pix' && (
@@ -2116,7 +2123,7 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
 
                                             {/* BOTÕES RÁPIDOS */}
                                             <div className="flex flex-wrap gap-2">
-                                                {['Link de Pagamento (Cartão)', 'Boleto Bancário', 'Cheque Pré', 'Dinheiro na Entrega', 'Transferência Bancária'].map(opt => (
+                                                {['PIX', 'Link de Pagamento (Cartão)', 'Boleto Bancário', 'Cheque Pré', 'Dinheiro na Entrega', 'Transferência Bancária'].map(opt => (
                                                     <button
                                                         key={opt}
                                                         onClick={() => setRemainderPaymentMode(opt)}
