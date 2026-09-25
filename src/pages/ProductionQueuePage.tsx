@@ -618,13 +618,20 @@ export default function ProductionQueue() {
                     
                     if (message) {
                         try {
-                            await fetch('/api/email', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ email: clientEmail, message })
-                        });
+                            const res = await fetch('/api/email', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ email: clientEmail, message })
+                            });
+                            if (res.ok) {
+                                alert(`✅ E-mail da nova etapa foi enviado com sucesso para ${clientEmail}!`);
+                            } else {
+                                const errorData = await res.json().catch(() => ({}));
+                                alert(`❌ Erro ao enviar o e-mail para ${clientEmail}. Verifique se a cota do EmailJS não acabou.\n\nDetalhe: ${errorData.error || res.statusText}`);
+                            }
                         } catch (e) {
                             console.error('Erro ao enviar e-mail de notificação:', e);
+                            alert(`❌ Falha de conexão ao tentar enviar o e-mail para ${clientEmail}.`);
                         }
                     }
                 }
