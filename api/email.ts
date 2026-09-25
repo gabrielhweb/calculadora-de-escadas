@@ -3,6 +3,26 @@ export default async function handler(req: any, res: any) {
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
 
+    // Verificar autenticação
+    const token = req.headers.authorization?.split('Bearer ')[1];
+    if (!token) {
+        return res.status(401).json({ error: 'Acesso negado: Token ausente.' });
+    }
+
+    try {
+        const verifyRes = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${process.env.VITE_FIREBASE_API_KEY || 'AIzaSyDdXvLcGf8MiO0qd2FN31xCBcDxznCS1qA'}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idToken: token })
+        });
+        const verifyData = await verifyRes.json();
+        if (verifyData.error || !verifyData.users || verifyData.users.length === 0) {
+            return res.status(401).json({ error: 'Acesso negado: Token inválido ou expirado.' });
+        }
+    } catch (e) {
+        return res.status(500).json({ error: 'Erro ao validar autenticação.' });
+    }
+
     const { email, message } = req.body;
 
     if (!email || !message) {

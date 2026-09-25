@@ -624,9 +624,14 @@ export default function ProductionQueue() {
                         }
                         
                         try {
+                            const { auth } = await import('../firebase');
+                            const token = await auth.currentUser?.getIdToken();
                             const res = await fetch('/api/email', {
                                 method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
+                                headers: { 
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${token}`
+                                },
                                 body: JSON.stringify({ email: clientEmail, message })
                             });
                             if (res.ok) {
