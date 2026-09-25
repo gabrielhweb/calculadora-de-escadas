@@ -119,6 +119,7 @@ export interface ProposalOption {
 }
 
 export interface UserData {
+    email?: string;
   name: string;
   cpf: string; // Pode ser CPF ou CNPJ dependendo do contexto
   rg?: string;

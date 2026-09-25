@@ -591,6 +591,21 @@ export default function ProductionQueue() {
                 if (newStage === 'concluido') updates.status = 'completed';
                 else updates.status = 'in_queue';
                 await updateDoc(doc(db, 'production_queue', item.id), updates);
+
+                const clientEmail = item.originalData?.clientEmail || item.originalData?.userData?.email;
+                if (clientEmail) {
+                    const stageLabel = STAGES.find(s => s.id === newStage)?.label || newStage;
+                    try {
+                        const message = `Olá ${item.title.split(' ')[0]}, tudo bem?\n\nA produção da sua escada avançou para uma nova etapa: **${stageLabel}**!\n\nQualquer dúvida, estamos à disposição.\n\nAtt,\nZilinski Escadas`;
+                        await fetch('/api/email', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ email: clientEmail, message })
+                        });
+                    } catch (e) {
+                        console.error('Erro ao enviar e-mail de notificação:', e);
+                    }
+                }
             } else {
                 alert('Acesse Meus Contratos para gerar a ordem de produção deste contrato.');
             }

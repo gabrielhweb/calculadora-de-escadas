@@ -126,6 +126,7 @@ const Contract = () => {
     const [clientName, setClientName] = useState('');
     const [clientDoc, setClientDoc] = useState(''); // CPF ou CNPJ
     const [clientRG, setClientRG] = useState('');
+    const [clientEmail, setClientEmail] = useState('');
     const [addToQueue, setAddToQueue] = useState(true);
     
     // Endereço Estruturado
@@ -330,6 +331,7 @@ const Contract = () => {
                     setClientName(String(userData.name || ''));
                     setClientDoc(String(userData.cpf || ''));
                     setClientRG(String(userData.rg || ''));
+                    setClientEmail(String(userData.email || ''));
                     setZip(String(userData.zip || ''));
                     setStreet(String(userData.street || userData.address || ''));
                     setNumber(String(userData.number || ''));
@@ -437,6 +439,7 @@ const Contract = () => {
                     setClientName(String(userData.name || ''));
                     setClientDoc(String(userData.cpf || ''));
                     setClientRG(String(userData.rg || ''));
+                    setClientEmail(String(userData.email || ''));
                     
                     if (userData.zip) setZip(String(userData.zip));
                     if (userData.street) setStreet(String(userData.street));
@@ -794,7 +797,7 @@ const Contract = () => {
         const contractData = {
             estimatedWeightKg,
             userData: { 
-                name: clientName, cpf: clientDoc, rg: clientRG, address: fullAddress, 
+                name: clientName, cpf: clientDoc, rg: clientRG, email: clientEmail, address: fullAddress, 
                 zip, street, number, neighborhood, city, state 
             },
             selectedOption: {
@@ -976,7 +979,7 @@ const Contract = () => {
 
         generateContractPDF({
             userData: { 
-                name: clientName, cpf: clientDoc, rg: clientRG, address: fullAddress, 
+                name: clientName, cpf: clientDoc, rg: clientRG, email: clientEmail, address: fullAddress, 
                 zip, street, number, neighborhood, city, state 
             },
             selectedOption: {
@@ -1149,7 +1152,7 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
 
         generateAceiteObraPDF({
             userData: { 
-                name: clientName, cpf: clientDoc, rg: clientRG, address: fullAddress, 
+                name: clientName, cpf: clientDoc, rg: clientRG, email: clientEmail, address: fullAddress, 
                 zip, street, number, neighborhood, city, state 
             },
             selectedOption: {
@@ -1278,6 +1281,13 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                 />
                             )}
                         </div>
+                        <ContractInput 
+                            label="E-mail (Para notificações da fábrica)" 
+                            value={clientEmail} 
+                            onChange={(e: any) => setClientEmail(e.target.value)}
+                            placeholder="cliente@email.com"
+                            type="email"
+                        />
 
                         <div className="border-t border-gray-100 dark:border-gray-700 pt-4">
                             <div className="grid grid-cols-3 gap-3 mb-3">
