@@ -277,7 +277,7 @@ const Contract = () => {
     const [isGeneratingClause, setIsGeneratingClause] = useState(false);
     
     // --- CAMPOS CUSTOMIZÁVEIS EXTRAS ---
-    const [finishText, setFinishText] = useState('Fornecido com aplicação de fundo primer. Observação: a pintura final é de responsabilidade do cliente.');
+    const [finishText, setFinishText] = useState('O produto será fornecido com aplicação de fundo primer preto, destinado à proteção inicial da superfície metálica. A pintura final do produto será de responsabilidade do cliente.');
     const [stepCapacityText, setStepCapacityText] = useState('180 quilos');
     const [stairCapacityText, setStairCapacityText] = useState('360 quilos');
 

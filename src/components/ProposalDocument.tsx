@@ -385,7 +385,7 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
     doc.text('Acabamento', pageMargin, currentY);
     currentY += 6;
     doc.setFont('helvetica', 'normal');
-    const acabamentoText = 'Fornecido com aplicação de fundo primer. Observação: a pintura final é de responsabilidade do cliente.';
+    const acabamentoText = 'O produto será fornecido com aplicação de fundo primer preto, destinado à proteção inicial da superfície metálica. A pintura final do produto será de responsabilidade do cliente.';
     const splitAcabamento = doc.splitTextToSize(acabamentoText, pageWidth - (pageMargin * 2));
     doc.text(splitAcabamento, pageMargin, currentY);
     currentY += (splitAcabamento.length * 5) + 4;
