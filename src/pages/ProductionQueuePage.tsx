@@ -594,16 +594,38 @@ export default function ProductionQueue() {
 
                 const clientEmail = item.originalData?.clientEmail || item.originalData?.userData?.email;
                 if (clientEmail) {
-                    const stageLabel = STAGES.find(s => s.id === newStage)?.label || newStage;
-                    try {
-                        const message = `Olá ${item.title.split(' ')[0]}, tudo bem?\n\nA produção da sua escada avançou para uma nova etapa: **${stageLabel}**!\n\nQualquer dúvida, estamos à disposição.\n\nAtt,\nZilinski Escadas`;
-                        await fetch('/api/email', {
+                    const firstName = item.title.split(' ')[0];
+                    let message = '';
+                    switch (newStage) {
+                        case 'contrato':
+                            message = `Olá ${firstName}, tudo bem?\n\nPassando para avisar que o seu contrato foi confirmado e a sua escada foi enviada para a etapa de produção.\n\nQualquer dúvida, estamos à disposição!\n\nAtenciosamente,\nZilinski Escadas`;
+                            break;
+                        case 'corte':
+                            message = `Olá ${firstName}, tudo bem?\n\nPassando para avisar que a sua escada já foi enviada para o corte a laser.\n\nQualquer dúvida, estamos à disposição!\n\nAtenciosamente,\nZilinski Escadas`;
+                            break;
+                        case 'soldagem':
+                            message = `Olá ${firstName}, tudo bem?\n\nPassando para avisar que o corte a laser da sua escada já foi concluído e agora ela está na etapa de soldagem.\n\nQualquer dúvida, estamos à disposição!\n\nAtenciosamente,\nZilinski Escadas`;
+                            break;
+                        case 'pronta':
+                            message = `Olá ${firstName}, tudo bem?\n\nPassando com ótimas notícias: a sua escada está pronta!\n\nEm breve, entraremos em contato para combinar os detalhes de entrega ou instalação.\n\nAtenciosamente,\nZilinski Escadas`;
+                            break;
+                        case 'concluido':
+                            message = `Olá ${firstName}, tudo bem?\n\nSeu pedido foi concluído com sucesso. Agradecemos imensamente pela confiança em nosso trabalho!\n\nEsperamos que aproveite muito a sua nova escada.\n\nAtenciosamente,\nZilinski Escadas`;
+                            break;
+                        default:
+                            message = '';
+                    }
+                    
+                    if (message) {
+                        try {
+                            await fetch('/api/email', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ email: clientEmail, message })
                         });
-                    } catch (e) {
-                        console.error('Erro ao enviar e-mail de notificação:', e);
+                        } catch (e) {
+                            console.error('Erro ao enviar e-mail de notificação:', e);
+                        }
                     }
                 }
             } else {
