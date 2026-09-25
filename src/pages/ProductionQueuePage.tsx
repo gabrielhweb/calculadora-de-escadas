@@ -617,6 +617,12 @@ export default function ProductionQueue() {
                     }
                     
                     if (message) {
+                        const stageLabel = STAGES.find(s => s.id === newStage)?.label || newStage;
+                        const confirmSend = window.confirm(`Deseja enviar um e-mail de notificação para ${clientEmail} avisando sobre a nova etapa (${stageLabel})?`);
+                        if (!confirmSend) {
+                            return; // Se cancelar, não faz o disparo
+                        }
+                        
                         try {
                             const res = await fetch('/api/email', {
                                 method: 'POST',
