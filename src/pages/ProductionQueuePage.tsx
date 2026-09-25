@@ -658,7 +658,7 @@ export default function ProductionQueue() {
         }
     };
 
-    const handleUpdateField = async (item: DashboardItem, field: 'clientName' | 'location', value: string) => {
+    const handleUpdateField = async (item: DashboardItem, field: 'clientName' | 'location' | 'clientEmail', value: string) => {
         try {
             if (item.source === 'queue') {
                 await updateDoc(doc(db, 'production_queue', item.id), { [field]: value });
@@ -849,6 +849,17 @@ export default function ProductionQueue() {
                                                                 >
                                                                     {item.title}
                                                                 </div>
+                                                                {item.source === 'queue' && (
+                                                                    <div className="mt-2 text-[10px]">
+                                                                        <input
+                                                                            type="email"
+                                                                            placeholder="E-mail (Para alertas)"
+                                                                            defaultValue={item.originalData?.clientEmail || item.originalData?.userData?.email || ''}
+                                                                            onBlur={(e) => handleUpdateField(item, 'clientEmail', e.target.value)}
+                                                                            className="w-full max-w-[200px] bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 outline-none focus:border-highlight focus:ring-1 focus:ring-highlight text-gray-700 dark:text-gray-200"
+                                                                        />
+                                                                    </div>
+                                                                )}
                                                                 {item.source === 'contract' && (
                                                                     <button 
                                                                         onClick={() => fixQueueLink(item)}
