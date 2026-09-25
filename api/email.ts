@@ -11,7 +11,7 @@ export default async function handler(req: any, res: any) {
 
     // Configurações do EmailJS
     // Você pode substituir essas variáveis chumbadas no código por process.env.Variavel no painel da Vercel para mais segurança futura.
-    const SERVICE_ID = process.env.EMAILJS_SERVICE_ID || 'service_3vpsmtd'; 
+    const SERVICE_ID = process.env.EMAILJS_SERVICE_ID || 'service_mzh1wxe'; 
     const TEMPLATE_ID = process.env.EMAILJS_TEMPLATE_ID || 'template_2op8u5j'; 
     const PUBLIC_KEY = process.env.EMAILJS_PUBLIC_KEY || '1bQ9OWNjpd3-cbTkl';
 
