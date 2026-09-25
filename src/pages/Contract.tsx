@@ -2133,7 +2133,7 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
 
                                             {/* BOTÕES RÁPIDOS */}
                                             <div className="flex flex-wrap gap-2">
-                                                {['PIX', 'Link de Pagamento (Cartão)', 'Boleto Bancário', 'Cheque Pré', 'Dinheiro na Entrega', 'Transferência Bancária'].map(opt => (
+                                                {['PIX', 'Maquininha de Cartão (Na Entrega)', 'Link de Pagamento (Cartão)', 'Boleto Bancário', 'Cheque Pré', 'Dinheiro na Entrega', 'Transferência Bancária'].map(opt => (
                                                     <button
                                                         key={opt}
                                                         onClick={() => setRemainderPaymentMode(opt)}

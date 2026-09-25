@@ -453,19 +453,27 @@ export const generateContractPDF = (data: ContractData) => {
               const printInterestText = totalNoCartao > restanteBase + 1 && !data.userData?.hideInterestLabel;
               const finalAmount = (totalNoCartao > restanteBase + 1) ? totalNoCartao : restanteBase;
               
-              if (printInterestText) {
-                  addText(`Sendo pago ${formatCurrencyBRL(restanteBase)} mais juros totalizando ${formatCurrencyBRL(totalNoCartao)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}.`, 11, false, 'justify');
-              } else {
-                  addText(`Sendo pago ${formatCurrencyBRL(finalAmount)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}.`, 11, false, 'justify');
-              }
+              if (remainderMethodName.toLowerCase().includes('maquininha')) {
+                    const extraStr = data.installationCost > 0 ? ' da entrega e instalação' : ' da entrega';
+                    addText(`Sendo pago ${formatCurrencyBRL(restanteBase)}, a ser pago no dia${extraStr}, por meio de maquininha de cartão, sendo que eventuais acréscimos de juros serão calculados de acordo com a quantidade de parcelas escolhida pela CONTRATANTE no momento do pagamento.`, 11, false, 'justify');
+                } else {
+                    if (printInterestText) {
+                        addText(`Sendo pago ${formatCurrencyBRL(restanteBase)} mais juros totalizando ${formatCurrencyBRL(totalNoCartao)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}.`, 11, false, 'justify');
+                    } else {
+                        addText(`Sendo pago ${formatCurrencyBRL(finalAmount)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}.`, 11, false, 'justify');
+                    }
+                }
               addText(`E o restante de ${formatCurrencyBRL(valorPixFinal)} ${timingText}.`, 11, false, 'left');
           } else {
               addText(`Sendo pago ${formatCurrencyBRL(valorPixFinal)} ${timingText}.`, 11, false, 'left');
               const printInterestText = totalNoCartao > restanteBase + 1 && !data.userData?.hideInterestLabel;
               const finalAmount = (totalNoCartao > restanteBase + 1) ? totalNoCartao : restanteBase;
               
-              if (printInterestText) {
-                  addText(`E o restante de ${formatCurrencyBRL(restanteBase)} mais juros totalizando ${formatCurrencyBRL(totalNoCartao)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}`, 11, false, 'justify');
+              if (remainderMethodName.toLowerCase().includes('maquininha')) {
+                    const extraStr = data.installationCost > 0 ? ' da entrega e instalação' : ' da entrega';
+                    addText(`E o restante de ${formatCurrencyBRL(restanteBase)}, a ser pago no dia${extraStr}, por meio de maquininha de cartão, sendo que eventuais acréscimos de juros serão calculados de acordo com a quantidade de parcelas escolhida pela CONTRATANTE no momento do pagamento.`, 11, false, 'justify');
+                } else if (printInterestText) {
+                    addText(`E o restante de ${formatCurrencyBRL(restanteBase)} mais juros totalizando ${formatCurrencyBRL(totalNoCartao)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}`, 11, false, 'justify');
               } else {
                   addText(`E o restante de ${formatCurrencyBRL(finalAmount)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}`, 11, false, 'justify');
               }
