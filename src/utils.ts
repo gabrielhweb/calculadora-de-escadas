@@ -112,6 +112,24 @@ export const getRouteInfoFromGemini = async (origin: string, destination: string
 };
 
 export const generateProposalDescription = (inputData: any, opt: any): string => {
+    if (inputData.isAdendo) {
+        let desc = "Itens avulsos solicitados:\n";
+        if (inputData.landings && inputData.landings.length > 0) {
+            inputData.landings.forEach((landing: any) => {
+                if (landing.hasGate && landing.isAccessoriesOnly) {
+                    desc += `- Portãozinho Avulso de ${landing.gateLength}cm x ${landing.gateHeight}cm.\n`;
+                } else if (landing.hasGuardrail && landing.isAccessoriesOnly) {
+                    desc += `- Guarda-Corpo Avulso (${landing.guardrailFormat || 'normal'}) com ${landing.guardrailHeight}cm de altura.\n`;
+                } else {
+                    desc += `- Patamar Auxiliar (${landing.width}x${landing.length}cm) com base em aço carbono.\n`;
+                    if (landing.hasGate) desc += `  + Inclui Portãozinho ${landing.gateLength}x${landing.gateHeight}cm.\n`;
+                    if (landing.hasGuardrail) desc += `  + Inclui Guarda-Corpo (${landing.guardrailFormat || 'normal'}).\n`;
+                }
+            });
+        }
+        return desc.trim();
+    }
+    
     let descriptionTitle = "Escada articulada lateral em aço carbono";
     let handrailDesc = "e com corrimão de 70 centímetros";
     let damperDesc = ` com ${inputData.dampers} amortecedores de alívio`;

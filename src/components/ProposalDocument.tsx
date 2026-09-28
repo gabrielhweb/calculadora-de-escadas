@@ -192,12 +192,14 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
         const structureOnly = opt.totalPrice - landingsPrice;
         
         // Valor da Escada
-        const escadaText = `-Valor Escada (${opt.structureSteps} degraus):`;
-        const escadaPrice = formatCurrencyBRL(structureOnly);
-        doc.setFont('helvetica', 'normal');
-        doc.text(escadaText, pageMargin, currentY);
-        doc.text(escadaPrice, pageWidth - pageMargin, currentY, { align: 'right' }); // Preço na direita
-        currentY += 6;
+        if (!inputData.isAdendo) {
+            const escadaText = `-Valor Escada (${opt.structureSteps} degraus):`;
+            const escadaPrice = formatCurrencyBRL(structureOnly);
+            doc.setFont('helvetica', 'normal');
+            doc.text(escadaText, pageMargin, currentY);
+            doc.text(escadaPrice, pageWidth - pageMargin, currentY, { align: 'right' });
+            currentY += 6;
+        }
         
         // Patamares
         if (opt.landings.length > 0) {
