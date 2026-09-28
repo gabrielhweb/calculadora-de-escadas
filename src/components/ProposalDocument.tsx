@@ -105,7 +105,7 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
 
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
-    doc.text('ORÇAMENTO', pageWidth / 2, currentY, { align: 'center' });
+    doc.text(inputData.isAdendo ? 'ORÇAMENTO (ADENDO DE AVULSOS)' : 'ORÇAMENTO', pageWidth / 2, currentY, { align: 'center' });
     currentY += 10;
 
     // --- DADOS DO CLIENTE E DATA ---
