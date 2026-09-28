@@ -45,7 +45,8 @@ export interface LandingInfo {
   gateHeight?: number;
   gatePricePerMeter?: number;
   gateBarsOverride?: number;
-  isAngled?: boolean; // Patamar em Ângulo
+  isAngled?: boolean;
+  isAccessoriesOnly?: boolean; // NOVO: Não cobrar a chapa do patamar, cobrar apenas os acessórios (Guarda-Corpo/Portão)
   chapaPrice?: number; // Preço isolado da chapa do patamar
   guardrailSide?: string; // NOVO: Orientação geográfica do guarda-corpo
   gateSide?: string; // NOVO: Orientação geográfica do portãozinho

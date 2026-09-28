@@ -102,6 +102,7 @@ export const InputField: React.FC<{
 
 const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
   // --- Estados Básicos ---
+  const [isAdendo, setIsAdendo] = useState(false);
   const [totalHeight, setTotalHeight] = useState<string>('300');
   const [heightUnit, setHeightUnit] = useState<'cm' | 'm'>('cm');
   const [desiredSteps, setDesiredSteps] = useState<string>('12');
@@ -246,6 +247,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
     };
 
     const formData: CalculatorInput = {
+      isAdendo: isAdendo,
       totalHeight: heightInCm || 0,
       desiredSteps: parseInt(desiredSteps, 10) || 0,
       stairWidth: widthInCm,
@@ -1175,7 +1177,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                             const multiplier = landing.weightPerSqm || 29;
                                             
                                             // Preço base da chapa
-                                            const baseChapaPrice = Math.round(weightKg * multiplier);
+                                            const baseChapaPrice = landing.isAccessoriesOnly ? 0 : Math.round(weightKg * multiplier);
                                             let calculatedPrice = baseChapaPrice;
                                             
                                             // Soma o preço das Mãos Francesas (se houver)
