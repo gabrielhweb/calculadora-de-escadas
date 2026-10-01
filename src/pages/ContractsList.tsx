@@ -797,6 +797,27 @@ export const ContractsList: React.FC = () => {
                     <p className="text-gray-500 dark:text-gray-400 mt-1">Acompanhe o status de cada projeto na sua timeline.</p>
                 </div>
                 <div className="flex gap-2">
+                    <button
+                        onClick={() => {
+                            const frontals = contracts.filter(contract => {
+                                const c = contract as any;
+                                return (c.wallFixation === 'frontal') || 
+                                (c.inputData && c.inputData.wallFixation === 'frontal') ||
+                                JSON.stringify(c).toLowerCase().includes('frontal');
+                            });
+                            if (frontals.length === 0) alert('Nenhum contrato com escada frontal encontrado.');
+                            else {
+                                const names = frontals.map(contract => {
+                                    const c = contract as any;
+                                    return c.clientName || (c.inputData && c.inputData.clientName) || 'Sem nome';
+                                }).join(', ');
+                                alert('Contratos frontais encontrados: ' + names);
+                            }
+                        }}
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm transition-colors"
+                    >
+                        Buscar Frontal
+                    </button>
                     <button 
                         onClick={async () => {
                             if (!window.confirm("Essa ação vai varrer TODOS os contratos e fila de produção, atualizar os cálculos de peso exato e salvar os resultados. Continuar?")) return;

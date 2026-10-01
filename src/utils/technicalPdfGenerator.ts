@@ -324,6 +324,27 @@ export const drawPristineTechnicalPage = (doc: jsPDF, props: TechnicalDataProps)
     
     doc.text(`Cor do Acabamento: Pintura Eletrostática Preto Fosco`, leftMargin, cursorY); cursorY += 7;
     doc.text(`Peso Total Aproximado: ${totalWeightKg} kg`, leftMargin, cursorY); cursorY += 15;
+
+    // Transporte
+    const handrailCm = (props.optionalItems && props.optionalItems.some(i => i.id === 'corrimao_aco')) ? 80 : 0;
+    const maxHandrailHeightM = handrailCm > 0 ? 0.8 : 0;
+    const pacoteLarguraM = ((treadDepthCm + 1) + handrailCm + 16.5) / 100;
+    const pacoteAlturaM = 0.08;
+    const comprimentoMaximoM = (treadDepthCm * totalSteps) / 100;
+    const totalHeightM = (stepHeightCm * totalSteps) / 100;
+    const pontasM = 0.20;
+    const tamanhoViga = Math.sqrt(Math.pow(comprimentoMaximoM, 2) + Math.pow(totalHeightM, 2));
+    const diagonalExata = tamanhoViga + maxHandrailHeightM + pontasM;
+
+    doc.setFont('helvetica', 'bold');
+    doc.text("DIMENSÕES PARA TRANSPORTE (PACOTE)", leftMargin, cursorY);
+    doc.setFont('helvetica', 'normal');
+    cursorY += 7;
+    doc.text(`- Comprimento: ${diagonalExata.toFixed(2)}m`, leftMargin, cursorY); cursorY += 7;
+    doc.text(`- Largura: ${pacoteLarguraM.toFixed(2)}m`, leftMargin, cursorY); cursorY += 7;
+    doc.text(`- Altura: ${pacoteAlturaM.toFixed(2)}m`, leftMargin, cursorY); cursorY += 7;
+    doc.text(`- Peso: ${totalWeightKg} kg`, leftMargin, cursorY); cursorY += 15;
+    
     
     // 4. SEÇÃO DE COMPONENTES (Canto Superior Direito)
     const rightMargin = 135;

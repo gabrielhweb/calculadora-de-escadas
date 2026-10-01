@@ -342,7 +342,7 @@ export const drawGuardrailsPage = (doc: jsPDF, landings: any[], clientName: stri
                 doc.text(doc.splitTextToSize(safeClientName, 190), 10, 15);
             }
             
-            const yOffset = (drawCount % 2 === 0) ? 30 : 160;
+            const yOffset = (drawCount % 2 === 0) ? 25 : 155;
 
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(12);
@@ -393,9 +393,9 @@ export const drawGuardrailsPage = (doc: jsPDF, landings: any[], clientName: stri
             const innerHeight = gHeight - 13;
 
             const startX = 40;
-            const startY = yOffset + 20;
+            const startY = yOffset + 15;
             const drawW = 120;
-            const drawH = 65;
+            const drawH = 60;
 
             if (isGate) {
                 doc.setFontSize(14);
