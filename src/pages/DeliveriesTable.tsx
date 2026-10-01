@@ -11,6 +11,7 @@ export const DeliveriesTable: React.FC = () => {
     const [contracts, setContracts] = useState<SavedContract[]>([]);
     const { user } = useAuth();
     const [loading, setLoading] = useState(true);
+    const [queueItems, setQueueItems] = useState<any[]>([]);
 
     useEffect(() => {
         if (!user) {
@@ -20,6 +21,13 @@ export const DeliveriesTable: React.FC = () => {
         }
 
         const q = query(collection(db, 'contracts'), where('status', '==', 'producao'));
+        const q2 = query(collection(db, 'production_queue'));
+        const unsub2 = onSnapshot(q2, (snap) => {
+            const arr = [];
+            snap.forEach(d => arr.push({ id: d.id, ...d.data() }));
+            setQueueItems(arr);
+        });
+
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const loadedContracts: SavedContract[] = [];
             snapshot.forEach((d) => {
@@ -46,7 +54,7 @@ export const DeliveriesTable: React.FC = () => {
             setLoading(false);
         });
 
-        return () => unsubscribe();
+        return () => { unsubscribe(); unsub2(); };
     }, [user]);
 
     const handlePrint = () => {
@@ -570,7 +578,8 @@ export const DeliveriesTable: React.FC = () => {
                             <tr>
                                 <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[15%]">CLIENTE</th>
                                 <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[20%]">LOCALIZAÇÃO</th>
-                                <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[12%]">DATA ENTREGA</th>
+                                <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[10%]">DATA ENTREGA</th>
+                                <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[12%]">PAGAMENTO</th>
                                 <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[15%]">FRETE (MEDIDAS)</th>
                                 <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[18%]">ATENÇÃO</th>
                                 <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[20%]">FABRICAÇÃO</th>

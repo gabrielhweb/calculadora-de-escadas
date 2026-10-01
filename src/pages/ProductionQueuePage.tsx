@@ -941,7 +941,7 @@ export default function ProductionQueue() {
                                                                 >
                                                                     <div className={`absolute top-0 left-0 h-full transition-all ${percentPaid >= 100 ? 'bg-green-500' : 'bg-pink-500'}`} style={{ width: `${Math.min(100, Math.max(0, percentPaid))}%`}}></div>
                                                                     <span className="relative z-10 text-[10px] font-bold text-white drop-shadow-md">
-                                                                        {percentPaid >= 100 ? '100% PAGO' : percentPaid > 0 ? `${percentPaid.toFixed(0)}% PAGO` : ''}
+                                                                        {percentPaid >= 100 ? `100% PAGO${paymentMethodText}` : percentPaid > 0 ? `${percentPaid.toFixed(0)}% PAGO${paymentMethodText}` : (paymentMethodText ? `0% PAGO${paymentMethodText}` : '')}
                                                                     </span>
                                                                 </div>
                                                             </td>
