@@ -71,7 +71,11 @@ export interface ReferenceDoor {
   position: 'ground' | 'upper'; // NOVO: Define se é no térreo ou laje
 }
 
+export type QuoteType = 'stair' | 'landing' | 'guardrail';
+
 export interface CalculatorInput {
+  quoteType?: QuoteType;
+  standaloneGuardrails?: any[];
   totalHeight: number; // in cm
   desiredSteps: number;
   stairWidth: number; // in cm

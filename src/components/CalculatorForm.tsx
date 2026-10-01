@@ -3,7 +3,7 @@ import { CalculatorInput, OptionalItem, LandingInfo, ReferenceDoor } from '../ty
 import { GuardrailEditor } from './GuardrailEditor';
 import { GuardrailPreview } from './GuardrailPreview';
 
-interface CalculatorFormProps {
+interface CalculatorFormProps { mode?: 'stair' | 'landing';
   onCalculate: (data: CalculatorInput) => void;
 }
 
@@ -100,7 +100,7 @@ export const InputField: React.FC<{
   </div>
 );
 
-const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
+const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'stair' }) => {
   // --- Estados Básicos ---
   const [isAdendo, setIsAdendo] = useState(false);
   const [totalHeight, setTotalHeight] = useState<string>('300');
@@ -130,6 +130,14 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
   const [newItemName, setNewItemName] = useState('');
   const [newItemPrice, setNewItemPrice] = useState('');
   const [error, setError] = useState<string>('');
+
+  useEffect(() => {
+    if (mode === 'landing') {
+      setIsAdendo(true);
+      setTotalHeight('0');
+      setDesiredSteps('0');
+    }
+  }, [mode]);
 
   // Estados de Visualização Avançada
   const [stairDirection, setStairDirection] = useState<'standard' | 'mirrored'>('standard');
@@ -257,7 +265,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
     };
 
     const formData: CalculatorInput = {
-      isAdendo: isAdendo,
+      quoteType: mode === 'landing' ? 'landing' : 'stair', isAdendo: isAdendo,
       totalHeight: heightInCm || 0,
       desiredSteps: parseInt(desiredSteps, 10) || 0,
       stairWidth: widthInCm,
@@ -345,6 +353,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
       <form onSubmit={handleSubmit} className="space-y-6">
         
         {/* ALTURA E DEGRAUS */}
+        {mode !== 'landing' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <div className="flex items-center mb-1">
@@ -382,6 +391,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                 tooltip="Quantidade total de espelhos (subidas). Inclui a soma de degraus comuns + patamares."
             />
         </div>
+        )}
         
         {/* AMBIENTE (LAJE/VÃO) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 dark:bg-gray-700/50 p-3 rounded border border-gray-100 dark:border-gray-700">
@@ -1318,3 +1328,8 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
 };
 
 export default CalculatorForm;
+
+
+
+
+

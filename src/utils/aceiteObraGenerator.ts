@@ -55,7 +55,9 @@ export const generateAceiteObraPDF = (data: ContractData) => {
   addText('CLÁUSULA PRIMEIRA – DO OBJETO', 9, true, 'left');
   
   let descricaoEscada = '';
-  if (data.inputData?.isAdendo) {
+  if (data.inputData?.quoteType === 'guardrail') {
+      descricaoEscada = 'guarda-corpos e/ou port�es met�licos avulsos';
+  } else if (data.inputData?.isAdendo) {
       descricaoEscada = `estrutura complementar (adendo de projeto)`;
   } else if (data.selectedOption) {
       descricaoEscada = `escada com largura de ${data.selectedOption.stairWidth}cm, comprimento projetado de ${Math.round(data.selectedOption.totalLength)}cm e ${data.selectedOption.steps} degraus`;

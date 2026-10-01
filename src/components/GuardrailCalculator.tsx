@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { GuardrailEditor } from '../components/GuardrailEditor';
 import { getAutoGuardrailLengths } from '../components/CalculatorForm';
+import { CalculatorInput } from '../types';
 
 // Global InputField for GuardrailEditor
 const InputField = ({ label, value, onChange, type = "text", placeholder, icon, addon }: any) => (
@@ -20,9 +21,12 @@ const InputField = ({ label, value, onChange, type = "text", placeholder, icon, 
     </div>
 );
 
-export default function GuardrailCalculatorPage() {
+interface GuardrailCalculatorProps {
+    onCalculate: (data: CalculatorInput) => void;
+}
+
+export default function GuardrailCalculator({ onCalculate }: GuardrailCalculatorProps) {
     const [guardrails, setGuardrails] = useState<any[]>([]);
-    const [clientName, setClientName] = useState('');
 
     const handleAddGuardrail = () => {
         setGuardrails([...guardrails, { 
@@ -68,17 +72,23 @@ export default function GuardrailCalculatorPage() {
         setGuardrails(guardrails.filter(g => g.id !== id));
     };
 
-    const handlePrintGuardrails = () => {
+    const handleCalculate = () => {
         if (guardrails.length === 0) {
-            alert('Adicione pelo menos um guarda-corpo ou portão para imprimir.');
+            alert('Adicione pelo menos um guarda-corpo ou port�o para or�ar.');
             return;
         }
-        if (!clientName.trim()) {
-            alert('Por favor, informe o nome do projeto ou do cliente.');
-            return;
-        }
-        import('../utils/productionPdfGenerator').then(({ generateGuardrailsOnlyPDF }) => {
-            generateGuardrailsOnlyPDF(guardrails, clientName);
+        
+        onCalculate({
+            quoteType: 'guardrail',
+            totalHeight: 0,
+            desiredSteps: 0,
+            stairWidth: 0,
+            treadDepth: 0,
+            dampers: 0,
+            isAdendo: true,
+            optionalItems: [],
+            landings: [],
+            standaloneGuardrails: guardrails
         });
     };
 
@@ -89,38 +99,31 @@ export default function GuardrailCalculatorPage() {
                 <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
                         <h2 className="text-2xl font-black text-gray-800 dark:text-white flex items-center gap-2">
-                            🚧 Calculadora de Guarda-Corpo & Portão
+                            ?? Somente Guarda-Corpo & Port�o
                         </h2>
                         <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
-                            Adicione guarda-corpos e portõezinhos avulsos para orçar e ver o esquema de montagem.
+                            Adicione guarda-corpos e port�ezinhos avulsos para or�ar.
                         </p>
                     </div>
                     <div className="flex flex-col md:flex-row gap-2">
-                        <input 
-                            type="text" 
-                            placeholder="Nome do Cliente/Projeto" 
-                            value={clientName}
-                            onChange={e => setClientName(e.target.value)}
-                            className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm font-bold text-gray-900 dark:text-gray-100 outline-none focus:border-highlight focus:ring-1 focus:ring-highlight"
-                        />
-                        <button onClick={handlePrintGuardrails} className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-bold shadow transition-colors text-sm flex items-center justify-center gap-2">
-                            🖨️ Imprimir
-                        </button>
                         <button onClick={handleAddGuardrail} className="bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded-lg font-bold shadow transition-colors text-sm">
                             + Guarda-Corpo
                         </button>
                         <button onClick={handleAddGate} className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-bold shadow transition-colors text-sm">
-                            + Portão
+                            + Port�o
+                        </button>
+                        <button onClick={handleCalculate} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-bold shadow transition-colors text-sm flex items-center justify-center gap-2">
+                            Salvar / Gerar Or�amento
                         </button>
                     </div>
                 </div>
 
                 {guardrails.length === 0 ? (
                     <div className="bg-white dark:bg-gray-800 rounded-xl p-8 border border-gray-200 dark:border-gray-700 text-center shadow-sm">
-                        <span className="text-4xl mb-4 block">🚧</span>
+                        <span className="text-4xl mb-4 block">??</span>
                         <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-2">Nenhum item adicionado</h3>
                         <p className="text-gray-500 dark:text-gray-400 text-sm max-w-md mx-auto mb-6">
-                            Clique nos botões acima para simular um guarda-corpo ou portão de forma rápida.
+                            Clique nos bot�es acima para simular um guarda-corpo ou port�o de forma r�pida.
                         </p>
                     </div>
                 ) : (
@@ -132,11 +135,11 @@ export default function GuardrailCalculatorPage() {
                                     className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs shadow z-10"
                                     title="Remover"
                                 >
-                                    ✕
+                                    ?
                                 </button>
                                 
                                 <h3 className="text-sm font-black uppercase text-gray-400 border-b border-gray-100 dark:border-gray-700 pb-2 mb-4">
-                                    {g.hasGate ? 'Portãozinho' : 'Guarda-Corpo'} #{idx + 1}
+                                    {g.hasGate ? 'Port�ozinho' : 'Guarda-Corpo'} #{idx + 1}
                                 </h3>
 
                                 <div className="mt-2">
@@ -155,3 +158,4 @@ export default function GuardrailCalculatorPage() {
         </div>
     );
 }
+

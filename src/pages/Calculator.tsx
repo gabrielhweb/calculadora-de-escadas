@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import CalculatorForm from '../components/CalculatorForm';
+import GuardrailCalculator from '../components/GuardrailCalculator';
+import { WeightCalculator } from '../components/WeightCalculator';
 import ProposalOptions from '../components/ProposalOptions';
 import { ProposalDocument } from '../components/ProposalDocument';
 import { CalculatorInput, ProposalOption, UserData, SavedQuote } from '../types';
@@ -19,6 +21,7 @@ function Calculator() {
   const [deliveryDays, setDeliveryDays] = useState(30);
   const [freightMode, setFreightMode] = useState<'auto' | 'manual' | 'fixed' | 'transportadora'>('auto');
   const [isSaving, setIsSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState<'stair' | 'landing' | 'guardrail' | 'weight'>('stair');
 
   const location = useLocation();
 
@@ -209,13 +212,36 @@ function Calculator() {
 
   return (
     <div className="p-4 sm:p-8 max-w-7xl mx-auto">
-      <header className="text-center mb-8 flex justify-center relative">
-        <h1 className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Calculadora Oficial</h1>
+      <header className="text-center mb-8 flex flex-col items-center relative">
+        <h1 className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white uppercase tracking-tight mb-6">Central de Calculadoras</h1>
+        
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-4xl">
+            <button onClick={() => {setActiveTab('stair'); setInputData(null); setOptions([]);}} className={`p-4 rounded-xl border-2 font-bold transition-all flex flex-col items-center justify-center gap-2 ${activeTab === 'stair' ? 'border-highlight bg-highlight/10 text-highlight' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:border-gray-300'}`}>
+                <span className="text-2xl">??</span>
+                Escada Completa
+            </button>
+            <button onClick={() => {setActiveTab('landing'); setInputData(null); setOptions([]);}} className={`p-4 rounded-xl border-2 font-bold transition-all flex flex-col items-center justify-center gap-2 ${activeTab === 'landing' ? 'border-highlight bg-highlight/10 text-highlight' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:border-gray-300'}`}>
+                <span className="text-2xl">??</span>
+                Somente Patamar
+            </button>
+            <button onClick={() => {setActiveTab('guardrail'); setInputData(null); setOptions([]);}} className={`p-4 rounded-xl border-2 font-bold transition-all flex flex-col items-center justify-center gap-2 ${activeTab === 'guardrail' ? 'border-highlight bg-highlight/10 text-highlight' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:border-gray-300'}`}>
+                <span className="text-2xl">??</span>
+                Guarda-corpo/Port�o
+            </button>
+            <button onClick={() => {setActiveTab('weight'); setInputData(null); setOptions([]);}} className={`p-4 rounded-xl border-2 font-bold transition-all flex flex-col items-center justify-center gap-2 ${activeTab === 'weight' ? 'border-highlight bg-highlight/10 text-highlight' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:border-gray-300'}`}>
+                <span className="text-2xl">??</span>
+                C�lculo de Peso
+            </button>
+        </div>
       </header>
       <main className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <aside>
-          <CalculatorForm onCalculate={handleCalculate} />
+        <aside className={activeTab === 'weight' ? 'col-span-full' : ''}>
+          {activeTab === 'stair' && <CalculatorForm mode="stair" onCalculate={handleCalculate} />}
+          {activeTab === 'landing' && <CalculatorForm mode="landing" onCalculate={handleCalculate} />}
+          {activeTab === 'guardrail' && <GuardrailCalculator onCalculate={handleCalculate} />}
+          {activeTab === 'weight' && <WeightCalculator totalSteps={15} stepHeightCm={20} treadDepthCm={25} widthCm={70} totalLengthCm={300} totalHeightCm={300} cutStepType={'left'} landings={[]} onClose={() => {}} />}
         </aside>
+        {activeTab !== 'weight' && (
         <section className="flex flex-col relative">
           
           {/* BOTÃO FLUTUANTE DE SALVAR */}
@@ -261,6 +287,7 @@ function Calculator() {
             </div>
           )}
         </section>
+        )}
       </main>
     </div>
   );
