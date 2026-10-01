@@ -23,7 +23,7 @@ export const DeliveriesTable: React.FC = () => {
         const q = query(collection(db, 'contracts'), where('status', '==', 'producao'));
         const q2 = query(collection(db, 'production_queue'));
         const unsub2 = onSnapshot(q2, (snap) => {
-            const arr = [];
+            const arr: any[] = [];
             snap.forEach(d => arr.push({ id: d.id, ...d.data() }));
             setQueueItems(arr);
         });
