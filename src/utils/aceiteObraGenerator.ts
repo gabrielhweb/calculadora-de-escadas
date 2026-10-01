@@ -55,7 +55,9 @@ export const generateAceiteObraPDF = (data: ContractData) => {
   addText('CLÁUSULA PRIMEIRA – DO OBJETO', 9, true, 'left');
   
   let descricaoEscada = '';
-  if (data.selectedOption) {
+  if (data.inputData?.isAdendo) {
+      descricaoEscada = `estrutura complementar (adendo de projeto)`;
+  } else if (data.selectedOption) {
       descricaoEscada = `escada com largura de ${data.selectedOption.stairWidth}cm, comprimento projetado de ${Math.round(data.selectedOption.totalLength)}cm e ${data.selectedOption.steps} degraus`;
   } else {
       descricaoEscada = `escada conforme especificações do contrato`;

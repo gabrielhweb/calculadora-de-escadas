@@ -184,7 +184,7 @@ export const generateContractPDF = (data: ContractData) => {
 
   let objText = '';
   let stepsText = '';
-  if (data.inputData.isAdendo && computedStructureSteps === 0) {
+  if (data.inputData.isAdendo) {
       objText = `Estrutura metálica complementar (Adendo de Projeto) fabricada em aço carbono com corte à laser, conforme itens descritos abaixo.`;
       stepsText = ``;
   } else if (data.inputData.isFixedStair) {
@@ -239,7 +239,9 @@ export const generateContractPDF = (data: ContractData) => {
   // --- PRECIFICAÇÃO SEPARADA (ESCADA vs PATAMARES) ---
   // USAMOS OS VALORES EXPLICITOS PASSADOS PELA TELA AGORA
   
-  addText(`-Valor Escada (${computedStructureSteps} degraus): ${formatCurrencyBRL(data.finalStairPrice)}`, 11, false, 'left');
+  if (!data.inputData.isAdendo) {
+      addText(`-Valor Escada (${computedStructureSteps} degraus): ${formatCurrencyBRL(data.finalStairPrice)}`, 11, false, 'left');
+  }
 
   if (data.finalLandingsPrice > 0) {
       addText(`-Valor Patamares (Total): ${formatCurrencyBRL(data.finalLandingsPrice)}`, 11, false, 'left');
