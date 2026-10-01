@@ -3,7 +3,7 @@ import { LandingInfo } from "../types";
 import { getAutoGuardrailLengths } from "./CalculatorForm";
 import { GuardrailPreview } from "./GuardrailPreview";
 
-export const GuardrailEditor = ({ landing, updateLanding, InputField, isGate = false }: any) => {
+export const GuardrailEditor = ({ landing, updateLanding, InputField, isGate = false, stairWidth = 0 }: any) => {
     const gFormat = landing.guardrailFormat || "normal";
     const gHeight = landing.guardrailHeight !== undefined ? landing.guardrailHeight : 90;
     const gPricePerMeter = landing.guardrailPricePerMeter !== undefined ? landing.guardrailPricePerMeter : 50;
