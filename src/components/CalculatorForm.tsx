@@ -275,7 +275,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
       referenceDoor: referenceDoorData
     };
 
-    if (formData.totalHeight <= 0 || formData.desiredSteps <= 0) {
+    if (!formData.isAdendo && (formData.totalHeight <= 0 || formData.desiredSteps <= 0)) {
       return null;
     }
     return formData;
@@ -303,7 +303,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
     e.preventDefault();
     const formData = getFormData();
     if (!formData) {
-      setError('Altura e Número de Degraus são obrigatórios.');
+      setError(isAdendo ? 'Para adendos, adicione ao menos um patamar ou item opcional.' : 'Altura e Número de Degraus são obrigatórios para escadas normais.');
       return;
     }
     setError('');

@@ -184,7 +184,10 @@ export const generateContractPDF = (data: ContractData) => {
 
   let objText = '';
   let stepsText = '';
-  if (data.inputData.isFixedStair) {
+  if (data.inputData.isAdendo && computedStructureSteps === 0) {
+      objText = `Estrutura metálica complementar (Adendo de Projeto) fabricada em aço carbono com corte à laser, conforme itens descritos abaixo.`;
+      stepsText = ``;
+  } else if (data.inputData.isFixedStair) {
       objText = `Escada fixa em aço carbono com corte à laser, com medidas de: ${alturaM}m de altura, ${compM}m de comprimento, ${widthM}m de largura e com corrimão de 80cm.`;
       stepsText = `- Com ${computedStructureSteps} degraus fixos com dimensões de ${stepH}cm de altura e pisante de ${treadMaterialStr} de ${tread}cm.`;
   } else {
@@ -193,7 +196,7 @@ export const generateContractPDF = (data: ContractData) => {
   }
   
   addText(objText, 11, false, 'left');
-  addText(stepsText, 11, false, 'left');
+  if (stepsText) addText(stepsText, 11, false, 'left');
 
   // Adiciona a nota de exclusão se houver porta configurada nos desenhos
   if (data.inputData.referenceDoor && data.inputData.referenceDoor.isActive) {
