@@ -169,6 +169,19 @@ export const GuardrailEditor = ({ landing, updateLanding, InputField, isGate = f
                     </select>
                 </div>
             </div>
+
+            {/* Aviso quando o guarda-corpo está na frente (conexão com a escada) */}
+            {(() => {
+                const sLower = (landing.guardrailSide || '').toLowerCase();
+                const hasFrente = sLower.includes('frente') || gFormat === 'frente';
+                if (!hasFrente || stairWidth <= 0) return null;
+                const frontW = Math.max(0, (landing.width || 0) - (stairWidth + 10));
+                return (
+                    <div className="mb-2 p-2 bg-orange-50 dark:bg-orange-900/30 border border-orange-200 dark:border-orange-700 rounded text-xs text-orange-800 dark:text-orange-300">
+                        <span className="font-bold">⚠️ Frente detectada:</span> Comp. da frente = Patamar ({landing.width || 0}cm) − Escada ({stairWidth}cm) − 10 = <strong>{frontW}cm</strong>
+                    </div>
+                );
+            })()}
             
             <div className="flex flex-wrap gap-2">
                 <div className="flex-1 min-w-[110px]">

@@ -650,7 +650,17 @@ export const ContractsList: React.FC = () => {
                                     </div>
                                 </div>
                                 
-                                <div className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+                                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                        {contract.paymentStatus === 'recebido' ? (
+                                            <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 border border-green-200 dark:border-green-700">💰 Recebido</span>
+                                        ) : (
+                                            <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300 border border-red-200 dark:border-red-700">⏳ A Receber</span>
+                                        )}
+                                        {contract.deliveryStatus === 'a_entregar' && (
+                                            <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300 border border-orange-200 dark:border-orange-700">🚚 A Entregar</span>
+                                        )}
+                                    </div>
+                                    <div className="text-sm text-gray-500 dark:text-gray-400 mb-3">
                                     <p>Criado em: {(() => {
                                         try {
                                             if (!contract.createdAt) return 'Data não disponível';

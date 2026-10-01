@@ -62,7 +62,7 @@ export const InputField: React.FC<{
         
         {tooltip && <TooltipIcon text={tooltip} />}
     </div>
-    <div className="flex items-center shadow-sm">
+    <div className="flex items-center shadow-sm overflow-hidden">
       <input
         type={type}
         value={value}
@@ -1039,7 +1039,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                                         <span className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase">Possui Guarda Corpo?</span>
                                     </label>
                                     
-                                    {landing.hasGuardrail && <GuardrailEditor landing={landing} updateLanding={updateLanding} InputField={InputField} />}
+                                    {landing.hasGuardrail && <GuardrailEditor landing={landing} updateLanding={updateLanding} InputField={InputField} stairWidth={convertToCm(stairWidth, widthUnit)} />}
                                 </div>
                                 {/* FIM GUARDA CORPO */}
                                 {/* INICIO PORTAO */}
