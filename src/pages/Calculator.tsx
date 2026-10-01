@@ -239,7 +239,7 @@ function Calculator() {
           {activeTab === 'stair' && <CalculatorForm mode="stair" onCalculate={handleCalculate} />}
           {activeTab === 'landing' && <CalculatorForm mode="landing" onCalculate={handleCalculate} />}
           {activeTab === 'guardrail' && <GuardrailCalculator onCalculate={handleCalculate} />}
-          {activeTab === 'weight' && <WeightCalculator totalSteps={15} stepHeightCm={20} treadDepthCm={25} widthCm={70} totalLengthCm={300} totalHeightCm={300} cutStepType={'left'} landings={[]} onClose={() => {}} />}
+          {activeTab === 'weight' && <WeightCalculator totalSteps={15} stepHeightCm={20} treadDepthCm={25} widthCm={70} totalLengthCm={300} totalHeightCm={300} cutStepType={'left'} landings={[]} onClose={() => setActiveTab('stair')} />}
         </aside>
         {activeTab !== 'weight' && (
         <section className="flex flex-col relative">

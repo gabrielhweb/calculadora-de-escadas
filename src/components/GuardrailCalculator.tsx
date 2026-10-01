@@ -120,7 +120,7 @@ export default function GuardrailCalculator({ onCalculate }: GuardrailCalculator
 
                 {guardrails.length === 0 ? (
                     <div className="bg-white dark:bg-gray-800 rounded-xl p-8 border border-gray-200 dark:border-gray-700 text-center shadow-sm">
-                        <span className="text-4xl mb-4 block">??</span>
+                        <span className="text-4xl mb-4 block">🚧</span>
                         <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-2">Nenhum item adicionado</h3>
                         <p className="text-gray-500 dark:text-gray-400 text-sm max-w-md mx-auto mb-6">
                             Clique nos bot�es acima para simular um guarda-corpo ou port�o de forma r�pida.

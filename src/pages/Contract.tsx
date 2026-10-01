@@ -295,6 +295,7 @@ const Contract = () => {
 
     // Estados para Voz
     const [isListening, setIsListening] = useState(false);
+    const [contractFormatOverride, setContractFormatOverride] = useState<'auto' | 'stair' | 'landing' | 'guardrail'>('auto');
     const recognitionRef = useRef<any>(null);
 
     // Efeito para recalcular o total de Extras sempre que a lista mudar
@@ -761,6 +762,10 @@ const Contract = () => {
         const fullAddress = `${street}, ${number} - ${neighborhood}, ${city} - ${state}, ${zip}`;
         const finalHybridSignal = parseFloat(hybridSignalValue) || (discountedBase * (signalPercent/100));
 
+        const finalQuoteType = contractFormatOverride !== 'auto' ? contractFormatOverride : (inputData.quoteType || 'stair');
+        const finalInputData = { ...inputData, quoteType: finalQuoteType };
+        if (finalQuoteType === 'landing' || finalQuoteType === 'guardrail') { finalInputData.isAdendo = true; } else { finalInputData.isAdendo = false; }
+
         // CALCULAR O PESO DA ESCADA
         let estimatedWeightKg = 0;
         try {
@@ -977,6 +982,10 @@ const Contract = () => {
         // Calcula o valor exato da entrada híbrida para passar para o gerador
         const finalHybridSignal = parseFloat(hybridSignalValue) || (discountedBase * (signalPercent/100));
 
+        const finalQuoteType = contractFormatOverride !== 'auto' ? contractFormatOverride : (inputData.quoteType || 'stair');
+        const finalInputData = { ...inputData, quoteType: finalQuoteType };
+        if (finalQuoteType === 'landing' || finalQuoteType === 'guardrail') { finalInputData.isAdendo = true; } else { finalInputData.isAdendo = false; }
+
         generateContractPDF({
             userData: { 
                 name: clientName, cpf: clientDoc, rg: clientRG, email: clientEmail, address: fullAddress, 
@@ -1149,6 +1158,10 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
         const fullAddress = `${street}, ${number} - ${neighborhood}, ${city} - ${state}, ${zip}`;
 
         const finalHybridSignal = parseFloat(hybridSignalValue) || (discountedBase * (signalPercent/100));
+
+        const finalQuoteType = contractFormatOverride !== 'auto' ? contractFormatOverride : (inputData.quoteType || 'stair');
+        const finalInputData = { ...inputData, quoteType: finalQuoteType };
+        if (finalQuoteType === 'landing' || finalQuoteType === 'guardrail') { finalInputData.isAdendo = true; } else { finalInputData.isAdendo = false; }
 
         generateAceiteObraPDF({
             userData: { 
@@ -2274,8 +2287,30 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                     <span>📋</span> Cotação de Frete
                                 </button>
                             </div>
-                            <div className="flex gap-4">
-                                <button onClick={handleGeneratePDF} className="flex-1 bg-highlight text-white font-black py-4 rounded-lg shadow-lg hover:bg-yellow-600 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2">
+                            <div className="mb-6 bg-white dark:bg-gray-800 p-4 rounded-lg shadow border border-gray-200 dark:border-gray-700">
+                                  <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300 uppercase mb-3">Formato do Contrato (Texto)</h3>
+                                  <div className="flex flex-col sm:flex-row gap-4">
+                                      <label className="flex items-center gap-2 cursor-pointer">
+                                          <input type="radio" name="formatOverride" checked={contractFormatOverride === 'auto'} onChange={() => setContractFormatOverride('auto')} className="text-highlight focus:ring-highlight" />
+                                          <span className="text-sm text-gray-800 dark:text-gray-200">Automático</span>
+                                      </label>
+                                      <label className="flex items-center gap-2 cursor-pointer">
+                                          <input type="radio" name="formatOverride" checked={contractFormatOverride === 'stair'} onChange={() => setContractFormatOverride('stair')} className="text-highlight focus:ring-highlight" />
+                                          <span className="text-sm text-gray-800 dark:text-gray-200">Escada Completa</span>
+                                      </label>
+                                      <label className="flex items-center gap-2 cursor-pointer">
+                                          <input type="radio" name="formatOverride" checked={contractFormatOverride === 'landing'} onChange={() => setContractFormatOverride('landing')} className="text-highlight focus:ring-highlight" />
+                                          <span className="text-sm text-gray-800 dark:text-gray-200">Somente Patamar(es)</span>
+                                      </label>
+                                      <label className="flex items-center gap-2 cursor-pointer">
+                                          <input type="radio" name="formatOverride" checked={contractFormatOverride === 'guardrail'} onChange={() => setContractFormatOverride('guardrail')} className="text-highlight focus:ring-highlight" />
+                                          <span className="text-sm text-gray-800 dark:text-gray-200">Guarda-Corpo/Portão</span>
+                                      </label>
+                                  </div>
+                                  <p className="text-xs text-gray-500 mt-2">Escolha se deseja forçar o PDF a omitir a escada principal no texto do objeto contratual.</p>
+                              </div>
+                              <div className="flex gap-4">
+                                  <button onClick={handleGeneratePDF} className="flex-1 bg-highlight text-white font-black py-4 rounded-lg shadow-lg hover:bg-yellow-600 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2">
                                      <span>📄</span> Gerar Contrato PDF
                                 </button>
                                 <button onClick={handleGenerateAceiteObra} className="flex-1 bg-blue-600 text-white font-black py-4 rounded-lg shadow-lg hover:bg-blue-700 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2">
