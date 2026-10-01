@@ -157,14 +157,24 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
   // Handlers para Itens Extras e Patamares
   const handleAddItem = () => {
     if (newItemName && newItemPrice) {
-      setOptionalItems([...optionalItems, { id: Date.now().toString(), name: newItemName, price: parseFloat(newItemPrice) || 0 }]);
+      const newItems = [...optionalItems, { id: Date.now().toString(), name: newItemName, price: parseFloat(newItemPrice) || 0 }];
+      setOptionalItems(newItems);
       setNewItemName('');
       setNewItemPrice('');
+      setTimeout(() => {
+          const fd = getFormData();
+          if (fd) { fd.optionalItems = newItems; onCalculate(fd); }
+      }, 0);
     }
   };
 
   const handleRemoveItem = (id: string) => {
-    setOptionalItems(optionalItems.filter(item => item.id !== id));
+    const newItems = optionalItems.filter(item => item.id !== id);
+    setOptionalItems(newItems);
+    setTimeout(() => {
+        const fd = getFormData();
+        if (fd) { fd.optionalItems = newItems; onCalculate(fd); }
+    }, 0);
   };
 
   // ADICIONAR PATAMAR GENÉRICO
