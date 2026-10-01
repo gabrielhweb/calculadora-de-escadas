@@ -45,7 +45,8 @@ export interface LandingInfo {
   gateHeight?: number;
   gatePricePerMeter?: number;
   gateBarsOverride?: number;
-  isAngled?: boolean; // Patamar em Ângulo
+  isAngled?: boolean;
+  isAccessoriesOnly?: boolean; // NOVO: Não cobrar a chapa do patamar, cobrar apenas os acessórios (Guarda-Corpo/Portão)
   chapaPrice?: number; // Preço isolado da chapa do patamar
   guardrailSide?: string; // NOVO: Orientação geográfica do guarda-corpo
   gateSide?: string; // NOVO: Orientação geográfica do portãozinho
@@ -83,6 +84,7 @@ export interface CalculatorInput {
   handrailSide?: 'left' | 'right' | 'both'; // Lado do corrimão (apenas se hasWheels=true)
   customStepPrice?: number; // Optional manual price per step
   customTotalLength?: number; // Optional manual total length
+  isAdendo?: boolean; // NOVO: Define se é um orçamento/contrato avulso (adendo)
   customTotalLengthOption?: 'all' | '1' | '2' | '3' | '1_2' | '1_3' | '2_3'; // Which option to apply the length limiter to
   optionalItems: OptionalItem[]; // Lista de itens extras
   landings: LandingInfo[]; // Agora é uma lista de patamares
@@ -119,6 +121,7 @@ export interface ProposalOption {
 }
 
 export interface UserData {
+    email?: string;
   name: string;
   cpf: string; // Pode ser CPF ou CNPJ dependendo do contexto
   rg?: string;

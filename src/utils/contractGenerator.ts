@@ -218,7 +218,14 @@ export const generateContractPDF = (data: ContractData) => {
           if (landing.frenchBrackets === 1) bracketText = ' (1 mão francesa)';
           else if (landing.frenchBrackets === 2) bracketText = ' (2 mãos francesas)';
           
-          addText(`-Patamar ${idx+1} (${typeText} - ${dirText})${bracketText}: Medidas ${lM}m x ${wM}m`, 11, false, 'left');
+          let flushText = landing.isFlushWithSlab ? "Rente a Laje" : "1 abaixo da Laje";
+          
+          let guardText = "";
+          if (landing.hasSideGuardrail && landing.hasFrontGuardrail) guardText = " + Guarda Corpo Lat/Front";
+          else if (landing.hasSideGuardrail) guardText = " + Guarda Corpo Lateral";
+          else if (landing.hasFrontGuardrail) guardText = " + Guarda Corpo Frontal";
+          
+          addText(`-Patamar ${idx+1} (${typeText} - ${dirText})${bracketText}: ${flushText} de ${lM}m (C) x ${wM}m (L)${guardText}`, 11, false, 'left');
       });
       const totalMaoFrancesa = data.selectedOption.landings.reduce((sum, l) => sum + (l.frenchBrackets || 0), 0);
       if (totalMaoFrancesa > 0) {
@@ -355,7 +362,7 @@ export const generateContractPDF = (data: ContractData) => {
       ? `menos ${discountP.toFixed(2).replace('.00', '')}% de desconto`
       : `menos desconto de ${formatCurrencyBRL(discountVal)}`;
 
-  if (isTransportadora && (data.paymentMethod === 'hybrid' || data.paymentMethod === 'pix')) {
+  if (false) {
       if (discountVal > 0) {
           addText(`Total: ${formatCurrencyBRL(totalGeral)} ${discountText} = ${formatCurrencyBRL(totalComDesconto)}`, 11, false, 'left');
       } else {
@@ -446,19 +453,27 @@ export const generateContractPDF = (data: ContractData) => {
               const printInterestText = totalNoCartao > restanteBase + 1 && !data.userData?.hideInterestLabel;
               const finalAmount = (totalNoCartao > restanteBase + 1) ? totalNoCartao : restanteBase;
               
-              if (printInterestText) {
-                  addText(`Sendo pago ${formatCurrencyBRL(restanteBase)} mais juros totalizando ${formatCurrencyBRL(totalNoCartao)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}.`, 11, false, 'justify');
-              } else {
-                  addText(`Sendo pago ${formatCurrencyBRL(finalAmount)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}.`, 11, false, 'justify');
-              }
+              if (remainderMethodName.toLowerCase().includes('maquininha')) {
+                    const extraStr = data.installationCost > 0 ? ' da entrega e instalação' : ' da entrega';
+                    addText(`Sendo pago ${formatCurrencyBRL(restanteBase)}, a ser pago no dia${extraStr}, por meio de maquininha de cartão, sendo que eventuais acréscimos de juros serão calculados de acordo com a quantidade de parcelas escolhida pela CONTRATANTE no momento do pagamento.`, 11, false, 'justify');
+                } else {
+                    if (printInterestText) {
+                        addText(`Sendo pago ${formatCurrencyBRL(restanteBase)} mais juros totalizando ${formatCurrencyBRL(totalNoCartao)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}.`, 11, false, 'justify');
+                    } else {
+                        addText(`Sendo pago ${formatCurrencyBRL(finalAmount)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}.`, 11, false, 'justify');
+                    }
+                }
               addText(`E o restante de ${formatCurrencyBRL(valorPixFinal)} ${timingText}.`, 11, false, 'left');
           } else {
               addText(`Sendo pago ${formatCurrencyBRL(valorPixFinal)} ${timingText}.`, 11, false, 'left');
               const printInterestText = totalNoCartao > restanteBase + 1 && !data.userData?.hideInterestLabel;
               const finalAmount = (totalNoCartao > restanteBase + 1) ? totalNoCartao : restanteBase;
               
-              if (printInterestText) {
-                  addText(`E o restante de ${formatCurrencyBRL(restanteBase)} mais juros totalizando ${formatCurrencyBRL(totalNoCartao)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}`, 11, false, 'justify');
+              if (remainderMethodName.toLowerCase().includes('maquininha')) {
+                    const extraStr = data.installationCost > 0 ? ' da entrega e instalação' : ' da entrega';
+                    addText(`E o restante de ${formatCurrencyBRL(restanteBase)}, a ser pago no dia${extraStr}, por meio de maquininha de cartão, sendo que eventuais acréscimos de juros serão calculados de acordo com a quantidade de parcelas escolhida pela CONTRATANTE no momento do pagamento.`, 11, false, 'justify');
+                } else if (printInterestText) {
+                    addText(`E o restante de ${formatCurrencyBRL(restanteBase)} mais juros totalizando ${formatCurrencyBRL(totalNoCartao)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}`, 11, false, 'justify');
               } else {
                   addText(`E o restante de ${formatCurrencyBRL(finalAmount)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}`, 11, false, 'justify');
               }
@@ -490,13 +505,8 @@ export const generateContractPDF = (data: ContractData) => {
       addText('.', 11, false, 'left');
       currentY += 5;
 
-      const isPix5050 = data.paymentMethod === 'pix' && (data.paymentDetails.signalPercent === 50 || !data.paymentDetails.signalPercent);
-      if (isPix5050) {
-          addText('6.2 O pagamento da parcela final deverá ser realizado no dia da entrega. Caso não seja efetuado nessa data, será aplicada multa de 4% sobre o valor em aberto, além de juros de 1% ao mês, calculados até a efetiva regularização do pagamento.', 11, false, 'justify');
-      } else {
-          addText('6.2 Caso o pagamento da parcela final não seja realizado em até 2 (dois) dias corridos após a entrega, será aplicada multa de 4% sobre o valor em aberto, além de juros de 1% ao mês até a regularização.', 11, false, 'justify');
-      }
-  }
+      addText('6.2 O não pagamento da parcela final na data da entrega configurará mora imediata, sujeitando o devedor à incidência de multa de 4% sobre o montante em aberto a partir do primeiro dia útil subsequente, acrescido de juros moratórios de 1% ao mês até a liquidação do débito.', 11, false, 'justify');
+    }
   
   currentY += 10;
 

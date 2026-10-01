@@ -102,6 +102,7 @@ export const InputField: React.FC<{
 
 const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
   // --- Estados Básicos ---
+  const [isAdendo, setIsAdendo] = useState(false);
   const [totalHeight, setTotalHeight] = useState<string>('300');
   const [heightUnit, setHeightUnit] = useState<'cm' | 'm'>('cm');
   const [desiredSteps, setDesiredSteps] = useState<string>('12');
@@ -246,6 +247,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
     };
 
     const formData: CalculatorInput = {
+      isAdendo: isAdendo,
       totalHeight: heightInCm || 0,
       desiredSteps: parseInt(desiredSteps, 10) || 0,
       stairWidth: widthInCm,
@@ -310,7 +312,22 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
 
   
   return (
-    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 sticky top-24">
+<>
+      {/* ADENDO TOGGLE NO TOPO */}
+      <div className="mb-4 bg-purple-50 dark:bg-purple-900/20 p-4 rounded-xl border border-purple-200 dark:border-purple-800 flex items-center gap-3">
+          <input 
+              type="checkbox" 
+              checked={isAdendo}
+              onChange={(e) => setIsAdendo(e.target.checked)}
+              className="w-5 h-5 text-purple-600 rounded border-purple-300 focus:ring-purple-500 cursor-pointer"
+          />
+          <div>
+              <span className="block font-bold text-purple-900 dark:text-purple-300">Orçamento de Adendo / Itens Avulsos</span>
+              <span className="text-xs text-purple-700 dark:text-purple-400">Marque se o cliente está comprando APENAS guarda-corpo ou portão separadamente. O preço da escada ficará R$0,00 e o PDF se chamará ADENDO.</span>
+          </div>
+      </div>
+      
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 sticky top-24">
       <h2 className="text-2xl font-black mb-6 text-gray-900 dark:text-white flex items-center border-b-2 border-highlight pb-4">
         <CalculatorIcon /> 
         Medidas
@@ -1175,7 +1192,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
                                             const multiplier = landing.weightPerSqm || 29;
                                             
                                             // Preço base da chapa
-                                            const baseChapaPrice = Math.round(weightKg * multiplier);
+                                            const baseChapaPrice = landing.isAccessoriesOnly ? 0 : Math.round(weightKg * multiplier);
                                             let calculatedPrice = baseChapaPrice;
                                             
                                             // Soma o preço das Mãos Francesas (se houver)
@@ -1286,6 +1303,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate }) => {
         </button>
       </form>
     </div>
+    </>
   );
 };
 

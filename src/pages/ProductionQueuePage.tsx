@@ -591,6 +591,61 @@ export default function ProductionQueue() {
                 if (newStage === 'concluido') updates.status = 'completed';
                 else updates.status = 'in_queue';
                 await updateDoc(doc(db, 'production_queue', item.id), updates);
+
+                const clientEmail = item.originalData?.clientEmail || item.originalData?.userData?.email;
+                if (clientEmail) {
+                    const firstName = item.title.split(' ')[0];
+                    let message = '';
+                    switch (newStage) {
+                        case 'contrato':
+                            message = `Olá ${firstName}, tudo bem?\n\nPassando para avisar que o seu contrato foi confirmado e a sua escada foi enviada para a etapa de produção.\n\nQualquer dúvida, estamos à disposição!\n\nAtenciosamente,\nZilinski Escadas`;
+                            break;
+                        case 'corte':
+                            message = `Olá ${firstName}, tudo bem?\n\nPassando para avisar que a sua escada já foi enviada para o corte a laser.\n\nQualquer dúvida, estamos à disposição!\n\nAtenciosamente,\nZilinski Escadas`;
+                            break;
+                        case 'soldagem':
+                            message = `Olá ${firstName}, tudo bem?\n\nPassando para avisar que o corte a laser da sua escada já foi concluído e agora ela está na etapa de soldagem.\n\nQualquer dúvida, estamos à disposição!\n\nAtenciosamente,\nZilinski Escadas`;
+                            break;
+                        case 'pronta':
+                            message = `Olá ${firstName}, tudo bem?\n\nPassando com ótimas notícias: a sua escada está pronta!\n\nEm breve, entraremos em contato para combinar os detalhes de entrega ou instalação.\n\nAtenciosamente,\nZilinski Escadas`;
+                            break;
+                        case 'concluido':
+                            message = `Olá ${firstName}, tudo bem?\n\nSeu pedido foi concluído com sucesso. Agradecemos imensamente pela confiança em nosso trabalho!\n\nEsperamos que aproveite muito a sua nova escada.\n\nAtenciosamente,\nZilinski Escadas`;
+                            break;
+                        default:
+                            message = '';
+                    }
+                    
+                    if (message) {
+                        const stageLabel = STAGES.find(s => s.id === newStage)?.label || newStage;
+                        const confirmSend = window.confirm(`Deseja enviar um e-mail de notificação para ${clientEmail} avisando sobre a nova etapa (${stageLabel})?`);
+                        if (!confirmSend) {
+                            return; // Se cancelar, não faz o disparo
+                        }
+                        
+                        try {
+                            const { auth } = await import('../firebase');
+                            const token = await auth.currentUser?.getIdToken();
+                            const res = await fetch('/api/email', {
+                                method: 'POST',
+                                headers: { 
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${token}`
+                                },
+                                body: JSON.stringify({ email: clientEmail, message })
+                            });
+                            if (res.ok) {
+                                alert(`✅ E-mail da nova etapa foi enviado com sucesso para ${clientEmail}!`);
+                            } else {
+                                const errorData = await res.json().catch(() => ({}));
+                                alert(`❌ Erro ao enviar o e-mail para ${clientEmail}. Verifique se a cota do EmailJS não acabou.\n\nDetalhe: ${errorData.error || res.statusText}`);
+                            }
+                        } catch (e) {
+                            console.error('Erro ao enviar e-mail de notificação:', e);
+                            alert(`❌ Falha de conexão ao tentar enviar o e-mail para ${clientEmail}.`);
+                        }
+                    }
+                }
             } else {
                 alert('Acesse Meus Contratos para gerar a ordem de produção deste contrato.');
             }
@@ -621,7 +676,7 @@ export default function ProductionQueue() {
         }
     };
 
-    const handleUpdateField = async (item: DashboardItem, field: 'clientName' | 'location', value: string) => {
+    const handleUpdateField = async (item: DashboardItem, field: 'clientName' | 'location' | 'clientEmail', value: string) => {
         try {
             if (item.source === 'queue') {
                 await updateDoc(doc(db, 'production_queue', item.id), { [field]: value });
@@ -812,6 +867,17 @@ export default function ProductionQueue() {
                                                                 >
                                                                     {item.title}
                                                                 </div>
+                                                                {item.source === 'queue' && (
+                                                                    <div className="mt-2 text-[10px]">
+                                                                        <input
+                                                                            type="email"
+                                                                            placeholder="E-mail (Para alertas)"
+                                                                            defaultValue={item.originalData?.clientEmail || item.originalData?.userData?.email || ''}
+                                                                            onBlur={(e) => handleUpdateField(item, 'clientEmail', e.target.value)}
+                                                                            className="w-full max-w-[200px] bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 outline-none focus:border-highlight focus:ring-1 focus:ring-highlight text-gray-700 dark:text-gray-200"
+                                                                        />
+                                                                    </div>
+                                                                )}
                                                                 {item.source === 'contract' && (
                                                                     <button 
                                                                         onClick={() => fixQueueLink(item)}

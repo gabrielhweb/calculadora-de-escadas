@@ -126,6 +126,7 @@ const Contract = () => {
     const [clientName, setClientName] = useState('');
     const [clientDoc, setClientDoc] = useState(''); // CPF ou CNPJ
     const [clientRG, setClientRG] = useState('');
+    const [clientEmail, setClientEmail] = useState('');
     const [addToQueue, setAddToQueue] = useState(true);
     
     // Endereço Estruturado
@@ -246,7 +247,7 @@ const Contract = () => {
     
     // Configurações do Contrato
     const [paymentMethod, setPaymentMethod] = useState<'pix' | 'card' | 'hybrid'>('pix');
-    const [cashMethodName, setCashMethodName] = useState<'PIX' | 'Transferência Bancária'>('PIX');
+    const [cashMethodName, setCashMethodName] = useState<string>('PIX');
     const [isCustomPix, setIsCustomPix] = useState(false);
     const [pixInstallmentsList, setPixInstallmentsList] = useState<{value: number; description: string}[]>([
         { value: 0, description: 'Sinal na assinatura' }, 
@@ -277,7 +278,7 @@ const Contract = () => {
     const [isGeneratingClause, setIsGeneratingClause] = useState(false);
     
     // --- CAMPOS CUSTOMIZÁVEIS EXTRAS ---
-    const [finishText, setFinishText] = useState('Fornecido com aplicação de fundo primer. Observação: a pintura final é de responsabilidade do cliente.');
+    const [finishText, setFinishText] = useState('O produto será fornecido com aplicação de fundo primer preto, destinado à proteção inicial da superfície metálica. A pintura final do produto será de responsabilidade do cliente.');
     const [stepCapacityText, setStepCapacityText] = useState('180 quilos');
     const [stairCapacityText, setStairCapacityText] = useState('360 quilos');
 
@@ -330,6 +331,7 @@ const Contract = () => {
                     setClientName(String(userData.name || ''));
                     setClientDoc(String(userData.cpf || ''));
                     setClientRG(String(userData.rg || ''));
+                    setClientEmail(String(userData.email || ''));
                     setZip(String(userData.zip || ''));
                     setStreet(String(userData.street || userData.address || ''));
                     setNumber(String(userData.number || ''));
@@ -437,6 +439,7 @@ const Contract = () => {
                     setClientName(String(userData.name || ''));
                     setClientDoc(String(userData.cpf || ''));
                     setClientRG(String(userData.rg || ''));
+                    setClientEmail(String(userData.email || ''));
                     
                     if (userData.zip) setZip(String(userData.zip));
                     if (userData.street) setStreet(String(userData.street));
@@ -616,7 +619,7 @@ const Contract = () => {
         ? Math.max(0, discountedBase - hybridEntryPix)
         : discountedBase;
 
-    const interestMoney = enableInterest ? (parseFloat(interestValue) || 0) : 0;
+    const interestMoney = enableInterest ? (parseFloat(interestValue.replace(',', '.')) || 0) : 0;
     const totalFinanciadoReal = baseAmountForCard + interestMoney;
     const finalInstallmentVal = totalFinanciadoReal / (installments || 1);
     const totalGeralFinal = (paymentMethod === 'hybrid' ? hybridEntryPix : 0) + totalFinanciadoReal;
@@ -794,7 +797,7 @@ const Contract = () => {
         const contractData = {
             estimatedWeightKg,
             userData: { 
-                name: clientName, cpf: clientDoc, rg: clientRG, address: fullAddress, 
+                name: clientName, cpf: clientDoc, rg: clientRG, email: clientEmail, address: fullAddress, 
                 zip, street, number, neighborhood, city, state 
             },
             selectedOption: {
@@ -976,7 +979,7 @@ const Contract = () => {
 
         generateContractPDF({
             userData: { 
-                name: clientName, cpf: clientDoc, rg: clientRG, address: fullAddress, 
+                name: clientName, cpf: clientDoc, rg: clientRG, email: clientEmail, address: fullAddress, 
                 zip, street, number, neighborhood, city, state 
             },
             selectedOption: {
@@ -1149,7 +1152,7 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
 
         generateAceiteObraPDF({
             userData: { 
-                name: clientName, cpf: clientDoc, rg: clientRG, address: fullAddress, 
+                name: clientName, cpf: clientDoc, rg: clientRG, email: clientEmail, address: fullAddress, 
                 zip, street, number, neighborhood, city, state 
             },
             selectedOption: {
@@ -1278,6 +1281,13 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                 />
                             )}
                         </div>
+                        <ContractInput 
+                            label="E-mail (Para notificações da fábrica)" 
+                            value={clientEmail} 
+                            onChange={(e: any) => setClientEmail(e.target.value)}
+                            placeholder="cliente@email.com"
+                            type="email"
+                        />
 
                         <div className="border-t border-gray-100 dark:border-gray-700 pt-4">
                             <div className="grid grid-cols-3 gap-3 mb-3">
@@ -1975,10 +1985,17 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                         {(paymentMethod === 'pix' || paymentMethod === 'hybrid') && (
                             <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded mb-4 border border-gray-300 dark:border-gray-600 space-y-3">
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-600 dark:text-gray-300 uppercase mb-2">Forma de pagamento à vista:</label>
-                                    <div className="flex gap-2">
-                                        <button onClick={() => setCashMethodName('PIX')} className={`flex-1 py-1.5 rounded text-sm font-bold transition ${cashMethodName === 'PIX' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-400'}`}>PIX</button>
-                                        <button onClick={() => setCashMethodName('Transferência Bancária')} className={`flex-1 py-1.5 rounded text-sm font-bold transition ${cashMethodName === 'Transferência Bancária' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-400'}`}>Transferência</button>
+                                    <label className="block text-xs font-bold text-gray-600 dark:text-gray-300 uppercase mb-2">Como será pago o Sinal/Primeiro? (Texto do Contrato)</label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {['PIX', 'Cartão (Link/Maquininha)', 'Transferência Bancária', 'Boleto Bancário', 'Dinheiro'].map(opt => (
+                                            <button 
+                                                key={opt}
+                                                onClick={() => setCashMethodName(opt)} 
+                                                className={`flex-1 py-1.5 px-2 rounded text-xs font-bold transition whitespace-nowrap ${cashMethodName === opt ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-400'}`}
+                                            >
+                                                {opt}
+                                            </button>
+                                        ))}
                                     </div>
                                 </div>
                                 {paymentMethod === 'pix' && (
@@ -2116,7 +2133,7 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
 
                                             {/* BOTÕES RÁPIDOS */}
                                             <div className="flex flex-wrap gap-2">
-                                                {['Link de Pagamento (Cartão)', 'Boleto Bancário', 'Cheque Pré', 'Dinheiro na Entrega', 'Transferência Bancária'].map(opt => (
+                                                {['PIX', 'Maquininha de Cartão (Na Entrega)', 'Link de Pagamento (Cartão)', 'Boleto Bancário', 'Cheque Pré', 'Dinheiro na Entrega', 'Transferência Bancária'].map(opt => (
                                                     <button
                                                         key={opt}
                                                         onClick={() => setRemainderPaymentMode(opt)}

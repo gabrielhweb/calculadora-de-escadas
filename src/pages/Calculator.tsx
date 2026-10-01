@@ -67,7 +67,7 @@ function Calculator() {
     const numLandings = data.landings.length;
 
     const newOptions: ProposalOption[] = stepOptions.map((totalUnits, index) => {
-      const structureSteps = totalUnits - numLandings;
+      const structureSteps = data.isAdendo ? 0 : (totalUnits - numLandings);
       
       if (structureSteps < 0) {
           return {
@@ -130,7 +130,9 @@ function Calculator() {
       let totalPrice = 0;
       
       // 1. Preço dos degraus comuns
-      if (data.customStepPrice && data.customStepPrice > 0) {
+      if (data.isAdendo) {
+          totalPrice = 0;
+      } else if (data.customStepPrice && data.customStepPrice > 0) {
           totalPrice += data.customStepPrice * structureSteps; 
       } else {
           totalPrice += calculateTotalPrice(effectiveWidth, finalTreadDepth, structureSteps); 
