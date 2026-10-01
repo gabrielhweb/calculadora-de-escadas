@@ -217,20 +217,20 @@ function Calculator() {
         
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-4xl">
             <button onClick={() => {setActiveTab('stair'); setInputData(null); setOptions([]);}} className={`p-4 rounded-xl border-2 font-bold transition-all flex flex-col items-center justify-center gap-2 ${activeTab === 'stair' ? 'border-highlight bg-highlight/10 text-highlight' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:border-gray-300'}`}>
-                <span className="text-2xl">??</span>
-                Escada Completa
+                <span className="text-2xl">🪜</span>
+                  Escada Completa
             </button>
             <button onClick={() => {setActiveTab('landing'); setInputData(null); setOptions([]);}} className={`p-4 rounded-xl border-2 font-bold transition-all flex flex-col items-center justify-center gap-2 ${activeTab === 'landing' ? 'border-highlight bg-highlight/10 text-highlight' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:border-gray-300'}`}>
-                <span className="text-2xl">??</span>
-                Somente Patamar
+                <span className="text-2xl">🔲</span>
+                  Somente Patamar
             </button>
             <button onClick={() => {setActiveTab('guardrail'); setInputData(null); setOptions([]);}} className={`p-4 rounded-xl border-2 font-bold transition-all flex flex-col items-center justify-center gap-2 ${activeTab === 'guardrail' ? 'border-highlight bg-highlight/10 text-highlight' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:border-gray-300'}`}>
-                <span className="text-2xl">??</span>
-                Guarda-corpo/Port�o
+                <span className="text-2xl">🚧</span>
+                  Guarda-corpo/Portão
             </button>
             <button onClick={() => {setActiveTab('weight'); setInputData(null); setOptions([]);}} className={`p-4 rounded-xl border-2 font-bold transition-all flex flex-col items-center justify-center gap-2 ${activeTab === 'weight' ? 'border-highlight bg-highlight/10 text-highlight' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:border-gray-300'}`}>
-                <span className="text-2xl">??</span>
-                C�lculo de Peso
+                <span className="text-2xl">⚖️</span>
+                  Cálculo de Peso
             </button>
         </div>
       </header>
