@@ -762,8 +762,8 @@ const Contract = () => {
         const fullAddress = `${street}, ${number} - ${neighborhood}, ${city} - ${state}, ${zip}`;
         const finalHybridSignal = parseFloat(hybridSignalValue) || (discountedBase * (signalPercent/100));
 
-        const finalQuoteType = contractFormatOverride !== 'auto' ? contractFormatOverride : (inputData.quoteType || 'stair');
-        const finalInputData = { ...inputData, quoteType: finalQuoteType };
+        const finalQuoteType = contractFormatOverride !== 'auto' ? contractFormatOverride : (originalInputData?.quoteType || 'stair');
+        const finalInputData = { ...(originalInputData as any), quoteType: finalQuoteType };
         if (finalQuoteType === 'landing' || finalQuoteType === 'guardrail') { finalInputData.isAdendo = true; } else { finalInputData.isAdendo = false; }
 
         // CALCULAR O PESO DA ESCADA
@@ -982,8 +982,8 @@ const Contract = () => {
         // Calcula o valor exato da entrada híbrida para passar para o gerador
         const finalHybridSignal = parseFloat(hybridSignalValue) || (discountedBase * (signalPercent/100));
 
-        const finalQuoteType = contractFormatOverride !== 'auto' ? contractFormatOverride : (inputData.quoteType || 'stair');
-        const finalInputData = { ...inputData, quoteType: finalQuoteType };
+        const finalQuoteType = contractFormatOverride !== 'auto' ? contractFormatOverride : (originalInputData?.quoteType || 'stair');
+        const finalInputData = { ...(originalInputData as any), quoteType: finalQuoteType };
         if (finalQuoteType === 'landing' || finalQuoteType === 'guardrail') { finalInputData.isAdendo = true; } else { finalInputData.isAdendo = false; }
 
         generateContractPDF({
@@ -1159,8 +1159,8 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
 
         const finalHybridSignal = parseFloat(hybridSignalValue) || (discountedBase * (signalPercent/100));
 
-        const finalQuoteType = contractFormatOverride !== 'auto' ? contractFormatOverride : (inputData.quoteType || 'stair');
-        const finalInputData = { ...inputData, quoteType: finalQuoteType };
+        const finalQuoteType = contractFormatOverride !== 'auto' ? contractFormatOverride : (originalInputData?.quoteType || 'stair');
+        const finalInputData = { ...(originalInputData as any), quoteType: finalQuoteType };
         if (finalQuoteType === 'landing' || finalQuoteType === 'guardrail') { finalInputData.isAdendo = true; } else { finalInputData.isAdendo = false; }
 
         generateAceiteObraPDF({
