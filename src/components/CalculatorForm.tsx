@@ -25,25 +25,16 @@ const TooltipIcon: React.FC<{ text: string }> = ({ text }) => (
     </div>
 );
 
-export const getAutoGuardrailLengths = (format: string, sideStr: string, width: number, length: number) => {
+export const getAutoGuardrailLengths = (format: string, sideStr: string, width: number, length: number, stairWidth: number = 0) => {
     let l1 = length || 0;
     let l2 = width || 0;
     let l3 = length || 0;
     
-    if (format === 'L') {
-        l1 = width || 0;
-        l2 = length || 0;
-    } else if (format === 'U') {
-        l1 = length || 0;
-        l2 = width || 0;
-        l3 = length || 0;
-    } else {
-        if ((sideStr || '').toLowerCase().includes('frente') || (sideStr || '').toLowerCase().includes('atrás')) {
-            l1 = width || 0;
-        } else {
-            l1 = length || 0;
-        }
-    }
+    const sLower = (sideStr || '').toLowerCase();
+    let w = width || 0;
+    if (stairWidth > 0 && sLower.includes('frente')) { w = Math.max(0, width - (stairWidth + 10)); }
+
+    if (format === 'L') { l1 = sLower.includes('frente') ? w : (width || 0); l2 = length || 0; } else if (format === 'U') { l1 = length || 0; l2 = sLower.includes('frente') ? w : (width || 0); l3 = length || 0; } else { if (sLower.includes('frente') || sLower.includes('atrás') || sLower.includes('atras')) { l1 = sLower.includes('frente') ? w : (width || 0); } else { l1 = length || 0; } }
     return { guardrailLength: l1, guardrailLength2: l2, guardrailLength3: l3 };
 };
 
@@ -77,7 +68,7 @@ export const InputField: React.FC<{
         value={value}
         onChange={onChange}
         disabled={disabled}
-        className={`w-full p-3 rounded-l-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight focus:ring-1 focus:ring-highlight transition font-bold text-lg ${disabled ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed' : 'bg-white dark:bg-gray-800 text-black dark:text-white'}`}
+        className={`flex-1 min-w-0 p-3 rounded-l-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight focus:ring-1 focus:ring-highlight transition font-bold text-lg ${disabled ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed' : 'bg-white dark:bg-gray-800 text-black dark:text-white'}`}
         placeholder={placeholder || (isOptional ? "Automático" : label)}
         min="0"
         step="any"
@@ -1030,12 +1021,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                                             checked={!!landing.hasGuardrail}
                                             onChange={(e) => {
                                                 const isChecked = e.target.checked;
-                                                const autoLengths = getAutoGuardrailLengths(
-                                                    landing.guardrailFormat || 'normal',
-                                                    landing.guardrailSide || '',
-                                                    landing.width || 0,
-                                                    landing.length || 0
-                                                );
+                                                const autoLengths = getAutoGuardrailLengths(landing.guardrailFormat || 'normal', landing.guardrailSide || '', landing.width || 0, landing.length || 0, convertToCm(stairWidth, widthUnit));
                                                 updateLanding(landing.id, { 
                                                     hasGuardrail: isChecked,
                                                     ...(isChecked ? {

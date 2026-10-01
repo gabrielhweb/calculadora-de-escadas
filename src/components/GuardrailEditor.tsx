@@ -106,7 +106,7 @@ export const GuardrailEditor = ({ landing, updateLanding, InputField, isGate = f
                         value={gFormat}
                         onChange={(e) => {
                             const newFormat = e.target.value as any;
-                            const auto = getAutoGuardrailLengths(newFormat, landing.guardrailSide || "", landing.width || 0, landing.length || 0);
+                            const auto = getAutoGuardrailLengths(newFormat, landing.guardrailSide || "", landing.width || 0, landing.length || 0, stairWidth);
                             updateLanding(landing.id, {
                                 guardrailFormat: newFormat,
                                 guardrailLength: auto.guardrailLength,
@@ -132,7 +132,7 @@ export const GuardrailEditor = ({ landing, updateLanding, InputField, isGate = f
                         value={landing.guardrailSide || ""}
                         onChange={(e) => {
                             const newSide = e.target.value;
-                            const auto = getAutoGuardrailLengths(gFormat, newSide, landing.width || 0, landing.length || 0);
+                            const auto = getAutoGuardrailLengths(gFormat, newSide, landing.width || 0, landing.length || 0, stairWidth);
                             updateLanding(landing.id, { 
                                 guardrailSide: newSide,
                                 guardrailLength: auto.guardrailLength,

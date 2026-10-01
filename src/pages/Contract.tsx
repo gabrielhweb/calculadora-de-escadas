@@ -537,9 +537,16 @@ const Contract = () => {
     const handleDiscountPercentChange = (valStr: string) => {
         const percent = parseFloat(valStr) || 0;
         setDiscountPercent(percent);
-        const val = totalGeralBase * (percent / 100);
-        setDiscountValue(val > 0 ? val.toFixed(2) : '');
     };
+
+    useEffect(() => {
+        if (discountPercent > 0) {
+            const val = totalGeralBase * (discountPercent / 100);
+            if (Math.abs(val - (parseFloat(discountValue) || 0)) > 0.01) {
+                setDiscountValue(val.toFixed(2));
+            }
+        }
+    }, [totalGeralBase, discountPercent]);
 
     const handleDiscountValueChange = (valStr: string) => {
         setDiscountValue(valStr);
@@ -1697,7 +1704,30 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                         </div>
                     </div>
 
-                    {/* NOVO: CONTROLES DE MATERIAL E DIREÇÃO */}
+                    <div className="mb-6 bg-white dark:bg-gray-800 p-4 rounded-lg shadow border border-gray-200 dark:border-gray-700">
+                                  <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300 uppercase mb-3">Formato do Contrato (Texto)</h3>
+                                  <div className="flex flex-col sm:flex-row gap-4">
+                                      <label className="flex items-center gap-2 cursor-pointer">
+                                          <input type="radio" name="formatOverride" checked={contractFormatOverride === 'auto'} onChange={() => setContractFormatOverride('auto')} className="text-highlight focus:ring-highlight" />
+                                          <span className="text-sm text-gray-800 dark:text-gray-200">Automático</span>
+                                      </label>
+                                      <label className="flex items-center gap-2 cursor-pointer">
+                                          <input type="radio" name="formatOverride" checked={contractFormatOverride === 'stair'} onChange={() => setContractFormatOverride('stair')} className="text-highlight focus:ring-highlight" />
+                                          <span className="text-sm text-gray-800 dark:text-gray-200">Escada Completa</span>
+                                      </label>
+                                      <label className="flex items-center gap-2 cursor-pointer">
+                                          <input type="radio" name="formatOverride" checked={contractFormatOverride === 'landing'} onChange={() => setContractFormatOverride('landing')} className="text-highlight focus:ring-highlight" />
+                                          <span className="text-sm text-gray-800 dark:text-gray-200">Somente Patamar(es)</span>
+                                      </label>
+                                      <label className="flex items-center gap-2 cursor-pointer">
+                                          <input type="radio" name="formatOverride" checked={contractFormatOverride === 'guardrail'} onChange={() => setContractFormatOverride('guardrail')} className="text-highlight focus:ring-highlight" />
+                                          <span className="text-sm text-gray-800 dark:text-gray-200">Guarda-Corpo/Portão</span>
+                                      </label>
+                                  </div>
+                                  <p className="text-xs text-gray-500 mt-2">Escolha se deseja forçar o PDF a omitir a escada principal no texto do objeto contratual.</p>
+                              </div>
+
+                      {/* NOVO: CONTROLES DE MATERIAL E DIREÇÃO */}
                     <div className="space-y-6 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
                         <SectionTitle title="Detalhes da Escada" icon={<span>🪜</span>} />
                         
@@ -2287,28 +2317,7 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                     <span>📋</span> Cotação de Frete
                                 </button>
                             </div>
-                            <div className="mb-6 bg-white dark:bg-gray-800 p-4 rounded-lg shadow border border-gray-200 dark:border-gray-700">
-                                  <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300 uppercase mb-3">Formato do Contrato (Texto)</h3>
-                                  <div className="flex flex-col sm:flex-row gap-4">
-                                      <label className="flex items-center gap-2 cursor-pointer">
-                                          <input type="radio" name="formatOverride" checked={contractFormatOverride === 'auto'} onChange={() => setContractFormatOverride('auto')} className="text-highlight focus:ring-highlight" />
-                                          <span className="text-sm text-gray-800 dark:text-gray-200">Automático</span>
-                                      </label>
-                                      <label className="flex items-center gap-2 cursor-pointer">
-                                          <input type="radio" name="formatOverride" checked={contractFormatOverride === 'stair'} onChange={() => setContractFormatOverride('stair')} className="text-highlight focus:ring-highlight" />
-                                          <span className="text-sm text-gray-800 dark:text-gray-200">Escada Completa</span>
-                                      </label>
-                                      <label className="flex items-center gap-2 cursor-pointer">
-                                          <input type="radio" name="formatOverride" checked={contractFormatOverride === 'landing'} onChange={() => setContractFormatOverride('landing')} className="text-highlight focus:ring-highlight" />
-                                          <span className="text-sm text-gray-800 dark:text-gray-200">Somente Patamar(es)</span>
-                                      </label>
-                                      <label className="flex items-center gap-2 cursor-pointer">
-                                          <input type="radio" name="formatOverride" checked={contractFormatOverride === 'guardrail'} onChange={() => setContractFormatOverride('guardrail')} className="text-highlight focus:ring-highlight" />
-                                          <span className="text-sm text-gray-800 dark:text-gray-200">Guarda-Corpo/Portão</span>
-                                      </label>
-                                  </div>
-                                  <p className="text-xs text-gray-500 mt-2">Escolha se deseja forçar o PDF a omitir a escada principal no texto do objeto contratual.</p>
-                              </div>
+                            
                               <div className="flex gap-4">
                                   <button onClick={handleGeneratePDF} className="flex-1 bg-highlight text-white font-black py-4 rounded-lg shadow-lg hover:bg-yellow-600 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2">
                                      <span>📄</span> Gerar Contrato PDF

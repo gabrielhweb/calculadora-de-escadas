@@ -65,7 +65,10 @@ function Calculator() {
 
     const baseTotalUnits = data.desiredSteps; // Número TOTAL de peças (degraus + patamares)
     // Opções variam a quantidade total de peças
-    const stepOptions = [baseTotalUnits - 1, baseTotalUnits, baseTotalUnits + 1].filter(s => s > 1);
+    let stepOptions = [baseTotalUnits - 1, baseTotalUnits, baseTotalUnits + 1].filter(s => s > 1);
+    if (data.quoteType === 'landing' || data.quoteType === 'guardrail' || (data.isAdendo && baseTotalUnits === 0)) {
+        stepOptions = [0];
+    }
 
     const numLandings = data.landings.length;
 
