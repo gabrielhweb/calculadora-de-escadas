@@ -408,14 +408,16 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
     doc.text(splitAcabamento, pageMargin, currentY);
     currentY += (splitAcabamento.length * 5) + 4;
 
-    doc.setFont('helvetica', 'bold');
-    doc.text('Capacidade máxima', pageMargin, currentY);
-    currentY += 6;
-    doc.setFont('helvetica', 'normal');
-    doc.text('Por degrau: 180 kg (cento e oitenta quilogramas)', pageMargin, currentY);
-    currentY += 6;
-    doc.text('Total da escada: 360 kg (trezentos e sessenta quilogramas)', pageMargin, currentY);
-    currentY += 10;
+    if (inputData.quoteType === 'stair') {
+        doc.setFont('helvetica', 'bold');
+        doc.text('Capacidade máxima', pageMargin, currentY);
+        currentY += 6;
+        doc.setFont('helvetica', 'normal');
+        doc.text('Por degrau: 180 kg (cento e oitenta quilogramas)', pageMargin, currentY);
+        currentY += 6;
+        doc.text('Total da escada: 360 kg (trezentos e sessenta quilogramas)', pageMargin, currentY);
+        currentY += 10;
+    }
 
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
