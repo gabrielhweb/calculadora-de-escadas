@@ -440,7 +440,7 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
         y += 6;
 
         doc.setFont('helvetica', 'normal');
-        const installText1 = '• É fundamental que o prumo e esquadro da parede estejam corretos, pois irregularidades podem comprometer a instalação e o perfeito funcionamento da escada.';
+        const installText1 = '• É fundamental que o prumo e esquadro da parede estejam corretos, pois irregularidades podem comprometer a instalação.';
         const splitInstall1 = doc.splitTextToSize(installText1, pageWidth - (pageMargin * 2));
         doc.text(splitInstall1, pageMargin, y);
         y += (splitInstall1.length * 5) + 2;

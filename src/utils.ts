@@ -115,17 +115,18 @@ export const generateProposalDescription = (inputData: any, opt: any): string =>
     if (inputData.isAdendo) {
         let desc = "Itens avulsos solicitados:\n";
         if (inputData.landings && inputData.landings.length > 0) {
-            inputData.landings.forEach((landing: any) => {
-                if (landing.hasGate && landing.isAccessoriesOnly) {
-                    desc += `- Portãozinho Avulso de ${landing.gateLength}cm x ${landing.gateHeight}cm.\n`;
-                } else if (landing.hasGuardrail && landing.isAccessoriesOnly) {
-                    desc += `- Guarda-Corpo Avulso (${landing.guardrailFormat || 'normal'}) com ${landing.guardrailHeight}cm de altura.\n`;
-                } else {
-                    desc += `- Patamar Auxiliar (${landing.width}x${landing.length}cm) com base em aço carbono.\n`;
-                    if (landing.hasGate) desc += `  + Inclui Portãozinho ${landing.gateLength}x${landing.gateHeight}cm.\n`;
-                    if (landing.hasGuardrail) desc += `  + Inclui Guarda-Corpo (${landing.guardrailFormat || 'normal'}).\n`;
-                }
-            });
+            const hasOnlyAccessories = inputData.landings.every((l: any) => l.isAccessoriesOnly);
+            if (hasOnlyAccessories) {
+                desc = "Orçamento de Guarda-corpos e/ou Portões avulsos.\n";
+            } else {
+                inputData.landings.forEach((landing: any) => {
+                    if (!landing.isAccessoriesOnly) {
+                        desc += `- Patamar Auxiliar (${landing.width}x${landing.length}cm) com base em aço carbono.\n`;
+                        if (landing.hasGate) desc += `  + Inclui Portãozinho ${landing.gateLength}x${landing.gateHeight}cm.\n`;
+                        if (landing.hasGuardrail) desc += `  + Inclui Guarda-Corpo (${landing.guardrailFormat || 'normal'}).\n`;
+                    }
+                });
+            }
         }
         return desc.trim();
     }
