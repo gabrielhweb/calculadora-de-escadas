@@ -1109,7 +1109,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                     <div className="mt-3 pt-3 text-xs text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-600 flex flex-col gap-2">
                         <div className="flex flex-col gap-1">
                             <div className="flex justify-between items-center">
-                                <span className="font-bold text-gray-900 dark:text-white uppercase">Valor da Estrutura:</span>
+                                <span className="font-bold text-gray-900 dark:text-white uppercase">{inputData?.quoteType === 'stair' ? 'Valor da Estrutura:' : 'Valor do Produto:'}</span>
                                 <span className="text-base font-black text-gray-900 dark:text-white">{formatCurrencyBRL(activeOption.totalPrice)}</span>
                             </div>
                             
@@ -1157,7 +1157,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                                 )}
                                 
                                 <div className="flex justify-between font-black text-gray-900 dark:text-white border-t-2 border-gray-300 dark:border-gray-500 pt-2 mt-2 text-sm">
-                                    <span>Total Estrutura + Extras:</span>
+                                    <span>{inputData?.quoteType === 'stair' ? 'Total Estrutura + Extras:' : 'Total (Produtos + Extras):'}</span>
                                     <span>{formatCurrencyBRL(activeOption.totalPrice + extrasCost)}</span>
                                 </div>
                             </div>
