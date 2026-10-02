@@ -131,9 +131,9 @@ export const generateProposalDescription = (inputData: any, opt: any): string =>
         return desc.trim();
     }
     
-    let descriptionTitle = "Escada articulada lateral em aço carbono";
-    let handrailDesc = "e com corrimão de 70 centímetros";
-    let damperDesc = ` com ${inputData.dampers} amortecedores de alívio`;
+    let descriptionTitle = inputData.quoteType === 'landing' ? "Patamar sob medida em aço carbono" : "Escada articulada lateral em aço carbono";
+    let handrailDesc = inputData.quoteType === 'landing' ? "" : "e com corrimão de 70 centímetros";
+    let damperDesc = inputData.quoteType === 'landing' ? "" : ` com ${inputData.dampers} amortecedores de alívio`;
 
     let fixationText = "";
     
