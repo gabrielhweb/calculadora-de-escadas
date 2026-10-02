@@ -1547,7 +1547,7 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
              onMouseLeave={viewMode === 'side' ? stopDrag : undefined} 
              onContextMenu={(e) => viewMode === 'side' ? e.preventDefault() : undefined}
              onWheel={viewMode === 'side' ? handleWheel : undefined}>
-            {viewMode === 'side' ? <SVGContent /> : <Interactive3DStair option={option} totalHeight={totalHeight} inputData={inputData} treadMaterial={treadMaterial} />}
+            <div className="w-full h-full flex flex-col">    {!isGuardrailOnly && (        <div className="flex-1 relative min-h-[50%]">            {viewMode === 'side' ? <SVGContent /> : <Interactive3DStair option={option} totalHeight={totalHeight} inputData={inputData} treadMaterial={treadMaterial} />}        </div>    )}    <div className="shrink-0">        {renderGuardrailsPreviews()}    </div></div>
         </div>
         
         <button onClick={onClose} className="absolute top-4 right-4 z-50 bg-red-600 text-white w-12 h-12 rounded-full font-black text-xl shadow-lg hover:bg-red-700">✕</button>
