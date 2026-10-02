@@ -505,28 +505,30 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[], startY: num
         // Garantir que a imagem do patamar caiba
         const patamarImgH = Math.min(60, availH - 25);
 
-        // LADO ESQUERDO: Patamar
-        const leftX = 10;
-        const leftW = 90;
-        
-        doc.setFontSize(14);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(0, 0, 0);
-        doc.text(`Patamar ${index + 1}`, leftX + leftW / 2, currentY, { align: 'center' });
-        
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'normal');
-        doc.text(`Medidas: ${landing.width || 0}cm x ${landing.length || 0}cm`, leftX + leftW / 2, currentY + 6, { align: 'center' });
-        
-        const maxPatamarW = leftW - 10;
-        try {
-            doc.addImage(patamarGenericoBase64, 'JPEG', leftX + leftW / 2 - maxPatamarW / 2, currentY + 12, maxPatamarW, patamarImgH);
-        } catch(e) {
-            doc.setDrawColor(200, 200, 200);
-            doc.setLineWidth(0.5);
-            doc.rect(leftX + leftW / 2 - maxPatamarW / 2, currentY + 12, maxPatamarW, patamarImgH);
-            doc.setTextColor(150, 150, 150);
-            doc.text("IMAGEM", leftX + leftW / 2, currentY + 12 + patamarImgH / 2, { align: 'center' });
+        if (!landing.isAccessoriesOnly) {
+            // LADO ESQUERDO: Patamar
+            const leftX = 10;
+            const leftW = 90;
+            
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Patamar ${index + 1}`, leftX + leftW / 2, currentY, { align: 'center' });
+            
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Medidas: ${landing.width || 0}cm x ${landing.length || 0}cm`, leftX + leftW / 2, currentY + 6, { align: 'center' });
+            
+            const maxPatamarW = leftW - 10;
+            try {
+                doc.addImage(patamarGenericoBase64, 'JPEG', leftX + leftW / 2 - maxPatamarW / 2, currentY + 12, maxPatamarW, patamarImgH);
+            } catch(e) {
+                doc.setDrawColor(200, 200, 200);
+                doc.setLineWidth(0.5);
+                doc.rect(leftX + leftW / 2 - maxPatamarW / 2, currentY + 12, maxPatamarW, patamarImgH);
+                doc.setTextColor(150, 150, 150);
+                doc.text("IMAGEM", leftX + leftW / 2, currentY + 12 + patamarImgH / 2, { align: 'center' });
+            }
         }
 
         // LADO DIREITO: Guarda-Corpo e Portão

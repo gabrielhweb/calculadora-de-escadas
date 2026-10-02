@@ -211,7 +211,23 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
                 currentY += 6;
             }
 
-            opt.landings.forEach((landing) => {
+                        opt.landings.forEach((landing) => {
+                if (landing.isAccessoriesOnly) {
+                    let desc = '';
+                    if (landing.hasGate) {
+                         desc = `- Portãozinho Avulso de ${landing.gateLength}cm x ${landing.gateHeight}cm`;
+                    } else {
+                         desc = `- Guarda-Corpo Avulso (${landing.guardrailFormat || 'normal'}) com ${landing.guardrailHeight}cm alt.`;
+                    }
+                    const price = formatCurrencyBRL(landing.price);
+                    const availableWidth = pageWidth - (pageMargin * 2) - 40; 
+                    const splitDesc = doc.splitTextToSize(desc, availableWidth);
+                    doc.text(splitDesc, pageMargin, currentY);
+                    doc.text(price, pageWidth - pageMargin, currentY, { align: 'right' });
+                    currentY += (splitDesc.length * 5) + 1;
+                    return;
+                }
+
                 const lM = (landing.length / 100).toFixed(2).replace('.', ',');
                 const wM = (landing.width / 100).toFixed(2).replace('.', ',');
                 

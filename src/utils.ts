@@ -117,7 +117,15 @@ export const generateProposalDescription = (inputData: any, opt: any): string =>
         if (inputData.landings && inputData.landings.length > 0) {
             const hasOnlyAccessories = inputData.landings.every((l: any) => l.isAccessoriesOnly);
             if (hasOnlyAccessories) {
-                desc = "Orçamento de Guarda-corpos e/ou Portões avulsos.\n";
+                const hasGates = inputData.landings.some((l: any) => l.hasGate);
+                const hasGuardrails = inputData.landings.some((l: any) => l.hasGuardrail && !l.hasGate);
+                if (hasGates && hasGuardrails) {
+                    desc = "Orçamento de Guarda-corpos e Portões avulsos.\n";
+                } else if (hasGates) {
+                    desc = "Orçamento de Portões avulsos.\n";
+                } else {
+                    desc = "Orçamento de Guarda-corpos avulsos.\n";
+                }
             } else {
                 inputData.landings.forEach((landing: any) => {
                     if (!landing.isAccessoriesOnly) {
