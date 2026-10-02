@@ -384,6 +384,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
         </div>
         )}
         
+        {mode !== 'landing' && ( <>
         {/* AMBIENTE (LAJE/VÃO) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 dark:bg-gray-700/50 p-3 rounded border border-gray-100 dark:border-gray-700">
              <InputField 
@@ -769,6 +770,9 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                 </p>
             </div>
         </div>
+
+        </>
+        )}
 
         {/* --- SEÇÃO PATAMARES --- */}
         <div className="pt-4 border-t border-gray-100 dark:border-gray-700 bg-orange-50 dark:bg-orange-900/20 -mx-6 px-6 pb-4">
