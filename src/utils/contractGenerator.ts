@@ -280,7 +280,7 @@ export const generateContractPDF = (data: ContractData) => {
   addText(`Total ${formatCurrencyBRL(totalGeral)}`, 11, false, 'left');
 
   addText(`-Acabamento: ${data.finishText || 'Fornecido com aplicação de fundo primer. Observação: a pintura final é de responsabilidade do cliente.'}`, 11, true, 'left');
-  if (data.quoteType === 'stair') {
+  if (data.inputData.quoteType === 'stair') {
       addText(`-Capacidade máxima por degrau: ${data.stepCapacityText || '180 quilos'}`, 11, true, 'left');
       addText(`-Capacidade máxima da escada: ${data.stairCapacityText || '360 quilos'}`, 11, true, 'left');
   }
