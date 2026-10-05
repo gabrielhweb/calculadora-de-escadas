@@ -148,6 +148,11 @@ function Calculator() {
       const landingsPrice = adjustedLandings.reduce((acc, l) => acc + l.price, 0);
       totalPrice += landingsPrice;
 
+      // 3. Preço dos guarda-corpos avulsos
+      if (data.standaloneGuardrails) {
+          totalPrice += data.standaloneGuardrails.reduce((acc, g) => acc + g.price, 0);
+      }
+
       return {
         optionNumber: index + 1,
         steps: totalUnits, // Visualmente mostramos o total de peças

@@ -160,8 +160,8 @@ export default function GuardrailCalculator({ onCalculate }: GuardrailCalculator
                         <button onClick={handleAddGate} className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-bold shadow transition-colors text-sm">
                             + Port�o
                         </button>
-                        <button onClick={handleCalculate} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-bold shadow transition-colors text-sm flex items-center justify-center gap-2">
-                            Salvar / Gerar Or�amento
+                        <button onClick={handleCalculate} className="bg-highlight hover:bg-yellow-600 text-white px-4 py-2 rounded-lg font-bold shadow transition-colors text-sm flex items-center justify-center gap-2">
+                            🧮 Calcular Valores
                         </button>
                     </div>
                 </div>
@@ -206,4 +206,6 @@ export default function GuardrailCalculator({ onCalculate }: GuardrailCalculator
         </div>
     );
 }
+
+
 
