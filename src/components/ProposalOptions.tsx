@@ -1098,13 +1098,29 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                         </div>
                     </div>
                     
-                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 text-sm text-gray-700 dark:text-gray-300 font-medium mb-4 pl-2">
-                        <p><strong className="text-gray-900 dark:text-white">Total Peças:</strong> {activeOption.steps} un</p>
-                        <p><strong className="text-gray-900 dark:text-white">Alt/Degrau:</strong> {activeOption.stepHeight.toFixed(2)} cm</p>
-                        <p><strong className="text-gray-900 dark:text-white">Pisante:</strong> {activeOption.treadDepth.toFixed(2)} cm</p>
-                        <p><strong className="text-gray-900 dark:text-white">Largura:</strong> {activeOption.stairWidth} cm</p>
-                        <p><strong className="text-gray-900 dark:text-white">Comp. Total:</strong> {(activeOption.totalLength / 100).toFixed(2)} m</p>
-                    </div>
+                    {(!inputData?.quoteType || inputData.quoteType === 'stair') && (
+                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 text-sm text-gray-700 dark:text-gray-300 font-medium mb-4 pl-2">
+                            <p><strong className="text-gray-900 dark:text-white">Total Peças:</strong> {activeOption.steps} un</p>
+                            <p><strong className="text-gray-900 dark:text-white">Alt/Degrau:</strong> {activeOption.stepHeight.toFixed(2)} cm</p>
+                            <p><strong className="text-gray-900 dark:text-white">Pisante:</strong> {activeOption.treadDepth.toFixed(2)} cm</p>
+                            <p><strong className="text-gray-900 dark:text-white">Largura:</strong> {activeOption.stairWidth} cm</p>
+                            <p><strong className="text-gray-900 dark:text-white">Comp. Total:</strong> {(activeOption.totalLength / 100).toFixed(2)} m</p>
+                        </div>
+                    )}
+                    {inputData?.quoteType === 'landing' && (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm text-gray-700 dark:text-gray-300 font-medium mb-4 pl-2">
+                            <p><strong className="text-gray-900 dark:text-white">Qtd. Patamares:</strong> {inputData?.landings?.length || 1} un</p>
+                            <p><strong className="text-gray-900 dark:text-white">Material:</strong> {inputData?.treadMaterial === 'wood' ? inputData.woodType || 'Madeira' : 'Aço/Ferro'}</p>
+                            <p><strong className="text-gray-900 dark:text-white">Área Total Estimada:</strong> {((inputData?.landings?.reduce((sum, l) => sum + (Number(l.width || 0) * Number(l.length || 0)), 0) || 0) / 10000).toFixed(2)} m²</p>
+                        </div>
+                    )}
+                    {inputData?.quoteType === 'guardrail' && (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm text-gray-700 dark:text-gray-300 font-medium mb-4 pl-2">
+                            <p><strong className="text-gray-900 dark:text-white">Qtd. Sessões:</strong> {inputData?.standaloneGuardrails?.length || 1} un</p>
+                            <p><strong className="text-gray-900 dark:text-white">Comp. Total:</strong> {(inputData?.standaloneGuardrails?.reduce((sum, g) => sum + (Number(g.length) || 0), 0) / 100 || 0).toFixed(2)} m</p>
+                            <p><strong className="text-gray-900 dark:text-white">Material:</strong> {inputData?.standaloneGuardrails?.[0]?.material === 'glass' ? 'Vidro' : 'Aço/Ferro'}</p>
+                        </div>
+                    )}
 
                     <div className="mt-3 pt-3 text-xs text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-600 flex flex-col gap-2">
                         <div className="flex flex-col gap-1">
@@ -1116,15 +1132,23 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                             {/* DETALHAMENTO DA CONTA (SIMPLIFICADO E LIMPO) */}
                             <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg border border-gray-200 dark:border-gray-600 text-xs space-y-2 mt-2">
                                 
-                                {/* Linha Degraus */}
-                                <div className="flex justify-between items-center">
-                                    <span className="text-gray-600 dark:text-gray-300">
-                                        {activeOption.structureSteps} Degraus {hasCustomPrice ? '(Preço Manual)' : `(${formatCurrencyBRL(calculatedUnitPrice)}/un)`}:
-                                    </span>
-                                    <span className="font-bold text-gray-800 dark:text-gray-200">
-                                        {formatCurrencyBRL(hasCustomPrice ? (inputData!.customStepPrice! * activeOption.structureSteps) : structureStepsPrice)}
-                                    </span>
-                                </div>
+                                {/* Linha Degraus ou Guarda-Corpos */}
+                                {(!inputData?.quoteType || inputData.quoteType === 'stair') && (
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-gray-600 dark:text-gray-300">
+                                            {activeOption.structureSteps} Degraus {hasCustomPrice ? '(Preço Manual)' : `(${formatCurrencyBRL(calculatedUnitPrice)}/un)`}:
+                                        </span>
+                                        <span className="font-bold text-gray-800 dark:text-gray-200">
+                                            {formatCurrencyBRL(hasCustomPrice ? (inputData!.customStepPrice! * activeOption.structureSteps) : structureStepsPrice)}
+                                        </span>
+                                    </div>
+                                )}
+                                {inputData?.quoteType === 'guardrail' && (
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-gray-600 dark:text-gray-300">Guarda-Corpos (Soma):</span>
+                                        <span className="font-bold text-gray-800 dark:text-gray-200">{formatCurrencyBRL(activeOption.totalPrice)}</span>
+                                    </div>
+                                )}
                                 
                                 {/* Linha Patamares */}
                                 {activeOption.landings.length > 0 && (
