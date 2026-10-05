@@ -122,8 +122,12 @@ export default function GuardrailCalculator({ onCalculate }: GuardrailCalculator
                 calculatedPrice += g.gatePriceOverride !== undefined ? g.gatePriceOverride : Math.round(gateTotalMeters * gatePricePerMeter);
             }
             
+            const guardrailLengthSum = (g.hasGuardrail ? ((g.guardrailLength || 0) + (g.guardrailLength2 || 0) + (g.guardrailLength3 || 0)) : 0);
+            const gateLengthSum = (g.hasGate ? (g.gateLength || 0) : 0);
+            const totalLen = guardrailLengthSum + gateLengthSum;
+            
             // Treat as an "accessories only" landing so standard pdf generator logic processes it as a landing containing guardrails/gates
-            return { ...g, price: calculatedPrice, length: 0, width: 0, isAccessoriesOnly: true };
+            return { ...g, price: calculatedPrice, length: totalLen, width: 0, isAccessoriesOnly: true };
         });
         
         onCalculate({

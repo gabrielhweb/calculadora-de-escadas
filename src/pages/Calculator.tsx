@@ -144,8 +144,8 @@ function Calculator() {
           totalPrice += calculateTotalPrice(effectiveWidth, finalTreadDepth, structureSteps); 
       }
 
-      // 2. Preço dos patamares
-      const landingsPrice = adjustedLandings.reduce((acc, l) => acc + l.price, 0);
+      // 2. Preço dos patamares (ignora os que são isAccessoriesOnly para não duplicar com guarda-corpos)
+      const landingsPrice = adjustedLandings.reduce((acc, l) => acc + (l.isAccessoriesOnly ? 0 : l.price), 0);
       totalPrice += landingsPrice;
 
       // 3. Preço dos guarda-corpos avulsos

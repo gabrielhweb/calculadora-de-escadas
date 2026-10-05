@@ -188,7 +188,7 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
         // --- LISTA DE PREÇOS ---
         // ... (rest of the function remains mostly same)
 
-        const landingsPrice = opt.landings.reduce((acc, l) => acc + l.price, 0);
+        const landingsPrice = opt.landings.reduce((acc, l) => acc + (l.isAccessoriesOnly ? 0 : l.price), 0);
         const structureOnly = opt.totalPrice - landingsPrice;
         
         // Valor da Escada
@@ -204,7 +204,7 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
         // Patamares
         if (opt.landings.length > 0) {
             // Se tiver múltiplos, mostra a soma primeiro, alinhada à direita
-            if (opt.landings.length > 1) {
+            if (opt.landings.length > 1 && inputData.quoteType !== 'guardrail') {
                 // Mantém um pequeno recuo visual apenas se for um grupo, mas alinhado corretamente
                 doc.text(`  • Soma de ${opt.landings.length} Patamares:`, pageMargin, currentY);
                 doc.text(formatCurrencyBRL(landingsPrice), pageWidth - pageMargin, currentY, { align: 'right' });
@@ -562,3 +562,7 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
 };
 
 export default ProposalDocument;
+
+
+
+

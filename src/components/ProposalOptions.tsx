@@ -581,7 +581,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
       } else {
           newTotalPrice += calculateTotalPrice(original.stairWidth, newTread, original.structureSteps);
       }
-      const landingsPrice = original.landings.reduce((acc, l) => acc + l.price, 0);
+      const landingsPrice = original.landings.reduce((acc, l) => acc + (l.isAccessoriesOnly ? 0 : l.price), 0);
       newTotalPrice += landingsPrice;
 
       const newOption: ProposalOption = {
@@ -977,7 +977,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
             const multiplier = getMultiplier(activeOption.treadDepth);
             const calculatedUnitPrice = basePrice * multiplier;
             
-            const landingsPrice = activeOption.landings.reduce((acc, l) => acc + l.price, 0);
+            const landingsPrice = activeOption.landings.reduce((acc, l) => acc + (l.isAccessoriesOnly ? 0 : l.price), 0);
             const structureStepsPrice = calculatedUnitPrice * activeOption.structureSteps;
             const hasCustomPrice = inputData?.customStepPrice && inputData.customStepPrice > 0;
 
@@ -1151,7 +1151,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                                 )}
                                 
                                 {/* Linha Patamares */}
-                                {activeOption.landings.length > 0 && (
+                                {inputData?.quoteType !== 'guardrail' && activeOption.landings.length > 0 && (
                                      <div className="flex justify-between items-center">
                                         <span className="text-gray-600 dark:text-gray-300">
                                             {activeOption.landings.length} Patamares (Soma):
@@ -1416,7 +1416,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
               const basePrice = getBasePrice(activeFirst.stairWidth);
               const multiplier = getMultiplier(activeFirst.treadDepth);
               const calculatedUnitPrice = basePrice * multiplier;
-              const landingsPrice = activeFirst.landings.reduce((acc, l) => acc + l.price, 0);
+              const landingsPrice = activeFirst.landings.reduce((acc, l) => acc + (l.isAccessoriesOnly ? 0 : l.price), 0);
               const structureStepsPrice = calculatedUnitPrice * activeFirst.structureSteps;
               const hasCustomPrice = inputData?.customStepPrice && inputData.customStepPrice > 0;
               
@@ -1453,3 +1453,4 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
 };
 
 export default ProposalOptions;
+
