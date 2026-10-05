@@ -278,6 +278,7 @@ const Contract = () => {
     const [isGeneratingClause, setIsGeneratingClause] = useState(false);
     
     // --- CAMPOS CUSTOMIZÁVEIS EXTRAS ---
+    const [objectDescriptionText, setObjectDescriptionText] = useState('');
     const [finishText, setFinishText] = useState('O produto será fornecido com aplicação de fundo primer preto, destinado à proteção inicial da superfície metálica. A pintura final do produto será de responsabilidade do cliente.');
     const [stepCapacityText, setStepCapacityText] = useState('180 quilos');
     const [stairCapacityText, setStairCapacityText] = useState('360 quilos');
@@ -423,6 +424,7 @@ const Contract = () => {
                 } else {
                     setCustomClauses([]);
                 }
+                if (data.objectDescriptionText) setObjectDescriptionText(String(data.objectDescriptionText));
                 if (data.finishText) setFinishText(String(data.finishText));
                 if (data.stepCapacityText) setStepCapacityText(String(data.stepCapacityText));
                 if (data.stairCapacityText) setStairCapacityText(String(data.stairCapacityText));
@@ -867,6 +869,7 @@ const Contract = () => {
                 pixInstallmentsList
             },
             additionalClauses: customClauses,
+            objectDescriptionText,
             finishText,
             stepCapacityText,
             stairCapacityText,
@@ -1055,6 +1058,7 @@ const Contract = () => {
                 pixInstallmentsList
             },
             additionalClauses: customClauses,
+            objectDescriptionText,
             finishText,
             stepCapacityText,
             stairCapacityText,
@@ -1234,6 +1238,7 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                 pixInstallmentsList
             },
             additionalClauses: [],
+            objectDescriptionText,
             finishText,
             stepCapacityText,
             stairCapacityText,

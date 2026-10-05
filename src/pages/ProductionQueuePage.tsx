@@ -38,7 +38,7 @@ const STAGES: { id: BoardStage, label: string, color: string, headerColor: strin
     { id: 'contrato', label: 'Contrato assinado e pagamento inicial feito', color: 'bg-blue-500 text-white', headerColor: 'border-blue-500 text-blue-600' },
     { id: 'corte', label: 'Enviadas para corte a laser', color: 'bg-purple-600 text-white', headerColor: 'border-purple-600 text-purple-600' },
     { id: 'soldagem', label: 'Etapa Soldagem', color: 'bg-pink-500 text-white', headerColor: 'border-pink-500 text-pink-600' },
-    { id: 'pronta', label: 'Escadas prontas', color: 'bg-orange-500 text-white', headerColor: 'border-orange-500 text-orange-600' },
+    { id: 'pronta', label: 'Pedidos prontos', color: 'bg-orange-500 text-white', headerColor: 'border-orange-500 text-orange-600' },
     { id: 'concluido', label: 'Concluído', color: 'bg-green-500 text-white', headerColor: 'border-green-500 text-green-600' }
 ];
 
@@ -598,19 +598,19 @@ export default function ProductionQueue() {
                     let message = '';
                     switch (newStage) {
                         case 'contrato':
-                            message = `Olá ${firstName}, tudo bem?\n\nPassando para avisar que o seu contrato foi confirmado e a sua escada foi enviada para a etapa de produção.\n\nQualquer dúvida, estamos à disposição!\n\nAtenciosamente,\nZilinski Escadas`;
+                            message = `Olá ${firstName}, tudo bem?\n\nPassando para avisar que o seu contrato foi confirmado e o seu pedido foi enviado para a etapa de produção.\n\nQualquer dúvida, estamos à disposição!\n\nAtenciosamente,\nZilinski Escadas`;
                             break;
                         case 'corte':
-                            message = `Olá ${firstName}, tudo bem?\n\nPassando para avisar que a sua escada já foi enviada para o corte a laser.\n\nQualquer dúvida, estamos à disposição!\n\nAtenciosamente,\nZilinski Escadas`;
+                            message = `Olá ${firstName}, tudo bem?\n\nPassando para avisar que o seu pedido já foi enviado para o corte a laser.\n\nQualquer dúvida, estamos à disposição!\n\nAtenciosamente,\nZilinski Escadas`;
                             break;
                         case 'soldagem':
-                            message = `Olá ${firstName}, tudo bem?\n\nPassando para avisar que o corte a laser da sua escada já foi concluído e agora ela está na etapa de soldagem.\n\nQualquer dúvida, estamos à disposição!\n\nAtenciosamente,\nZilinski Escadas`;
+                            message = `Olá ${firstName}, tudo bem?\n\nPassando para avisar que o corte a laser do seu pedido já foi concluído e agora ela está na etapa de soldagem.\n\nQualquer dúvida, estamos à disposição!\n\nAtenciosamente,\nZilinski Escadas`;
                             break;
                         case 'pronta':
-                            message = `Olá ${firstName}, tudo bem?\n\nPassando com ótimas notícias: a sua escada está pronta!\n\nEm breve, entraremos em contato para combinar os detalhes de entrega ou instalação.\n\nAtenciosamente,\nZilinski Escadas`;
+                            message = `Olá ${firstName}, tudo bem?\n\nPassando com ótimas notícias: o seu pedido está pronto!\n\nEm breve, entraremos em contato para combinar os detalhes de entrega ou instalação.\n\nAtenciosamente,\nZilinski Escadas`;
                             break;
                         case 'concluido':
-                            message = `Olá ${firstName}, tudo bem?\n\nSeu pedido foi concluído com sucesso. Agradecemos imensamente pela confiança em nosso trabalho!\n\nEsperamos que aproveite muito a sua nova escada.\n\nAtenciosamente,\nZilinski Escadas`;
+                            message = `Olá ${firstName}, tudo bem?\n\nSeu pedido foi concluído com sucesso. Agradecemos imensamente pela confiança em nosso trabalho!\n\nEsperamos que aproveite muito o seu novo produto.\n\nAtenciosamente,\nZilinski Escadas`;
                             break;
                         default:
                             message = '';

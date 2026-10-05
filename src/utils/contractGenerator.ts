@@ -27,6 +27,7 @@ export interface ContractData {
         pixInstallmentsList?: { value: number; description: string }[];
     };
   additionalClauses?: string[]; 
+  objectDescriptionText?: string;
   
   // PREÇOS SEPARADOS EXPLICITAMENTE
   finalStairPrice: number;
@@ -303,7 +304,7 @@ export const generateContractPDF = (data: ContractData) => {
   addText('3.2 Informar quaisquer alterações ou erros relacionados as suas informações e dados dispostos neste instrumento e na nota fiscal, sob pena de responder por tal omissão.', 11, false, 'justify');
   addText('3.3 Verificar se o objeto de compra está conforme as características descritas no item 1.1.', 11, false, 'justify');
   addText('3.4 É responsabilidade do comprador informar sobre qualquer vício ou defeito que encontre em seu objeto, respeitando o prazo do Código de Defesa do Consumidor.', 11, false, 'justify');
-  addText('3.5 É responsabilidade do(a) comprador(a) garantir que a parede e/ou estrutura onde será realizada a instalação esteja com prumo e esquadro adequados para a correta fixação e funcionamento da escada.', 11, false, 'justify');
+  addText('3.5 É responsabilidade do(a) comprador(a) garantir que a parede e/ou estrutura onde será realizada a instalação esteja com prumo e esquadro adequados para a correta fixação e funcionamento do produto.', 11, false, 'justify');
   addText('3.6 O(a) comprador(a) deverá informar previamente a existência de canos, eletrodutos, fiações ou qualquer item embutido no local onde serão realizadas as perfurações e fixações.', 11, false, 'justify');
   addText('3.7 Caso sejam necessários ajustes técnicos adicionais durante a instalação em razão das condições da parede ou estrutura do local, poderá haver acréscimo referente aos materiais e serviços complementares necessários.', 11, false, 'justify');
   addText('3.8 Este contrato terá validade de 15 (quinze) dias corridos, contados da data de seu envio ao(à) comprador(a). Caso não haja o pagamento inicial dentro desse período, será necessária a emissão de um novo contrato, podendo haver atualização dos valores, prazos e demais condições.', 11, false, 'justify');
@@ -332,10 +333,10 @@ export const generateContractPDF = (data: ContractData) => {
   const daysWord = numberToWords(days);
 
   if (isTransportadora) {
-      addText(`4.1 A escada deverá ser entregue no prazo de ${days} (${daysWord}) dias úteis, contados a partir da data de confirmação do pagamento do sinal.`, 11, false, 'justify');
-      addText('4.2 O prazo mencionado na cláusula anterior refere-se exclusivamente ao período de fabricação da escada pela CONTRATADA. Após a finalização da produção e envio à transportadora, o prazo de entrega até o endereço do CONTRATANTE passará a ser de responsabilidade exclusiva da empresa responsável pelo transporte.', 11, false, 'justify');
+      addText(`4.1 O produto deverá ser entregue no prazo de ${days} (${daysWord}) dias úteis, contados a partir da data de confirmação do pagamento do sinal.`, 11, false, 'justify');
+      addText('4.2 O prazo mencionado na cláusula anterior refere-se exclusivamente ao período de fabricação do produto pela CONTRATADA. Após a finalização da produção e envio à transportadora, o prazo de entrega até o endereço do CONTRATANTE passará a ser de responsabilidade exclusiva da empresa responsável pelo transporte.', 11, false, 'justify');
   } else {
-      let defaultDeliveryText = `A escada deverá ser entregue no prazo de ${days} (${daysWord}) dias úteis, contados a partir da data de confirmação do pagamento do sinal.`;
+      let defaultDeliveryText = `O produto deverá ser entregue no prazo de ${days} (${daysWord}) dias úteis, contados a partir da data de confirmação do pagamento do sinal.`;
       addText(`4.1 ${data.deliveryText || defaultDeliveryText}`, 11, false, 'justify');
   }
 
@@ -348,9 +349,9 @@ export const generateContractPDF = (data: ContractData) => {
   if (!isTransportadora) {
       clause('Da extensão do prazo de entrega/instalação por solicitação do comprador(a): Caso o(a) comprador(a), após o pagamento inicial de 50% do valor total, solicite a extensão do prazo de entrega, envio ou instalação para data posterior à prevista neste contrato, a contratada poderá realizar o reagendamento conforme disponibilidade de agenda.');
       clause('O(a) comprador(a) terá o prazo máximo de 03 (três) meses, contados da data inicialmente prevista para entrega, para definir e agendar a nova data.');
-      clause('Não havendo agendamento dentro do prazo de 03 (três) meses, ficará automaticamente devido o pagamento do saldo final de 50%, independentemente da efetiva entrega ou instalação naquele momento, permanecendo a escada reservada ao comprador(a).');
+      clause('Não havendo agendamento dentro do prazo de 03 (três) meses, ficará automaticamente devido o pagamento do saldo final de 50%, independentemente da efetiva entrega ou instalação naquele momento, permanecendo o produto reservado ao comprador(a).');
       clause('Caso o(a) comprador(a) solicite a entrega ou instalação após esse período, a contratada poderá cobrar valores adicionais referentes a frete, instalação, deslocamento, armazenagem, reajuste de materiais e demais custos operacionais vigentes na data do novo agendamento.');
-      clause('A escada permanecerá vinculada ao comprador(a), sendo a entrega e/ou instalação realizada mediante quitação integral dos valores pendentes e adicionais eventualmente aplicáveis.');
+      clause('O produto permanecerá vinculado ao comprador(a), sendo a entrega e/ou instalação realizada mediante quitação integral dos valores pendentes e adicionais eventualmente aplicáveis.');
   }
 
   currentY += 5;
@@ -390,7 +391,7 @@ export const generateContractPDF = (data: ContractData) => {
       addText(`Chave PIX (CNPJ): 28.869.537/0001-01`, 11, true, 'left');
 
       currentY += 5;
-      addText('6.2 Antes do envio, a CONTRATADA encaminhará vídeos ao cliente demonstrando o funcionamento da escada.', 11, false, 'justify');
+      addText('6.2 Antes do envio, a CONTRATADA encaminhará vídeos ao cliente demonstrando o funcionamento do produto.', 11, false, 'justify');
       addText('6.3 Após a emissão da nota fiscal, o pagamento do saldo permite o devido despacho do produto na transportadora.', 11, false, 'justify');
   } else {
       const cashMethod = (data.paymentDetails as any).cashMethodName || 'PIX';

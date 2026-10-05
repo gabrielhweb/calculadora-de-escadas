@@ -331,7 +331,7 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
             if (installationCost > 0) {
                 doc.text('Atenção: O valor da instalação considera um local de fácil acesso.', pageMargin, currentY);
                 currentY += 4;
-                doc.text('Caso seja necessário içar a escada ou levá-la desmontada, o valor será diferente.', pageMargin, currentY);
+                doc.text('Caso seja necessário içar o produto ou levá-lo desmontado, o valor será diferente.', pageMargin, currentY);
                 currentY += 6;
             }
             

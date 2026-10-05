@@ -386,7 +386,7 @@ export const generateUnifiedTechnicalPDF = (props: TechnicalDataProps) => {
 
   let hasFirstPageDrawn = false;
 
-  if (props.quoteType !== 'guardrail') {
+  if (props.quoteType === 'stair') {
       // Página 1: Produção Laser (Desenho Vetorial da escada)
       drawProductionPage(doc, {
           totalSteps: props.totalSteps,
@@ -401,12 +401,12 @@ export const generateUnifiedTechnicalPDF = (props: TechnicalDataProps) => {
 
   if (props.landings && props.landings.length > 0) {
       // Se for apenas guarda-corpo/patamar, removemos a indicação da parede (wallFixation = undefined)
-      const wallFix = props.quoteType === 'guardrail' ? undefined : props.wallFixation;
+      const wallFix = props.quoteType !== 'stair' ? undefined : props.wallFixation;
       drawLandingsPage(doc, props.landings, props.clientName, props.totalSteps, wallFix);
       drawGuardrailsPage(doc, props.landings, props.clientName);
   }
 
-  if (props.quoteType !== 'guardrail') {
+  if (props.quoteType === 'stair') {
       // Página 2: Documento Técnico Pristine
       doc.addPage('a4', 'p');
       drawPristineTechnicalPage(doc, props);

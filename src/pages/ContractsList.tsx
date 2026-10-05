@@ -390,7 +390,7 @@ export const ContractsList: React.FC = () => {
 
     const handleDownload = (contract: SavedContract) => {
         if (!contract.contractData) {
-            alert("Contrato sem medidas! Clique na setinha azul à esquerda para carregar o contrato, preencha as medidas da escada (altura, pisada, degraus, etc) e clique em Salvar Alterações para poder gerar o contrato.");
+            alert("Contrato sem medidas! Clique na setinha azul à esquerda para carregar o contrato, preencha as medidas do projeto (altura, pisada, degraus, etc) e clique em Salvar Alterações para poder gerar o contrato.");
             return;
         }
         try {
@@ -441,7 +441,7 @@ export const ContractsList: React.FC = () => {
 
     const handleDownloadTechnical = (contract: SavedContract) => {
         if (!contract.contractData) {
-            alert("Contrato sem medidas! Clique na setinha azul à esquerda para carregar o contrato, preencha as medidas da escada (altura, pisada, degraus, etc) e clique em Salvar Alterações para poder gerar a ficha técnica.");
+            alert("Contrato sem medidas! Clique na setinha azul à esquerda para carregar o contrato, preencha as medidas do projeto (altura, pisada, degraus, etc) e clique em Salvar Alterações para poder gerar a ficha técnica.");
             return;
         }
         try {
@@ -733,7 +733,7 @@ export const ContractsList: React.FC = () => {
                                             <button
                                                 onClick={() => {
                                                     if (!contract.contractData) {
-                                                        alert("Contrato vazio! Clique na setinha azul à esquerda para carregar o contrato, preencha as medidas da escada e salve para poder gerar o Recibo.");
+                                                        alert("Contrato vazio! Clique na setinha azul à esquerda para carregar o contrato, preencha as medidas do projeto e salve para poder gerar o Recibo.");
                                                         return;
                                                     }
                                                     setSelectedContractForReceipt(contract);
