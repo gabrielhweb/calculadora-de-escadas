@@ -3,6 +3,7 @@ import { collection, query, where, onSnapshot, doc, updateDoc, addDoc, serverTim
 import { db } from '../firebase';
 import { useAuth } from '../components/AuthProvider';
 import { SavedContract } from '../types';
+import { formatCurrencyBRL } from '../utils';
 import { startOfWeek, endOfWeek, isBefore, isWithinInterval, parseISO, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { format as formatTZ } from 'date-fns-tz';
@@ -633,6 +634,32 @@ export const DeliveriesTable: React.FC = () => {
                                     
                                     const dateColor = getDateColorClass(contract.deliveryDate);
                                     
+                                    const queueItem = queueItems.find(q => q.contractId === contract.id);
+                                    let totalValueFormatted = formatCurrencyBRL(contract.totalValue || 0);
+                                    let remainingValueFormatted = "";
+                                    let remainingMethodText = "";
+                                    
+                                    if (queueItem) {
+                                        const paid = queueItem.customPaidValue !== undefined && queueItem.customPaidValue !== null
+                                            ? queueItem.customPaidValue
+                                            : ((queueItem.downPayment || 0) + (queueItem.balanceStatus === 'paid' ? queueItem.balanceDue : 0));
+                                        const val = queueItem.value || contract.totalValue || 0;
+                                        totalValueFormatted = formatCurrencyBRL(val);
+                                        
+                                        const remaining = val - paid;
+                                        if (remaining > 0) {
+                                            remainingValueFormatted = formatCurrencyBRL(remaining);
+                                            
+                                            if (queueItem.paymentMethod === 'pix') remainingMethodText = "PIX";
+                                            else if (queueItem.paymentMethod === 'card') remainingMethodText = "Cartão";
+                                            else if (queueItem.paymentMethod === 'hybrid') {
+                                                remainingMethodText = queueItem.pixTiming === 'delivery' ? "PIX" : "Cartão";
+                                            } else {
+                                                remainingMethodText = "Não definido";
+                                            }
+                                        }
+                                    }
+
                                     return (
                                         <tr key={contract.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors print:hover:bg-white text-gray-800 dark:text-gray-300">
                                             <td className="p-2 align-top">
@@ -648,7 +675,24 @@ export const DeliveriesTable: React.FC = () => {
                                                 >
                                                     {contract.clientName}
                                                 </div>
-                                                <div className="text-sm font-semibold text-gray-500 print:text-[14px] print:font-bold px-2 mb-2">
+                                                <div className="px-2 mt-1 mb-1 print:mb-0.5 flex flex-col gap-0.5">
+                                                    <div>
+                                                        {contract.paymentStatus === 'recebido' ? (
+                                                            <span className="text-xs font-bold text-green-600 dark:text-green-400 print:text-[11px] print:text-gray-800">💰 Recebido</span>
+                                                        ) : (
+                                                            <span className="text-xs font-bold text-red-500 dark:text-red-400 print:text-[11px] print:text-gray-600">⏳ A Receber</span>
+                                                        )}
+                                                    </div>
+                                                    <div className="text-xs font-bold text-gray-700 dark:text-gray-300 print:text-[11px] print:text-gray-700 mt-1">
+                                                        TOTAL: {totalValueFormatted}
+                                                    </div>
+                                                    {remainingValueFormatted && (
+                                                        <div className="text-xs font-bold text-indigo-600 dark:text-indigo-400 print:text-[11px] print:text-gray-700">
+                                                            A RECEBER: {remainingValueFormatted} ({remainingMethodText})
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="text-sm font-semibold text-gray-500 print:text-[14px] print:font-bold px-2 mb-2 print:mt-0.5">
                                                     Contrato: {formatDate(contract.createdAt)}
                                                 </div>
                                                 {/* Caixas de Assinatura (Produção) */}
