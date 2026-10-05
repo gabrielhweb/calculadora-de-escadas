@@ -613,7 +613,23 @@ export const DeliveriesTable: React.FC = () => {
                                     ) {
                                         freightInfo = contract.hingesQty;
                                     }
-                                    const measurements = contract.measurementsNotes || getMeasurements(data);
+
+                                    let measurements = contract.measurementsNotes !== undefined ? contract.measurementsNotes : getMeasurements(data);
+                                    
+                                    const parsedQType = data?.selectedOption?.quoteType || data?.quoteType || data?.inputData?.quoteType;
+                                    if ((parsedQType === 'landing' || parsedQType === 'guardrail') && typeof measurements === 'string') {
+                                        const lines = measurements.split('\n');
+                                        const filteredLines = lines.filter(line => 
+                                            !line.includes('DEGRAUS') &&
+                                            !line.includes('PISADA:') &&
+                                            !line.includes('ALT:') &&
+                                            !line.includes('LARGURA:') &&
+                                            !line.includes('MATERIAL: MADEIRA') &&
+                                            !line.includes('MATERIAL: CHAPA')
+                                        );
+                                        measurements = filteredLines.join('\n').trim();
+                                        if (!measurements) measurements = getMeasurements(data);
+                                    }
                                     
                                     const dateColor = getDateColorClass(contract.deliveryDate);
                                     
