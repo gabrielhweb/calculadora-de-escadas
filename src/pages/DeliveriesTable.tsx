@@ -13,6 +13,7 @@ export const DeliveriesTable: React.FC = () => {
     const { user } = useAuth();
     const [loading, setLoading] = useState(true);
     const [queueItems, setQueueItems] = useState<any[]>([]);
+    const [showValues, setShowValues] = useState(true);
 
     useEffect(() => {
         if (!user) {
@@ -567,6 +568,13 @@ export const DeliveriesTable: React.FC = () => {
                         ➕ Novo Cliente
                     </button>
                     <button 
+                        onClick={() => setShowValues(!showValues)}
+                        className={`px-4 py-2.5 rounded-lg font-bold shadow-md flex items-center gap-2 transition-colors ${showValues ? 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-900/50 dark:text-indigo-300' : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300'}`}
+                        title="Mostrar ou ocultar valores financeiros na tela e na impressão"
+                    >
+                        {showValues ? '👁️ Valores Visíveis' : '🙈 Valores Ocultos'}
+                    </button>
+                    <button 
                         onClick={handlePrint}
                         className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-bold shadow-md flex items-center gap-2 transition-colors"
                     >
@@ -675,7 +683,7 @@ export const DeliveriesTable: React.FC = () => {
                                                 >
                                                     {contract.clientName}
                                                 </div>
-                                                <div className="px-2 mt-1 mb-1 print:mb-0.5 flex flex-col gap-0.5">
+                                                <div className={`px-2 mt-1 mb-1 print:mb-0.5 flex flex-col gap-0.5 ${!showValues ? 'hidden print:hidden' : ''}`}>
                                                     <div>
                                                         {contract.paymentStatus === 'recebido' ? (
                                                             <span className="text-xs font-bold text-green-600 dark:text-green-400 print:text-[11px] print:text-gray-800">💰 Recebido</span>
