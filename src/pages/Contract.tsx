@@ -212,6 +212,49 @@ const Contract = () => {
         setLandings([...landings, newLanding]);
     };
 
+    const handleAddGuardrail = () => {
+        const newLanding: LandingInfo = {
+            id: Math.random().toString(36).substr(2, 9),
+            step: 0,
+            price: 0,
+            width: 0,
+            length: 0,
+            type: 'articulated',
+            hasSideGuardrail: false,
+            hasFrontGuardrail: false,
+            direction: 'straight',
+            isAngled: false,
+            isAccessoriesOnly: true,
+            hasGuardrail: true,
+            guardrailFormat: 'normal',
+            guardrailSide: 'left',
+            guardrailLength: 100,
+            guardrailHeight: 90
+        };
+        setLandings([...landings, newLanding]);
+    };
+
+    const handleAddGate = () => {
+        const newLanding: LandingInfo = {
+            id: Math.random().toString(36).substr(2, 9),
+            step: 0,
+            price: 0,
+            width: 0,
+            length: 0,
+            type: 'articulated',
+            hasSideGuardrail: false,
+            hasFrontGuardrail: false,
+            direction: 'straight',
+            isAngled: false,
+            isAccessoriesOnly: true,
+            hasGate: true,
+            gateSide: 'left',
+            gateLength: 100,
+            gateHeight: 90
+        };
+        setLandings([...landings, newLanding]);
+    };
+
     const handleRemoveLanding = (id: string) => {
         setLandings(landings.filter(l => l.id !== id));
     };
@@ -1368,8 +1411,8 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
 
                         <div className="flex items-center justify-between mb-4 mt-4">
                             <h3 className="text-sm font-black text-gray-900 dark:text-gray-100 uppercase flex items-center gap-2">
-                                <span className="bg-highlight text-white w-6 h-6 flex items-center justify-center rounded-full text-xs">P</span>
-                                Patamares ({landings.length})
+                                <span className="bg-highlight text-white w-6 h-6 flex items-center justify-center rounded-full text-xs">+</span>
+                                Patamares / Guardas-Corpo ({landings.length})
                             </h3>
                             <div className="flex gap-2">
                                 <button type="button" onClick={handleAddTopLanding} className="text-xs bg-orange-600 text-white px-2 py-1 rounded font-bold hover:bg-orange-700 transition" title="Patamar no Topo (Acesso Lateral)">
@@ -1377,6 +1420,12 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                 </button>
                                 <button type="button" onClick={handleAddLanding} className="text-xs bg-gray-800 dark:bg-gray-700 text-white px-3 py-1 rounded font-bold hover:bg-black dark:hover:bg-gray-600 transition">
                                     + Meio
+                                </button>
+                                <button type="button" onClick={handleAddGuardrail} className="text-xs bg-pink-600 text-white px-2 py-1 rounded font-bold hover:bg-pink-700 transition" title="Guarda-Corpo Avulso">
+                                    + G. Corpo
+                                </button>
+                                <button type="button" onClick={handleAddGate} className="text-xs bg-indigo-600 text-white px-2 py-1 rounded font-bold hover:bg-indigo-700 transition" title="Portão Avulso">
+                                    + Portão
                                 </button>
                             </div>
                         </div>
@@ -1398,7 +1447,7 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                         <span className="text-xs font-bold text-gray-400 absolute top-1 left-2">#{index + 1}</span>
                                         
                                         <div className="grid grid-cols-2 gap-2 mt-2">
-                                            <div className="mb-0 col-span-2">
+                                            {landing.isAccessoriesOnly !== true && (<>`n                                            <div className="mb-0 col-span-2">
                                                 <div className="flex justify-between items-center mb-1">
                                                      <label className="text-sm font-black text-gray-900 dark:text-gray-100 mr-1">Posição</label>
                                                 </div>
@@ -1554,7 +1603,9 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                                 type="number"
                                             />
 
+                                            </>)}
                                             <div className="col-span-2 mt-2 pt-2 border-t border-gray-100 dark:border-gray-700">
+                                                {landing.isAccessoriesOnly !== true && (
                                                 <label className="flex items-center gap-1 cursor-pointer">
                                                     <input 
                                                         type="checkbox" 
@@ -1582,10 +1633,12 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                                     />
                                                     <span className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase">Possui Guarda Corpo?</span>
                                                 </label>
+                                                )}
                                                 {landing.hasGuardrail && <GuardrailEditor landing={landing} updateLanding={updateLanding} InputField={InputField} />}
                                             </div>
                                             
                                             <div className="col-span-2 mt-1 pt-2 border-t border-gray-100 dark:border-gray-700">
+                                                {landing.isAccessoriesOnly !== true && (
                                                 <label className="flex items-center gap-1 cursor-pointer">
                                                     <input 
                                                         type="checkbox" 
@@ -1604,6 +1657,7 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                                     />
                                                     <span className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase">Possui Portãozinho?</span>
                                                 </label>
+                                                )}
                                                 {landing.hasGate && (() => {
                                                     const gateSidesOptions = ["Direita", "Esquerda", "Frente", "Atrás", "Início da escada", "Fim da escada"];
                                                     const gSide = (landing.guardrailSide || '').toLowerCase();
