@@ -17,6 +17,7 @@ interface TechnicalDataProps {
   address?: string;
   zip?: string;
   optionalItems?: { id: string; name: string; price: number }[];
+  quoteType?: string;
 }
 
 export const generateTechnicalDataText = (props: TechnicalDataProps) => {
@@ -383,47 +384,61 @@ export const generateUnifiedTechnicalPDF = (props: TechnicalDataProps) => {
   const doc = new jsPDF('l', 'mm', 'a4'); // Use landscape since the drawing requires it
   const filename = `ficha_tecnica_${props.clientName.replace(/\s/g, '_').toLowerCase()}.pdf`;
 
-  // Página 1: Produção Laser (Desenho Vetorial)
-  drawProductionPage(doc, {
-      totalSteps: props.totalSteps,
-      stepHeightCm: props.stepHeightCm,
-      treadDepthCm: props.treadDepthCm,
-      widthCm: props.widthCm,
-      cutStepType: props.cutStepType,
-      clientName: props.clientName
-  });
+  let hasFirstPageDrawn = false;
+
+  if (props.quoteType !== 'guardrail') {
+      // Página 1: Produção Laser (Desenho Vetorial da escada)
+      drawProductionPage(doc, {
+          totalSteps: props.totalSteps,
+          stepHeightCm: props.stepHeightCm,
+          treadDepthCm: props.treadDepthCm,
+          widthCm: props.widthCm,
+          cutStepType: props.cutStepType,
+          clientName: props.clientName
+      });
+      hasFirstPageDrawn = true;
+  }
 
   if (props.landings && props.landings.length > 0) {
-      drawLandingsPage(doc, props.landings, props.clientName, props.totalSteps, props.wallFixation);
+      // Se for apenas guarda-corpo/patamar, removemos a indicação da parede (wallFixation = undefined)
+      const wallFix = props.quoteType === 'guardrail' ? undefined : props.wallFixation;
+      drawLandingsPage(doc, props.landings, props.clientName, props.totalSteps, wallFix);
       drawGuardrailsPage(doc, props.landings, props.clientName);
   }
 
-  // Página 2: Documento Técnico Pristine
-  doc.addPage('a4', 'p');
-  drawPristineTechnicalPage(doc, props);
+  if (props.quoteType !== 'guardrail') {
+      // Página 2: Documento Técnico Pristine
+      doc.addPage('a4', 'p');
+      drawPristineTechnicalPage(doc, props);
 
-  // Página 3: Matéria Prima (Opcional, mas mantida para preservar dados de cálculo)
-  doc.addPage('a4', 'p');
-  const addPageContent = (title: string, text: string) => {
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(18);
-      doc.text(title, 105, 20, { align: 'center' });
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Cliente: ${props.clientName}`, 20, 35);
-      doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 20, 42);
-      doc.line(20, 48, 190, 48);
-      doc.setFont('courier', 'bold'); 
-      doc.setFontSize(12);
-      doc.setTextColor(0, 0, 0);
-      const splitText = doc.splitTextToSize(text, 170);
-      doc.text(splitText, 20, 60);
-      doc.setFont('helvetica', 'italic');
-      doc.setFontSize(10);
-      doc.setTextColor(100);
-      doc.text("Zilinski Escadas - Sistema de Controle de Produção", 105, 280, { align: 'center' });
-  };
-  addPageContent("FICHA DE MATÉRIA PRIMA", generateMaterialDataText(props));
+      // Página 3: Matéria Prima 
+      doc.addPage('a4', 'p');
+      const addPageContent = (title: string, text: string) => {
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(18);
+          doc.text(title, 105, 20, { align: 'center' });
+          doc.setFontSize(12);
+          doc.setFont('helvetica', 'normal');
+          doc.text(`Cliente: ${props.clientName}`, 20, 35);
+          doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 20, 42);
+          doc.line(20, 48, 190, 48);
+          doc.setFont('courier', 'bold'); 
+          doc.setFontSize(12);
+          doc.setTextColor(0, 0, 0);
+          const splitText = doc.splitTextToSize(text, 170);
+          doc.text(splitText, 20, 60);
+          doc.setFont('helvetica', 'italic');
+          doc.setFontSize(10);
+          doc.setTextColor(100);
+          doc.text("Zilinski Escadas - Sistema de Controle de Produção", 105, 280, { align: 'center' });
+      };
+      addPageContent("FICHA DE MATÉRIA PRIMA", generateMaterialDataText(props));
+  }
+
+  // jsPDF começa com uma página em branco por padrão. Se não desenhamos a primeira página (escada), apagamos a primeira página original.
+  if (!hasFirstPageDrawn) {
+      doc.deletePage(1);
+  }
 
   doc.save(filename);
 };

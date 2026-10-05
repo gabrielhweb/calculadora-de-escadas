@@ -20,6 +20,7 @@ interface TechnicalBudgetProps {
   address?: string;
   zip?: string;
   optionalItems?: { id: string; name: string; price: number }[];
+  quoteType?: string;
 }
 
 export const TechnicalBudget: React.FC<TechnicalBudgetProps> = (props) => {

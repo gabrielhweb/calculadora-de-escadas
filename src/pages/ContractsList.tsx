@@ -491,7 +491,8 @@ export const ContractsList: React.FC = () => {
                 treadMaterial: getProp('treadMaterial') || 'wood',
                 address: parsedData?.userData?.address || '',
                 zip: parsedData?.userData?.zip || '',
-                optionalItems: getProp('optionalItems') || []
+                optionalItems: getProp('optionalItems') || [],
+                quoteType: getProp('quoteType') || 'stair'
             };
 
             // AUTO-FIX: Se não houver patamar nos dados estruturados, tenta extrair das notas (para os backups antigos)

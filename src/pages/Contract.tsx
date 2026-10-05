@@ -2360,6 +2360,7 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                         address={`${street}, ${number} - ${neighborhood}, ${city} - ${state}, ${zip}`}
                         zip={zip}
                         optionalItems={optionalItems}
+                        quoteType={contractFormatOverride !== 'auto' ? contractFormatOverride : (originalInputData?.quoteType || 'stair')}
                     />
 
                 </div>
