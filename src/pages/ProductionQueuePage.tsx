@@ -871,6 +871,11 @@ export default function ProductionQueue() {
                                                                     {item.title}
                                                                 </div>
                                                                 {item.source === 'queue' && (
+                                                                    <div className="text-[11px] font-bold mt-0.5 px-2 text-indigo-500 dark:text-indigo-400">
+                                                                        {percentPaid >= 100 ? "100% PAGO" + paymentMethodText : percentPaid > 0 ? `${percentPaid.toFixed(0)}% PAGO` + paymentMethodText : (paymentMethodText ? `0% PAGO` + paymentMethodText : 'AGUARDANDO PGTO')}
+                                                                    </div>
+                                                                )}
+                                                                {item.source === 'queue' && (
                                                                     <div className="mt-2 text-[10px]">
                                                                         <input
                                                                             type="email"

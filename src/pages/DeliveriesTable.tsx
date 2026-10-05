@@ -96,6 +96,8 @@ export const DeliveriesTable: React.FC = () => {
         const tread = getProp(parsedData, 'treadDepth') ?? getProp(parsedData, 'treadDepthCm') ?? getProp(parsedData, 'pisante');
         const height = getProp(parsedData, 'stepHeight') ?? getProp(parsedData, 'stepHeightCm') ?? getProp(parsedData, 'altura');
         const width = getProp(parsedData, 'stairWidth') ?? getProp(parsedData, 'widthCm') ?? getProp(parsedData, 'largura');
+        const quoteType = getProp(parsedData, 'quoteType') || 'stair';
+        const isIndependent = quoteType === 'landing' || quoteType === 'guardrail';
         
         let fixationText = "";
         const wallFix = getProp(parsedData, 'wallFixation');
@@ -113,25 +115,28 @@ export const DeliveriesTable: React.FC = () => {
             fixationText = "Fixação na Parede DIREITA";
         }
         
-        let med = fixationText ? `${fixationText}\n` : '';
-        med += `${steps} DEGRAUS\n`;
-        med += `PISADA: ${tread}cm\n`;
-        med += `ALT: ${height}cm\n`;
-        med += `LARGURA: ${width}cm\n`;
+        let med = fixationText && !isIndependent ? `${fixationText}\n` : '';
+        
+        if (!isIndependent) {
+            med += `${steps} DEGRAUS\n`;
+            med += `PISADA: ${tread}cm\n`;
+            med += `ALT: ${height}cm\n`;
+            med += `LARGURA: ${width}cm\n`;
 
-        const treadMaterial = getProp(parsedData, 'treadMaterial');
-        const woodType = getProp(parsedData, 'woodType');
+            const treadMaterial = getProp(parsedData, 'treadMaterial');
+            const woodType = getProp(parsedData, 'woodType');
 
-        if (treadMaterial === 'wood') {
-            let wood = 'MADEIRA';
-            if (woodType === 'garapeira') wood += ' (GARAPEIRA)';
-            if (woodType === 'muiracatiara') wood += ' (MUIRACATIARA)';
-            if (woodType === 'ambas') wood += ' (GARAPEIRA/MUIRACATIARA)';
-            med += `MATERIAL: ${wood}\n`;
-        } else if (treadMaterial === 'chapa_xadrez') {
-            med += `MATERIAL: CHAPA XADREZ\n`;
-        } else if (treadMaterial === 'chapa_vazada') {
-            med += `MATERIAL: CHAPA VAZADA\n`;
+            if (treadMaterial === 'wood') {
+                let wood = 'MADEIRA';
+                if (woodType === 'garapeira') wood += ' (GARAPEIRA)';
+                if (woodType === 'muiracatiara') wood += ' (MUIRACATIARA)';
+                if (woodType === 'ambas') wood += ' (GARAPEIRA/MUIRACATIARA)';
+                med += `MATERIAL: ${wood}\n`;
+            } else if (treadMaterial === 'chapa_xadrez') {
+                med += `MATERIAL: CHAPA XADREZ\n`;
+            } else if (treadMaterial === 'chapa_vazada') {
+                med += `MATERIAL: CHAPA VAZADA\n`;
+            }
         }
 
         const landings = getProp(parsedData, 'landings');

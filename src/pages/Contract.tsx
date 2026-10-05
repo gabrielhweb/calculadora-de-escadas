@@ -1299,6 +1299,8 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
     
     const handleRGChange = (e: any) => setClientRG(maskRG(e.target.value));
     const handlePersonTypeChange = (type: 'pf' | 'pj') => { setPersonType(type); setClientDoc(''); setClientRG(''); };
+    
+    const computedQuoteType = contractFormatOverride !== 'auto' ? contractFormatOverride : (originalInputData?.quoteType || 'stair');
 
     return (
         <div className="max-w-5xl mx-auto p-4 sm:p-6 md:p-12">
@@ -1398,16 +1400,20 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                     </div>
                     
                     <div className="space-y-6">
-                        <SectionTitle title="2. Especificações (Item 1)" />
-                        <div className="grid grid-cols-2 gap-4">
-                            <ContractInput label="Altura (cm)" value={totalHeight} onChange={(e: any) => setTotalHeight(e.target.value)} type="number" />
-                            <ContractInput label="Largura (cm)" value={width} onChange={(e: any) => setWidth(e.target.value)} type="number" />
-                        </div>
-                        <div className="grid grid-cols-3 gap-4">
-                            <ContractInput label="Total Peças" value={totalSteps} onChange={(e: any) => setTotalSteps(e.target.value)} type="number" />
-                            <ContractInput label="Pisante" value={treadDepth} onChange={(e: any) => setTreadDepth(e.target.value)} type="number" />
-                            <ContractInput label="Comprimento" value={totalLength} onChange={(e: any) => setTotalLength(e.target.value)} type="number" />
-                        </div>
+                        {computedQuoteType !== 'guardrail' && computedQuoteType !== 'landing' && (
+                            <>
+                                <SectionTitle title="2. Especificações (Item 1)" />
+                                <div className="grid grid-cols-2 gap-4">
+                                    <ContractInput label="Altura (cm)" value={totalHeight} onChange={(e: any) => setTotalHeight(e.target.value)} type="number" />
+                                    <ContractInput label="Largura (cm)" value={width} onChange={(e: any) => setWidth(e.target.value)} type="number" />
+                                </div>
+                                <div className="grid grid-cols-3 gap-4">
+                                    <ContractInput label="Total Peças" value={totalSteps} onChange={(e: any) => setTotalSteps(e.target.value)} type="number" />
+                                    <ContractInput label="Pisante" value={treadDepth} onChange={(e: any) => setTreadDepth(e.target.value)} type="number" />
+                                    <ContractInput label="Comprimento" value={totalLength} onChange={(e: any) => setTotalLength(e.target.value)} type="number" />
+                                </div>
+                            </>
+                        )}
 
                         <div className="flex items-center justify-between mb-4 mt-4">
                             <h3 className="text-sm font-black text-gray-900 dark:text-gray-100 uppercase flex items-center gap-2">
