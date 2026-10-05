@@ -1733,8 +1733,13 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                               </div>
 
                       {/* NOVO: CONTROLES DE MATERIAL E DIREÇÃO */}
+                      {(() => {
+                          const computedQuoteType = contractFormatOverride !== 'auto' ? contractFormatOverride : (originalInputData?.quoteType || 'stair');
+                          if (computedQuoteType === 'guardrail') return null;
+
+                          return (
                     <div className="space-y-6 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-                        <SectionTitle title="Detalhes da Escada" icon={<span>🪜</span>} />
+                        <SectionTitle title={computedQuoteType === 'landing' ? 'Detalhes do Patamar' : 'Detalhes da Escada'} icon={<span>🪜</span>} />
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {/* Material */}
@@ -1794,6 +1799,7 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                             </div>
 
                             {/* Direção */}
+                            {computedQuoteType !== 'landing' && (
                             <div>
                                 <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Desenho (Sentido da Subida)</label>
                                 <div className="flex gap-2">
@@ -1811,6 +1817,7 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                     </button>
                                 </div>
                             </div>
+                            )}
 
                             {/* Fixação na Parede */}
                             <div className="md:col-span-2">
@@ -1837,79 +1844,85 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                 </div>
                             </div>
 
-                            {/* Medidas Extras */}
-                            <div>
-                                <ContractInput 
-                                    label="Altura do Degrau (cm)" 
-                                    value={stepHeight} 
-                                    onChange={(e: any) => setStepHeight(e.target.value)} 
-                                    type="number"
-                                />
-                            </div>
-                            <div>
-                                <ContractInput 
-                                    label="Profundidade do Pisante (cm)" 
-                                    value={treadDepth} 
-                                    onChange={(e: any) => setTreadDepth(e.target.value)} 
-                                    type="number"
-                                />
-                            </div>
-                            <div>
-                                <ContractInput 
-                                    label="Amortecedores" 
-                                    value={dampers} 
-                                    onChange={(e: any) => setDampers(e.target.value)} 
-                                    type="number"
-                                    disabled={hasWheels || isFixedStair}
-                                />
-                            </div>
-                            
-                            {/* Opções de Modelo de Escada */}
-                            <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 items-end mt-2">
-                                <div className="flex flex-col gap-2">
-                                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
-                                        Modelo de Escada
-                                    </label>
-                                    <select
-                                        value={isFixedStair ? 'fixed' : (hasWheels ? 'wheels' : 'dampers')}
-                                        onChange={(e) => {
-                                            const val = e.target.value;
-                                            if (val === 'fixed') {
-                                                setIsFixedStair(true);
-                                                setHasWheels(false);
-                                            } else if (val === 'wheels') {
-                                                setIsFixedStair(false);
-                                                setHasWheels(true);
-                                            } else {
-                                                setIsFixedStair(false);
-                                                setHasWheels(false);
-                                            }
-                                        }}
-                                        className="w-full text-sm font-bold p-3 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 h-14"
-                                    >
-                                        <option value="dampers">Articulada Lateral / Amortecedor</option>
-                                        <option value="wheels">Avanço Frontal / Rodinha</option>
-                                        <option value="fixed">Escada Fixa</option>
-                                    </select>
-                                </div>
-
-                                {hasWheels && (
-                                    <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded border border-blue-100 dark:border-blue-800">
-                                        <label className="block text-xs font-bold text-blue-900 dark:text-blue-200 mb-1">Posição Corrimão (Rodinhas):</label>
-                                        <select 
-                                            value={handrailSide} 
-                                            onChange={(e) => setHandrailSide(e.target.value as 'left'|'right'|'both')}
-                                            className="w-full text-xs font-bold p-1 rounded bg-white dark:bg-gray-700 text-black dark:text-white border border-blue-200 dark:border-blue-700 outline-none focus:ring-1 focus:ring-highlight"
-                                        >
-                                            <option value="left">Só Esquerdo</option>
-                                            <option value="right">Só Direito</option>
-                                            <option value="both">Nos Dois Lados</option>
-                                        </select>
+                            {/* Medidas Extras e Opções */}
+                            {computedQuoteType !== 'landing' && (
+                                <>
+                                    <div>
+                                        <ContractInput 
+                                            label="Altura do Degrau (cm)" 
+                                            value={stepHeight} 
+                                            onChange={(e: any) => setStepHeight(e.target.value)} 
+                                            type="number"
+                                        />
                                     </div>
-                                )}
-                            </div>
+                                    <div>
+                                        <ContractInput 
+                                            label="Profundidade do Pisante (cm)" 
+                                            value={treadDepth} 
+                                            onChange={(e: any) => setTreadDepth(e.target.value)} 
+                                            type="number"
+                                        />
+                                    </div>
+                                    <div>
+                                        <ContractInput 
+                                            label="Amortecedores" 
+                                            value={dampers} 
+                                            onChange={(e: any) => setDampers(e.target.value)} 
+                                            type="number"
+                                            disabled={hasWheels || isFixedStair}
+                                        />
+                                    </div>
+                                    
+                                    {/* Opções de Modelo de Escada */}
+                                    <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 items-end mt-2">
+                                        <div className="flex flex-col gap-2">
+                                            <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
+                                                Modelo de Escada
+                                            </label>
+                                            <select
+                                                value={isFixedStair ? 'fixed' : (hasWheels ? 'wheels' : 'dampers')}
+                                                onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    if (val === 'fixed') {
+                                                        setIsFixedStair(true);
+                                                        setHasWheels(false);
+                                                    } else if (val === 'wheels') {
+                                                        setIsFixedStair(false);
+                                                        setHasWheels(true);
+                                                    } else {
+                                                        setIsFixedStair(false);
+                                                        setHasWheels(false);
+                                                    }
+                                                }}
+                                                className="w-full text-sm font-bold p-3 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 h-14"
+                                            >
+                                                <option value="dampers">Articulada Lateral / Amortecedor</option>
+                                                <option value="wheels">Avanço Frontal / Rodinha</option>
+                                                <option value="fixed">Escada Fixa</option>
+                                            </select>
+                                        </div>
+
+                                        {hasWheels && (
+                                            <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded border border-blue-100 dark:border-blue-800">
+                                                <label className="block text-xs font-bold text-blue-900 dark:text-blue-200 mb-1">Posição Corrimão (Rodinhas):</label>
+                                                <select 
+                                                    value={handrailSide} 
+                                                    onChange={(e) => setHandrailSide(e.target.value as 'left'|'right'|'both')}
+                                                    className="w-full text-xs font-bold p-1 rounded bg-white dark:bg-gray-700 text-black dark:text-white border border-blue-200 dark:border-blue-700 outline-none focus:ring-1 focus:ring-highlight"
+                                                >
+                                                    <option value="left">Só Esquerdo</option>
+                                                    <option value="right">Só Direito</option>
+                                                    <option value="both">Nos Dois Lados</option>
+                                                </select>
+                                            </div>
+                                        )}
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
+                          );
+                      })()}
 
                     <div className="space-y-6">
                         <SectionTitle title="3. Valores & Entrega" />
