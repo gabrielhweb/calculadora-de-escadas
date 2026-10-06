@@ -224,9 +224,9 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
                 if (landing.isAccessoriesOnly) {
                     let desc = '';
                     if (landing.hasGate) {
-                         desc = `- Portãozinho Avulso de ${landing.gateLength}cm x ${landing.gateHeight}cm`;
+                         desc = `- Portãozinho de ${landing.gateLength}cm x ${landing.gateHeight}cm`;
                     } else {
-                         desc = `- Guarda-Corpo Avulso (${landing.guardrailFormat || 'normal'}) com ${landing.guardrailHeight}cm alt.`;
+                         desc = `- Guarda-Corpo (${landing.guardrailFormat || 'normal'}) com ${landing.guardrailHeight}cm alt.`;
                     }
                     const price = formatCurrencyBRL(landing.price);
                     const availableWidth = pageWidth - (pageMargin * 2) - 40; 
@@ -571,6 +571,7 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
 };
 
 export default ProposalDocument;
+
 
 
 

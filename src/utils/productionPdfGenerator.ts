@@ -531,15 +531,18 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[], startY: num
             }
         }
 
-        // LADO DIREITO: Guarda-Corpo e Portão
-        const rightX = 105;
-        const rightW = 95;
+                // LADO DIREITO: Guarda-Corpo e Portão
+        const rightX = landing.isAccessoriesOnly ? 10 : 105;
+        const rightW = landing.isAccessoriesOnly ? 190 : 95;
 
         if (hasG || hasGate) {
             doc.setFontSize(14);
             doc.setFont('helvetica', 'bold');
             doc.setTextColor(0, 0, 0);
-            doc.text('Guarda-Corpo e Portão', rightX + rightW / 2, currentY, { align: 'center' });
+            let titleText = 'Guarda-Corpo e Portão';
+            if (hasG && !hasGate) titleText = 'Guarda-Corpo';
+            if (!hasG && hasGate) titleText = 'Portão';
+            doc.text(titleText, rightX + rightW / 2, currentY, { align: 'center' });
         }
 
         const pieces: any[] = [];
@@ -761,3 +764,4 @@ export const generateGuardrailsOnlyPDF = (landings: any[], clientName: string) =
 
     doc.save(`PROJETO_GUARDA_CORPO_${clientName.replace(/\s+/g, '_')}.pdf`);
 };
+

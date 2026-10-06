@@ -246,9 +246,9 @@ export const generateContractPDF = (data: ContractData) => {
       if (accessories.length > 0 && data.inputData.quoteType !== 'guardrail') {
           accessories.forEach((acc, idx) => {
               if (acc.hasGate) {
-                  addText(`-Portão Avulso ${idx + 1}: ${(acc.gateLength || 100) / 100}m (C) x ${(acc.gateHeight || 90) / 100}m (A)`, 11, false, 'left');
+                  addText(`-Portão ${idx + 1}: ${(acc.gateLength || 100) / 100}m (C) x ${(acc.gateHeight || 90) / 100}m (A)`, 11, false, 'left');
               } else if (acc.hasGuardrail) {
-                  addText(`-Guarda-Corpo Avulso ${idx + 1}: ${(acc.guardrailLength || 100) / 100}m (C) x ${(acc.guardrailHeight || 90) / 100}m (A)`, 11, false, 'left');
+                  addText(`-Guarda-Corpo ${idx + 1}: ${(acc.guardrailLength || 100) / 100}m (C) x ${(acc.guardrailHeight || 90) / 100}m (A)`, 11, false, 'left');
               }
           });
       }
@@ -582,6 +582,9 @@ export const generateContractPDF = (data: ContractData) => {
 
   doc.save(`contrato_${(data.userData?.name || 'cliente').toLowerCase().replace(/\s/g, '_')}.pdf`);
 };
+
+
+
 
 
 
