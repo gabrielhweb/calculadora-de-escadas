@@ -1453,7 +1453,8 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                         <span className="text-xs font-bold text-gray-400 absolute top-1 left-2">#{index + 1}</span>
                                         
                                         <div className="grid grid-cols-2 gap-2 mt-2">
-                                            {landing.isAccessoriesOnly !== true && (<>`n                                            <div className="mb-0 col-span-2">
+                                                                                        {landing.isAccessoriesOnly !== true && (<>
+                                            <div className="mb-0 col-span-2">
                                                 <div className="flex justify-between items-center mb-1">
                                                      <label className="text-sm font-black text-gray-900 dark:text-gray-100 mr-1">Posição</label>
                                                 </div>
@@ -2590,3 +2591,4 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
 };
 
 export default Contract;
+

@@ -193,7 +193,16 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
         
         // Valor da Escada
         if (!inputData.isAdendo) {
-            const escadaText = `-Valor Escada (${opt.structureSteps} degraus):`;
+            let escadaText = `-Valor Escada (${opt.structureSteps} degraus):`;
+            if (inputData.quoteType === 'guardrail') {
+                const lengthText = inputData.standaloneGuardrails 
+                    ? (inputData.standaloneGuardrails.reduce((sum, g) => sum + (Number(g.length) || 0), 0) / 100).toFixed(2) + 'm' 
+                    : (opt.totalLength / 100).toFixed(2) + 'm';
+                escadaText = `-Valor Guarda-Corpos/Portões (${lengthText}):`;
+            } else if (inputData.quoteType === 'landing') {
+                const landingsCount = opt.landings ? opt.landings.length : 1;
+                escadaText = `-Valor Patamares (${landingsCount} un):`;
+            }
             const escadaPrice = formatCurrencyBRL(structureOnly);
             doc.setFont('helvetica', 'normal');
             doc.text(escadaText, pageMargin, currentY);
@@ -562,6 +571,7 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
 };
 
 export default ProposalDocument;
+
 
 
 

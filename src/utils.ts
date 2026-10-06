@@ -112,6 +112,26 @@ export const getRouteInfoFromGemini = async (origin: string, destination: string
 };
 
 export const generateProposalDescription = (inputData: any, opt: any): string => {
+    if (inputData.quoteType === 'guardrail') {
+        const materialText = inputData.standaloneGuardrails?.[0]?.material === 'glass' ? 'Vidro' : 'Aço/Ferro';
+        const lengthCm = inputData.standaloneGuardrails?.reduce((sum: number, g: any) => sum + (Number(g.length) || 0), 0) || 0;
+        const lengthM = (lengthCm / 100).toFixed(2).replace('.', ',');
+        const qtty = inputData.standaloneGuardrails?.length || 1;
+        return `Orçamento para fornecimento de Guarda-Corpos e/ou Portões sob medida.\n- Quantidade de Peças/Sessões: ${qtty} unidades\n- Comprimento Total Projetado: ${lengthM} metros lineares\n- Material: Estrutura em aço carbono com fechamento em ${materialText}.`;
+    }
+    
+    if (inputData.quoteType === 'landing') {
+        const materialText = inputData.treadMaterial === 'wood' ? (inputData.woodType || 'Madeira') : 'Aço/Ferro';
+        const qtty = inputData.landings?.length || 1;
+        
+        let desc = `Patamar(es) sob medida em aço carbono com corte à laser.\n- Quantidade de Patamares: ${qtty} unidades\n`;
+        inputData.landings?.forEach((landing: any, idx: number) => {
+            desc += `- Patamar ${idx + 1}: ${landing.width}cm de largura x ${landing.length}cm de comprimento.\n`;
+        });
+        desc += `- Material dos Pisantes: ${materialText}.`;
+        return desc;
+    }
+
     if (inputData.isAdendo) {
         let desc = "Itens avulsos solicitados:\n";
         if (inputData.landings && inputData.landings.length > 0) {

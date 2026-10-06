@@ -196,6 +196,22 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
   };
 
   // ADICIONAR PATAMAR DE TOPO (ESPECÍFICO DO PEDIDO)
+    const handleAddGuardrail = () => {
+      const newLanding: LandingInfo = {
+          id: Date.now().toString(),
+          step: 0, price: 0, width: 0, length: 0, type: 'articulated', hasSideGuardrail: false, hasFrontGuardrail: false, direction: 'straight', isAngled: false,
+          isAccessoriesOnly: true, hasGuardrail: true, guardrailFormat: 'normal', guardrailSide: 'left', guardrailLength: 100, guardrailHeight: 90
+      };
+      setLandings([...landings, newLanding]);
+  };
+  const handleAddGate = () => {
+      const newLanding: LandingInfo = {
+          id: Date.now().toString(),
+          step: 0, price: 0, width: 0, length: 0, type: 'articulated', hasSideGuardrail: false, hasFrontGuardrail: false, direction: 'straight', isAngled: false,
+          isAccessoriesOnly: true, hasGate: true, gateSide: 'left', gateLength: 100, gateHeight: 90
+      };
+      setLandings([...landings, newLanding]);
+  };
   const handleAddTopLanding = () => {
     const lastStep = parseInt(desiredSteps) || 1;
     const newLanding: LandingInfo = {
@@ -255,23 +271,24 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
         position: doorPosition
     };
 
-    const formData: CalculatorInput = {
-      quoteType: mode === 'landing' ? 'landing' : 'stair', isAdendo: isAdendo,
-      totalHeight: heightInCm || 0,
-      desiredSteps: parseInt(desiredSteps, 10) || 0,
-      stairWidth: widthInCm,
-      treadDepth: depthInCm,
-      treadMaterial: treadMaterial,
-      woodType: treadMaterial === 'wood' ? woodType : undefined,
-      dampers: Number(dampers) || 0,
-      hasWheels: hasWheels,
-      isFixedStair: isFixedStair,
-      handrailSide: hasWheels ? handrailSide : undefined,
-      customStepPrice: customStepPrice ? parseFloat(customStepPrice) : undefined,
-      customTotalLength: lengthInCm || undefined,
-      customTotalLengthOption: customTotalLengthOption,
-      optionalItems: optionalItems,
-      landings: landings,
+          const formData: CalculatorInput = {
+        quoteType: mode === 'landing' ? 'landing' : 'stair', isAdendo: isAdendo,
+        totalHeight: heightInCm || 0,
+        desiredSteps: parseInt(desiredSteps, 10) || 0,
+        stairWidth: widthInCm,
+        treadDepth: depthInCm,
+        treadMaterial: treadMaterial,
+        woodType: treadMaterial === 'wood' ? woodType : undefined,
+        dampers: Number(dampers) || 0,
+        hasWheels: hasWheels,
+        isFixedStair: isFixedStair,
+        handrailSide: hasWheels ? handrailSide : undefined,
+        customStepPrice: customStepPrice ? parseFloat(customStepPrice) : undefined,
+        customTotalLength: lengthInCm || undefined,
+        customTotalLengthOption: customTotalLengthOption,
+        optionalItems: optionalItems,
+        landings: landings,
+        standaloneGuardrails: landings.filter(l => l.isAccessoriesOnly).length > 0 ? landings.filter(l => l.isAccessoriesOnly) : undefined,
       slabThickness: slabThickInCm,
       slabOpening: openingInCm || undefined,
       stairDirection: stairDirection,
@@ -782,14 +799,20 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                     Patamares ({landings.length})
                     <TooltipIcon text="Plataformas de descanso ou curva. Cada patamar substitui 1 degrau na contagem total de peças." />
                 </h3>
-                <div className="flex gap-2">
-                    <button type="button" onClick={handleAddTopLanding} className="text-xs bg-orange-600 text-white px-2 py-1 rounded font-bold hover:bg-orange-700 transition" title="Patamar no Topo (Acesso Lateral)">
-                        + Chegada
-                    </button>
-                    <button type="button" onClick={handleAddLanding} className="text-xs bg-gray-800 dark:bg-gray-700 text-white px-3 py-1 rounded font-bold hover:bg-black dark:hover:bg-gray-600 transition">
-                        + Meio
-                    </button>
-                </div>
+                                  <div className="flex gap-2">
+                      <button type="button" onClick={handleAddTopLanding} className="text-xs bg-orange-600 text-white px-2 py-1 rounded font-bold hover:bg-orange-700 transition" title="Patamar no Topo (Acesso Lateral)">
+                          + Chegada
+                      </button>
+                      <button type="button" onClick={handleAddLanding} className="text-xs bg-gray-800 dark:bg-gray-700 text-white px-3 py-1 rounded font-bold hover:bg-black dark:hover:bg-gray-600 transition">
+                          + Meio
+                      </button>
+                      <button type="button" onClick={handleAddGuardrail} className="text-xs bg-pink-600 text-white px-2 py-1 rounded font-bold hover:bg-pink-700 transition" title="Guarda-Corpo Avulso">
+                          + G. Corpo
+                      </button>
+                      <button type="button" onClick={handleAddGate} className="text-xs bg-indigo-600 text-white px-2 py-1 rounded font-bold hover:bg-indigo-700 transition" title="Portão Avulso">
+                          + Portão
+                      </button>
+                  </div>
             </div>
             
             {landings.length === 0 ? (
@@ -808,7 +831,8 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                             </button>
                             <span className="text-xs font-bold text-gray-400 absolute top-1 left-2">#{index + 1}</span>
                             
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
+                                {landing.isAccessoriesOnly !== true && (<>
                                 {/* Campos do patamar mantidos como estavam */}
                                 <div className="mb-0 col-span-2">
                                     <div className="flex justify-between items-center mb-1">
@@ -1016,6 +1040,8 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                                         </div>
                                     )}
                                 </div>
+                                </>)}
+
 
                                 {/* INÍCIO GUARDA CORPO */}
                                 <div className="col-span-2 bg-gray-50 dark:bg-gray-700/50 p-2 rounded border border-gray-100 dark:border-gray-700">
@@ -1318,6 +1344,11 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
 };
 
 export default CalculatorForm;
+
+
+
+
+
 
 
 

@@ -1465,18 +1465,25 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
                           const numSides = isGate ? 1 : (format === 'U' ? 3 : format === 'L' ? 2 : 1);
                           const titleBase = g.isLanding ? `Patamar ${g.idx}` : `Item ${g.idx}`;
 
-                          for (let i = 1; i <= numSides; i++) {
-                              let len = 0; let bars = 0;
-                              if (isGate) {
-                                  len = g.gateLength || 0; bars = g.gateBarsOverride || 0;
-                              } else {
-                                  if (i === 1) { len = g.guardrailLength || 0; bars = g.guardrailBarsOverride || 0; }
-                                  else if (i === 2) { len = g.guardrailLength2 || 0; bars = g.guardrailBarsOverride2 || 0; }
-                                  else if (i === 3) { len = g.guardrailLength3 || 0; bars = g.guardrailBarsOverride3 || 0; }
-                              }
-                              const height = isGate ? (g.gateHeight || 0) : (g.guardrailHeight || 90);
-                              
-                              let title = isGate ? `${titleBase} - Portão` : `${titleBase} - Lado ${i}`;
+                                                      for (let i = 1; i <= numSides; i++) {
+                                let len = 0; let bars = 0;
+                                if (isGate) {
+                                    len = g.gateLength || 0; bars = g.gateBarsOverride || 0;
+                                } else {
+                                    if (i === 1) { len = g.guardrailLength || 0; bars = g.guardrailBarsOverride || 0; }
+                                    else if (i === 2) { len = g.guardrailLength2 || 0; bars = g.guardrailBarsOverride2 || 0; }
+                                    else if (i === 3) { len = g.guardrailLength3 || 0; bars = g.guardrailBarsOverride3 || 0; }
+                                }
+                                const height = isGate ? (g.gateHeight || 0) : (g.guardrailHeight || 90);
+                                
+                                if (bars === 0 && len > 0) {
+                                    let innerL = len - 6;
+                                    if (innerL < 0) innerL = 0;
+                                    bars = Math.max(1, Math.round(innerL / 15)) + 1;
+                                }
+                                bars = Math.max(2, bars);
+
+                                let title = isGate ? titleBase + ' - Portão' : titleBase + ' - Lado ' + (i === 1 ? 'Direito' : i === 2 ? 'Esquerdo' : 'Frontal');
                               if (len > 0) {
                                   items.push(
                                       <div key={`${gi}-${i}`} className="flex flex-col items-center bg-gray-50 p-2 rounded border border-gray-200" style={{ transform: 'scale(0.8)', transformOrigin: 'top center' }}>
@@ -1696,3 +1703,5 @@ const isGuardrailOnly = inputData?.quoteType === 'guardrail';
 };
 
 export default StaircaseVisualizer;
+
+

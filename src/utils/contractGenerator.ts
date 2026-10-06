@@ -209,8 +209,9 @@ export const generateContractPDF = (data: ContractData) => {
 
   // --- LÓGICA PARA LISTAR PATAMARES COM TIPO ---
   if (data.selectedOption.landings && data.selectedOption.landings.length > 0) {
-      data.selectedOption.landings.forEach((landing, idx) => {
-          if (!landing) return;
+      let patamarIdx = 1;
+      data.selectedOption.landings.forEach((landing) => {
+          if (!landing || landing.isAccessoriesOnly) return;
           const baseTypeText = landing.type === 'fixed' ? 'FIXO' : 'ARTICULADO';
           const typeText = landing.isAngled ? `EM ÂNGULO ${baseTypeText}` : baseTypeText;
           
@@ -232,11 +233,24 @@ export const generateContractPDF = (data: ContractData) => {
           else if (landing.hasSideGuardrail) guardText = " + Guarda Corpo Lateral";
           else if (landing.hasFrontGuardrail) guardText = " + Guarda Corpo Frontal";
           
-          addText(`-Patamar ${idx+1} (${typeText} - ${dirText})${bracketText}: ${flushText} de ${lM}m (C) x ${wM}m (L)${guardText}`, 11, false, 'left');
+          addText(`-Patamar ${patamarIdx} (${typeText} - ${dirText})${bracketText}: ${flushText} de ${lM}m (C) x ${wM}m (L)${guardText}`, 11, false, 'left');
+          patamarIdx++;
       });
-      const totalMaoFrancesa = data.selectedOption.landings.reduce((sum, l) => sum + (l.frenchBrackets || 0), 0);
+      const totalMaoFrancesa = data.selectedOption.landings.reduce((sum, l) => sum + (l.isAccessoriesOnly ? 0 : (l.frenchBrackets || 0)), 0);
       if (totalMaoFrancesa > 0) {
           addText(`-Quantidade de Mão Francesa: ${totalMaoFrancesa}`, 11, false, 'left');
+      }
+
+      // Listar os acessórios avulsos (Guarda-Corpo/Portão)
+      const accessories = data.selectedOption.landings.filter(l => l.isAccessoriesOnly);
+      if (accessories.length > 0 && data.inputData.quoteType !== 'guardrail') {
+          accessories.forEach((acc, idx) => {
+              if (acc.hasGate) {
+                  addText(`-Portão Avulso ${idx + 1}: ${(acc.gateLength || 100) / 100}m (C) x ${(acc.gateHeight || 90) / 100}m (A)`, 11, false, 'left');
+              } else if (acc.hasGuardrail) {
+                  addText(`-Guarda-Corpo Avulso ${idx + 1}: ${(acc.guardrailLength || 100) / 100}m (C) x ${(acc.guardrailHeight || 90) / 100}m (A)`, 11, false, 'left');
+              }
+          });
       }
   }
 
@@ -244,7 +258,17 @@ export const generateContractPDF = (data: ContractData) => {
   // USAMOS OS VALORES EXPLICITOS PASSADOS PELA TELA AGORA
   
   if (!data.inputData.isAdendo) {
-      addText(`-Valor Escada (${computedStructureSteps} degraus): ${formatCurrencyBRL(data.finalStairPrice)}`, 11, false, 'left');
+      if (data.inputData.quoteType === 'guardrail') {
+          const lengthText = data.inputData.standaloneGuardrails 
+              ? (data.inputData.standaloneGuardrails.reduce((sum: number, g: any) => sum + (Number(g.length) || 0), 0) / 100).toFixed(2) + 'm' 
+              : (data.selectedOption.totalLength / 100).toFixed(2) + 'm';
+          addText(`-Valor Guarda-Corpos/Portões (${lengthText}): ${formatCurrencyBRL(data.finalStairPrice)}`, 11, false, 'left');
+      } else if (data.inputData.quoteType === 'landing') {
+          const landingsCount = data.selectedOption.landings ? data.selectedOption.landings.length : 1;
+          addText(`-Valor Patamares (${landingsCount} un): ${formatCurrencyBRL(data.finalStairPrice)}`, 11, false, 'left');
+      } else {
+          addText(`-Valor Escada (${computedStructureSteps} degraus): ${formatCurrencyBRL(data.finalStairPrice)}`, 11, false, 'left');
+      }
   }
 
   if (data.finalLandingsPrice > 0) {
@@ -558,5 +582,6 @@ export const generateContractPDF = (data: ContractData) => {
 
   doc.save(`contrato_${(data.userData?.name || 'cliente').toLowerCase().replace(/\s/g, '_')}.pdf`);
 };
+
 
 

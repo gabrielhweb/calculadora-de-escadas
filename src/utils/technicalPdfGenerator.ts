@@ -84,7 +84,7 @@ export const generateTechnicalDataText = (props: TechnicalDataProps) => {
 
   if (numLandings > 0) {
       report += `\nOrçamento ${clientName} 2\n`;
-      landings.forEach((l) => {
+      landings.filter(l => !l.isAccessoriesOnly).forEach((l) => {
           if (!l) return;
           const lLen = (l.length ? l.length * 10 : 0).toFixed(0);
           const lWidth = (l.width ? l.width * 10 : 0).toFixed(0);
@@ -191,7 +191,7 @@ export const generateMaterialDataText = (props: TechnicalDataProps) => {
 
   if (landings.length > 0) {
       report += `\nOrçamento ${clientName} 2\n`;
-      landings.forEach((l) => {
+      landings.filter(l => !l.isAccessoriesOnly).forEach((l) => {
           if (!l) return;
           const lLen = (l.length ? l.length * 10 : 0).toFixed(0);
           const lWidth = (l.width ? l.width * 10 : 0).toFixed(0);
@@ -249,14 +249,15 @@ export const drawPristineTechnicalPage = (doc: jsPDF, props: TechnicalDataProps)
         woodType
     } = props;
     
-    const hasLandings = landings && landings.length > 0;
-    const isAngledLanding = hasLandings && landings[0].isAngled;
+          const realLandingsForCount = landings ? landings.filter(l => !l.isAccessoriesOnly) : [];
+      const hasLandings = realLandingsForCount.length > 0;
+      const isAngledLanding = hasLandings && realLandingsForCount[0].isAngled;
     const typeOfLanding = hasLandings ? (isAngledLanding ? 'Patamar em ângulo' : 'Patamar reto') : 'N/A';
     
     const inclinationRad = Math.atan(stepHeightCm / treadDepthCm);
     const inclinationDeg = (inclinationRad * (180 / Math.PI)).toFixed(1);
     
-    const numSteps = totalSteps - (landings?.length || 0);
+    const numSteps = totalSteps - (realLandingsForCount.length);
     const widthWithMargin = widthCm + 5;
     const depthWithMargin = treadDepthCm + 5;
     const areaPerStepM2 = (widthWithMargin / 100) * (depthWithMargin / 100);
@@ -399,11 +400,16 @@ export const generateUnifiedTechnicalPDF = (props: TechnicalDataProps) => {
       hasFirstPageDrawn = true;
   }
 
-  if (props.landings && props.landings.length > 0) {
-      // Se for apenas guarda-corpo/patamar, removemos a indicação da parede (wallFixation = undefined)
+    if (props.landings && props.landings.length > 0) {
+      const realLandings = props.landings.filter(l => !l.isAccessoriesOnly);
       const wallFix = props.quoteType !== 'stair' ? undefined : props.wallFixation;
-      drawLandingsPage(doc, props.landings, props.clientName, props.totalSteps, wallFix);
-      drawGuardrailsPage(doc, props.landings, props.clientName);
+      if (realLandings.length > 0) {
+          drawLandingsPage(doc, realLandings, props.clientName, props.totalSteps, wallFix);
+      }
+      const acc = props.landings.filter(l => l.hasGuardrail || l.hasGate);
+      if (acc.length > 0) {
+          drawGuardrailsPage(doc, acc, props.clientName);
+      }
   }
 
   if (props.quoteType === 'stair') {
@@ -442,3 +448,7 @@ export const generateUnifiedTechnicalPDF = (props: TechnicalDataProps) => {
 
   doc.save(filename);
 };
+
+
+
+

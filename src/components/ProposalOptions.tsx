@@ -1150,14 +1150,30 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                                     </div>
                                 )}
                                 
-                                {/* Linha Patamares */}
-                                {inputData?.quoteType !== 'guardrail' && activeOption.landings.length > 0 && (
-                                     <div className="flex justify-between items-center">
+                                                                {/* Linha Patamares */}
+                                {inputData?.quoteType !== 'guardrail' && (() => {
+                                    const realLandings = activeOption.landings.filter(l => !l.isAccessoriesOnly);
+                                    if (realLandings.length === 0) return null;
+                                    return (
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-gray-600 dark:text-gray-300">
+                                                {realLandings.length} Patamares (Soma):
+                                            </span>
+                                            <span className="font-bold text-gray-800 dark:text-gray-200">
+                                                {formatCurrencyBRL(landingsPrice)}
+                                            </span>
+                                        </div>
+                                    );
+                                })()}
+                                
+                                {/* Linha Acessórios (Guarda-Corpo/Portão Avulso na Escada) */}
+                                {inputData?.quoteType !== 'guardrail' && inputData?.standaloneGuardrails && inputData.standaloneGuardrails.length > 0 && (
+                                    <div className="flex justify-between items-center">
                                         <span className="text-gray-600 dark:text-gray-300">
-                                            {activeOption.landings.length} Patamares (Soma):
+                                            {inputData.standaloneGuardrails.length} Guarda-Corpos/Portões:
                                         </span>
                                         <span className="font-bold text-gray-800 dark:text-gray-200">
-                                            {formatCurrencyBRL(landingsPrice)}
+                                            {formatCurrencyBRL(inputData.standaloneGuardrails.reduce((acc, g) => acc + (g.price || 0), 0))}
                                         </span>
                                     </div>
                                 )}
@@ -1453,4 +1469,5 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
 };
 
 export default ProposalOptions;
+
 
