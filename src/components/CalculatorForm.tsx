@@ -194,24 +194,23 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
     };
     setLandings([...landings, newLanding]);
   };
-
-  // ADICIONAR PATAMAR DE TOPO (ESPECÍFICO DO PEDIDO)
+    // ADICIONAR PATAMAR DE TOPO (ESPECÍFICO DO PEDIDO)
     const handleAddGuardrail = () => {
-      const newLanding: LandingInfo = {
-          id: Date.now().toString(),
-          step: 0, price: 0, width: 0, length: 0, type: 'articulated', hasSideGuardrail: false, hasFrontGuardrail: false, direction: 'straight', isAngled: false,
-          isAccessoriesOnly: true, hasGuardrail: true, guardrailFormat: 'normal', guardrailSide: 'left', guardrailLength: 100, guardrailHeight: 90
-      };
-      setLandings([...landings, newLanding]);
-  };
-  const handleAddGate = () => {
-      const newLanding: LandingInfo = {
-          id: Date.now().toString(),
-          step: 0, price: 0, width: 0, length: 0, type: 'articulated', hasSideGuardrail: false, hasFrontGuardrail: false, direction: 'straight', isAngled: false,
-          isAccessoriesOnly: true, hasGate: true, gateSide: 'left', gateLength: 100, gateHeight: 90
-      };
-      setLandings([...landings, newLanding]);
-  };
+        const newLanding: LandingInfo = {
+            id: Date.now().toString(),
+            step: 0, price: 415, width: 0, length: 0, type: 'articulated', hasSideGuardrail: false, hasFrontGuardrail: false, direction: 'straight', isAngled: false,
+            isAccessoriesOnly: true, hasGuardrail: true, guardrailFormat: 'normal', guardrailSide: 'left', guardrailLength: 100, guardrailHeight: 90
+        };
+        setLandings([...landings, newLanding]);
+    };
+    const handleAddGate = () => {
+        const newLanding: LandingInfo = {
+            id: Date.now().toString(),
+            step: 0, price: 415, width: 0, length: 0, type: 'articulated', hasSideGuardrail: false, hasFrontGuardrail: false, direction: 'straight', isAngled: false,
+            isAccessoriesOnly: true, hasGate: true, gateSide: 'left', gateLength: 100, gateHeight: 90
+        };
+        setLandings([...landings, newLanding]);
+    };
   const handleAddTopLanding = () => {
     const lastStep = parseInt(desiredSteps) || 1;
     const newLanding: LandingInfo = {
@@ -1344,6 +1343,8 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
 };
 
 export default CalculatorForm;
+
+
 
 
 
