@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { CalculatorInput, OptionalItem, LandingInfo, ReferenceDoor } from '../types';
 import { GuardrailEditor } from './GuardrailEditor';
 import { GuardrailPreview } from './GuardrailPreview';
+import { computeLandingPrice } from '../utils/landingPricing';
 
 interface CalculatorFormProps { mode?: 'stair' | 'landing';
   onCalculate: (data: CalculatorInput) => void;
@@ -236,7 +237,11 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
   const updateLanding = (id: string, updates: Partial<LandingInfo>) => {
       setLandings(prev => prev.map(l => {
           if (l.id === id) {
-              return { ...l, ...updates };
+              // Congela o preço da chapa na primeira edição pra não somar extras em cima de extras
+              const frozenChapa = (!l.isAccessoriesOnly && l.chapaPrice === undefined) ? { chapaPrice: Number(l.price) || 0 } : {};
+              const merged = { ...l, ...frozenChapa, ...updates };
+              // Preço sempre derivado: chapa + mão francesa + guarda-corpo + portão
+              return { ...merged, price: computeLandingPrice(merged) };
           }
           return l;
       }));
@@ -262,6 +267,9 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
         finalDampers = isNaN(dampersInt) ? 0 : dampersInt;
     }
 
+    // Garante que o preço de cada patamar/acessório vai com todos os extras somados
+    const pricedLandings = landings.map(l => ({ ...l, price: computeLandingPrice(l) }));
+
     const referenceDoorData: ReferenceDoor = {
         isActive: doorActive,
         width: parseFloat(doorWidth) || 0,
@@ -286,8 +294,8 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
         customTotalLength: lengthInCm || undefined,
         customTotalLengthOption: customTotalLengthOption,
         optionalItems: optionalItems,
-        landings: landings,
-        standaloneGuardrails: landings.filter(l => l.isAccessoriesOnly).length > 0 ? landings.filter(l => l.isAccessoriesOnly) : undefined,
+        landings: pricedLandings,
+        standaloneGuardrails: pricedLandings.filter(l => l.isAccessoriesOnly).length > 0 ? pricedLandings.filter(l => l.isAccessoriesOnly) : undefined,
       slabThickness: slabThickInCm,
       slabOpening: openingInCm || undefined,
       stairDirection: stairDirection,

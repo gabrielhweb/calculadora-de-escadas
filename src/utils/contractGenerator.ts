@@ -228,15 +228,18 @@ export const generateContractPDF = (data: ContractData) => {
           
           let flushText = landing.isFlushWithSlab ? "Rente a Laje" : "1 abaixo da Laje";
           
-          let guardText = "";
-          if (landing.hasSideGuardrail && landing.hasFrontGuardrail) guardText = " + Guarda Corpo Lat/Front";
-          else if (landing.hasSideGuardrail) guardText = " + Guarda Corpo Lateral";
-          else if (landing.hasFrontGuardrail) guardText = " + Guarda Corpo Frontal";
+                      let guardText = "";
+            if (landing.hasSideGuardrail && landing.hasFrontGuardrail) guardText = " + Guarda Corpo Lat/Front";
+            else if (landing.hasSideGuardrail) guardText = " + Guarda Corpo Lateral";
+            else if (landing.hasFrontGuardrail) guardText = " + Guarda Corpo Frontal";
+            
+            if (landing.hasGuardrail) guardText += " + Guarda Corpo";
+            if (landing.hasGate) guardText += " + Portão";
           
           addText(`-Patamar ${patamarIdx} (${typeText} - ${dirText})${bracketText}: ${flushText} de ${lM}m (C) x ${wM}m (L)${guardText}`, 11, false, 'left');
           patamarIdx++;
       });
-      const totalMaoFrancesa = data.selectedOption.landings.reduce((sum, l) => sum + (l.isAccessoriesOnly ? 0 : (l.frenchBrackets || 0)), 0);
+      const totalMaoFrancesa = data.selectedOption.landings.reduce((sum, l) => sum + (l.isAccessoriesOnly ? 0 : (l.hasFrenchBrackets ? (l.frenchBrackets !== undefined ? l.frenchBrackets : 2) : 0)), 0);
       if (totalMaoFrancesa > 0) {
           addText(`-Quantidade de Mão Francesa: ${totalMaoFrancesa}`, 11, false, 'left');
       }
@@ -582,6 +585,7 @@ export const generateContractPDF = (data: ContractData) => {
 
   doc.save(`contrato_${(data.userData?.name || 'cliente').toLowerCase().replace(/\s/g, '_')}.pdf`);
 };
+
 
 
 
