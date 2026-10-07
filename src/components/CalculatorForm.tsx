@@ -836,7 +836,10 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                             >
                                 x
                             </button>
-                            <span className="text-xs font-bold text-gray-400 absolute top-1 left-2">#{index + 1}</span>
+
+                              <span className="text-xs font-bold text-gray-500 absolute top-1 left-2 flex items-center gap-1 bg-white dark:bg-gray-800 px-1 rounded shadow-sm">
+                                  {landing.isAccessoriesOnly ? (landing.hasGate ? '🚪 Portão Avulso' : '🛠️ G.C. Avulso') : '🟧 Patamar'} #{index + 1}
+                              </span>
                             
                                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
                                 {landing.isAccessoriesOnly !== true && (<>
@@ -1155,7 +1158,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                                                         </select>
                                                     </div>
                                                 </div>
-                                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                                <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
                                                     <InputField 
                                                         label="Comp. Total" 
                                                         value={gateLength.toString()} 
@@ -1176,6 +1179,14 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                                                         onChange={e => updateLanding(landing.id, { gatePricePerMeter: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} 
                                                         unit="R$" 
                                                         className="mb-0"
+                                                    />
+                                                    <InputField 
+                                                        label="Valor Total"
+                                                        value={currentGatePrice.toString()} 
+                                                        onChange={() => {}} 
+                                                        unit="R$" 
+                                                        className="mb-0 bg-gray-100 dark:bg-gray-800 pointer-events-none"
+                                                        disabled={true}
                                                     />
                                                 </div>
 

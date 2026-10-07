@@ -70,7 +70,7 @@ function Calculator() {
         stepOptions = [0];
     }
 
-    const numLandings = data.landings.length;
+    const numLandings = data.landings.filter(l => !l.isAccessoriesOnly).length;
 
     const newOptions: ProposalOption[] = stepOptions.map((totalUnits, index) => {
       const structureSteps = data.isAdendo ? 0 : (totalUnits - numLandings);
@@ -100,7 +100,7 @@ function Calculator() {
       // CORREÇÃO: Cálculo correto de Espelhos (Risers)
       // Se tiver patamar rente à laje (no topo), ele já é o nível final, então NumEspelhos = NumPeças.
       // Se não tiver (ou for abaixo), precisa de mais 1 espelho para chegar na laje.
-      const hasFlushTopLanding = adjustedLandings.some(l => l.isLastStep && l.isFlushWithSlab);
+      const hasFlushTopLanding = adjustedLandings.some(l => !l.isAccessoriesOnly && l.isLastStep && l.isFlushWithSlab);
       const numRisers = hasFlushTopLanding ? totalUnits : totalUnits + 1;
       
       const calculatedStepHeight = data.totalHeight / numRisers;
@@ -116,7 +116,7 @@ function Calculator() {
           totalLength = data.customTotalLength!;
           // finalTreadDepth = (totalLength / totalUnits); <-- Lógica antiga simples
           
-          const landingsLen = adjustedLandings.reduce((acc, l) => acc + l.length, 0);
+          const landingsLen = adjustedLandings.reduce((acc, l) => acc + (l.isAccessoriesOnly ? 0 : l.length), 0);
           const stairsLen = totalLength - landingsLen;
           
           if (structureSteps > 0) {
@@ -128,7 +128,7 @@ function Calculator() {
           // *** ALTERAÇÃO: GAP AGORA É 0.5cm ***
           const gapPerStep = 0.5; 
           const stairsLength = structureSteps * (finalTreadDepth + gapPerStep);
-          const landingsLength = adjustedLandings.reduce((acc, l) => acc + l.length, 0);
+          const landingsLength = adjustedLandings.reduce((acc, l) => acc + (l.isAccessoriesOnly ? 0 : l.length), 0);
           totalLength = stairsLength + landingsLength;
       }
 

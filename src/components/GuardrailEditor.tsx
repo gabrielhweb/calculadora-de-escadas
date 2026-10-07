@@ -2,6 +2,7 @@ import React from "react";
 import { LandingInfo } from "../types";
 import { getAutoGuardrailLengths } from "./CalculatorForm";
 import { GuardrailPreview } from "./GuardrailPreview";
+import { getGuardrailPrice } from "../utils/landingPricing";
 
 export const GuardrailEditor = ({ landing, updateLanding, InputField, isGate = false, stairWidth = 0 }: any) => {
     const gFormat = landing.guardrailFormat || "normal";
@@ -233,6 +234,16 @@ export const GuardrailEditor = ({ landing, updateLanding, InputField, isGate = f
                         className="mb-0"
                     />
                 </div>
+                  <div className="flex-1 min-w-[110px]">
+                      <InputField 
+                          label="Valor Total"
+                          value={getGuardrailPrice(landing).toString()} 
+                          onChange={() => {}} 
+                          unit="R$" 
+                          className="mb-0 bg-gray-100 dark:bg-gray-800 pointer-events-none"
+                          disabled={true}
+                      />
+                  </div>
             </div>
 
             <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded border border-gray-200 dark:border-gray-700">
