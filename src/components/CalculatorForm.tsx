@@ -1315,193 +1315,210 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                             </div>
                         </div>
                     ); })}
+                  </div>
+              )}
+          </div>
 
-                    {true && (
-                        <div className="pt-4 mt-6 border-t border-gray-200 dark:border-gray-700">
-                            <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-sm font-black text-gray-900 dark:text-gray-100 uppercase flex items-center gap-2">
-                                    <span className="bg-pink-600 text-white w-6 h-6 flex items-center justify-center rounded-full text-xs">A</span>
-                                    Acessórios Avulsos ({landings.filter(l => l.isAccessoriesOnly).length})
-                                </h3>
-                                <div className="flex gap-2">
-                                    <button type="button" onClick={handleAddGuardrail} className="text-xs bg-pink-600 text-white px-2 py-1 rounded font-bold hover:bg-pink-700 transition" title="Guarda-Corpo Avulso">
-                                        + G. Corpo
-                                    </button>
-                                    <button type="button" onClick={handleAddGate} className="text-xs bg-indigo-600 text-white px-2 py-1 rounded font-bold hover:bg-indigo-700 transition" title="Portão Avulso">
-                                        + Portão
-                                    </button>
+
+        
+        {/* --- SEÇÃO GUARDA-CORPO AVULSO --- */}
+        <div className="pt-4 border-t border-gray-100 dark:border-gray-700 bg-pink-50 dark:bg-pink-900/10 -mx-6 px-6 pb-4">
+            <div className="flex items-center justify-between mb-4 mt-4">
+                <h3 className="text-sm font-black text-gray-900 dark:text-gray-100 uppercase flex items-center gap-2">
+                    <span className="bg-pink-600 text-white w-6 h-6 flex items-center justify-center rounded-full text-xs">G</span>
+                    Guarda-Corpo Avulso ({landings.filter(l => l.isAccessoriesOnly && l.hasGuardrail).length})
+                </h3>
+                <div className="flex gap-2">
+                    <button type="button" onClick={handleAddGuardrail} className="text-xs bg-pink-600 text-white px-2 py-1 rounded font-bold hover:bg-pink-700 transition" title="Guarda-Corpo Avulso">
+                        + G. Corpo
+                    </button>
+                </div>
+            </div>
+            
+            {landings.filter(l => l.isAccessoriesOnly && l.hasGuardrail).length === 0 ? (
+                <p className="text-xs text-gray-500 dark:text-gray-400 italic mb-2">Nenhum guarda-corpo avulso adicionado.</p>
+            ) : (
+                <div className="space-y-3">
+                    {landings.filter(l => l.isAccessoriesOnly && l.hasGuardrail).map((landing, idx) => {
+                        const index = landings.indexOf(landing);
+                        return (
+                            <div key={landing.id} className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-pink-200 dark:border-pink-800 shadow-sm relative">
+                                <button 
+                                    onClick={() => handleRemoveLanding(landing.id)}
+                                    type="button"
+                                    className="absolute -top-2 -right-2 bg-red-500 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shadow hover:bg-red-700"
+                                >
+                                    x
+                                </button>
+                                <span className="text-xs font-bold text-gray-500 absolute top-1 left-2 flex items-center gap-1 bg-white dark:bg-gray-800 px-1 rounded shadow-sm">
+                                    🛠️ G.C. Avulso #{index + 1}
+                                </span>
+                                <div className="mt-6">
+                                    <GuardrailEditor landing={landing} updateLanding={updateLanding} InputField={InputField} stairWidth={convertToCm(stairWidth, widthUnit)} />
                                 </div>
                             </div>
-                            {landings.filter(l => l.isAccessoriesOnly).length === 0 ? (
-                                <p className="text-xs text-gray-500 dark:text-gray-400 italic mb-2">Nenhum acessório avulso adicionado.</p>
-                            ) : (
-                                <div className="space-y-3">
-                                    {landings.filter(l => l.isAccessoriesOnly).map((landing, idx) => {
-                                    const index = landings.indexOf(landing);
-                                    return (
-                                        <div key={landing.id} className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-pink-200 dark:border-pink-800 shadow-sm relative">
-                                            <button 
-                                                onClick={() => handleRemoveLanding(landing.id)}
-                                                type="button"
-                                                className="absolute -top-2 -right-2 bg-red-500 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shadow hover:bg-red-700"
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+
+        {/* --- SEÇÃO PORTÃO AVULSO --- */}
+        <div className="pt-4 border-t border-gray-100 dark:border-gray-700 bg-indigo-50 dark:bg-indigo-900/10 -mx-6 px-6 pb-4">
+            <div className="flex items-center justify-between mb-4 mt-4">
+                <h3 className="text-sm font-black text-gray-900 dark:text-gray-100 uppercase flex items-center gap-2">
+                    <span className="bg-indigo-600 text-white w-6 h-6 flex items-center justify-center rounded-full text-xs">P</span>
+                    Portão Avulso ({landings.filter(l => l.isAccessoriesOnly && l.hasGate).length})
+                </h3>
+                <div className="flex gap-2">
+                    <button type="button" onClick={handleAddGate} className="text-xs bg-indigo-600 text-white px-2 py-1 rounded font-bold hover:bg-indigo-700 transition" title="Portão Avulso">
+                        + Portão
+                    </button>
+                </div>
+            </div>
+            
+            {landings.filter(l => l.isAccessoriesOnly && l.hasGate).length === 0 ? (
+                <p className="text-xs text-gray-500 dark:text-gray-400 italic mb-2">Nenhum portão avulso adicionado.</p>
+            ) : (
+                <div className="space-y-3">
+                    {landings.filter(l => l.isAccessoriesOnly && l.hasGate).map((landing, idx) => {
+                        const index = landings.indexOf(landing);
+                        
+                        const gateLength = landing.gateLength !== undefined ? landing.gateLength : 100;
+                        const gateHeight = landing.gateHeight !== undefined ? landing.gateHeight : 90;
+                        const gatePricePerMeter = landing.gatePricePerMeter !== undefined ? landing.gatePricePerMeter : 50;
+                        
+                        let innerL = gateLength - 6;
+                        if (innerL < 0) innerL = 0;
+                        const baseGaps = Math.max(1, Math.round(innerL / 15));
+                        const baseBars = baseGaps + 1;
+                        
+                        let totalBars = landing.gateBarsOverride !== undefined ? landing.gateBarsOverride : baseBars;
+                        totalBars = Math.max(2, totalBars);
+                        
+                        let totalVerticalMeters = totalBars * (gateHeight / 100);
+                        let totalHorizontalMeters = 2 * (gateLength / 100);
+                        let gateTotalMeters = totalVerticalMeters + totalHorizontalMeters;
+                        let currentGatePrice = Math.round(gateTotalMeters * gatePricePerMeter);
+                        
+                        let numInterBars = totalBars - 2;
+                        let numGaps = numInterBars + 1;
+                        let exactGap = (innerL - (numInterBars * 3)) / numGaps;
+
+                        const gateSidesOptions = ["Direita", "Esquerda", "Frente", "Atrás", "Início da escada", "Fim da escada"];
+                        const availableGateSides = gateSidesOptions;
+
+                        return (
+                            <div key={landing.id} className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-indigo-200 dark:border-indigo-800 shadow-sm relative">
+                                <button 
+                                    onClick={() => handleRemoveLanding(landing.id)}
+                                    type="button"
+                                    className="absolute -top-2 -right-2 bg-red-500 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shadow hover:bg-red-700"
+                                >
+                                    x
+                                </button>
+                                <span className="text-xs font-bold text-gray-500 absolute top-1 left-2 flex items-center gap-1 bg-white dark:bg-gray-800 px-1 rounded shadow-sm">
+                                    🚪 Portão Avulso #{index + 1}
+                                </span>
+                                
+                                <div className="mt-6 space-y-3">
+                                    <div className="flex gap-2">
+                                        <div className="flex-1">
+                                            <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Lado/Orientação do Portão:</label>
+                                            <select
+                                                value={landing.gateSide || ''}
+                                                onChange={(e) => updateLanding(landing.id, { gateSide: e.target.value })}
+                                                className="w-full text-xs font-bold p-2 text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded border border-gray-300 dark:border-gray-600 outline-none focus:border-highlight"
                                             >
-                                                x
-                                            </button>
-                                            <span className="text-xs font-bold text-gray-500 absolute top-1 left-2 flex items-center gap-1 bg-white dark:bg-gray-800 px-1 rounded shadow-sm">
-                                                {landing.hasGate ? '🚪 Portão Avulso' : '🛠️ G.C. Avulso'} #{index + 1}
-                                            </span>
-                                            
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6">
-                                                <div className="col-span-2">
-                                                    {landing.hasGuardrail && <GuardrailEditor landing={landing} updateLanding={updateLanding} InputField={InputField} stairWidth={convertToCm(stairWidth, widthUnit)} />}
+                                                <option value="">Selecione...</option>
+                                                {availableGateSides.map(side => (
+                                                    <option key={side} value={side}>{side}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
+                                        <InputField 
+                                            label="Comp. Total" 
+                                            value={gateLength.toString()} 
+                                            onChange={e => updateLanding(landing.id, { gateLength: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} 
+                                            unit="cm" 
+                                            className="mb-0"
+                                        />
+                                        <InputField 
+                                            label="Altura" 
+                                            value={gateHeight.toString()} 
+                                            onChange={e => updateLanding(landing.id, { gateHeight: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} 
+                                            unit="cm" 
+                                            className="mb-0"
+                                        />
+                                        <InputField 
+                                            label="R$/Metro" 
+                                            value={gatePricePerMeter.toString()} 
+                                            onChange={e => updateLanding(landing.id, { gatePricePerMeter: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} 
+                                            unit="R$" 
+                                            className="mb-0"
+                                        />
+                                        <InputField 
+                                            label="Valor Total"
+                                            value={currentGatePrice.toString()} 
+                                            onChange={() => {}} 
+                                            unit="R$" 
+                                            className="mb-0 bg-gray-100 dark:bg-gray-800 pointer-events-none"
+                                            disabled={true}
+                                        />
+                                    </div>
+
+                                    <div className="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-600 text-center">
+                                        <p className="text-[10px] uppercase font-bold text-gray-500 mb-2">Prévia do Portão</p>
+                                        <GuardrailPreview length={gateLength} height={gateHeight} totalBars={totalBars} isGate={true} />
+                                        <div className="mt-4 flex flex-col gap-2">
+                                            <p className="text-[10px] font-bold text-gray-500 uppercase text-center">Configuração de Barras</p>
+                                            <div className="flex gap-2 items-center">
+                                                <div className="flex-1">
+                                                    <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Qtd. Tubos</label>
+                                                    <input
+                                                        type="number"
+                                                        value={totalBars}
+                                                        onChange={(e: any) => {
+                                                            const val = parseInt(e.target.value);
+                                                            if (isNaN(val) || val < 2) return;
+                                                            updateLanding(landing.id, { gateBarsOverride: val });
+                                                        }}
+                                                        onBlur={(e: any) => {
+                                                            const val = parseFloat(e.target.value);
+                                                            if (!isNaN(val) && val > 0) {
+                                                                const gapsCalc = (innerL + 3) / (val + 3);
+                                                                const impliedBars = Math.round(gapsCalc) + 1;
+                                                                if (impliedBars >= 2 && impliedBars !== totalBars) {
+                                                                    if (window.confirm(`Com esse vão de ${val}cm, a quantidade ideal de tubos seria ${impliedBars} (atualmente está ${totalBars}). Deseja ajustar a quantidade de tubos automaticamente?`)) {
+                                                                        updateLanding(landing.id, { gateBarsOverride: impliedBars });
+                                                                    }
+                                                                }
+                                                            }
+                                                        }}
+                                                        className="w-full text-center font-bold text-sm bg-transparent outline-none border-b border-gray-300 focus:border-highlight"
+                                                    />
                                                 </div>
-
-                                                {/* INICIO PORTAO AVULSO */}
-                                                {landing.hasGate && (() => {
-                                                    const gateLength = landing.gateLength !== undefined ? landing.gateLength : 100;
-                                                    const gateHeight = landing.gateHeight !== undefined ? landing.gateHeight : 90;
-                                                    const gatePricePerMeter = landing.gatePricePerMeter !== undefined ? landing.gatePricePerMeter : 50;
-                                                    
-                                                    let innerL = gateLength - 6;
-                                                    if (innerL < 0) innerL = 0;
-                                                    const baseGaps = Math.max(1, Math.round(innerL / 15));
-                                                    const baseBars = baseGaps + 1;
-                                                    
-                                                    let totalBars = landing.gateBarsOverride !== undefined ? landing.gateBarsOverride : baseBars;
-                                                    totalBars = Math.max(2, totalBars);
-                                                    
-                                                    let totalVerticalMeters = totalBars * (gateHeight / 100);
-                                                    let totalHorizontalMeters = 2 * (gateLength / 100);
-                                                    let gateTotalMeters = totalVerticalMeters + totalHorizontalMeters;
-                                                    let currentGatePrice = Math.round(gateTotalMeters * gatePricePerMeter);
-                                                    
-                                                    const gateOptions = [
-                                                        { bars: baseBars - 1, label: '-1 Barra' },
-                                                        { bars: baseBars, label: 'Padrão' },
-                                                        { bars: baseBars + 1, label: '+1 Barra' }
-                                                    ].filter(o => o.bars >= 2);
-
-                                                    let numInterBars = totalBars - 2;
-                                                    let numGaps = numInterBars + 1;
-                                                    let exactGap = (innerL - (numInterBars * 3)) / numGaps;
-
-                                                    const gateSidesOptions = ["Direita", "Esquerda", "Frente", "Atrás", "Início da escada", "Fim da escada"];
-                                                    const gSide = (landing.guardrailSide || '').toLowerCase();
-                                                    const availableGateSides = gateSidesOptions.filter(side => {
-                                                        if (!landing.hasGuardrail || !gSide) return true;
-                                                        const s = side.toLowerCase();
-                                                        if (s.includes('escada')) return true;
-                                                        return !gSide.includes(s);
-                                                    });
-
-                                                    return (
-                                                        <div className="mt-2 space-y-3 col-span-2">
-                                                            <div className="flex gap-2">
-                                                                <div className="flex-1">
-                                                                    <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Lado/Orientação do Portão:</label>
-                                                                    <select
-                                                                        value={landing.gateSide || ''}
-                                                                        onChange={(e) => updateLanding(landing.id, { gateSide: e.target.value })}
-                                                                        className="w-full text-xs font-bold p-2 text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded border border-gray-300 dark:border-gray-600 outline-none focus:border-highlight"
-                                                                    >
-                                                                        <option value="">Selecione...</option>
-                                                                        {availableGateSides.map(side => (
-                                                                            <option key={side} value={side}>{side}</option>
-                                                                        ))}
-                                                                    </select>
-                                                                </div>
-                                                            </div>
-                                                            <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
-                                                                <InputField 
-                                                                    label="Comp. Total" 
-                                                                    value={gateLength.toString()} 
-                                                                    onChange={e => updateLanding(landing.id, { gateLength: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} 
-                                                                    unit="cm" 
-                                                                    className="mb-0"
-                                                                />
-                                                                <InputField 
-                                                                    label="Altura" 
-                                                                    value={gateHeight.toString()} 
-                                                                    onChange={e => updateLanding(landing.id, { gateHeight: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} 
-                                                                    unit="cm" 
-                                                                    className="mb-0"
-                                                                />
-                                                                <InputField 
-                                                                    label="R$/Metro" 
-                                                                    value={gatePricePerMeter.toString()} 
-                                                                    onChange={e => updateLanding(landing.id, { gatePricePerMeter: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} 
-                                                                    unit="R$" 
-                                                                    className="mb-0"
-                                                                />
-                                                                <InputField 
-                                                                    label="Valor Total"
-                                                                    value={currentGatePrice.toString()} 
-                                                                    onChange={() => {}} 
-                                                                    unit="R$" 
-                                                                    className="mb-0 bg-gray-100 dark:bg-gray-800 pointer-events-none"
-                                                                    disabled={true}
-                                                                />
-                                                            </div>
-
-                                                            <div className="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-600 text-center">
-                                                                <p className="text-[10px] uppercase font-bold text-gray-500 mb-2">Prévia do Portão</p>
-                                                                <GuardrailPreview length={gateLength} height={gateHeight} totalBars={totalBars} isGate={true} />
-                                                                <div className="mt-4 flex flex-col gap-2">
-                                                                    <p className="text-[10px] font-bold text-gray-500 uppercase text-center">Configuração de Barras</p>
-                                                                    <div className="flex gap-2 items-center">
-                                                                        <div className="flex-1">
-                                                                            <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Qtd. Tubos</label>
-                                                                            <input
-                                                                                type="number"
-                                                                                value={totalBars}
-                                                                                onChange={(e: any) => {
-                                                                                    const val = parseInt(e.target.value);
-                                                                                    if (isNaN(val) || val < 2) return;
-                                                                                    updateLanding(landing.id, { gateBarsOverride: val });
-                                                                                }}
-                                                                                onBlur={(e: any) => {
-                                                                                    const val = parseFloat(e.target.value);
-                                                                                    if (!isNaN(val) && val > 0) {
-                                                                                        const gapsCalc = (innerL + 3) / (val + 3);
-                                                                                        const impliedBars = Math.round(gapsCalc) + 1;
-                                                                                        if (impliedBars >= 2 && impliedBars !== totalBars) {
-                                                                                            if (window.confirm(`Com esse vão de ${val}cm, a quantidade ideal de tubos seria ${impliedBars} (atualmente está ${totalBars}). Deseja ajustar a quantidade de tubos automaticamente?`)) {
-                                                                                                updateLanding(landing.id, { gateBarsOverride: impliedBars });
-                                                                                            }
-                                                                                        }
-                                                                                    }
-                                                                                }}
-                                                                                className="w-full text-center font-bold text-sm bg-transparent outline-none border-b border-gray-300 focus:border-highlight"
-                                                                            />
-                                                                        </div>
-                                                                        <div className="flex-1">
-                                                                            <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Folga/Vão</label>
-                                                                            <input
-                                                                                type="number"
-                                                                                value={parseFloat(exactGap.toFixed(1))}
-                                                                                readOnly
-                                                                                className="w-full text-center font-bold text-sm bg-transparent outline-none border-b border-gray-300 pointer-events-none"
-                                                                            />
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className="flex justify-center gap-2 mt-3">
-                                                                        <button onClick={() => updateLanding(landing.id, { gateBarsOverride: undefined })} className="text-[10px] text-blue-500 hover:underline">Restaurar Padrão Automático</button>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    );
-                                                })()}
-                                                {/* FIM PORTAO */}
-
+                                                <div className="flex-1">
+                                                    <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Folga/Vão</label>
+                                                    <input
+                                                        type="number"
+                                                        value={parseFloat(exactGap.toFixed(1))}
+                                                        readOnly
+                                                        className="w-full text-center font-bold text-sm bg-transparent outline-none border-b border-gray-300 pointer-events-none"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="flex justify-center gap-2 mt-3">
+                                                <button onClick={() => updateLanding(landing.id, { gateBarsOverride: undefined })} className="text-[10px] text-blue-500 hover:underline">Restaurar Padrão Automático</button>
                                             </div>
                                         </div>
-                                    );
-                                })}
+                                    </div>
+                                </div>
                             </div>
-                            )}
-                        </div>
-                    )}
+                        );
+                    })}
                 </div>
             )}
         </div>
