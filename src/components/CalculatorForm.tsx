@@ -813,16 +813,12 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                       <button type="button" onClick={handleAddLanding} className="text-xs bg-gray-800 dark:bg-gray-700 text-white px-3 py-1 rounded font-bold hover:bg-black dark:hover:bg-gray-600 transition">
                           + Meio
                       </button>
-                      <button type="button" onClick={handleAddGuardrail} className="text-xs bg-pink-600 text-white px-2 py-1 rounded font-bold hover:bg-pink-700 transition" title="Guarda-Corpo Avulso">
-                          + G. Corpo
-                      </button>
-                      <button type="button" onClick={handleAddGate} className="text-xs bg-indigo-600 text-white px-2 py-1 rounded font-bold hover:bg-indigo-700 transition" title="Portão Avulso">
-                          + Portão
-                      </button>
+                      
+                      
                   </div>
             </div>
             
-            {landings.length === 0 ? (
+            {landings.filter(l => !l.isAccessoriesOnly).length === 0 ? (
                 <p className="text-xs text-gray-500 dark:text-gray-400 italic mb-2">Nenhum patamar adicionado.</p>
             ) : (
                 <div className="space-y-3">
@@ -1320,14 +1316,27 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                         </div>
                     ); })}
 
-                    {landings.filter(l => l.isAccessoriesOnly).length > 0 && (
+                    {true && (
                         <div className="pt-4 mt-6 border-t border-gray-200 dark:border-gray-700">
-                            <h3 className="text-sm font-black text-gray-900 dark:text-gray-100 uppercase mb-4 flex items-center gap-2">
-                                <span className="bg-pink-600 text-white w-6 h-6 flex items-center justify-center rounded-full text-xs">A</span>
-                                Acessórios Avulsos ({landings.filter(l => l.isAccessoriesOnly).length})
-                            </h3>
-                            <div className="space-y-3">
-                                {landings.filter(l => l.isAccessoriesOnly).map((landing, idx) => {
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-sm font-black text-gray-900 dark:text-gray-100 uppercase flex items-center gap-2">
+                                    <span className="bg-pink-600 text-white w-6 h-6 flex items-center justify-center rounded-full text-xs">A</span>
+                                    Acessórios Avulsos ({landings.filter(l => l.isAccessoriesOnly).length})
+                                </h3>
+                                <div className="flex gap-2">
+                                    <button type="button" onClick={handleAddGuardrail} className="text-xs bg-pink-600 text-white px-2 py-1 rounded font-bold hover:bg-pink-700 transition" title="Guarda-Corpo Avulso">
+                                        + G. Corpo
+                                    </button>
+                                    <button type="button" onClick={handleAddGate} className="text-xs bg-indigo-600 text-white px-2 py-1 rounded font-bold hover:bg-indigo-700 transition" title="Portão Avulso">
+                                        + Portão
+                                    </button>
+                                </div>
+                            </div>
+                            {landings.filter(l => l.isAccessoriesOnly).length === 0 ? (
+                                <p className="text-xs text-gray-500 dark:text-gray-400 italic mb-2">Nenhum acessório avulso adicionado.</p>
+                            ) : (
+                                <div className="space-y-3">
+                                    {landings.filter(l => l.isAccessoriesOnly).map((landing, idx) => {
                                     const index = landings.indexOf(landing);
                                     return (
                                         <div key={landing.id} className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-pink-200 dark:border-pink-800 shadow-sm relative">
@@ -1490,6 +1499,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                                     );
                                 })}
                             </div>
+                            )}
                         </div>
                     )}
                 </div>
