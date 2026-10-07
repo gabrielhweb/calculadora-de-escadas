@@ -275,8 +275,10 @@ export const generateContractPDF = (data: ContractData) => {
   }
 
   if (data.finalLandingsPrice > 0) {
-      addText(`-Valor Patamares (Total): ${formatCurrencyBRL(data.finalLandingsPrice)}`, 11, false, 'left');
-  }
+        const hasAccessories = data.selectedOption?.landings?.some(l => l.isAccessoriesOnly);
+        const label = hasAccessories ? 'Valor Patamares / Acessórios (Total)' : 'Valor Patamares (Total)';
+        addText(`-${label}: ${formatCurrencyBRL(data.finalLandingsPrice)}`, 11, false, 'left');
+    }
   
   const structureTotal = data.finalStairPrice + data.finalLandingsPrice;
   

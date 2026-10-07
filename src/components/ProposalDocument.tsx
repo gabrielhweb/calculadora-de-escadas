@@ -189,7 +189,8 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
         // ... (rest of the function remains mostly same)
 
         const landingsPrice = opt.landings.reduce((acc, l) => acc + (l.isAccessoriesOnly ? 0 : l.price), 0);
-        const structureOnly = opt.totalPrice - landingsPrice;
+        const accessoriesPrice = opt.landings.reduce((acc, l) => acc + (l.isAccessoriesOnly ? l.price : 0), 0);
+        const structureOnly = opt.totalPrice - landingsPrice - accessoriesPrice;
         
         // Valor da Escada
         if (!inputData.isAdendo) {
