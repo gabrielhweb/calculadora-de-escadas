@@ -1418,7 +1418,7 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                         <div className="flex items-center justify-between mb-4 mt-4">
                             <h3 className="text-sm font-black text-gray-900 dark:text-gray-100 uppercase flex items-center gap-2">
                                 <span className="bg-highlight text-white w-6 h-6 flex items-center justify-center rounded-full text-xs">+</span>
-                                Patamares / Guardas-Corpo ({landings.length})
+                                Patamares ({landings.filter((l: any) => !l.isAccessoriesOnly).length})
                             </h3>
                             <div className="flex gap-2">
                                 <button type="button" onClick={handleAddTopLanding} className="text-xs bg-orange-600 text-white px-2 py-1 rounded font-bold hover:bg-orange-700 transition" title="Patamar no Topo (Acesso Lateral)">
@@ -1427,21 +1427,17 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                 <button type="button" onClick={handleAddLanding} className="text-xs bg-gray-800 dark:bg-gray-700 text-white px-3 py-1 rounded font-bold hover:bg-black dark:hover:bg-gray-600 transition">
                                     + Meio
                                 </button>
-                                <button type="button" onClick={handleAddGuardrail} className="text-xs bg-pink-600 text-white px-2 py-1 rounded font-bold hover:bg-pink-700 transition" title="Guarda-Corpo Avulso">
-                                    + G. Corpo
-                                </button>
-                                <button type="button" onClick={handleAddGate} className="text-xs bg-indigo-600 text-white px-2 py-1 rounded font-bold hover:bg-indigo-700 transition" title="Portão Avulso">
-                                    + Portão
-                                </button>
                             </div>
                         </div>
                         
-                        {landings.length === 0 ? (
+                        {landings.filter((l: any) => !l.isAccessoriesOnly).length === 0 ? (
                             <p className="text-xs text-gray-500 dark:text-gray-400 italic mb-2">Nenhum patamar adicionado.</p>
                         ) : (
                             <div className="space-y-3">
                                 <p className="text-[10px] text-orange-800 dark:text-orange-300 font-bold mb-2">* Cada patamar substitui 1 degrau.</p>
-                                {landings.map((landing, index) => (
+                                {landings.filter((l: any) => !l.isAccessoriesOnly).map((landing, idx) => {
+                                    const index = landings.indexOf(landing);
+                                    return (
                                     <div key={landing.id} className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-orange-200 dark:border-orange-800 shadow-sm relative">
                                         <button 
                                             onClick={() => handleRemoveLanding(landing.id)}
@@ -1453,7 +1449,6 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                         <span className="text-xs font-bold text-gray-400 absolute top-1 left-2">#{index + 1}</span>
                                         
                                         <div className="grid grid-cols-2 gap-2 mt-2">
-                                                                                        {landing.isAccessoriesOnly !== true && (<>
                                             <div className="mb-0 col-span-2">
                                                 <div className="flex justify-between items-center mb-1">
                                                      <label className="text-sm font-black text-gray-900 dark:text-gray-100 mr-1">Posição</label>
@@ -1469,71 +1464,32 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                                                     isFlushWithSlab: e.target.checked ? landing.isFlushWithSlab : false
                                                                 });
                                                             }} 
-                                                            className="w-4 h-4 accent-highlight"
-                                                         />
-                                                         <span className="text-xs font-bold text-gray-700 dark:text-gray-200 uppercase">Topo (Chegada)?</span>
+                                                            className="w-4 h-4 accent-blue-600"
+                                                        />
+                                                        <span className="text-xs font-medium text-gray-600 dark:text-gray-300">Patamar de Chegada</span>
                                                     </label>
-                                                    
+
                                                     {landing.isLastStep && (
-                                                        <label className="flex items-center gap-1 cursor-pointer select-none" title="Para porta nivelada com o piso superior">
+                                                        <label className="flex items-center gap-1 cursor-pointer select-none">
                                                             <input 
                                                                 type="checkbox" 
                                                                 checked={!!landing.isFlushWithSlab} 
-                                                                onChange={(e) => {
-                                                                    const isChecked = e.target.checked;
-                                                                    updateLanding(landing.id, {
-                                                                        isFlushWithSlab: isChecked,
-                                                                        isLastStep: isChecked ? true : landing.isLastStep 
-                                                                    });
-                                                                }} 
-                                                                className="w-4 h-4 accent-highlight"
+                                                                onChange={(e) => updateLanding(landing.id, { isFlushWithSlab: e.target.checked })} 
+                                                                className="w-4 h-4 accent-orange-600"
                                                             />
-                                                            <span className="text-xs font-bold text-gray-700 dark:text-gray-200 uppercase">Rente à Laje?</span>
+                                                            <span className="text-xs font-bold text-orange-700 dark:text-orange-400">Rente à Laje?</span>
                                                         </label>
                                                     )}
                                                 </div>
 
-                                                <input
-                                                    type="number"
-                                                    value={landing.isLastStep ? "" : landing.step.toString()}
-                                                    disabled={landing.isLastStep}
-                                                    onChange={e => updateLanding(landing.id, { step: parseFloat(e.target.value) })}
-                                                    className={`w-full p-2 rounded border-2 focus:outline-none transition font-bold ${landing.isLastStep ? 'bg-gray-200 dark:bg-gray-600 border-gray-300 dark:border-gray-500 text-gray-400 dark:text-gray-300' : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 focus:border-highlight text-black dark:text-white'}`}
-                                                    placeholder={landing.isLastStep ? "Automático (Último Degrau)" : "Nº do Degrau (Ex: 5)"}
-                                                />
-                                            </div>
-
-                                            <div className="col-span-2">
-                                                <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Tipo de Fixação:</label>
-                                                <div className="flex bg-gray-100 dark:bg-gray-700 p-1 rounded">
-                                                    <button 
-                                                        type="button" 
-                                                        onClick={() => updateLanding(landing.id, { type: 'articulated' })}
-                                                        className={`flex-1 py-1 text-xs font-bold rounded ${(!landing.type || landing.type === 'articulated') ? 'bg-white dark:bg-gray-600 shadow text-highlight' : 'text-gray-500'}`}
-                                                    >
-                                                        Articulado
-                                                    </button>
-                                                    <button 
-                                                        type="button" 
-                                                        onClick={() => updateLanding(landing.id, { type: 'fixed' })}
-                                                        className={`flex-1 py-1 text-xs font-bold rounded ${landing.type === 'fixed' ? 'bg-white dark:bg-gray-600 shadow text-blue-600' : 'text-gray-500'}`}
-                                                    >
-                                                        Fixo
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            <div className="col-span-2">
-                                                <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Qtd. Mãos Francesas:</label>
-                                                <select
-                                                    value={landing.frenchBrackets || 0}
-                                                    onChange={(e) => updateLanding(landing.id, { frenchBrackets: parseInt(e.target.value) as 0 | 1 | 2 })}
-                                                    className="w-full text-xs font-bold p-2 text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 rounded border border-gray-300 dark:border-gray-600 outline-none focus:border-highlight"
-                                                >
-                                                    <option value={0}>Sem mão francesa</option>
-                                                    <option value={1}>Com uma mão francesa</option>
-                                                    <option value={2}>Com duas mãos francesas</option>
-                                                </select>
+                                                {!landing.isLastStep && (
+                                                    <ContractInput 
+                                                        label="Em qual altura (Degrau N)?" 
+                                                        value={landing.step.toString()} 
+                                                        onChange={(e: any) => updateLanding(landing.id, { step: parseFloat(e.target.value) })} 
+                                                        type="number"
+                                                    />
+                                                )}
                                             </div>
 
                                             <div className="col-span-2 bg-gray-50 dark:bg-gray-700/50 p-2 rounded border border-gray-100 dark:border-gray-700">
@@ -1566,7 +1522,7 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                                             onChange={(e) => updateLanding(landing.id, { isAngled: e.target.checked })} 
                                                             className="w-4 h-4 accent-highlight"
                                                         />
-                                                        <span className="text-xs font-bold text-gray-700 dark:text-gray-200 uppercase">Patamar em ângulo?</span>
+                                                        <span className="text-xs font-bold text-gray-700 dark:text-gray-200 uppercase">Patamar em Ângulo?</span>
                                                     </label>
                                                 </div>
                                             </div>
@@ -1579,21 +1535,21 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                                         onClick={() => updateLanding(landing.id, { direction: 'left' })}
                                                         className={`flex-1 py-1 rounded text-xs font-bold transition flex items-center justify-center gap-1 ${landing.direction === 'left' ? 'bg-blue-600 text-white shadow' : 'bg-white dark:bg-gray-600 border dark:border-gray-500 text-gray-600 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500'}`}
                                                     >
-                                                        ⬅️ Esq
+                                                        ↩ Esq
                                                     </button>
                                                     <button 
                                                         type="button"
                                                         onClick={() => updateLanding(landing.id, { direction: 'straight' })}
                                                         className={`flex-1 py-1 rounded text-xs font-bold transition flex items-center justify-center gap-1 ${(!landing.direction || landing.direction === 'straight') ? 'bg-blue-600 text-white shadow' : 'bg-white dark:bg-gray-600 border dark:border-gray-500 text-gray-600 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500'}`}
                                                     >
-                                                        ⬆️ Reto
+                                                        ↑ Reto
                                                     </button>
                                                     <button 
                                                         type="button"
                                                         onClick={() => updateLanding(landing.id, { direction: 'right' })}
                                                         className={`flex-1 py-1 rounded text-xs font-bold transition flex items-center justify-center gap-1 ${landing.direction === 'right' ? 'bg-blue-600 text-white shadow' : 'bg-white dark:bg-gray-600 border dark:border-gray-500 text-gray-600 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500'}`}
                                                     >
-                                                        Dir ➡️
+                                                        Dir ↪
                                                     </button>
                                                 </div>
                                             </div>
@@ -1609,111 +1565,115 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                                 onChange={(e: any) => updateLanding(landing.id, { width: parseFloat(e.target.value) })} 
                                                 type="number"
                                             />
-
-                                            </>)}
-                                            <div className="col-span-2 mt-2 pt-2 border-t border-gray-100 dark:border-gray-700">
-                                                {landing.isAccessoriesOnly !== true && (
-                                                <label className="flex items-center gap-1 cursor-pointer">
-                                                    <input 
-                                                        type="checkbox" 
-                                                        checked={!!landing.hasGuardrail} 
-                                                        onChange={(e) => {
-                                                            const isChecked = e.target.checked;
-                                                            const autoLengths = getAutoGuardrailLengths(
-                                                                landing.guardrailFormat || 'normal',
-                                                                landing.guardrailSide || '',
-                                                                landing.width || 0,
-                                                                landing.length || 0
-                                                            );
-                                                            updateLanding(landing.id, { 
-                                                                hasGuardrail: isChecked,
-                                                                ...(isChecked ? {
-                                                                    guardrailLength: landing.guardrailLength || autoLengths.guardrailLength,
-                                                                    guardrailLength2: landing.guardrailLength2 || autoLengths.guardrailLength2,
-                                                                    guardrailLength3: landing.guardrailLength3 || autoLengths.guardrailLength3,
-                                                                    guardrailHeight: landing.guardrailHeight || 90,
-                                                                    guardrailFormat: landing.guardrailFormat || 'normal'
-                                                                } : {})
-                                                            });
-                                                        }}
-                                                        className="w-4 h-4 accent-blue-600"
-                                                    />
-                                                    <span className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase">Possui Guarda Corpo?</span>
-                                                </label>
-                                                )}
-                                                {landing.hasGuardrail && <GuardrailEditor landing={landing} updateLanding={updateLanding} InputField={InputField} />}
-                                            </div>
-                                            
-                                            <div className="col-span-2 mt-1 pt-2 border-t border-gray-100 dark:border-gray-700">
-                                                {landing.isAccessoriesOnly !== true && (
-                                                <label className="flex items-center gap-1 cursor-pointer">
-                                                    <input 
-                                                        type="checkbox" 
-                                                        checked={!!landing.hasGate} 
-                                                        onChange={(e) => {
-                                                            const isChecked = e.target.checked;
-                                                            updateLanding(landing.id, { 
-                                                                hasGate: isChecked,
-                                                                ...(isChecked ? {
-                                                                    gateLength: landing.gateLength || 100,
-                                                                    gateHeight: landing.gateHeight || 90
-                                                                } : {})
-                                                            });
-                                                        }}
-                                                        className="w-4 h-4 accent-blue-600"
-                                                    />
-                                                    <span className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase">Possui Portãozinho?</span>
-                                                </label>
-                                                )}
-                                                {landing.hasGate && (() => {
-                                                    const gateSidesOptions = ["Direita", "Esquerda", "Frente", "Atrás", "Início da escada", "Fim da escada"];
-                                                    const gSide = (landing.guardrailSide || '').toLowerCase();
-                                                    const availableGateSides = gateSidesOptions.filter(side => {
-                                                        if (!landing.hasGuardrail || !gSide) return true;
-                                                        const s = side.toLowerCase();
-                                                        if (s.includes('escada')) return true;
-                                                        return !gSide.includes(s);
-                                                    });
-
-                                                    return (
-                                                        <div className="mt-2 space-y-2 p-2 bg-gray-50 dark:bg-gray-700/50 rounded border border-gray-200 dark:border-gray-600">
-                                                            <div className="flex gap-2">
-                                                                <div className="flex-1">
-                                                                    <label className="text-[10px] font-black text-gray-800 dark:text-gray-200 block mb-1">Lado/Orientação do Portão:</label>
-                                                                    <select
-                                                                        value={landing.gateSide || ''}
-                                                                        onChange={(e) => updateLanding(landing.id, { gateSide: e.target.value })}
-                                                                        className="w-full text-xs p-1 rounded border border-gray-300 dark:border-gray-600"
-                                                                    >
-                                                                        <option value="">Selecione...</option>
-                                                                        {availableGateSides.map(side => (
-                                                                            <option key={side} value={side}>{side}</option>
-                                                                        ))}
-                                                                    </select>
-                                                                </div>
-                                                            </div>
-                                                            <div className="flex gap-2">
-                                                                <div className="flex-1">
-                                                                    <label className="text-[10px] font-black text-gray-800 dark:text-gray-200 block mb-1">Comp. Total (cm)</label>
-                                                                    <input type="number" value={landing.gateLength || 0} onChange={e => updateLanding(landing.id, { gateLength: parseFloat(e.target.value) || 0 })} className="w-full text-xs p-1 border rounded" />
-                                                                </div>
-                                                                <div className="flex-1">
-                                                                    <label className="text-[10px] font-black text-gray-800 dark:text-gray-200 block mb-1">Altura (cm)</label>
-                                                                    <input type="number" value={landing.gateHeight || 90} onChange={e => updateLanding(landing.id, { gateHeight: parseFloat(e.target.value) || 0 })} className="w-full text-xs p-1 border rounded" />
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    );
-                                                })()}
-                                            </div>
                                         </div>
                                     </div>
-                                ))}
+                                );})}
                             </div>
                         )}
 
-                        
-                        {/* LISTA DE ITENS ADICIONAIS EDITÁVEL E COM ADIÇÃO */}
+                        {/* --- SEÇÃO GUARDA-CORPO AVULSO --- */}
+                        <div className="mt-6 bg-pink-50 dark:bg-pink-900/10 p-4 rounded border border-pink-200 dark:border-pink-800">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-sm font-black text-gray-900 dark:text-gray-100 uppercase flex items-center gap-2">
+                                    <span className="bg-pink-600 text-white w-6 h-6 flex items-center justify-center rounded-full text-xs">G</span>
+                                    Guarda-Corpo Avulso ({landings.filter((l: any) => l.isAccessoriesOnly && l.hasGuardrail).length})
+                                </h3>
+                                <div className="flex gap-2">
+                                    <button type="button" onClick={handleAddGuardrail} className="text-xs bg-pink-600 text-white px-2 py-1 rounded font-bold hover:bg-pink-700 transition" title="Guarda-Corpo Avulso">
+                                        + G. Corpo
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            {landings.filter((l: any) => l.isAccessoriesOnly && l.hasGuardrail).length === 0 ? (
+                                <p className="text-xs text-gray-500 dark:text-gray-400 italic mb-2">Nenhum guarda-corpo avulso adicionado.</p>
+                            ) : (
+                                <div className="space-y-3">
+                                    {landings.filter((l: any) => l.isAccessoriesOnly && l.hasGuardrail).map((landing, idx) => {
+                                        const index = landings.indexOf(landing);
+                                        return (
+                                            <div key={landing.id} className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-pink-200 dark:border-pink-800 shadow-sm relative">
+                                                <button 
+                                                    onClick={() => handleRemoveLanding(landing.id)}
+                                                    type="button"
+                                                    className="absolute -top-2 -right-2 bg-red-500 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shadow hover:bg-red-700"
+                                                >
+                                                    x
+                                                </button>
+                                                <span className="text-xs font-bold text-gray-500 absolute top-1 left-2 flex items-center gap-1 bg-white dark:bg-gray-800 px-1 rounded shadow-sm">
+                                                    🛠️ G.C. Avulso #{index + 1}
+                                                </span>
+                                                <div className="mt-6">
+                                                    <GuardrailEditor landing={landing} updateLanding={updateLanding} InputField={ContractInput} stairWidth={70} />
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* --- SEÇÃO PORTÃO AVULSO --- */}
+                        <div className="mt-4 bg-indigo-50 dark:bg-indigo-900/10 p-4 rounded border border-indigo-200 dark:border-indigo-800">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-sm font-black text-gray-900 dark:text-gray-100 uppercase flex items-center gap-2">
+                                    <span className="bg-indigo-600 text-white w-6 h-6 flex items-center justify-center rounded-full text-xs">P</span>
+                                    Portão Avulso ({landings.filter((l: any) => l.isAccessoriesOnly && l.hasGate).length})
+                                </h3>
+                                <div className="flex gap-2">
+                                    <button type="button" onClick={handleAddGate} className="text-xs bg-indigo-600 text-white px-2 py-1 rounded font-bold hover:bg-indigo-700 transition" title="Portão Avulso">
+                                        + Portão
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            {landings.filter((l: any) => l.isAccessoriesOnly && l.hasGate).length === 0 ? (
+                                <p className="text-xs text-gray-500 dark:text-gray-400 italic mb-2">Nenhum portão avulso adicionado.</p>
+                            ) : (
+                                <div className="space-y-3">
+                                    {landings.filter((l: any) => l.isAccessoriesOnly && l.hasGate).map((landing, idx) => {
+                                        const index = landings.indexOf(landing);
+                                        
+                                        const gateLength = landing.gateLength !== undefined ? landing.gateLength : 100;
+                                        const gateHeight = landing.gateHeight !== undefined ? landing.gateHeight : 90;
+                                        
+                                        return (
+                                            <div key={landing.id} className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-indigo-200 dark:border-indigo-800 shadow-sm relative">
+                                                <button 
+                                                    onClick={() => handleRemoveLanding(landing.id)}
+                                                    type="button"
+                                                    className="absolute -top-2 -right-2 bg-red-500 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shadow hover:bg-red-700"
+                                                >
+                                                    x
+                                                </button>
+                                                <span className="text-xs font-bold text-gray-500 absolute top-1 left-2 flex items-center gap-1 bg-white dark:bg-gray-800 px-1 rounded shadow-sm">
+                                                    🚪 Portão Avulso #{index + 1}
+                                                </span>
+                                                
+                                                <div className="mt-6 space-y-3">
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                        <ContractInput 
+                                                            label="Comp. (cm)" 
+                                                            value={gateLength.toString()} 
+                                                            onChange={(e: any) => updateLanding(landing.id, { gateLength: parseFloat(e.target.value) || 0 })} 
+                                                            type="number"
+                                                        />
+                                                        <ContractInput 
+                                                            label="Altura (cm)" 
+                                                            value={gateHeight.toString()} 
+                                                            onChange={(e: any) => updateLanding(landing.id, { gateHeight: parseFloat(e.target.value) || 0 })} 
+                                                            type="number"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* {/* LISTA DE ITENS ADICIONAIS EDITÁVEL E COM ADIÇÃO */}
                         <div className="col-span-full mt-4 bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded border border-yellow-200 dark:border-yellow-700">
                             <h3 className="text-xs font-bold text-yellow-800 dark:text-yellow-300 uppercase mb-3 border-b border-yellow-200 dark:border-yellow-800 pb-1">
                                 Itens Adicionais (Editável para Impressão)

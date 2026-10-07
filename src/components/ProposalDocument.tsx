@@ -214,7 +214,8 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
         // Patamares
         if (opt.landings.length > 0) {
             // Se tiver múltiplos, mostra a soma primeiro, alinhada à direita
-            if (opt.landings.length > 1 && inputData.quoteType !== 'guardrail') {
+            const structuralLandings = opt.landings.filter((l: any) => !l.isAccessoriesOnly);
+            if (structuralLandings.length > 1 && inputData.quoteType !== 'guardrail') {
                 // Mantém um pequeno recuo visual apenas se for um grupo, mas alinhado corretamente
                 doc.text(`  • Soma de ${opt.landings.length} Patamares:`, pageMargin, currentY);
                 doc.text(formatCurrencyBRL(landingsPrice), pageWidth - pageMargin, currentY, { align: 'right' });
@@ -227,7 +228,13 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
                     if (landing.hasGate) {
                          desc = `- Portãozinho de ${landing.gateLength}cm x ${landing.gateHeight}cm`;
                     } else {
-                         desc = `- Guarda-Corpo (${landing.guardrailFormat || 'normal'}) com ${landing.guardrailHeight}cm alt.`;
+                         if (landing.guardrailFormat === 'L') {
+                             desc = `- Guarda-corpo em L, composto por dois lados:\n  1º lado: ${landing.guardrailLength || 0}cm (C) × ${landing.guardrailHeight || 90}cm (A);\n  2º lado: ${landing.guardrailLength2 || 0}cm (C) × ${landing.guardrailHeight || 90}cm (A).`;
+                         } else if (landing.guardrailFormat === 'U') {
+                             desc = `- Guarda-corpo em U, composto por três lados:\n  1º lado: ${landing.guardrailLength || 0}cm (C) × ${landing.guardrailHeight || 90}cm (A);\n  2º lado: ${landing.guardrailLength2 || 0}cm (C) × ${landing.guardrailHeight || 90}cm (A);\n  3º lado: ${landing.guardrailLength3 || 0}cm (C) × ${landing.guardrailHeight || 90}cm (A).`;
+                         } else {
+                             desc = `- Guarda-Corpo (${landing.guardrailFormat || 'normal'}) com ${landing.guardrailHeight || 90}cm alt.`;
+                         }
                     }
                     const price = formatCurrencyBRL(landing.price);
                     const availableWidth = pageWidth - (pageMargin * 2) - 40; 
