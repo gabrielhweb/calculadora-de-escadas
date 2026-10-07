@@ -441,7 +441,11 @@ export const generateContractPDF = (data: ContractData) => {
               const valorSinal = totalComDesconto * (signalP / 100);
               const valorEntrega = totalComDesconto - valorSinal;
               
-              addText(`Sendo pago ${formatCurrencyBRL(valorSinal)} via ${cashMethodLower} de sinal e ${formatCurrencyBRL(valorEntrega)} no dia entrega e instalação`, 11, false, 'left');
+              if (isTransportadora) {
+                  addText(`Sendo pago ${formatCurrencyBRL(valorSinal)} via ${cashMethodLower} a título de sinal e ${formatCurrencyBRL(valorEntrega)} restantes a serem pagos após a emissão da nota fiscal e no dia do envio do produto à transportadora, para liberação do despacho.`, 11, false, 'justify');
+              } else {
+                  addText(`Sendo pago ${formatCurrencyBRL(valorSinal)} via ${cashMethodLower} de sinal e ${formatCurrencyBRL(valorEntrega)} no dia entrega e instalação`, 11, false, 'left');
+              }
           }
           
           currentY += 2;
@@ -475,7 +479,9 @@ export const generateContractPDF = (data: ContractData) => {
           const remainderMethodName = data.paymentDetails.remainderText || "Link de Pagamento (Cartão de Crédito)";
           
           let deliveryText = "";
-          if (!isPixOnDelivery) {
+          if (isTransportadora) {
+              deliveryText = " após a emissão da nota fiscal e no dia do envio do produto à transportadora, para liberação do despacho";
+          } else if (!isPixOnDelivery) {
               deliveryText = data.installationCost > 0 ? " no dia da entrega e instalação" : " no dia da entrega";
           } else {
               deliveryText = " no ato do fechamento (sinal)";

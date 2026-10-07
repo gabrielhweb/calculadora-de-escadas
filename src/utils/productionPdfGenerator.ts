@@ -551,9 +551,10 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[], startY: num
             const numSides = format === 'U' ? 3 : format === 'L' ? 2 : 1;
             for (let i = 1; i <= numSides; i++) {
                 let gL = 0;
-                if (i===1) gL = landing.guardrailLength || 0;
-                else if (i===2) gL = landing.guardrailLength2 || 0;
-                else if (i===3) gL = landing.guardrailLength3 || 0;
+                let gBarsOverride;
+                  if (i===1) { gL = landing.guardrailLength || 0; gBarsOverride = landing.guardrailBarsOverride; }
+                  else if (i===2) { gL = landing.guardrailLength2 || 0; gBarsOverride = landing.guardrailBarsOverride2; }
+                  else if (i===3) { gL = landing.guardrailLength3 || 0; gBarsOverride = landing.guardrailBarsOverride3; }
                 
                 let isFixed = false;
                 if (landing.guardrailFixedToLanding) {
@@ -585,11 +586,11 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[], startY: num
                     title += ' (Fixo)';
                 }
                 
-                pieces.push({ type: 'guardrail', title, length: gL, outerH, innerH, isFixed });
+                pieces.push({ type: 'guardrail', title, length: gL, outerH, innerH, isFixed, override: gBarsOverride });
             }
         }
         if (hasGate) {
-            pieces.push({ type: 'gate', title: `Imagem ${pieces.length + 1}: Portão`, length: landing.gateLength || 100, outerH: landing.gateHeight || 90, innerH: (landing.gateHeight || 90) - 13 });
+            pieces.push({ type: 'gate', title: `Imagem ${pieces.length + 1}: Portão`, length: landing.gateLength || 100, outerH: landing.gateHeight || 90, innerH: (landing.gateHeight || 90) - 13, override: landing.gateBarsOverride });
         }
 
         const totalPieces = pieces.length;
@@ -694,7 +695,7 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[], startY: num
             doc.rect(px + drawW - outThick, py, outThick, drawH + 2, 'F');
             
             // Barras internas
-            const gBars = Math.max(2, Math.round((p.length - 6) / 15) + 1);
+            const gBars = p.override || Math.max(2, Math.round((p.length - 6) / 15) + 1);
             const numInner = Math.max(0, gBars - 2);
             const gapCm = numInner >= 0 ? ((p.length - 4 - (numInner * 3)) / (numInner + 1)) : 0;
             const step = (drawW - outThick * 2) / (numInner + 1);
