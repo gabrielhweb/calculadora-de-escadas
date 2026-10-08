@@ -1581,8 +1581,8 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                             <ContractInput 
                                                 label="Chapa (R$)" 
                                                 value={landing.chapaPrice !== undefined ? landing.chapaPrice.toString() : (landing.price !== undefined ? landing.price.toString() : '0')} 
-                                                onChange={(e: any) => updateLanding(landing.id, { chapaPrice: parseFloat(e.target.value) })} 
-                                                type="number"
+                                                onChange={(e: any) => updateLanding(landing.id, { chapaPrice: parseFloat(e.target.value) || 0 })} 
+                                                type="text"
                                             />
                                             <div className="col-span-2 mt-4 space-y-3 border-t pt-3">
                                                 <label className="flex items-center gap-2 cursor-pointer">
