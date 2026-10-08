@@ -413,7 +413,7 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
     }
 
     // --- RODAPÉ ---
-    if (currentY > 200) { doc.addPage(); currentY = 20; }
+    if (currentY > 150) { doc.addPage(); currentY = 20; }
 
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');

@@ -485,7 +485,12 @@ import { patamarGenericoBase64 } from './patamarGenericoBase64';
 export const drawProposalSummaryPage = (doc: jsPDF, landings: any[], startY: number = 20): number => {
     let finalY = startY;
 
-    landings.forEach((landing: any, index: number) => {
+    // AGRUPAR ACESSÓRIOS AVULSOS
+    const structuralLandings = landings.filter((l: any) => !l.isAccessoriesOnly);
+    let accessories = landings.filter((l: any) => l.isAccessoriesOnly);
+    
+    // Processar os estruturais normalmente
+    structuralLandings.forEach((landing: any, index: number) => {
         let hasG = landing.hasGuardrail;
         let hasGate = landing.hasGate;
         if (!hasG && !hasGate && !landing.length && !landing.width) return;
@@ -493,47 +498,41 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[], startY: num
         const pageWidth = 210;
         let currentY = finalY;
 
-        // Verifica o espaço disponível. Precisamos de pelo menos 90 de altura
         if (currentY + 90 > 280) {
             doc.addPage('a4', 'p');
             currentY = 20;
         } else {
-            currentY += 10; // Espaçamento do conteúdo anterior
+            currentY += 10;
         }
         
         let availH = Math.min(140, 280 - currentY - 20);
-        // Garantir que a imagem do patamar caiba
         const patamarImgH = Math.min(60, availH - 25);
 
-        if (!landing.isAccessoriesOnly) {
-            // LADO ESQUERDO: Patamar
-            const leftX = 10;
-            const leftW = 90;
-            
-            doc.setFontSize(14);
-            doc.setFont('helvetica', 'bold');
-            doc.setTextColor(0, 0, 0);
-            doc.text(`Patamar ${index + 1}`, leftX + leftW / 2, currentY, { align: 'center' });
-            
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'normal');
-            doc.text(`Medidas: ${landing.width || 0}cm x ${landing.length || 0}cm`, leftX + leftW / 2, currentY + 6, { align: 'center' });
-            
-            const maxPatamarW = leftW - 10;
-            try {
-                doc.addImage(patamarGenericoBase64, 'JPEG', leftX + leftW / 2 - maxPatamarW / 2, currentY + 12, maxPatamarW, patamarImgH);
-            } catch(e) {
-                doc.setDrawColor(200, 200, 200);
-                doc.setLineWidth(0.5);
-                doc.rect(leftX + leftW / 2 - maxPatamarW / 2, currentY + 12, maxPatamarW, patamarImgH);
-                doc.setTextColor(150, 150, 150);
-                doc.text("IMAGEM", leftX + leftW / 2, currentY + 12 + patamarImgH / 2, { align: 'center' });
-            }
+        const leftX = 10;
+        const leftW = 90;
+        
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(0, 0, 0);
+        doc.text(`Patamar ${index + 1}`, leftX + leftW / 2, currentY, { align: 'center' });
+        
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Medidas: ${landing.width || 0}cm x ${landing.length || 0}cm`, leftX + leftW / 2, currentY + 6, { align: 'center' });
+        
+        const maxPatamarW = leftW - 10;
+        try {
+            doc.addImage(patamarGenericoBase64, 'JPEG', leftX + leftW / 2 - maxPatamarW / 2, currentY + 12, maxPatamarW, patamarImgH);
+        } catch(e) {
+            doc.setDrawColor(200, 200, 200);
+            doc.setLineWidth(0.5);
+            doc.rect(leftX + leftW / 2 - maxPatamarW / 2, currentY + 12, maxPatamarW, patamarImgH);
+            doc.setTextColor(150, 150, 150);
+            doc.text("IMAGEM", leftX + leftW / 2, currentY + 12 + patamarImgH / 2, { align: 'center' });
         }
 
-                // LADO DIREITO: Guarda-Corpo e Portão
-        const rightX = landing.isAccessoriesOnly ? 10 : 105;
-        const rightW = landing.isAccessoriesOnly ? 190 : 95;
+        const rightX = 105;
+        const rightW = 95;
 
         if (hasG || hasGate) {
             doc.setFontSize(14);
@@ -552,9 +551,9 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[], startY: num
             for (let i = 1; i <= numSides; i++) {
                 let gL = 0;
                 let gBarsOverride;
-                  if (i===1) { gL = landing.guardrailLength || 0; gBarsOverride = landing.guardrailBarsOverride; }
-                  else if (i===2) { gL = landing.guardrailLength2 || 0; gBarsOverride = landing.guardrailBarsOverride2; }
-                  else if (i===3) { gL = landing.guardrailLength3 || 0; gBarsOverride = landing.guardrailBarsOverride3; }
+                if (i===1) { gL = landing.guardrailLength || 0; gBarsOverride = landing.guardrailBarsOverride; }
+                else if (i===2) { gL = landing.guardrailLength2 || 0; gBarsOverride = landing.guardrailBarsOverride2; }
+                else if (i===3) { gL = landing.guardrailLength3 || 0; gBarsOverride = landing.guardrailBarsOverride3; }
                 
                 let isFixed = false;
                 if (landing.guardrailFixedToLanding) {
@@ -582,9 +581,7 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[], startY: num
                 }
                 
                 title = `Imagem ${pieces.length + 1}: ${title}`;
-                if (isFixed) {
-                    title += ' (Fixo)';
-                }
+                if (isFixed) title += ' (Fixo)';
                 
                 pieces.push({ type: 'guardrail', title, length: gL, outerH, innerH, isFixed, override: gBarsOverride });
             }
@@ -634,16 +631,12 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[], startY: num
             const box = bboxes[idx];
             if (!box) return;
             const padding = 10;
-            
             const maxW = box.w - padding * 2;
-            const maxH = box.h - 32; // Aumentado para usar mais o espaço vertical
-
-            // Calculate proportional size
+            const maxH = box.h - 32;
             const scale = Math.min(maxW / Math.max(p.length, 50), maxH / Math.max(p.outerH, 50));
             const drawW = p.length * scale;
             const drawH = p.outerH * scale;
 
-            // Center in the box
             const px = box.x + (box.w - drawW) / 2;
             const py = box.y + 18 + (maxH - drawH) / 2;
 
@@ -652,103 +645,102 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[], startY: num
             doc.setTextColor(0,0,0);
             doc.text(p.title, box.x + box.w / 2, py - 10, { align: 'center' });
 
-            // Espessuras bem mais finas para os desenhos do orçamento não ficarem "borrados"
-            const outThick = 1.5;
-            const inThick = 0.8;
-            const horizThick = 1.2;
-
-            // DIMENSÕES (Linhas Coloridas)
-            // Topo (Verde)
-            doc.setLineWidth(0.5);
-            doc.setDrawColor(0, 0, 0);
-            doc.line(px, py - 3, px + drawW, py - 3);
             doc.setFontSize(8);
-            doc.setTextColor(0, 0, 0);
-            doc.text(p.length + 'cm', px + drawW / 2, py - 4, { align: 'center' });
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(100, 100, 100);
+            doc.text(`${p.length}cm (C) x ${p.outerH}cm (A)`, box.x + box.w / 2, py - 6, { align: 'center' });
 
-            // Base (Laranja)
-            doc.setDrawColor(0, 0, 0);
-            doc.line(px + outThick, py + drawH + 4, px + drawW - outThick, py + drawH + 4);
-            doc.setTextColor(0, 0, 0);
-            doc.text((p.length - 4) + 'cm', px + drawW / 2, py + drawH + 7, { align: 'center' });
-
-            // Lateral Esquerda (Altura Total - Vermelho)
-            doc.setDrawColor(0, 0, 0);
-            doc.line(px - 3, py, px - 3, py + drawH);
-            doc.setTextColor(0, 0, 0);
-            doc.text(p.outerH + 'cm', px - 4, py + drawH / 2 + 1, { align: 'right' });
-
-            // Lateral Direita (Altura Interna - Azul)
-            doc.setDrawColor(0, 0, 0);
-            doc.line(px + drawW + 3, py + horizThick, px + drawW + 3, py + drawH - horizThick);
-            doc.setTextColor(0, 0, 0);
-            doc.text((p.outerH - 13) + 'cm', px + drawW + 4, py + drawH / 2 + 1, { align: 'left' });
-
-            // DESENHO DA ESTRUTURA (Preto)
-            doc.setFillColor(31, 41, 55);
-            // Barra superior
-            doc.rect(px, py, drawW, horizThick, 'F');
-            // Barra inferior
-            doc.rect(px + outThick, py + drawH - horizThick, drawW - outThick * 2, horizThick, 'F');
-            // Postes laterais (Pontas)
-            doc.rect(px, py, outThick, drawH + 2, 'F');
-            doc.rect(px + drawW - outThick, py, outThick, drawH + 2, 'F');
+            doc.setDrawColor(40, 50, 60);
+            doc.setLineWidth(1.5);
+            doc.rect(px, py, drawW, drawH);
             
-            // Barras internas
-            const gBars = p.override || Math.max(2, Math.round((p.length - 6) / 15) + 1);
-            const numInner = Math.max(0, gBars - 2);
-            const gapCm = numInner >= 0 ? ((p.length - 4 - (numInner * 3)) / (numInner + 1)) : 0;
-            const step = (drawW - outThick * 2) / (numInner + 1);
-
-            for (let i = 0; i < numInner; i++) {
-                const barX = px + outThick + step * (i + 1) - (inThick / 2);
-                doc.rect(barX, py + horizThick, inThick, drawH - horizThick * 2, 'F');
-            }
-
-            // Folga (Distância entre os ferros) escrita como texto embaixo + Seta indicativa no desenho
-            if (numInner > 0) {
-                // Seta indicativa no primeiro vão (rosa)
-                const gapStartX = px + outThick;
-                const gapEndX = px + outThick + step - (inThick / 2);
-                const lineY = py + drawH * 0.75; // 3/4 da altura, não atrapalha
-                
-                doc.setDrawColor(236, 72, 153);
-                doc.setLineWidth(0.4);
-                
-                // Linha principal
-                doc.line(gapStartX, lineY, gapEndX, lineY);
-                // Marcações verticais (ticks)
-                doc.line(gapStartX, lineY - 1.5, gapStartX, lineY + 1.5);
-                doc.line(gapEndX, lineY - 1.5, gapEndX, lineY + 1.5);
-                // Pontas da seta esquerda
-                doc.line(gapStartX, lineY, gapStartX + 1.5, lineY - 1);
-                doc.line(gapStartX, lineY, gapStartX + 1.5, lineY + 1);
-                // Pontas da seta direita
-                doc.line(gapEndX, lineY, gapEndX - 1.5, lineY - 1);
-                doc.line(gapEndX, lineY, gapEndX - 1.5, lineY + 1);
-
-                // Texto descritivo na parte de baixo
-                const gapText = `Folga interna (seta rosa): ${gapCm.toFixed(1)}cm`;
-                doc.setFontSize(8);
-                doc.setFont('helvetica', 'normal');
-                doc.setTextColor(236, 72, 153);
-                doc.text(gapText, px + drawW / 2, py + drawH + 11, { align: 'center' });
-
-            }
-
-            // Detalhes do Portão
-            if (p.type === 'gate') {
-                doc.setFillColor(107, 114, 128);
-                // Dobradiças
-                doc.circle(px - 1, py + drawH * 0.2, 1.5, 'F');
-                doc.circle(px - 1, py + drawH * 0.8, 1.5, 'F');
-                // Fechadura
-                doc.rect(px + drawW - outThick - 1.5, py + drawH / 2 - 4, outThick + 2, 8, 'F');
+            const numBars = p.override > 0 ? p.override : Math.max(1, Math.floor(p.length / 15));
+            const spacing = drawW / (numBars + 1);
+            doc.setLineWidth(0.8);
+            for (let b = 1; b <= numBars; b++) {
+                const bx = px + b * spacing;
+                doc.line(bx, py, bx, py + drawH);
             }
         });
     });
 
-    doc.setTextColor(0, 0, 0); // Garante que o texto volte a ser preto para o restante do documento
+    // ----------------------------------------------------
+    // PROCESSAR ACESSÓRIOS AVULSOS (Agrupados lado a lado)
+    // ----------------------------------------------------
+    if (accessories.length > 0) {
+        let currentY = finalY;
+        const availH = 80; // Altura fixa reduzida para avulsos
+
+        // Dividir acessórios em pares para colocar lado a lado
+        for (let i = 0; i < accessories.length; i += 2) {
+            if (currentY + availH + 20 > 280) {
+                doc.addPage('a4', 'p');
+                currentY = 20;
+            } else {
+                currentY += 10;
+            }
+
+            const acc1 = accessories[i];
+            const acc2 = accessories[i + 1]; // Pode ser undefined
+
+            const drawAcc = (acc: any, box: any) => {
+                const isGate = acc.hasGate;
+                const format = acc.guardrailFormat || 'straight';
+                const titleText = isGate ? 'Portão' : 'Guarda-Corpo';
+
+                doc.setFontSize(14);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(0, 0, 0);
+                doc.text(titleText, box.x + box.w / 2, box.y, { align: 'center' });
+
+                const gL = isGate ? acc.gateLength || 100 : acc.guardrailLength || 0;
+                const gH = isGate ? acc.gateHeight || 90 : acc.guardrailHeight || 90;
+                const gBars = isGate ? acc.gateBarsOverride : acc.guardrailBarsOverride;
+                
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(100, 100, 100);
+                doc.text(`${gL}cm (C) x ${gH}cm (A)`, box.x + box.w / 2, box.y + 4, { align: 'center' });
+
+                const padding = 10;
+                const maxW = box.w - padding * 2;
+                const maxH = box.h - 20;
+
+                const scale = Math.min(maxW / Math.max(gL, 50), maxH / Math.max(gH, 50));
+                const drawW = gL * scale;
+                const drawH = gH * scale;
+
+                const px = box.x + (box.w - drawW) / 2;
+                const py = box.y + 12 + (maxH - drawH) / 2;
+
+                doc.setDrawColor(40, 50, 60);
+                doc.setLineWidth(1.5);
+                doc.rect(px, py, drawW, drawH);
+                
+                const numBars = gBars > 0 ? gBars : Math.max(1, Math.floor(gL / 15));
+                const spacing = drawW / (numBars + 1);
+                doc.setLineWidth(0.8);
+                for (let b = 1; b <= numBars; b++) {
+                    const bx = px + b * spacing;
+                    doc.line(bx, py, bx, py + drawH);
+                }
+            };
+
+            const fullW = 190;
+            if (acc2) {
+                // Tem dois, desenha lado a lado
+                drawAcc(acc1, { x: 10, y: currentY, w: 95, h: availH });
+                drawAcc(acc2, { x: 105, y: currentY, w: 95, h: availH });
+            } else {
+                // Tem só um, desenha no meio, mas com largura máxima controlada
+                drawAcc(acc1, { x: 10 + fullW / 4, y: currentY, w: fullW / 2, h: availH });
+            }
+
+            currentY += availH + 10;
+        }
+        finalY = currentY;
+    }
+
     return finalY;
 };
 
