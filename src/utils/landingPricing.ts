@@ -59,8 +59,8 @@ export const getLandingExtrasPrice = (l: LandingInfo) => {
 export const getLandingBasePrice = (l: LandingInfo) => {
     if (l.isAccessoriesOnly) return 0;
     
-    // Se o usuário digitou a chapa manualmente (e não está vazio), usa
-    if (l.chapaPrice !== undefined && l.chapaPrice !== null && String(l.chapaPrice).trim() !== '') {
+    // Se o usuário digitou a chapa manualmente e for maior que 0, usa
+    if (l.chapaPrice !== undefined && l.chapaPrice !== null && String(l.chapaPrice).trim() !== '' && num(l.chapaPrice, 0) > 0) {
         return num(l.chapaPrice, 0);
     }
     
