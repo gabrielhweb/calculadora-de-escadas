@@ -91,7 +91,8 @@ export const GuardrailPreview: React.FC<GuardrailPreviewProps> = ({ length, heig
                     <li className="flex items-center gap-2"><span className="w-3 h-3 bg-red-500 rounded-full inline-block flex-shrink-0"></span> 2x Tubos Laterais (Pontas) de {outerHeight}cm {isFixed && "(inclui +10cm)"}</li>
                     <li className="flex items-center gap-2"><span className="w-3 h-3 bg-blue-500 rounded-full inline-block flex-shrink-0"></span> {numInnerBars}x Tubos Internos de {innerHeight}cm</li>
                 </ul>
-                <p className="text-[10px] text-pink-500 font-bold mt-2 pt-2 border-t border-pink-100">Afastamento das barras (folga): {gapCm.toFixed(1)}cm</p>
+                <p className="text-[10px] text-pink-500 font-bold mt-2 pt-2 border-t border-pink-100 dark:border-pink-900/30">Afastamento das barras (folga): {gapCm.toFixed(1)}cm</p>
+                <p className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold mt-1">Comprimento Linear Total: {((length + (length - 4) + (2 * outerHeight) + (numInnerBars * innerHeight)) / 100).toFixed(2)}m</p>
            </div>
        </div>
     );

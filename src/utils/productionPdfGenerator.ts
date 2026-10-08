@@ -475,6 +475,10 @@ export const drawGuardrailsPage = (doc: jsPDF, landings: any[], clientName: stri
             doc.setTextColor(236, 72, 153); 
             doc.text('Afastamento (folga) das barras: ' + gapCm.toFixed(1) + 'cm', listX, listY + 26);
             
+            doc.setTextColor(79, 70, 229); // Indigo 600
+            const totalMeters = (gLength + (gLength - 4) + (2 * outerHeight) + (numInnerBars * innerHeight)) / 100;
+            doc.text('Comprimento Linear Total: ' + totalMeters.toFixed(2) + 'm', listX, listY + 31);
+            
             drawCount++;
         }
     });
