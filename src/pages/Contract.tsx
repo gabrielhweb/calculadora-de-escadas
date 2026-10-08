@@ -7,6 +7,7 @@ import { LandingInfo, OptionalItem } from '../types';
 import { GuardrailEditor } from '../components/GuardrailEditor';
 import { InputField, getAutoGuardrailLengths } from '../components/CalculatorForm';
 import { formatCurrencyBRL } from '../utils';
+import { computeLandingPrice } from '../utils/landingPricing';
 import { TechnicalBudget } from '../components/TechnicalBudget';
 import { WeightCalculator } from '../components/WeightCalculator';
 import { db, auth } from '../firebase';
@@ -347,6 +348,12 @@ const Contract = () => {
         const totalExtras = optionalItems.reduce((acc, item) => acc + item.price, 0);
         setExtrasPrice(totalExtras.toFixed(2));
     }, [optionalItems]);
+    // Auto-update landings price whenever landings change, especially for accessories
+    useEffect(() => {
+        const total = landings.reduce((acc, l) => acc + (l.isAccessoriesOnly ? computeLandingPrice(l) : Number(l.price || 0)), 0);
+        setLandingsPrice(total.toFixed(2));
+    }, [landings]);
+
 
     // Cálculos Base
     const totalStructure = (parseFloat(stairPrice) || 0) + (parseFloat(landingsPrice) || 0);
