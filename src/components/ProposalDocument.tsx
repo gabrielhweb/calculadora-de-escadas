@@ -259,6 +259,9 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
                 if (landing.hasSideGuardrail && landing.hasFrontGuardrail) guardText = " + Guarda Corpo Lat/Front";
                 else if (landing.hasSideGuardrail) guardText = " + Guarda Corpo Lateral";
                 else if (landing.hasFrontGuardrail) guardText = " + Guarda Corpo Frontal";
+                
+                if (landing.hasGuardrail) guardText += " + Guarda-Corpo";
+                if (landing.hasGate) guardText += " + Portão";
 
                 // Monta a linha com o tipo explícito
                 // CORREÇÃO: Removemos a indentação (espaços) do início da string
