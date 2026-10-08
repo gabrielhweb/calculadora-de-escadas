@@ -1422,45 +1422,6 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                         )}
 
                         
-                        {originalInputData?.quoteType === 'stair' && (
-                            <div className="mt-4 p-4 border border-gray-200 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-800">
-                                <label className="flex items-center gap-2 cursor-pointer mb-2">
-                                    <input 
-                                        type="checkbox" 
-                                        checked={hasStairSideBar} 
-                                        onChange={(e) => {
-                                            setHasStairSideBar(e.target.checked);
-                                            if (e.target.checked && (!stairSideBarPrice || stairSideBarPrice === '0')) {
-                                                setStairSideBarPrice('498');
-                                            }
-                                        }} 
-                                        className="w-5 h-5 accent-highlight"
-                                    />
-                                    <span className="text-sm font-bold text-gray-700 dark:text-gray-300 uppercase">Possui Barra Lateral da Escada?</span>
-                                </label>
-                            </div>
-                        )}
-                        
-                        
-                        {originalInputData?.quoteType === 'stair' && (
-                            <div className="mt-4 p-4 border border-gray-200 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-800">
-                                <label className="flex items-center gap-2 cursor-pointer mb-2">
-                                    <input 
-                                        type="checkbox" 
-                                        checked={hasStairSideBar} 
-                                        onChange={(e) => {
-                                            setHasStairSideBar(e.target.checked);
-                                            if (e.target.checked && (!stairSideBarPrice || stairSideBarPrice === '0')) {
-                                                setStairSideBarPrice('498');
-                                            }
-                                        }} 
-                                        className="w-5 h-5 accent-highlight"
-                                    />
-                                    <span className="text-sm font-bold text-gray-700 dark:text-gray-300 uppercase">Possui Barra Lateral da Escada?</span>
-                                </label>
-                            </div>
-                        )}
-                        
                         <div className="flex items-center justify-between mb-4 mt-4">
                             <h3 className="text-sm font-black text-gray-900 dark:text-gray-100 uppercase flex items-center gap-2">
                                 <span className="bg-highlight text-white w-6 h-6 flex items-center justify-center rounded-full text-xs">+</span>
