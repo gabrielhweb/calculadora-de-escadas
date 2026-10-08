@@ -245,13 +245,22 @@ export const generateContractPDF = (data: ContractData) => {
       }
 
       // Listar os acessórios avulsos (Guarda-Corpo/Portão)
-      const accessories = data.selectedOption.landings.filter(l => l.isAccessoriesOnly);
-      if (accessories.length > 0 && data.inputData.quoteType !== 'guardrail') {
+      let accessories: any[] = [];
+      if (data.inputData.quoteType === 'guardrail' && data.inputData.standaloneGuardrails) {
+          accessories = data.inputData.standaloneGuardrails;
+      } else if (data.selectedOption.landings) {
+          accessories = data.selectedOption.landings.filter(l => l.isAccessoriesOnly);
+      }
+
+      if (accessories.length > 0) {
           accessories.forEach((acc, idx) => {
+              const accPrice = acc.price ? formatCurrencyBRL(acc.price) : 'R$ 0,00';
               if (acc.hasGate) {
-                  addText(`-Portão ${idx + 1}: ${(acc.gateLength || 100) / 100}m (C) x ${(acc.gateHeight || 90) / 100}m (A)`, 11, false, 'left');
-              } else if (acc.hasGuardrail) {
-                  addText(`-Guarda-Corpo ${idx + 1}: ${(acc.guardrailLength || 100) / 100}m (C) x ${(acc.guardrailHeight || 90) / 100}m (A)`, 11, false, 'left');
+                  addText(`-Portão ${idx + 1}: ${acc.gateLength || acc.length || 100}cm (C) x ${acc.gateHeight || acc.height || 90}cm (A) - Valor: ${accPrice}`, 11, false, 'left');
+              } else if (acc.hasGuardrail || data.inputData.quoteType === 'guardrail') {
+                  const gLen = acc.guardrailLength || acc.length || 100;
+                  const gHei = acc.guardrailHeight || acc.height || 90;
+                  addText(`-Guarda-Corpo ${idx + 1}: ${gLen}cm (C) x ${gHei}cm (A) - Valor: ${accPrice}`, 11, false, 'left');
               }
           });
       }
@@ -265,7 +274,7 @@ export const generateContractPDF = (data: ContractData) => {
           const lengthText = data.inputData.standaloneGuardrails 
               ? (data.inputData.standaloneGuardrails.reduce((sum: number, g: any) => sum + (Number(g.length) || 0), 0) / 100).toFixed(2) + 'm' 
               : (data.selectedOption.totalLength / 100).toFixed(2) + 'm';
-          addText(`-Valor Guarda-Corpos/Portões (${lengthText}): ${formatCurrencyBRL(data.finalStairPrice)}`, 11, false, 'left');
+          addText(`-Valor Total Guarda-Corpos/Portões (${lengthText}): ${formatCurrencyBRL(data.finalStairPrice)}`, 11, false, 'left');
       } else if (data.inputData.quoteType === 'landing') {
           const landingsCount = data.selectedOption.landings ? data.selectedOption.landings.length : 1;
           addText(`-Valor Patamares (${landingsCount} un): ${formatCurrencyBRL(data.finalStairPrice)}`, 11, false, 'left');
@@ -276,7 +285,13 @@ export const generateContractPDF = (data: ContractData) => {
 
   if (data.finalLandingsPrice > 0) {
         const hasAccessories = data.selectedOption?.landings?.some(l => l.isAccessoriesOnly);
-        const label = hasAccessories ? 'Valor Patamares / Acessórios (Total)' : 'Valor Patamares (Total)';
+        const hasRealLandings = data.selectedOption?.landings?.some(l => !l.isAccessoriesOnly);
+        let label = 'Valor Patamares (Total)';
+        if (hasAccessories && !hasRealLandings) {
+            label = 'Valor Acessórios Avulsos (Total)';
+        } else if (hasAccessories && hasRealLandings) {
+            label = 'Valor Patamares / Acessórios (Total)';
+        }
         addText(`-${label}: ${formatCurrencyBRL(data.finalLandingsPrice)}`, 11, false, 'left');
     }
   
