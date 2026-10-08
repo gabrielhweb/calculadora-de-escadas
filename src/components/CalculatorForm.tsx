@@ -989,12 +989,14 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                                         className="mb-0"
                                         tooltip="Largura lateral do patamar."
                                     />
+                                </div>
+                                <div className="grid grid-cols-1 gap-3 mt-3">
                                     <InputField 
                                         label="Preço/Peso Base" 
                                         value={landing.weightPerSqm !== undefined ? landing.weightPerSqm.toString() : '29'} 
                                         onChange={e => updateLanding(landing.id, { weightPerSqm: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} 
-                                        unit="R$" 
-                                        type="text"
+                                        unit="R$"
+                                        type="number"
                                         className="mb-0"
                                         tooltip="Valor base para cálculo automático (R$ 29/kg padrão)."
                                     />

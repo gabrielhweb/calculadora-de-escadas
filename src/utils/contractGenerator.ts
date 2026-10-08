@@ -255,7 +255,7 @@ export const generateContractPDF = (data: ContractData) => {
 
       if (accessories.length > 0) {
           accessories.forEach((acc, idx) => {
-              const accPrice = acc.price ? formatCurrencyBRL(computeLandingPrice(acc)) : 'R$ 0,00';
+              const accPrice = formatCurrencyBRL(computeLandingPrice(acc));
               if (acc.hasGate) {
                   addText(`-Portão ${idx + 1}: ${acc.gateLength || acc.length || 100}cm (C) x ${acc.gateHeight || acc.height || 90}cm (A) - Valor: ${accPrice}`, 11, false, 'left');
               } else if (acc.hasGuardrail || data.inputData.quoteType === 'guardrail') {
