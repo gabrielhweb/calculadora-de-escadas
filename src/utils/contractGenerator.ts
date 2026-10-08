@@ -180,7 +180,7 @@ export const generateContractPDF = (data: ContractData) => {
       dampersText = ' com rodinhas de avanço';
   }
 
-  const numLandings = data.selectedOption.landings ? data.selectedOption.landings.length : 0;
+  const numLandings = data.selectedOption.landings ? data.selectedOption.landings.filter(l => !l.isAccessoriesOnly).length : 0;
   const computedStructureSteps = data.selectedOption.structureSteps ?? (data.selectedOption.steps - numLandings);
 
   let objText = '';

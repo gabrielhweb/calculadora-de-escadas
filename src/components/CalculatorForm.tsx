@@ -974,14 +974,6 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
                                     <InputField 
-                                        label="Preço da Chapa (R$)" 
-                                        value={landing.chapaPrice !== undefined ? landing.chapaPrice.toString() : (landing.price !== undefined ? landing.price.toString() : '0')} 
-                                        onChange={e => updateLanding(landing.id, { chapaPrice: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} 
-                                        unit="R$" 
-                                        className="mb-0"
-                                        tooltip="Custo apenas da chapa do patamar."
-                                    />
-                                    <InputField 
                                         label="Comp. (cm)" 
                                         value={landing.length.toString()} 
                                         onChange={e => updateLanding(landing.id, { length: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} 
@@ -997,16 +989,22 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                                         className="mb-0"
                                         tooltip="Largura lateral do patamar."
                                     />
-                                    <div className="col-span-1">
-                                        <InputField 
-                                            label="Preço/Peso Base" 
-                                            value={landing.weightPerSqm !== undefined ? landing.weightPerSqm.toString() : '29'} 
-                                            onChange={e => updateLanding(landing.id, { weightPerSqm: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} 
-                                            unit="R$" 
-                                            className="mb-0"
-                                            tooltip="Valor base para cálculo automático (R$ 29/kg padrão)."
-                                        />
-                                    </div>
+                                    <InputField 
+                                        label="Preço/Peso Base" 
+                                        value={landing.weightPerSqm !== undefined ? landing.weightPerSqm.toString() : '29'} 
+                                        onChange={e => updateLanding(landing.id, { weightPerSqm: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} 
+                                        unit="R$" 
+                                        className="mb-0"
+                                        tooltip="Valor base para cálculo automático (R$ 29/kg padrão)."
+                                    />
+                                    <InputField 
+                                        label="Preço da Chapa (R$)" 
+                                        value={landing.chapaPrice !== undefined ? landing.chapaPrice.toString() : (landing.price !== undefined ? landing.price.toString() : '0')} 
+                                        onChange={e => updateLanding(landing.id, { chapaPrice: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} 
+                                        unit="R$" 
+                                        className="mb-0"
+                                        tooltip="Custo apenas da chapa do patamar."
+                                    />
                                 </div>
                                 <div className="col-span-2 bg-gray-50 dark:bg-gray-700/50 p-2 rounded border border-gray-100 dark:border-gray-700">
                                     <label className="flex items-center gap-2 cursor-pointer mb-2">
