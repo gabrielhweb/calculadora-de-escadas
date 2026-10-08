@@ -69,7 +69,7 @@ export const InputField: React.FC<{
         value={value}
         onChange={onChange}
         disabled={disabled}
-        className={`flex-1 min-w-0 p-2 rounded-l-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight focus:ring-1 focus:ring-highlight transition font-bold text-lg ${disabled ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed' : 'bg-white dark:bg-gray-800 text-black dark:text-white'}`}
+        className={`flex-1 min-w-0 p-1.5 px-2 rounded-l-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight focus:ring-1 focus:ring-highlight transition font-bold text-base ${disabled ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed' : 'bg-white dark:bg-gray-800 text-black dark:text-white'}`}
         placeholder={placeholder || (isOptional ? "Automático" : label)}
         min="0"
         step="any"
@@ -381,7 +381,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                     type="number"
                     value={totalHeight}
                     onChange={(e) => setTotalHeight(e.target.value)}
-                    className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-2 rounded-l-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight transition font-bold text-lg"
+                    className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-1.5 px-2 rounded-l-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight transition font-bold text-base"
                     placeholder="300"
                     min="0"
                     step="any"

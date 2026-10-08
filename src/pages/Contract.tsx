@@ -2062,12 +2062,24 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                             
                             {/* MOSTRA O TOTAL DE PATAMARES SEPARADO */}
                             <div className="col-span-2 sm:col-span-1">
-                                <ContractInput 
-                                    label="Valor Patamares (Total)" 
-                                    value={landingsPrice} 
-                                    onChange={(e: any) => setLandingsPrice(e.target.value)} 
-                                    type="number" 
-                                />
+                                <div className="flex gap-2">
+                                    <div className="flex-1">
+                                        <ContractInput 
+                                            label="Valor Patamares" 
+                                            value={landingsPrice} 
+                                            onChange={(e: any) => setLandingsPrice(e.target.value)} 
+                                            type="number"
+                                        />
+                                    </div>
+                                    <div className="flex-1">
+                                        <ContractInput 
+                                            label="Valor Avulsos" 
+                                            value={avulsosPrice} 
+                                            onChange={(e: any) => setAvulsosPrice(e.target.value)} 
+                                            type="number"
+                                        />
+                                    </div>
+                                </div>
                             </div>
                             
                             <div className="col-span-2">
