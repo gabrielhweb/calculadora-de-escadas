@@ -257,11 +257,11 @@ export const generateContractPDF = (data: ContractData) => {
           accessories.forEach((acc, idx) => {
               const accPrice = formatCurrencyBRL(computeLandingPrice(acc));
               if (acc.hasGate) {
-                  addText(`-Portão ${idx + 1}: ${acc.gateLength || acc.length || 100}cm (C) x ${acc.gateHeight || acc.height || 90}cm (A) - Valor: ${accPrice}`, 11, false, 'left');
+                  addText(`-Portão: ${acc.gateLength || acc.length || 100}cm (C) x ${acc.gateHeight || acc.height || 90}cm (A) - Valor: ${accPrice}`, 11, false, 'left');
               } else if (acc.hasGuardrail || data.inputData.quoteType === 'guardrail') {
                   const gLen = acc.guardrailLength || acc.length || 100;
                   const gHei = acc.guardrailHeight || acc.height || 90;
-                  addText(`-Guarda-Corpo ${idx + 1}: ${gLen}cm (C) x ${gHei}cm (A) - Valor: ${accPrice}`, 11, false, 'left');
+                  addText(`-Guarda-Corpo: ${gLen}cm (C) x ${gHei}cm (A) - Valor: ${accPrice}`, 11, false, 'left');
               }
           });
       }

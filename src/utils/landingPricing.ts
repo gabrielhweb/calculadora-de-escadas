@@ -65,8 +65,11 @@ export const getLandingBasePrice = (l: LandingInfo) => {
     }
     
     // Caso contrário, calcula automaticamente: (Comp * Larg / 1000) * Preço Base
-    const area = (num(l.length, 0) * num(l.width, 0)) / 1000;
-    const computedChapa = Math.round(area * num(l.weightPerSqm, 29));
+    const length = num(l.length, 0) + 20;
+    const width = num(l.width, 0) + 20;
+    const area = (length / 100) * (width / 100);
+    const weightKg = area * 0.00334 * 7850;
+    const computedChapa = Math.round(weightKg * num(l.weightPerSqm, 29));
     
     // Fallback legado
     if (computedChapa === 0 && num(l.price, 0) > 0) return num(l.price, 0);

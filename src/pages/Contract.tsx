@@ -1570,31 +1570,33 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                                     </button>
                                                 </div>
                                             </div>
-                                                                                        <ContractInput 
-                                                label="Comp. (cm)" 
-                                                value={landing.length.toString()} 
-                                                onChange={(e: any) => updateLanding(landing.id, { length: parseFloat(e.target.value) })} 
-                                                type="number"
-                                            />
-                                            <ContractInput 
-                                                label="Larg. (cm)" 
-                                                value={landing.width.toString()} 
-                                                onChange={(e: any) => updateLanding(landing.id, { width: parseFloat(e.target.value) })} 
-                                                type="number"
-                                            />
-                                            <ContractInput 
-                                                label="Preço Base (R$)" 
-                                                value={landing.weightPerSqm !== undefined ? landing.weightPerSqm.toString() : '29'} 
-                                                onChange={(e: any) => updateLanding(landing.id, { weightPerSqm: parseFloat(e.target.value) })} 
-                                                type="number"
-                                            />
-                                            <ContractInput 
-                                                label="Chapa (R$)" 
-                                                value={landing.chapaPrice !== undefined ? landing.chapaPrice.toString() : ''} 
-                                                placeholder={Math.round(((Number(landing.length) || 0) * (Number(landing.width) || 0) / 1000) * (landing.weightPerSqm !== undefined ? landing.weightPerSqm : 29)).toString()}
-                                                onChange={(e: any) => updateLanding(landing.id, { chapaPrice: e.target.value === '' ? undefined : (parseFloat(e.target.value) || 0) })} 
-                                                type="number"
-                                            />
+                                                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                                                <ContractInput 
+                                                    label="Comp. (cm)" 
+                                                    value={landing.length.toString()} 
+                                                    onChange={(e: any) => updateLanding(landing.id, { length: parseFloat(e.target.value) })} 
+                                                    type="number"
+                                                />
+                                                <ContractInput 
+                                                    label="Larg. (cm)" 
+                                                    value={landing.width.toString()} 
+                                                    onChange={(e: any) => updateLanding(landing.id, { width: parseFloat(e.target.value) })} 
+                                                    type="number"
+                                                />
+                                                <ContractInput 
+                                                    label="Preço/Peso Base (R$)" 
+                                                    value={landing.weightPerSqm !== undefined ? landing.weightPerSqm.toString() : '29'} 
+                                                    onChange={(e: any) => updateLanding(landing.id, { weightPerSqm: parseFloat(e.target.value) })} 
+                                                    type="number"
+                                                />
+                                                <ContractInput 
+                                                    label="Preço da Chapa (R$)" 
+                                                    value={landing.chapaPrice !== undefined ? landing.chapaPrice.toString() : ''} 
+                                                    placeholder={Math.round(((((Number(landing.length) || 0) + 20) / 100) * (((Number(landing.width) || 0) + 20) / 100)) * 0.00334 * 7850 * (landing.weightPerSqm !== undefined ? landing.weightPerSqm : 29)).toString()}
+                                                    onChange={(e: any) => updateLanding(landing.id, { chapaPrice: e.target.value === '' ? undefined : (parseFloat(e.target.value) || 0) })} 
+                                                    type="number"
+                                                />
+                                            </div>
                                             <div className="col-span-2 mt-4 space-y-3 border-t pt-3">
                                                 <label className="flex items-center gap-2 cursor-pointer">
                                                     <input 
