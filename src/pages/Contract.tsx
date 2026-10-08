@@ -2500,7 +2500,7 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                 <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded space-y-3">
                                     <div className="flex items-center justify-between">
                                         <label className="block text-xs font-bold text-blue-800 dark:text-blue-300 uppercase">
-                                            Valor em Dinheiro/Pix ({Number(signalPercent).toFixed(1)}%)
+                                            Valor em {cashMethodName} ({Number(signalPercent).toFixed(1)}%)
                                         </label>
                                     </div>
                                     
@@ -2530,7 +2530,7 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                     {/* TOGGLE PARA O MOMENTO DO PAGAMENTO */}
                                     <div className="pt-2 border-t border-blue-200 dark:border-blue-800">
                                         <span className="block text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase mb-1">
-                                            Quando pagar o Pix/Dinheiro?
+                                            Quando pagar o Sinal?
                                         </span>
                                         <div className="flex bg-white dark:bg-gray-800 rounded p-1">
                                             <button 
