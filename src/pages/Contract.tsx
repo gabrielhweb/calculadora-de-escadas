@@ -2286,6 +2286,8 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                     <div className="space-y-6 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
                         <SectionTitle title="4. Pagamento (Item 6)" />
                         
+
+                        
                         {/* DESCONTO GLOBAL */}
                         <div className="flex items-center gap-4 mb-4 bg-white dark:bg-gray-700 p-3 rounded border border-gray-300 dark:border-gray-600">
                             <div className="flex-1">
@@ -2370,6 +2372,16 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                     </div>
                                 )}
                                 <div className="pt-2 text-sm text-gray-500 dark:text-gray-400 font-medium border-t border-gray-300 dark:border-gray-600">
+                                    {/* INJETADO RESUMO DE CUSTOS AQUI COMO O CLIENTE PEDIU */}
+                                    <div className="mb-2 pb-2 border-b border-gray-200 dark:border-gray-600 space-y-1 text-xs text-gray-500 dark:text-gray-400">
+                                        {parseFloat(stairPrice) > 0 && <p className="flex justify-between"><span>Escada:</span> <span>{formatCurrencyBRL(parseFloat(stairPrice))}</span></p>}
+                                        {parseFloat(landingsPrice) > 0 && <p className="flex justify-between"><span>Patamar(es):</span> <span>{formatCurrencyBRL(parseFloat(landingsPrice))}</span></p>}
+                                        {parseFloat(guardrailPrice) > 0 && <p className="flex justify-between"><span>Guarda-Corpo:</span> <span>{formatCurrencyBRL(parseFloat(guardrailPrice))}</span></p>}
+                                        {parseFloat(gatePrice) > 0 && <p className="flex justify-between"><span>Portão:</span> <span>{formatCurrencyBRL(parseFloat(gatePrice))}</span></p>}
+                                        {parseFloat(freightPrice) > 0 && <p className="flex justify-between"><span>Frete:</span> <span>{formatCurrencyBRL(parseFloat(freightPrice))}</span></p>}
+                                        {parseFloat(installationPrice) > 0 && <p className="flex justify-between"><span>Instalação:</span> <span>{formatCurrencyBRL(parseFloat(installationPrice))}</span></p>}
+                                        {parseFloat(extrasPrice) > 0 && <p className="flex justify-between"><span>Extras:</span> <span>{formatCurrencyBRL(parseFloat(extrasPrice))}</span></p>}
+                                    </div>
                                     <p className="flex justify-between"><span>Valor Original:</span> <span className="line-through">{formatCurrencyBRL(totalGeralBase)}</span></p>
                                     {discountMoney > 0 && <p className="flex justify-between text-green-600"><span>Desconto:</span> <span>- {formatCurrencyBRL(discountMoney)}</span></p>}
                                     <p className="flex justify-between text-green-700 dark:text-green-400 font-bold text-lg"><span>A Pagar:</span> <span>{formatCurrencyBRL(pixTotal)}</span></p>

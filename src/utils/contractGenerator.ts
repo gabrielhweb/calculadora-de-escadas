@@ -237,7 +237,7 @@ export const generateContractPDF = (data: ContractData) => {
             if (landing.hasGuardrail) guardText += " + Guarda Corpo";
             if (landing.hasGate) guardText += " + Portão";
           
-          addText(`-Patamar ${patamarIdx} (${typeText} - ${dirText})${bracketText}: ${flushText} de ${lM}m (C) x ${wM}m (L)${guardText}`, 11, false, 'left');
+          addText(`-Patamar (${typeText} - ${dirText})${bracketText}: ${flushText} de ${lM}m (C) x ${wM}m (L)${guardText}`, 11, false, 'left');
           patamarIdx++;
       });
       const totalMaoFrancesa = data.selectedOption.landings.reduce((sum, l) => sum + (l.isAccessoriesOnly ? 0 : (l.hasFrenchBrackets ? (l.frenchBrackets !== undefined ? l.frenchBrackets : 2) : 0)), 0);
