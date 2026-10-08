@@ -283,7 +283,8 @@ const Contract = () => {
     // Dados Financeiros (SEPARADOS)
     const [stairPrice, setStairPrice] = useState('0'); // Preço só da escada
     const [landingsPrice, setLandingsPrice] = useState('0');
-    const [avulsosPrice, setAvulsosPrice] = useState('0');
+    const [guardrailPrice, setGuardrailPrice] = useState('0');
+    const [gatePrice, setGatePrice] = useState('0');
     
     const [freightPrice, setFreightPrice] = useState('0');
     const [freightMode, setFreightMode] = useState<'empresa' | 'transportadora' | 'entrega' | 'auto' | 'manual' | 'fixed'>('empresa');
@@ -358,12 +359,13 @@ const Contract = () => {
         // We only auto-update if we are computing from scratch, otherwise we might overwrite manual edits.
         // Actually, to be safe and fix the bug where Patamar price is zero, we ALWAYS update them when landings array changes.
         setLandingsPrice(patamaresTotal.toFixed(2));
-        setAvulsosPrice(avulsosTotal.toFixed(2));
+        setGuardrailPrice(landings.filter(l => l.isAccessoriesOnly && l.hasGuardrail).reduce((acc, l) => acc + computeLandingPrice(l), 0).toFixed(2));
+        setGatePrice(landings.filter(l => l.isAccessoriesOnly && l.hasGate).reduce((acc, l) => acc + computeLandingPrice(l), 0).toFixed(2));
     }, [landings]);
 
 
     // Cálculos Base
-    const totalStructure = (parseFloat(stairPrice) || 0) + (parseFloat(landingsPrice) || 0) + (parseFloat(avulsosPrice) || 0);
+    const totalStructure = (parseFloat(stairPrice) || 0) + (parseFloat(landingsPrice) || 0) + (parseFloat(guardrailPrice) || 0) + (parseFloat(gatePrice) || 0);
     const totalGeralBase = totalStructure + (parseFloat(freightPrice)||0) + (parseFloat(installationPrice)||0) + (parseFloat(extrasPrice)||0);
     const discountMoney = parseFloat(discountValue) || 0;
     const discountedBase = Math.max(0, totalGeralBase - discountMoney);
@@ -883,7 +885,7 @@ const Contract = () => {
                 landings: landings
             },
             finalStairPrice: parseFloat(stairPrice) || 0,
-            finalLandingsPrice: (parseFloat(landingsPrice) || 0) + (parseFloat(avulsosPrice) || 0),
+            finalLandingsPrice: (parseFloat(landingsPrice) || 0) + (parseFloat(guardrailPrice) || 0) + (parseFloat(gatePrice) || 0),
             inputData: {
                 ...(originalInputData || {}),
                 totalHeight: parseFloat(totalHeight) || 0,
@@ -1071,7 +1073,7 @@ const Contract = () => {
             },
             // PASSANDO OS PREÇOS SEPARADOS EXPLICITAMENTE
             finalStairPrice: parseFloat(stairPrice) || 0,
-            finalLandingsPrice: (parseFloat(landingsPrice) || 0) + (parseFloat(avulsosPrice) || 0),
+            finalLandingsPrice: (parseFloat(landingsPrice) || 0) + (parseFloat(guardrailPrice) || 0) + (parseFloat(gatePrice) || 0),
             
             inputData: {
                 ...(originalInputData || {}),
@@ -1248,7 +1250,7 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                 landings: landings
             },
             finalStairPrice: parseFloat(stairPrice) || 0,
-            finalLandingsPrice: (parseFloat(landingsPrice) || 0) + (parseFloat(avulsosPrice) || 0),
+            finalLandingsPrice: (parseFloat(landingsPrice) || 0) + (parseFloat(guardrailPrice) || 0) + (parseFloat(gatePrice) || 0),
             inputData: {
                 ...(originalInputData || {}),
                 type: originalInputData?.type || 'straight',
@@ -1587,9 +1589,10 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                             />
                                             <ContractInput 
                                                 label="Chapa (R$)" 
-                                                value={landing.chapaPrice !== undefined ? landing.chapaPrice.toString() : (landing.price !== undefined ? landing.price.toString() : '0')} 
-                                                onChange={(e: any) => updateLanding(landing.id, { chapaPrice: parseFloat(e.target.value) || 0 })} 
-                                                type="text"
+                                                value={landing.chapaPrice !== undefined ? landing.chapaPrice.toString() : ''} 
+                                                placeholder={Math.round(((parseFloat(landing.length) || 0) * (parseFloat(landing.width) || 0) / 1000) * (landing.weightPerSqm !== undefined ? landing.weightPerSqm : 29)).toString()}
+                                                onChange={(e: any) => updateLanding(landing.id, { chapaPrice: e.target.value === '' ? undefined : (parseFloat(e.target.value) || 0) })} 
+                                                type="number"
                                             />
                                             <div className="col-span-2 mt-4 space-y-3 border-t pt-3">
                                                 <label className="flex items-center gap-2 cursor-pointer">
@@ -1752,7 +1755,7 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                                 </span>
                                                 
                                                 <div className="mt-6 space-y-3">
-                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                                                         <ContractInput 
                                                             label="Comp. (cm)" 
                                                             value={gateLength.toString()} 
@@ -1763,6 +1766,12 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                                             label="Altura (cm)" 
                                                             value={gateHeight.toString()} 
                                                             onChange={(e: any) => updateLanding(landing.id, { gateHeight: parseFloat(e.target.value) || 0 })} 
+                                                            type="number"
+                                                        />
+                                                        <ContractInput 
+                                                            label="R$/Metro" 
+                                                            value={(landing.gatePricePerMeter !== undefined ? landing.gatePricePerMeter : 50).toString()} 
+                                                            onChange={(e: any) => updateLanding(landing.id, { gatePricePerMeter: parseFloat(e.target.value) || 0 })} 
                                                             type="number"
                                                         />
                                                     </div>
@@ -2073,9 +2082,17 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                     </div>
                                     <div className="flex-1">
                                         <ContractInput 
-                                            label="Valor Avulsos" 
-                                            value={avulsosPrice} 
-                                            onChange={(e: any) => setAvulsosPrice(e.target.value)} 
+                                            label="V. Guarda-Corpo" 
+                                            value={guardrailPrice} 
+                                            onChange={(e: any) => setGuardrailPrice(e.target.value)} 
+                                            type="number"
+                                        />
+                                    </div>
+                                    <div className="flex-1">
+                                        <ContractInput 
+                                            label="V. Portão" 
+                                            value={gatePrice} 
+                                            onChange={(e: any) => setGatePrice(e.target.value)} 
                                             type="number"
                                         />
                                     </div>
