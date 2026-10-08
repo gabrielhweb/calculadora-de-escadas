@@ -240,10 +240,7 @@ export const generateContractPDF = (data: ContractData) => {
           addText(`-Patamar (${typeText} - ${dirText})${bracketText}: ${flushText} de ${lM}m (C) x ${wM}m (L)${guardText}`, 11, false, 'left');
           patamarIdx++;
       });
-      const totalMaoFrancesa = data.selectedOption.landings.reduce((sum, l) => sum + (l.isAccessoriesOnly ? 0 : (l.hasFrenchBrackets ? (l.frenchBrackets !== undefined ? l.frenchBrackets : 2) : 0)), 0);
-      if (totalMaoFrancesa > 0) {
-          addText(`-Quantidade de Mão Francesa: ${totalMaoFrancesa}`, 11, false, 'left');
-      }
+      
 
       // Listar os acessórios avulsos (Guarda-Corpo/Portão)
       let accessories: any[] = [];
