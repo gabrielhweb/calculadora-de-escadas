@@ -2302,23 +2302,9 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                 type="number"
                             />
                             
-                            {hasStairSideBar && (
-                                <ContractInput 
-                                    label="V. Barra Lateral" 
-                                    value={stairSideBarPrice} 
-                                    onChange={(e: any) => setStairSideBarPrice(e.target.value)} 
-                                    type="number"
-                                />
-                            )}
                             
-                            {hasStairSideBar && (
-                                <ContractInput 
-                                    label="V. Barra Lateral" 
-                                    value={stairSideBarPrice} 
-                                    onChange={(e: any) => setStairSideBarPrice(e.target.value)} 
-                                    type="number"
-                                />
-                            )}
+                            
+                            
                             <ContractInput 
                                 label="V. Portão" 
                                 value={gatePrice} 
