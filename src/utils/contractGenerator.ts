@@ -23,6 +23,11 @@ export interface ContractData {
       hybridSignalAmount?: number; // Valor manual exato do sinal
       pixTiming?: 'entry' | 'delivery'; // Momento do pagamento Pix
       remainderText?: string; // NOVO: Texto personalizado para a forma de pagamento do restante
+        enableSignalInterest?: boolean;
+        signalInterestValue?: number;
+        signalInstallments?: number;
+        signalInstallmentValue?: number;
+        hideSignalInterestLabel?: boolean;
   cashMethodName?: string;
         isCustomPix?: boolean;
         pixInstallmentsList?: { value: number; description: string }[];
@@ -494,9 +499,24 @@ export const generateContractPDF = (data: ContractData) => {
           
           // Determina o texto baseado no momento do pagamento (Timing)
           const isPixOnDelivery = data.paymentDetails.pixTiming === 'delivery';
-          const timingText = isPixOnDelivery
-              ? `via ${cashMethodLower} no ato da entrega/retirada` 
-              : `via ${cashMethodLower} de entrada`;
+              const signalInstallments = data.paymentDetails.signalInstallments || 1;
+          const signalInstallmentValue = data.paymentDetails.signalInstallmentValue || 0;
+          const totalSinal = signalInstallmentValue * signalInstallments;
+          const printSignalInterest = totalSinal > valorPixFinal + 1 && !data.paymentDetails.hideSignalInterestLabel;
+          const finalSinalAmount = (totalSinal > valorPixFinal + 1) ? totalSinal : valorPixFinal;
+      
+          let signalSentence = "";
+          if (printSignalInterest) {
+              signalSentence = `${formatCurrencyBRL(valorPixFinal)} mais juros totalizando ${formatCurrencyBRL(totalSinal)} via ${cashMethodLower} em ${signalInstallments} vezes iguais de ${formatCurrencyBRL(signalInstallmentValue)}`;
+          } else if (signalInstallments > 1) {
+              signalSentence = `${formatCurrencyBRL(finalSinalAmount)} via ${cashMethodLower} em ${signalInstallments} vezes iguais de ${formatCurrencyBRL(signalInstallmentValue)}`;
+          } else {
+              signalSentence = `${formatCurrencyBRL(finalSinalAmount)} via ${cashMethodLower}`;
+          }
+      
+          const timingTextSinal = isPixOnDelivery
+              ? `${signalSentence} no ato da entrega/retirada` 
+              : `${signalSentence} de entrada`;
 
           // Texto flexível do restante
           const remainderMethodName = data.paymentDetails.remainderText || "Link de Pagamento (Cartão de Crédito)";
@@ -530,9 +550,9 @@ export const generateContractPDF = (data: ContractData) => {
                         addText(`Sendo pago ${formatCurrencyBRL(finalAmount)} via ${remainderMethodName} em ${installments} vezes iguais de ${formatCurrencyBRL(installmentValue)}${deliveryText}.`, 11, false, 'justify');
                     }
                 }
-              addText(`E o restante de ${formatCurrencyBRL(valorPixFinal)} ${timingText}.`, 11, false, 'left');
+              addText(`E o restante de ${timingTextSinal}.`, 11, false, 'left');
           } else {
-              addText(`Sendo pago ${formatCurrencyBRL(valorPixFinal)} ${timingText}.`, 11, false, 'left');
+              addText(`Sendo pago ${timingTextSinal}.`, 11, false, 'left');
               const printInterestText = totalNoCartao > restanteBase + 1 && !data.userData?.hideInterestLabel;
               const finalAmount = (totalNoCartao > restanteBase + 1) ? totalNoCartao : restanteBase;
               

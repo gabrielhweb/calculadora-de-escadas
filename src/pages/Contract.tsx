@@ -318,6 +318,10 @@ const Contract = () => {
 
     // --- LÓGICA DE JUROS/TAXAS NO CARTÃO ---
     const [enableInterest, setEnableInterest] = useState(false);
+    const [enableSignalInterest, setEnableSignalInterest] = useState(false);
+    const [signalInterestValue, setSignalInterestValue] = useState('');
+    const [hideSignalInterestLabel, setHideSignalInterestLabel] = useState(false);
+    const [signalInstallments, setSignalInstallments] = useState(1);
     const [interestValue, setInterestValue] = useState(''); // Valor monetário (R$)
     const [hideInterestLabel, setHideInterestLabel] = useState(false); // Ocultar aviso de juros no PDF
 
@@ -695,10 +699,15 @@ const Contract = () => {
         ? Math.max(0, discountedBase - hybridEntryPix)
         : discountedBase;
 
+    const signalInterestMoney = enableSignalInterest ? (parseFloat(signalInterestValue.replace(',', '.')) || 0) : 0;
+    const signalTotal = hybridEntryPix + signalInterestMoney;
+    const signalInstallmentVal = signalTotal / (signalInstallments || 1);
+
     const interestMoney = enableInterest ? (parseFloat(interestValue.replace(',', '.')) || 0) : 0;
     const totalFinanciadoReal = baseAmountForCard + interestMoney;
     const finalInstallmentVal = totalFinanciadoReal / (installments || 1);
-    const totalGeralFinal = (paymentMethod === 'hybrid' ? hybridEntryPix : 0) + totalFinanciadoReal;
+    
+    const totalGeralFinal = (paymentMethod === 'hybrid' ? signalTotal : 0) + totalFinanciadoReal;
 
     const handleMethodChange = (method: 'pix' | 'card' | 'hybrid') => {
         setPaymentMethod(method);
@@ -924,6 +933,7 @@ const Contract = () => {
             deadlineDate: '', 
             paymentMethod,
             paymentDetails: {
+                
                 discountPercent, 
                 discountValue: discountMoney,
                 signalPercent, 
@@ -935,6 +945,12 @@ const Contract = () => {
                 cashMethodName,
                 isCustomPix,
                 pixInstallmentsList
+            ,
+                enableSignalInterest,
+                signalInterestValue: enableSignalInterest ? parseFloat(signalInterestValue.replace(',', '.')) || 0 : 0,
+                signalInstallments,
+                signalInstallmentValue: signalInstallmentVal,
+                hideSignalInterestLabel
             },
             additionalClauses: customClauses,
             objectDescriptionText,
@@ -1113,6 +1129,7 @@ const Contract = () => {
             deadlineDate: '', 
             paymentMethod,
             paymentDetails: {
+                
                 discountPercent, 
                 discountValue: discountMoney,
                 signalPercent, 
@@ -1124,6 +1141,12 @@ const Contract = () => {
                 cashMethodName,
                 isCustomPix,
                 pixInstallmentsList
+            ,
+                enableSignalInterest,
+                signalInterestValue: enableSignalInterest ? parseFloat(signalInterestValue.replace(',', '.')) || 0 : 0,
+                signalInstallments,
+                signalInstallmentValue: signalInstallmentVal,
+                hideSignalInterestLabel
             },
             additionalClauses: customClauses,
             objectDescriptionText,
@@ -1293,6 +1316,7 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
             deadlineDate: '', 
             paymentMethod,
             paymentDetails: {
+                
                 discountPercent, 
                 discountValue: discountMoney,
                 signalPercent, 
@@ -1304,6 +1328,12 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                 cashMethodName,
                 isCustomPix,
                 pixInstallmentsList
+            ,
+                enableSignalInterest,
+                signalInterestValue: enableSignalInterest ? parseFloat(signalInterestValue.replace(',', '.')) || 0 : 0,
+                signalInstallments,
+                signalInstallmentValue: signalInstallmentVal,
+                hideSignalInterestLabel
             },
             additionalClauses: [],
             objectDescriptionText,
@@ -2547,6 +2577,37 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                             </button>
                                         </div>
                                     </div>
+                                    {(cashMethodName.toLowerCase().includes('cartão') || cashMethodName.toLowerCase().includes('boleto') || cashMethodName.toLowerCase().includes('cheque')) && (
+                                        <div className="pt-3 mt-3 border-t border-blue-200 dark:border-blue-800 animate-fade-in">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <label className="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Acréscimos / Parcelas (Sinal)</label>
+                                                <label className="flex items-center gap-1 cursor-pointer">
+                                                    <input type="checkbox" checked={enableSignalInterest} onChange={e => setEnableSignalInterest(e.target.checked)} className="w-4 h-4 rounded text-blue-500 focus:ring-blue-500"/>
+                                                    <span className="text-xs font-bold text-blue-600 dark:text-blue-400">Somar Juros (Opcional)</span>
+                                                </label>
+                                            </div>
+                                            {enableSignalInterest && (
+                                                <>
+                                                    <input type="number" placeholder="Valor total dos juros do sinal (R$)" value={signalInterestValue} onChange={e => setSignalInterestValue(e.target.value)} className="w-full p-2 border border-blue-300 dark:border-blue-600 rounded mb-2 text-sm bg-white dark:bg-gray-800 text-black dark:text-white"/>
+                                                    <label className="flex items-center gap-2 cursor-pointer mb-2">
+                                                        <input type="checkbox" checked={hideSignalInterestLabel} onChange={e => setHideSignalInterestLabel(e.target.checked)} className="w-4 h-4 rounded text-blue-500 focus:ring-blue-500"/>
+                                                        <span className="text-xs font-bold text-gray-500 dark:text-gray-400">Ocultar palavra "com juros" no PDF</span>
+                                                    </label>
+                                                </>
+                                            )}
+                                            <div className="flex gap-2 items-center">
+                                                <div className="flex-1">
+                                                    <span className="text-xs text-gray-500 dark:text-gray-400 block">Parcelas</span>
+                                                    <input type="number" value={signalInstallments} onChange={e => setSignalInstallments(parseInt(e.target.value)||1)} className="w-full p-2 border rounded font-bold text-center bg-white dark:bg-gray-800 text-black dark:text-white dark:border-gray-600"/>
+                                                </div>
+                                                <div className="flex-1 text-right">
+                                                    <span className="text-xs text-gray-500 dark:text-gray-400 block">Valor da Parcela</span>
+                                                    <span className="font-black text-lg text-gray-800 dark:text-gray-200">{formatCurrencyBRL(signalInstallmentVal)}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
                                 </div>
 
                                 <div className="bg-white dark:bg-gray-700 p-3 rounded border border-gray-300 dark:border-gray-600">
