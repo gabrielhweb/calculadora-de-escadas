@@ -1590,7 +1590,7 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                             <ContractInput 
                                                 label="Chapa (R$)" 
                                                 value={landing.chapaPrice !== undefined ? landing.chapaPrice.toString() : ''} 
-                                                placeholder={Math.round(((parseFloat(landing.length) || 0) * (parseFloat(landing.width) || 0) / 1000) * (landing.weightPerSqm !== undefined ? landing.weightPerSqm : 29)).toString()}
+                                                placeholder={Math.round(((Number(landing.length) || 0) * (Number(landing.width) || 0) / 1000) * (landing.weightPerSqm !== undefined ? landing.weightPerSqm : 29)).toString()}
                                                 onChange={(e: any) => updateLanding(landing.id, { chapaPrice: e.target.value === '' ? undefined : (parseFloat(e.target.value) || 0) })} 
                                                 type="number"
                                             />
