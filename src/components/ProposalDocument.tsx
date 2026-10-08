@@ -487,6 +487,18 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
         const splitInstall2 = doc.splitTextToSize(installText2, pageWidth - (pageMargin * 2));
         doc.text(splitInstall2, pageMargin, y);
         y += (splitInstall2.length * 5) + 4;
+        
+        if (inputData?.referenceDoor?.isActive) {
+            y += 4;
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'italic');
+            const doorText = 'Portas e/ou janelas representadas nos desenhos são ilustrativas e pertencem ao cliente, sendo utilizadas apenas como referência de espaço. Não são fabricadas ou fornecidas pela empresa.';
+            const splitDoor = doc.splitTextToSize(doorText, pageWidth - (pageMargin * 2));
+            doc.text(splitDoor, pageMargin, y);
+            y += (splitDoor.length * 5) + 4;
+            doc.setFont('helvetica', 'normal'); // reset
+        }
+
         return y;
     };
 

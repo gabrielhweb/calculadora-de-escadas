@@ -160,11 +160,11 @@ export const generateProposalDescription = (inputData: any, opt: any): string =>
     }
     
     let descriptionTitle = inputData.quoteType === 'landing' ? "Patamar sob medida em aço carbono" : "Escada articulada lateral em aço carbono";
-    let handrailDesc = inputData.quoteType === 'landing' ? "" : "e com corrimão de 70 centímetros";
+    let hrHeight = inputData.handrailHeight || 80;
+    let handrailDesc = inputData.quoteType === 'landing' ? "" : `e com corrimão de ${hrHeight} centímetros`;
     let damperDesc = inputData.quoteType === 'landing' ? "" : ` com ${inputData.dampers} amortecedores de alívio`;
 
     let fixationText = "";
-    
     if (inputData.isFixedStair) {
         descriptionTitle = "Escada fixa em aço carbono";
         fixationText = "";
@@ -172,14 +172,14 @@ export const generateProposalDescription = (inputData: any, opt: any): string =>
     } else if (inputData.stairGeometry === 'hide') {
         fixationText = ""; 
     } else if (inputData.stairGeometry && inputData.stairGeometry.includes('Fixação')) {
-        fixationText = inputData.stairGeometry; 
+        fixationText = inputData.stairGeometry.toLowerCase().replace('fixação', 'fixação'); 
     } else {
         if (inputData.wallFixation === 'frontal') {
-            fixationText = "Fixação FRONTAL";
+            fixationText = "fixação FRONTAL";
         } else {
             fixationText = inputData.wallFixation === 'left' 
-                ? "Fixação na Parede ESQUERDA" 
-                : "Fixação na Parede DIREITA";
+                ? "fixação na parede ESQUERDA" 
+                : "fixação na parede DIREITA";
         }
     }
 
@@ -190,14 +190,13 @@ export const generateProposalDescription = (inputData: any, opt: any): string =>
     if (inputData.hasWheels) {
         descriptionTitle = "Escada articulada com rodinhas em aço carbono";
         damperDesc = ""; 
-        
         const sideMap: Record<string, string> = { 
             left: 'apenas no lado esquerdo', 
             right: 'apenas no lado direito', 
             both: 'nos dois lados' 
         };
         const sideText = sideMap[inputData.handrailSide || 'both'] || 'nos dois lados';
-        handrailDesc = `e com corrimão articulado ${sideText}`;
+        handrailDesc = `e com corrimão articulado ${sideText} de ${hrHeight} centímetros`;
     }
 
     const alturaM = (inputData.totalHeight / 100).toFixed(2).replace('.', ',');
@@ -207,34 +206,34 @@ export const generateProposalDescription = (inputData: any, opt: any): string =>
     let text1 = `${descriptionTitle} com corte à laser`;
     if (fixationText) text1 += `, ${fixationText}`;
     if (geometryText) text1 += `${geometryText}`;
-    text1 += `, com medidas de: ${alturaM} metros de altura, ${compM} metros de comprimento, ${widthCm} centímetros de largura ${handrailDesc}.`;
+    if (inputData.quoteType !== 'landing') {
+        text1 += `, com medidas de: ${alturaM} metros de altura, ${compM} metros de comprimento, ${widthCm} centímetros de largura ${handrailDesc}.`;
+    } else {
+        text1 += `, com medidas de: ${alturaM} metros de altura, ${compM} metros de comprimento, ${widthCm} centímetros de largura.`;
+    }
 
     const stepH = opt.stepHeight.toFixed(2).replace('.', ',');
     const tread = opt.treadDepth.toFixed(2).replace('.', ',');
     
-    let materialText = 'de Metal';
+    let materialText = 'de metal';
     if (inputData.treadMaterial === 'wood') {
         if (inputData.woodType === 'garapeira') {
-            materialText = 'de Madeira (Garapeira)';
+            materialText = 'de madeira (Garapeira)';
         } else if (inputData.woodType === 'muiracatiara') {
-            materialText = 'de Madeira (Muiracatiara)';
+            materialText = 'de madeira (Muiracatiara)';
         } else {
-            materialText = 'de Madeira (Garapeira ou Muiracatiara)';
+            materialText = 'de madeira (Garapeira ou Muiracatiara)';
         }
     } else if (inputData.treadMaterial === 'chapa_xadrez') {
-        materialText = 'de Chapa Xadrez';
+        materialText = 'de chapa xadrez';
     } else if (inputData.treadMaterial === 'chapa_vazada') {
-        materialText = 'de Chapa Vazada';
+        materialText = 'de chapa vazada';
     }
     
     const degrausLabel = inputData.isFixedStair ? 'degraus fixos' : 'degraus articulados';
     const text2 = `-Com ${opt.structureSteps} ${degrausLabel} com dimensões de ${stepH} centímetros de altura e pisante ${materialText} de ${tread} centímetros${damperDesc}.`;
     
-    let fullText = `${text1}\n${text2}`;
-
-    if (inputData.referenceDoor && inputData.referenceDoor.isActive) {
-        fullText += "\nNOTA: Portas/Janelas exibidas nos desenhos técnicos são apenas ilustrativas para referência de espaço. NÃO FABRICAMOS OU FORNECEMOS PORTAS.";
-    }
+    let fullText = `${text1}\n\n${text2}`;
 
     return fullText;
 };
