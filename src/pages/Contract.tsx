@@ -282,7 +282,8 @@ const Contract = () => {
 
     // Dados Financeiros (SEPARADOS)
     const [stairPrice, setStairPrice] = useState('0'); // Preço só da escada
-    const [landingsPrice, setLandingsPrice] = useState('0'); // Preço total dos patamares
+    const [landingsPrice, setLandingsPrice] = useState('0');
+    const [avulsosPrice, setAvulsosPrice] = useState('0');
     
     const [freightPrice, setFreightPrice] = useState('0');
     const [freightMode, setFreightMode] = useState<'empresa' | 'transportadora' | 'entrega' | 'auto' | 'manual' | 'fixed'>('empresa');
@@ -348,15 +349,21 @@ const Contract = () => {
         const totalExtras = optionalItems.reduce((acc, item) => acc + item.price, 0);
         setExtrasPrice(totalExtras.toFixed(2));
     }, [optionalItems]);
-    // Auto-update landings price whenever landings change, especially for accessories
+    // Auto-update landings and avulsos price whenever landings change
     useEffect(() => {
-        const total = landings.reduce((acc, l) => acc + (l.isAccessoriesOnly ? computeLandingPrice(l) : Number(l.price || 0)), 0);
-        setLandingsPrice(total.toFixed(2));
+        // ALWAYS use computeLandingPrice so newly created real patamares aren't zero!
+        const patamaresTotal = landings.filter(l => !l.isAccessoriesOnly).reduce((acc, l) => acc + computeLandingPrice(l), 0);
+        const avulsosTotal = landings.filter(l => l.isAccessoriesOnly).reduce((acc, l) => acc + computeLandingPrice(l), 0);
+        
+        // We only auto-update if we are computing from scratch, otherwise we might overwrite manual edits.
+        // Actually, to be safe and fix the bug where Patamar price is zero, we ALWAYS update them when landings array changes.
+        setLandingsPrice(patamaresTotal.toFixed(2));
+        setAvulsosPrice(avulsosTotal.toFixed(2));
     }, [landings]);
 
 
     // Cálculos Base
-    const totalStructure = (parseFloat(stairPrice) || 0) + (parseFloat(landingsPrice) || 0);
+    const totalStructure = (parseFloat(stairPrice) || 0) + (parseFloat(landingsPrice) || 0) + (parseFloat(avulsosPrice) || 0);
     const totalGeralBase = totalStructure + (parseFloat(freightPrice)||0) + (parseFloat(installationPrice)||0) + (parseFloat(extrasPrice)||0);
     const discountMoney = parseFloat(discountValue) || 0;
     const discountedBase = Math.max(0, totalGeralBase - discountMoney);
@@ -876,7 +883,7 @@ const Contract = () => {
                 landings: landings
             },
             finalStairPrice: parseFloat(stairPrice) || 0,
-            finalLandingsPrice: parseFloat(landingsPrice) || 0,
+            finalLandingsPrice: (parseFloat(landingsPrice) || 0) + (parseFloat(avulsosPrice) || 0),
             inputData: {
                 ...(originalInputData || {}),
                 totalHeight: parseFloat(totalHeight) || 0,
@@ -1064,7 +1071,7 @@ const Contract = () => {
             },
             // PASSANDO OS PREÇOS SEPARADOS EXPLICITAMENTE
             finalStairPrice: parseFloat(stairPrice) || 0,
-            finalLandingsPrice: parseFloat(landingsPrice) || 0,
+            finalLandingsPrice: (parseFloat(landingsPrice) || 0) + (parseFloat(avulsosPrice) || 0),
             
             inputData: {
                 ...(originalInputData || {}),
@@ -1241,7 +1248,7 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                 landings: landings
             },
             finalStairPrice: parseFloat(stairPrice) || 0,
-            finalLandingsPrice: parseFloat(landingsPrice) || 0,
+            finalLandingsPrice: (parseFloat(landingsPrice) || 0) + (parseFloat(avulsosPrice) || 0),
             inputData: {
                 ...(originalInputData || {}),
                 type: originalInputData?.type || 'straight',
