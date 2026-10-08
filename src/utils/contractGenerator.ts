@@ -33,6 +33,8 @@ export interface ContractData {
   // PREÇOS SEPARADOS EXPLICITAMENTE
   finalStairPrice: number;
   finalLandingsPrice: number;
+  hasStairSideBar?: boolean;
+  stairSideBarPrice?: number;
 
   // CUSTOMIZÁVEIS
   finishText?: string;
@@ -295,7 +297,11 @@ export const generateContractPDF = (data: ContractData) => {
         }
     }
   
-  const structureTotal = data.finalStairPrice + data.finalLandingsPrice;
+  if (data.hasStairSideBar) {
+      addText(`-Escada com Barra Lateral: ${formatCurrencyBRL(data.stairSideBarPrice || 0)}`, 11, false, 'left');
+  }
+  
+  const structureTotal = data.finalStairPrice + data.finalLandingsPrice + (data.hasStairSideBar ? (data.stairSideBarPrice || 0) : 0);
   
   // --- LISTAGEM DE ITENS ADICIONAIS ---
   if (data.inputData.optionalItems && data.inputData.optionalItems.length > 0) {

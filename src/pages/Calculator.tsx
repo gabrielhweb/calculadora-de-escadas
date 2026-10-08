@@ -148,7 +148,15 @@ function Calculator() {
       const landingsPrice = adjustedLandings.reduce((acc, l) => acc + (l.isAccessoriesOnly ? 0 : l.price), 0);
       totalPrice += landingsPrice;
 
+      
+      
       // 3. Preço dos guarda-corpos avulsos
+// 4. Preço da Barra Lateral da Escada
+      if (data.hasStairSideBar && data.stairSideBarPrice) {
+          totalPrice += data.stairSideBarPrice;
+      }
+
+
       if (data.standaloneGuardrails) {
           totalPrice += data.standaloneGuardrails.reduce((acc, g) => acc + g.price, 0);
       }

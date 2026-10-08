@@ -160,6 +160,8 @@ const Contract = () => {
     const [stairDirection, setStairDirection] = useState<'standard' | 'mirrored'>('standard');
     const [wallFixation, setWallFixation] = useState<'left' | 'right' | 'frontal'>('left');
     const [hasWheels, setHasWheels] = useState<boolean>(false);
+    const [hasStairSideBar, setHasStairSideBar] = useState<boolean>(false);
+    const [stairSideBarPrice, setStairSideBarPrice] = useState('0');
     const [isFixedStair, setIsFixedStair] = useState<boolean>(false);
     const [handrailSide, setHandrailSide] = useState<'left' | 'right' | 'both'>('both');
     const [treadMaterial, setTreadMaterial] = useState<'metal' | 'wood' | 'chapa_xadrez' | 'chapa_vazada' | undefined>(undefined);
@@ -366,7 +368,7 @@ const Contract = () => {
 
 
     // Cálculos Base
-    const totalStructure = (parseFloat(stairPrice) || 0) + (parseFloat(landingsPrice) || 0) + (parseFloat(guardrailPrice) || 0) + (parseFloat(gatePrice) || 0);
+    const totalStructure = (parseFloat(stairPrice) || 0) + (parseFloat(landingsPrice) || 0) + (parseFloat(guardrailPrice) || 0) + (parseFloat(gatePrice) || 0) + (hasStairSideBar ? (parseFloat(stairSideBarPrice) || 0) : 0);
     const totalGeralBase = totalStructure + (parseFloat(freightPrice)||0) + (parseFloat(installationPrice)||0) + (parseFloat(extrasPrice)||0);
     const discountMoney = parseFloat(discountValue) || 0;
     const discountedBase = Math.max(0, totalGeralBase - discountMoney);
@@ -415,6 +417,10 @@ const Contract = () => {
                     setTreadDepth(Number(fallbackOption.treadDepth || fallbackOption.pisante || 25).toFixed(2));
                     setTotalLength(String(fallbackOption.totalLength || fallbackOption.comprimento || '300'));
                     setDampers(String(fallbackInput.dampers || '4'));
+                    setHasStairSideBar(!!fallbackInput.hasStairSideBar);
+                    if (fallbackInput.hasStairSideBar && fallbackInput.stairSideBarPrice) setStairSideBarPrice(String(fallbackInput.stairSideBarPrice));
+                    setHasStairSideBar(!!fallbackInput.hasStairSideBar);
+                    if (fallbackInput.hasStairSideBar && fallbackInput.stairSideBarPrice) setStairSideBarPrice(String(fallbackInput.stairSideBarPrice));
                     setStairDirection(String(fallbackInput.stairDirection || 'standard') as any);
                     setWallFixation(String(fallbackInput.wallFixation || 'left') as any);
                     setHasWheels(Boolean(fallbackInput.hasWheels));
@@ -887,6 +893,8 @@ const Contract = () => {
             },
             finalStairPrice: parseFloat(stairPrice) || 0,
             finalLandingsPrice: (parseFloat(landingsPrice) || 0) + (parseFloat(guardrailPrice) || 0) + (parseFloat(gatePrice) || 0),
+            hasStairSideBar: hasStairSideBar,
+            stairSideBarPrice: parseFloat(stairSideBarPrice) || 0,
             inputData: {
                 ...(originalInputData || {}),
                 totalHeight: parseFloat(totalHeight) || 0,
@@ -1348,26 +1356,7 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
 
                         <ContractInput label="Nome / Razão Social *" value={clientName} onChange={(e: any) => setClientName(e.target.value)} />
                         
-                        <div className="flex gap-4">
-                            <ContractInput 
-                                label={personType === 'pf' ? 'CPF' : 'CNPJ'} 
-                                value={clientDoc} 
-                                onChange={handleDocChange} 
-                                placeholder={personType === 'pf' ? '000.000.000-00' : '00.000.000/0000-00'}
-                                maxLength={personType === 'pf' ? 14 : 18}
-                                className="flex-1"
-                            />
-                            {personType === 'pf' && (
-                                <ContractInput 
-                                    label="RG (Opcional)" 
-                                    value={clientRG} 
-                                    onChange={handleRGChange}
-                                    placeholder="00.000.000-0"
-                                    maxLength={12}
-                                    className="w-1/3"
-                                />
-                            )}
-                        </div>
+                        
                         <ContractInput 
                             label="E-mail (Para notificações da fábrica)" 
                             value={clientEmail} 
@@ -1432,6 +1421,46 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                             </>
                         )}
 
+                        
+                        {originalInputData?.quoteType === 'stair' && (
+                            <div className="mt-4 p-4 border border-gray-200 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-800">
+                                <label className="flex items-center gap-2 cursor-pointer mb-2">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={hasStairSideBar} 
+                                        onChange={(e) => {
+                                            setHasStairSideBar(e.target.checked);
+                                            if (e.target.checked && (!stairSideBarPrice || stairSideBarPrice === '0')) {
+                                                setStairSideBarPrice('498');
+                                            }
+                                        }} 
+                                        className="w-5 h-5 accent-highlight"
+                                    />
+                                    <span className="text-sm font-bold text-gray-700 dark:text-gray-300 uppercase">Possui Barra Lateral da Escada?</span>
+                                </label>
+                            </div>
+                        )}
+                        
+                        
+                        {originalInputData?.quoteType === 'stair' && (
+                            <div className="mt-4 p-4 border border-gray-200 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-800">
+                                <label className="flex items-center gap-2 cursor-pointer mb-2">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={hasStairSideBar} 
+                                        onChange={(e) => {
+                                            setHasStairSideBar(e.target.checked);
+                                            if (e.target.checked && (!stairSideBarPrice || stairSideBarPrice === '0')) {
+                                                setStairSideBarPrice('498');
+                                            }
+                                        }} 
+                                        className="w-5 h-5 accent-highlight"
+                                    />
+                                    <span className="text-sm font-bold text-gray-700 dark:text-gray-300 uppercase">Possui Barra Lateral da Escada?</span>
+                                </label>
+                            </div>
+                        )}
+                        
                         <div className="flex items-center justify-between mb-4 mt-4">
                             <h3 className="text-sm font-black text-gray-900 dark:text-gray-100 uppercase flex items-center gap-2">
                                 <span className="bg-highlight text-white w-6 h-6 flex items-center justify-center rounded-full text-xs">+</span>
@@ -2279,6 +2308,24 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                 onChange={(e: any) => setGuardrailPrice(e.target.value)} 
                                 type="number"
                             />
+                            
+                            {hasStairSideBar && (
+                                <ContractInput 
+                                    label="V. Barra Lateral" 
+                                    value={stairSideBarPrice} 
+                                    onChange={(e: any) => setStairSideBarPrice(e.target.value)} 
+                                    type="number"
+                                />
+                            )}
+                            
+                            {hasStairSideBar && (
+                                <ContractInput 
+                                    label="V. Barra Lateral" 
+                                    value={stairSideBarPrice} 
+                                    onChange={(e: any) => setStairSideBarPrice(e.target.value)} 
+                                    type="number"
+                                />
+                            )}
                             <ContractInput 
                                 label="V. Portão" 
                                 value={gatePrice} 

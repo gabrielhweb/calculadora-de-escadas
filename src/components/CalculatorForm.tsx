@@ -107,6 +107,8 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
   
   const [dampers, setDampers] = useState<string>('4');
   const [hasWheels, setHasWheels] = useState(false);
+  const [hasStairSideBar, setHasStairSideBar] = useState(false);
+  const [stairSideBarPrice, setStairSideBarPrice] = useState<string>('498');
   const [isFixedStair, setIsFixedStair] = useState(false);
   const [handrailSide, setHandrailSide] = useState<'left' | 'right' | 'both'>('both'); 
   
@@ -794,6 +796,39 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                 </p>
             </div>
         </div>
+        
+        {/* --- SEÇÃO BARRA LATERAL --- */}
+        <div className="pt-4 mt-4 mb-4">
+            <div className="flex gap-4 items-end">
+                <div className="flex-1">
+                    <label className="flex items-center gap-2 cursor-pointer p-2 border-2 rounded border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800">
+                        <input 
+                            type="checkbox" 
+                            checked={hasStairSideBar} 
+                            onChange={(e) => {
+                                setHasStairSideBar(e.target.checked);
+                                if (e.target.checked && (!stairSideBarPrice || stairSideBarPrice === '0')) {
+                                    setStairSideBarPrice('498');
+                                }
+                            }} 
+                            className="w-5 h-5 accent-highlight"
+                        />
+                        <span className="text-sm font-bold text-gray-700 dark:text-gray-300 uppercase">Possui Barra Lateral da Escada?</span>
+                    </label>
+                </div>
+                {hasStairSideBar && (
+                    <div className="flex-1">
+                        <InputField 
+                            label="Valor da Barra Lateral" 
+                            value={stairSideBarPrice} 
+                            onChange={(e) => setStairSideBarPrice(e.target.value)} 
+                            unit="R$" 
+                            className="mb-0"
+                        />
+                    </div>
+                )}
+            </div>
+        </div>
 
         </>
         )}
@@ -914,26 +949,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                                 <div className="col-span-2 bg-gray-50 dark:bg-gray-700/50 p-2 rounded border border-gray-100 dark:border-gray-700">
                                     <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Opções Adicionais:</label>
                                     <div className="flex flex-col gap-2">
-                                        <div className="flex gap-4">
-                                            <label className="flex items-center gap-1 cursor-pointer">
-                                                <input 
-                                                    type="checkbox" 
-                                                    checked={landing.hasSideGuardrail} 
-                                                    onChange={(e) => updateLanding(landing.id, { hasSideGuardrail: e.target.checked })} 
-                                                    className="w-4 h-4 accent-blue-600"
-                                                />
-                                                <span className="text-xs font-medium text-gray-600 dark:text-gray-300">Barra Lateral</span>
-                                            </label>
-                                            <label className="flex items-center gap-1 cursor-pointer">
-                                                <input 
-                                                    type="checkbox" 
-                                                    checked={landing.hasFrontGuardrail} 
-                                                    onChange={(e) => updateLanding(landing.id, { hasFrontGuardrail: e.target.checked })} 
-                                                    className="w-4 h-4 accent-blue-600"
-                                                />
-                                                <span className="text-xs font-medium text-gray-600 dark:text-gray-300">Barra Frontal</span>
-                                            </label>
-                                        </div>
+                                        
                                         <label className="flex items-center gap-1 cursor-pointer mt-1">
                                             <input 
                                                 type="checkbox" 
