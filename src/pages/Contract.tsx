@@ -1420,6 +1420,25 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                 </div>
                             </>
                         )}
+                        {computedQuoteType === 'stair' && (
+                            <div className="mt-4 p-4 border border-gray-200 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-800">
+                                <label className="flex items-center gap-2 cursor-pointer mb-2">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={hasStairSideBar} 
+                                        onChange={(e) => {
+                                            setHasStairSideBar(e.target.checked);
+                                            if (e.target.checked && (!stairSideBarPrice || stairSideBarPrice === '0')) {
+                                                setStairSideBarPrice('498');
+                                            }
+                                        }} 
+                                        className="w-5 h-5 accent-highlight"
+                                    />
+                                    <span className="text-sm font-bold text-gray-700 dark:text-gray-300 uppercase">Possui Barra Lateral da Escada?</span>
+                                </label>
+                            </div>
+                        )}
+                        
 
                         
                         <div className="flex items-center justify-between mb-4 mt-4">
@@ -1727,7 +1746,8 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                                         Resumo do Patamar
                                                     </h4>
                                                     <div className="space-y-1 text-xs text-gray-600 dark:text-gray-400">
-                                                        <p className="flex justify-between"><span>Patamar (estrutura):</span> <span>{formatCurrencyBRL(getLandingBasePrice(landing) + getFrenchBracketsPrice(landing))}</span></p>
+                                                        <p className="flex justify-between"><span>Patamar (estrutura):</span> <span>{formatCurrencyBRL(getLandingBasePrice(landing))}</span></p>
+                                                          {landing.hasFrenchBrackets && <p className="flex justify-between"><span>Mão Francesa ({landing.frenchBrackets || 2}un):</span> <span>{formatCurrencyBRL(getFrenchBracketsPrice(landing))}</span></p>}
                                                         {landing.hasGuardrail && <p className="flex justify-between"><span>Guarda-Corpo:</span> <span>{formatCurrencyBRL(getGuardrailPrice(landing))}</span></p>}
                                                         {landing.hasGate && <p className="flex justify-between"><span>Portão:</span> <span>{formatCurrencyBRL(getGatePrice(landing))}</span></p>}
                                                     </div>
@@ -2461,6 +2481,7 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                         {parseFloat(landingsPrice) > 0 && <p className="flex justify-between"><span>Patamar(es):</span> <span>{formatCurrencyBRL(parseFloat(landingsPrice))}</span></p>}
                                         {parseFloat(guardrailPrice) > 0 && <p className="flex justify-between"><span>Guarda-Corpo:</span> <span>{formatCurrencyBRL(parseFloat(guardrailPrice))}</span></p>}
                                         {parseFloat(gatePrice) > 0 && <p className="flex justify-between"><span>Portão:</span> <span>{formatCurrencyBRL(parseFloat(gatePrice))}</span></p>}
+                                          {(hasStairSideBar && parseFloat(stairSideBarPrice) > 0) && <p className="flex justify-between text-blue-600 dark:text-blue-400"><span>Barra Lateral:</span> <span>{formatCurrencyBRL(parseFloat(stairSideBarPrice))}</span></p>}
                                         {parseFloat(freightPrice) > 0 && <p className="flex justify-between"><span>Frete:</span> <span>{formatCurrencyBRL(parseFloat(freightPrice))}</span></p>}
                                         {parseFloat(installationPrice) > 0 && <p className="flex justify-between"><span>Instalação:</span> <span>{formatCurrencyBRL(parseFloat(installationPrice))}</span></p>}
                                         {parseFloat(extrasPrice) > 0 && <p className="flex justify-between"><span>Extras:</span> <span>{formatCurrencyBRL(parseFloat(extrasPrice))}</span></p>}

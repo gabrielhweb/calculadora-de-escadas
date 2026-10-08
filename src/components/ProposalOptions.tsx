@@ -980,6 +980,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
             const landingsPrice = activeOption.landings.reduce((acc, l) => acc + (l.isAccessoriesOnly ? 0 : l.price), 0);
             const structureStepsPrice = calculatedUnitPrice * activeOption.structureSteps;
             const hasCustomPrice = inputData?.customStepPrice && inputData.customStepPrice > 0;
+            const stairSideBarPrice = inputData?.hasStairSideBar ? (inputData.stairSideBarPrice || 0) : 0;
 
             return (
                 <div
