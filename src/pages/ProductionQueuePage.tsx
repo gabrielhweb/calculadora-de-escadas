@@ -443,7 +443,17 @@ export default function ProductionQueue() {
         }
 
         if (timeFilter === 'all') return true;
-        const itemDate = new Date(item.createdAt);
+        
+        let itemDate = new Date(item.createdAt);
+        if (isNaN(itemDate.getTime()) && typeof item.createdAt === 'string') {
+            const parts = item.createdAt.split('/');
+            if (parts.length === 3) {
+                const day = parseInt(parts[0], 10);
+                const month = parseInt(parts[1], 10) - 1;
+                const year = parseInt(parts[2], 10);
+                itemDate = new Date(year, month, day);
+            }
+        }
         const today = new Date();
         
         if (timeFilter === 'month') {

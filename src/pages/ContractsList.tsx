@@ -359,8 +359,42 @@ export const ContractsList: React.FC = () => {
 
     const moveContract = async (id: string, newStatus: ContractStatus) => {
         try {
+            const { getDoc, setDoc } = await import('firebase/firestore');
             const contractRef = doc(db, 'contracts', id);
             await updateDoc(contractRef, { status: newStatus });
+            
+            if (newStatus === 'producao') {
+                const contractSnap = await getDoc(contractRef);
+                const contractData = contractSnap.data() as SavedContract;
+                
+                const q = query(collection(db, 'production_queue'), where('contractId', '==', id));
+                const qSnap = await getDocs(q);
+                
+                if (qSnap.empty && contractData) {
+                    const newOrder = {
+                        id: Date.now().toString() + "_queue",
+                        contractId: id,
+                        createdAt: contractData.createdAt || new Date().toLocaleDateString('pt-BR'),
+                        clientName: contractData.clientName || 'Cliente sem nome',
+                        deliveryDate: contractData.deliveryDate || '',
+                        downPayment: (contractData as any).downPayment || 0,
+                        balanceDue: contractData.totalValue ? (contractData.totalValue - ((contractData as any).downPayment || 0)) : 0,
+                        status: "in_queue",
+                        boardStage: "corte",
+                        location: (contractData as any).customAddress || '',
+                        profit: 0,
+                        totalCost: 0,
+                        downPaymentStatus: "pending",
+                        balanceStatus: "pending",
+                        paymentMethod: "",
+                        pixTiming: "",
+                    };
+                    await setDoc(doc(db, 'production_queue', newOrder.id), newOrder);
+                }
+            } else if (newStatus === 'falta_assinar') {
+                // If moved back, we don't necessarily delete it from production_queue to preserve history,
+                // but we could. For now, it stays there. The user can delete it via the queue page if needed.
+            }
         } catch (error) {
             handleFirestoreError(error, OperationType.UPDATE, `contracts/${id}`);
         }
@@ -1120,3 +1154,4 @@ export const ContractsList: React.FC = () => {
 };
 
 export default ContractsList;
+
