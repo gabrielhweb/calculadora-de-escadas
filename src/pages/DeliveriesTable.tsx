@@ -89,7 +89,7 @@ export const DeliveriesTable: React.FC = () => {
         return parts.join(', ');
     };
 
-    const getMeasurements = (parsedData: any) => {
+    const getEscadaMeasurements = (parsedData: any) => {
         if (!parsedData) return '';
         const inputData = parsedData.inputData || parsedData;
         const selectedOption = parsedData.selectedOption || parsedData;
@@ -105,7 +105,6 @@ export const DeliveriesTable: React.FC = () => {
         let med = '';
         
         if (!isIndependent) {
-            med += `=== DADOS DA ESCADA ===\n`;
             if (inputData?.wallFixation) med += `FIXAÇÃO NA PAREDE: ${inputData.wallFixation.toUpperCase()}\n`;
             med += `DEGRAUS: ${steps}\n`;
             med += `PISADA: ${tread}cm\n`;
@@ -129,9 +128,95 @@ export const DeliveriesTable: React.FC = () => {
             med += `\n`;
         }
 
+        // --- CÁLCULO DE PESO E CUSTO DO AÇO ---
+        try {
+            const extractNum = (val: any) => {
+                if (typeof val === 'number') return val;
+                if (typeof val === 'string') {
+                    const match = val.replace(',', '.').match(/[\d.]+/);
+                    return match ? Number(match[0]) : 0;
+                }
+                return 0;
+            };
+
+            const treadNum = extractNum(tread);
+            const heightNum = extractNum(height);
+            const widthNum = extractNum(width);
+            const stepsNum = extractNum(steps);
+            const thicknessM = 3.0 / 1000;
+            const STEEL_DENSITY = 7850;
+
+            if (treadNum > 0 && heightNum > 0 && widthNum > 0 && stepsNum > 0) {
+                const stepAreaM2 = ((treadNum + 6) / 100) * (widthNum / 100);
+                const stepsWeight = stepAreaM2 * thicknessM * stepsNum * STEEL_DENSITY;
+
+                let landingsAreaM2 = 0;
+                const landings = getProp(parsedData, 'landings');
+                if (landings && landings.length > 0) {
+                    landings.forEach((l: any) => {
+                        if (!l.isAccessoriesOnly) {
+                            const lLen = (extractNum(l.length) || 0) + 20;
+                            const lWid = (extractNum(l.width) || 0) + 20;
+                            landingsAreaM2 += (lLen / 100) * (lWid / 100);
+                        }
+                    });
+                }
+                const landingsWeight = landingsAreaM2 * thicknessM * STEEL_DENSITY;
+
+                const baseH = (stepsNum * treadNum) / 100;
+                const heightM = (stepsNum * heightNum) / 100;
+                const diagonalM = Math.sqrt(baseH * baseH + heightM * heightM);
+                
+                let numBeams = 2;
+                if (inputData?.stairGeometry === 'Reta Parede Esq/Dir (1 Viga)') numBeams = 1;
+                
+                const tubeAreaM2 = (2 * 0.1) + (2 * 0.05);
+                const volumePerMeter = tubeAreaM2 * 0.002;
+                const weightPerMeter = volumePerMeter * STEEL_DENSITY;
+                
+                let beamsWeight = (diagonalM * weightPerMeter) * numBeams;
+                
+                if (landings && landings.length > 0) {
+                    landings.forEach((l: any) => {
+                        if (!l.isAccessoriesOnly) {
+                            const pLen = (extractNum(l.length) || 0) / 100;
+                            beamsWeight += (pLen * weightPerMeter) * 2;
+                        }
+                    });
+                }
+                
+                const escadaWeight = stepsWeight + beamsWeight;
+                const totalWeightKg = escadaWeight + landingsWeight;
+                
+                const escadaCost = escadaWeight * 13.80;
+                const landingsCost = landingsWeight * 13.80;
+                const totalCost = totalWeightKg * 13.80;
+
+                med += `[ PESOS E MATERIAIS ]\n`;
+                med += `PESO ESCADA: ${escadaWeight.toFixed(1)} kg\n`;
+                med += `CUSTO AÇO (ESCADA): R$ ${escadaCost.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n`;
+                
+                if (landingsWeight > 0) {
+                    med += `PESO PATAMAR: ${landingsWeight.toFixed(1)} kg\n`;
+                    med += `CUSTO AÇO (PATAMAR): R$ ${landingsCost.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n`;
+                }
+                
+                med += `------------------------------\n`;
+                med += `TOTAL DE AÇO: ${totalWeightKg.toFixed(1)} kg\n`;
+                med += `CUSTO TOTAL AÇO: R$ ${totalCost.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n`;
+            }
+        } catch (e) {
+            console.error("Erro ao estimar peso/custo na Fila", e);
+        }
+        
+        return med.trim();
+    };
+
+    const getAdicionaisMeasurements = (parsedData: any) => {
+        if (!parsedData) return '';
+        let med = '';
         const landings = getProp(parsedData, 'landings');
         if (landings && landings.length > 0) {
-            med += `=== PATAMARES E ACESSÓRIOS ===\n`;
             landings.forEach((l: any, idx: number) => {
                 if (l.isAccessoriesOnly) {
                     med += `[ ACESSÓRIO AVULSO ]\n`;
@@ -181,7 +266,7 @@ export const DeliveriesTable: React.FC = () => {
                     if (numSides >= 2) {
                         const seg2 = calcSeg(l.guardrailLength2 || 0, l.guardrailBarsOverride2);
                         if (seg2) {
-                            totalOverallBars += seg2.totalBars - 1; // share corner
+                            totalOverallBars += seg2.totalBars - 1;
                             const gap2 = l.guardrailGapOverride2 !== undefined ? l.guardrailGapOverride2 : parseFloat(seg2.exactGap.toFixed(1));
                             trueLinear2 = Math.round((seg2.totalBars * h) + (2 * (l.guardrailLength2 || 0)));
                             const price2 = Math.round((trueLinear2 / 100) * 10);
@@ -192,7 +277,7 @@ export const DeliveriesTable: React.FC = () => {
                     if (numSides >= 3) {
                         const seg3 = calcSeg(l.guardrailLength3 || 0, l.guardrailBarsOverride3);
                         if (seg3) {
-                            totalOverallBars += seg3.totalBars - 1; // share corner
+                            totalOverallBars += seg3.totalBars - 1;
                             const gap3 = l.guardrailGapOverride3 !== undefined ? l.guardrailGapOverride3 : parseFloat(seg3.exactGap.toFixed(1));
                             trueLinear3 = Math.round((seg3.totalBars * h) + (2 * (l.guardrailLength3 || 0)));
                             const price3 = Math.round((trueLinear3 / 100) * 10);
@@ -222,14 +307,14 @@ export const DeliveriesTable: React.FC = () => {
                     const finalTubes = totalOverallBars + gateBars;
                     const finalPrice = totalPrice + gatePriceTotal;
                     
-                    med += `>> GUARDA-CORPO (Formato ${format})${side}\n`;
-                    med += `   Base Total: ${baseHorizontal}cm | Altura: ${h}cm\n`;
+                    med += `>> GUARDA-CORPO (${format})${side}\n`;
+                    med += `   Base: ${baseHorizontal}cm | Altura: ${h}cm\n`;
                     if (l.hasGate) {
-                        med += `   Linear Total: ${totalGuardrailLinear}cm (+${gateTrueLinear}cm Portão)\n`;
+                        med += `   Linear: ${totalGuardrailLinear}cm (+${gateTrueLinear}cm Portão)\n`;
                     } else {
-                        med += `   Linear Total: ${totalGuardrailLinear}cm\n`;
+                        med += `   Linear: ${totalGuardrailLinear}cm\n`;
                     }
-                    med += `   Tubos Estrutura: ${finalTubes} un\n`;
+                    med += `   Tubos: ${finalTubes} un\n`;
                     med += `   Custo: R$ ${finalPrice}\n`;
                     
                     segmentsText.forEach(seg => {
@@ -254,8 +339,8 @@ export const DeliveriesTable: React.FC = () => {
 
                     med += `>> PORTÃO${side}\n`;
                     med += `   Medida: ${len}x${h}cm\n`;
-                    med += `   Linear Total: ${gateTrueLinearFinal}cm\n`;
-                    med += `   Tubos Estrutura: ${totalBars} un (vãos ${exactGap.toFixed(1)}cm)\n`;
+                    med += `   Linear: ${gateTrueLinearFinal}cm\n`;
+                    med += `   Tubos: ${totalBars} un (vãos ${exactGap.toFixed(1)}cm)\n`;
                     med += `   Custo: R$ ${gatePriceFinal}\n`;
                 }
                 med += `\n`;
@@ -264,98 +349,12 @@ export const DeliveriesTable: React.FC = () => {
         
         const optionalItems = getProp(parsedData, 'optionalItems');
         if (optionalItems && optionalItems.length > 0) {
-            med += `=== EXTRAS CADASTRADOS ===\n`;
+            med += `[ EXTRAS CADASTRADOS ]\n`;
             optionalItems.forEach((opt: any) => {
                 med += `• ${opt.name}\n`;
             });
             med += `\n`;
         }
-
-        // --- CÁLCULO DE PESO E CUSTO DO AÇO ---
-        try {
-            const extractNum = (val: any) => {
-                if (typeof val === 'number') return val;
-                if (typeof val === 'string') {
-                    const match = val.replace(',', '.').match(/[\d.]+/);
-                    return match ? Number(match[0]) : 0;
-                }
-                return 0;
-            };
-
-            const treadNum = extractNum(tread);
-            const heightNum = extractNum(height);
-            const widthNum = extractNum(width);
-            const stepsNum = extractNum(steps);
-            const thicknessM = 3.0 / 1000; // 3mm padrão
-            const STEEL_DENSITY = 7850;
-
-            if (treadNum > 0 && heightNum > 0 && widthNum > 0 && stepsNum > 0) {
-                // 1. Degraus
-                const stepAreaM2 = ((treadNum + 6) / 100) * (widthNum / 100);
-                const stepsWeight = stepAreaM2 * thicknessM * stepsNum * STEEL_DENSITY;
-
-                // 2. Patamares
-                let landingsAreaM2 = 0;
-                if (landings && landings.length > 0) {
-                    landings.forEach((l: any) => {
-                        if (!l.isAccessoriesOnly) {
-                            const lLen = (extractNum(l.length) || 0) + 20;
-                            const lWid = (extractNum(l.width) || 0) + 20;
-                            landingsAreaM2 += (lLen / 100) * (lWid / 100);
-                        }
-                    });
-                }
-                const landingsWeight = landingsAreaM2 * thicknessM * STEEL_DENSITY;
-
-                // 3. Vigas Laterais
-                const baseH = (stepsNum * treadNum) / 100;
-                const heightM = (stepsNum * heightNum) / 100;
-                const diagonalM = Math.sqrt(baseH * baseH + heightM * heightM);
-                
-                let numBeams = 2;
-                if (inputData?.stairGeometry === 'Reta Parede Esq/Dir (1 Viga)') numBeams = 1;
-                
-                // Dimensões do tubo em metros (100x50x2mm = 0.1x0.05x0.002)
-                const tubeAreaM2 = (2 * 0.1) + (2 * 0.05); // perímetro
-                const volumePerMeter = tubeAreaM2 * 0.002;
-                const weightPerMeter = volumePerMeter * STEEL_DENSITY; // ~4.71 kg/m
-                
-                let beamsWeight = (diagonalM * weightPerMeter) * numBeams;
-                
-                // Vigas dos patamares
-                if (landings && landings.length > 0) {
-                    landings.forEach((l: any) => {
-                        if (!l.isAccessoriesOnly) {
-                            const pLen = (extractNum(l.length) || 0) / 100;
-                            beamsWeight += (pLen * weightPerMeter) * 2;
-                        }
-                    });
-                }
-                
-                const escadaWeight = stepsWeight + beamsWeight;
-                const totalWeightKg = escadaWeight + landingsWeight;
-                
-                const escadaCost = escadaWeight * 13.80;
-                const landingsCost = landingsWeight * 13.80;
-                const totalCost = totalWeightKg * 13.80;
-
-                med += `=== ESTIMATIVA DE MATERIAIS ===\n`;
-                med += `PESO ESCADA: ${escadaWeight.toFixed(1)} kg\n`;
-                med += `CUSTO AÇO (ESCADA): R$ ${escadaCost.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n`;
-                
-                if (landingsWeight > 0) {
-                    med += `PESO PATAMAR: ${landingsWeight.toFixed(1)} kg\n`;
-                    med += `CUSTO AÇO (PATAMAR): R$ ${landingsCost.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n`;
-                }
-                
-                med += `------------------------------\n`;
-                med += `TOTAL DE AÇO: ${totalWeightKg.toFixed(1)} kg\n`;
-                med += `CUSTO TOTAL AÇO: R$ ${totalCost.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n`;
-            }
-        } catch (e) {
-            console.error("Erro ao estimar peso/custo na Fila", e);
-        }
-        
         return med.trim();
     };
 
@@ -614,20 +613,20 @@ export const DeliveriesTable: React.FC = () => {
                     <table className="w-full text-left print-table">
                         <thead className="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700">
                             <tr>
-                                <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[15%]">CLIENTE</th>
-                                <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[20%]">LOCALIZAÇÃO</th>
+                                <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[12%]">CLIENTE</th>
+                                <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[15%]">LOCALIZAÇÃO</th>
                                 <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[10%]">DATA ENTREGA</th>
-                                <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[12%]">PAGAMENTO</th>
-                                <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[15%]">FRETE (MEDIDAS)</th>
-                                <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[18%]">ATENÇÃO</th>
-                                <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[20%]">FABRICAÇÃO</th>
-                                <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[7%] print-hidden">AÇÃO</th>
+                                <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[12%]">FRETE (MEDIDAS)</th>
+                                <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[13%]">ATENÇÃO</th>
+                                <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[15%]">FAB. ESCADA</th>
+                                <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[15%]">FAB. ADICIONAIS</th>
+                                <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[8%] print-hidden">AÇÃO</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                             {contracts.length === 0 ? (
                                 <tr>
-                                    <td colSpan={7} className="p-8 text-center text-gray-500 dark:text-gray-400 print-hidden">
+                                    <td colSpan={8} className="p-8 text-center text-gray-500 dark:text-gray-400 print-hidden">
                                         Nenhuma entrega em produção no momento.
                                     </td>
                                 </tr>
@@ -647,24 +646,9 @@ export const DeliveriesTable: React.FC = () => {
                                         freightInfo = contract.hingesQty;
                                     }
 
-                                    let measurements = contract.measurementsNotes !== undefined ? contract.measurementsNotes : getMeasurements(data);
-                                    
-                                    const parsedQType = data?.selectedOption?.quoteType || data?.quoteType || data?.inputData?.quoteType;
-                                    if ((parsedQType === 'landing' || parsedQType === 'guardrail') && typeof measurements === 'string') {
-                                        const lines = measurements.split('\n');
-                                        const filteredLines = lines.filter(line => 
-                                            !line.includes('DEGRAUS') &&
-                                            !line.includes('PISADA:') &&
-                                            !line.includes('ALT:') &&
-                                            !line.includes('LARGURA:') &&
-                                            !line.includes('MATERIAL: MADEIRA') &&
-                                            !line.includes('MATERIAL: CHAPA')
-                                        );
-                                        measurements = filteredLines.join('\n').trim();
-                                        if (!measurements) measurements = getMeasurements(data);
-                                    }
-                                    
-                                    const dateColor = getDateColorClass(contract.deliveryDate);
+                                    let measurements = contract.measurementsNotes !== undefined ? contract.measurementsNotes : getEscadaMeasurements(data);
+                                      let measurementsAdicionais = contract.measurementsNotesAdicionais !== undefined ? contract.measurementsNotesAdicionais : getAdicionaisMeasurements(data);
+                                      const dateColor = getDateColorClass(contract.deliveryDate);
                                     
                                     const queueItem = queueItems.find(q => q.contractId === contract.id);
                                     let totalValueFormatted = formatCurrencyBRL(contract.totalValue || 0);
@@ -817,6 +801,20 @@ export const DeliveriesTable: React.FC = () => {
                                                     {measurements}
                                                 </div>
                                             </td>
+                                              <td className="p-2 align-top text-xs font-mono">
+                                                  <div 
+                                                      className="editable-cell px-2 py-1 whitespace-pre-wrap"
+                                                      contentEditable 
+                                                      suppressContentEditableWarning
+                                                      onBlur={(e) => {
+                                                          if (e.target.innerText !== measurementsAdicionais) {
+                                                              handleUpdateContract(contract.id, 'measurementsNotesAdicionais', e.target.innerText);
+                                                          }
+                                                      }}
+                                                  >
+                                                      {measurementsAdicionais}
+                                                  </div>
+                                              </td>
                                             <td className="p-2 align-middle print-hidden flex flex-col gap-2">
                                                 <button 
                                                     onClick={() => handleMarkAsDelivered(contract.id)}

@@ -167,6 +167,7 @@ export interface SavedContract {
   deliveryNotes?: string;
   hingesQty?: string;
   measurementsNotes?: string;
+  measurementsNotesAdicionais?: string;
   customAddress?: string;
   projectImages?: string[];
   installationImages?: string[];
@@ -258,4 +259,5 @@ export interface SavedQuote {
     status?: QuoteStatus;
     attachments?: ProjectFile[];
 }
+
 
