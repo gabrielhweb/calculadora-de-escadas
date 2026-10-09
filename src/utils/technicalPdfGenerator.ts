@@ -387,18 +387,25 @@ export const generateUnifiedTechnicalPDF = (props: TechnicalDataProps) => {
 
   let hasFirstPageDrawn = false;
 
-  if (props.quoteType === 'stair') {
-      // Página 1: Produção Laser (Desenho Vetorial da escada)
-      drawProductionPage(doc, {
-          totalSteps: props.totalSteps,
-          stepHeightCm: props.stepHeightCm,
-          treadDepthCm: props.treadDepthCm,
-          widthCm: props.widthCm,
-          cutStepType: props.cutStepType,
-          clientName: props.clientName
-      });
-      hasFirstPageDrawn = true;
-  }
+      let finalCutType = props.cutStepType;
+    if (props.treadMaterial === 'wood') {
+        if (!finalCutType.startsWith('hollow')) {
+            finalCutType = finalCutType === 'right' ? 'hollow_right' : 'hollow_left';
+        }
+    }
+
+    if (props.quoteType === 'stair') {
+        // Página 1: Produção Laser (Desenho Vetorial da escada)
+        drawProductionPage(doc, {
+            totalSteps: props.totalSteps,
+            stepHeightCm: props.stepHeightCm,
+            treadDepthCm: props.treadDepthCm,
+            widthCm: props.widthCm,
+            cutStepType: finalCutType,
+            clientName: props.clientName
+        });
+        hasFirstPageDrawn = true;
+    }
 
     if (props.landings && props.landings.length > 0) {
       const realLandings = props.landings.filter(l => !l.isAccessoriesOnly);
