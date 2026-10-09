@@ -1016,21 +1016,22 @@ export default function ProductionQueue() {
                                                                                             return { totalBars, exactGap };
                                                                                         };
 
-                                                                                        let gMed = '';
+                                                                                                                                                                                let gMed: React.ReactNode = null;
                                                                                         if (l.hasGuardrail) {
                                                                                             const numSides = l.guardrailFormat === 'U' ? 3 : l.guardrailFormat === 'L' ? 2 : 1;
                                                                                             let totalOverallBars = 0;
-                                                                                            let segmentsText: string[] = [];
+                                                                                            
                                                                                             const sideNames = l.guardrailSide ? l.guardrailSide.split(/ e |, /) : [];
                                                                                             const sName1 = sideNames[0] ? ` (${sideNames[0]})` : '';
                                                                                             const sName2 = sideNames[1] ? ` (${sideNames[1]})` : '';
                                                                                             const sName3 = sideNames[2] ? ` (${sideNames[2]})` : '';
                                                                                             const totalLinear = (l.guardrailLength || 0) + (numSides >= 2 ? (l.guardrailLength2 || 0) : 0) + (numSides >= 3 ? (l.guardrailLength3 || 0) : 0);
                                                                                             
-                                                                                            const gPrice = l.guardrailPricePerMeter !== undefined ? l.guardrailPricePerMeter : 50;
                                                                                             const h = l.guardrailHeight || 90;
                                                                                             let totalPrice = 0;
                                                                                             let trueLinear1 = 0, trueLinear2 = 0, trueLinear3 = 0;
+
+                                                                                            const segmentsData: any[] = [];
 
                                                                                             const seg1 = calcSeg(l.guardrailLength || 0, l.guardrailBarsOverride);
                                                                                             if (seg1) { 
@@ -1039,7 +1040,7 @@ export default function ProductionQueue() {
                                                                                                 trueLinear1 = Math.round((seg1.totalBars * h) + (2 * (l.guardrailLength || 0)));
                                                                                                 const price1 = Math.round((trueLinear1 / 100) * 10);
                                                                                                 totalPrice += price1;
-                                                                                                segmentsText.push(`Lado 1${sName1}: Comp. ${l.guardrailLength || 0}cm | Comp. Linear ${trueLinear1}cm | Altura ${h}cm (${seg1.totalBars}t/vãos ${gap1}cm) - R$ ${price1}`); 
+                                                                                                segmentsData.push({ name: `Lado 1${sName1}`, length: l.guardrailLength || 0, linear: trueLinear1, height: h, bars: seg1.totalBars, gap: gap1, price: price1 });
                                                                                             }
                                                                                             if (numSides >= 2) { 
                                                                                                 const seg2 = calcSeg(l.guardrailLength2 || 0, l.guardrailBarsOverride2); 
@@ -1049,7 +1050,7 @@ export default function ProductionQueue() {
                                                                                                     trueLinear2 = Math.round((seg2.totalBars * h) + (2 * (l.guardrailLength2 || 0)));
                                                                                                     const price2 = Math.round((trueLinear2 / 100) * 10);
                                                                                                     totalPrice += price2;
-                                                                                                    segmentsText.push(`Lado 2${sName2}: Comp. ${l.guardrailLength2 || 0}cm | Comp. Linear ${trueLinear2}cm | Altura ${h}cm (${seg2.totalBars}t/vãos ${gap2}cm) - R$ ${price2}`); 
+                                                                                                    segmentsData.push({ name: `Lado 2${sName2}`, length: l.guardrailLength2 || 0, linear: trueLinear2, height: h, bars: seg2.totalBars, gap: gap2, price: price2 });
                                                                                                 } 
                                                                                             }
                                                                                             if (numSides >= 3) { 
@@ -1060,7 +1061,7 @@ export default function ProductionQueue() {
                                                                                                     trueLinear3 = Math.round((seg3.totalBars * h) + (2 * (l.guardrailLength3 || 0)));
                                                                                                     const price3 = Math.round((trueLinear3 / 100) * 10);
                                                                                                     totalPrice += price3;
-                                                                                                    segmentsText.push(`Lado 3${sName3}: Comp. ${l.guardrailLength3 || 0}cm | Comp. Linear ${trueLinear3}cm | Altura ${h}cm (${seg3.totalBars}t/vãos ${gap3}cm) - R$ ${price3}`); 
+                                                                                                    segmentsData.push({ name: `Lado 3${sName3}`, length: l.guardrailLength3 || 0, linear: trueLinear3, height: h, bars: seg3.totalBars, gap: gap3, price: price3 });
                                                                                                 } 
                                                                                             }
                                                                                             const totalGuardrailLinear = trueLinear1 + trueLinear2 + trueLinear3;
@@ -1081,22 +1082,57 @@ export default function ProductionQueue() {
                                                                                             }
 
                                                                                             const totalWithGate = totalGuardrailLinear + gateTrueLinear;
-                                                                                            const compText = l.hasGate ? `Comp. Total ${totalLinear}cm | Comp. Linear G.Corpo: ${totalGuardrailLinear}cm (Total c/ Portão: ${totalWithGate}cm)` : `Comp. Total ${totalLinear}cm | Comp. Linear: ${totalGuardrailLinear}cm`;
+                                                                                            const finalTubes = totalOverallBars + gateBars;
+                                                                                            const finalPrice = totalPrice + gatePriceTotal;
 
-                                                                                            if (numSides > 1 || l.hasGate) {
-                                                                                                const finalTubes = totalOverallBars + gateBars;
-                                                                                                const finalPrice = totalPrice + gatePriceTotal;
-                                                                                                gMed = `G. Corpo (F: ${l.guardrailFormat || 'normal'}): ${compText} | Altura ${h}cm - Total ${finalTubes} tubos - R$ ${finalPrice}\n`;
-                                                                                                segmentsText.forEach((seg, idx) => {
-                                                                                                    gMed += `  • ${seg}\n`;
-                                                                                                });
-                                                                                            } else {
-                                                                                                const gap1 = seg1 ? (l.guardrailGapOverride !== undefined ? l.guardrailGapOverride : parseFloat(seg1.exactGap.toFixed(1))) : 0;
-                                                                                                const price1 = seg1 ? Math.round((trueLinear1 / 100) * 10) : 0;
-                                                                                                gMed = `G. Corpo: ${compText} | Altura ${h}cm - ${seg1 ? seg1.totalBars : 0} tubos (vãos ${gap1}cm) - R$ ${price1}`;
-                                                                                            }
+                                                                                            gMed = (
+                                                                                                <div className="mt-3 p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+                                                                                                    <div className="flex items-center gap-2 mb-2 pb-2 border-b border-gray-100 dark:border-gray-700">
+                                                                                                        <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                                                                                                        <h4 className="text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wide">
+                                                                                                            Guarda-Corpo (Formato {l.guardrailFormat || 'Normal'})
+                                                                                                        </h4>
+                                                                                                    </div>
+                                                                                                    
+                                                                                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+                                                                                                        <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded text-[11px]">
+                                                                                                            <span className="block text-gray-500 dark:text-gray-400 font-semibold mb-0.5">Base Total</span>
+                                                                                                            <span className="font-bold text-blue-700 dark:text-blue-300">{totalLinear} cm</span>
+                                                                                                        </div>
+                                                                                                        <div className="bg-purple-50 dark:bg-purple-900/20 p-2 rounded text-[11px]">
+                                                                                                            <span className="block text-gray-500 dark:text-gray-400 font-semibold mb-0.5">Linear Total</span>
+                                                                                                            <span className="font-bold text-purple-700 dark:text-purple-300">{totalGuardrailLinear} cm</span>
+                                                                                                        </div>
+                                                                                                        <div className="bg-indigo-50 dark:bg-indigo-900/20 p-2 rounded text-[11px]">
+                                                                                                            <span className="block text-gray-500 dark:text-gray-400 font-semibold mb-0.5">Tubos (Estrutura)</span>
+                                                                                                            <span className="font-bold text-indigo-700 dark:text-indigo-300">{finalTubes} un</span>
+                                                                                                        </div>
+                                                                                                        <div className="bg-emerald-50 dark:bg-emerald-900/20 p-2 rounded text-[11px]">
+                                                                                                            <span className="block text-gray-500 dark:text-gray-400 font-semibold mb-0.5">Custo Estimado</span>
+                                                                                                            <span className="font-bold text-emerald-700 dark:text-emerald-300">R$ {finalPrice}</span>
+                                                                                                        </div>
+                                                                                                    </div>
+
+                                                                                                    {segmentsData.length > 0 && (
+                                                                                                        <div className="space-y-1.5">
+                                                                                                            {segmentsData.map((s, idx) => (
+                                                                                                                <div key={idx} className="flex flex-wrap items-center justify-between gap-3 bg-gray-50 dark:bg-gray-700/40 p-2 rounded-md border border-gray-100 dark:border-gray-600 text-xs">
+                                                                                                                    <div className="flex items-center gap-2">
+                                                                                                                        <span className="font-bold text-gray-700 dark:text-gray-300 min-w-[70px] uppercase text-[10px] bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded">{s.name}</span>
+                                                                                                                        <span className="text-gray-500 dark:text-gray-400">Medida: <strong className="text-gray-800 dark:text-gray-200">{s.length} cm</strong></span>
+                                                                                                                    </div>
+                                                                                                                    <div className="flex items-center gap-4">
+                                                                                                                        <span className="text-gray-500 dark:text-gray-400">Linear: <strong className="text-gray-800 dark:text-gray-200">{s.linear} cm</strong></span>
+                                                                                                                        <span className="text-gray-500 dark:text-gray-400">Tubos: <strong className="text-gray-800 dark:text-gray-200">{s.bars} un</strong> (vãos: {s.gap}cm)</span>
+                                                                                                                        <span className="font-bold text-emerald-600 dark:text-emerald-400">R$ {s.price}</span>
+                                                                                                                    </div>
+                                                                                                                </div>
+                                                                                                            ))}
+                                                                                                        </div>
+                                                                                                    )}
+                                                                                                </div>
+                                                                                            );
                                                                                         }
-                                                                                        
                                                                                         let gateTubes = 0;
                                                                                         let gateGaps = 0;
                                                                                         let gateInnerL = (l.gateLength || 100) - 6;

@@ -12,7 +12,7 @@ export interface LandingInfo {
   width: number; // cm
   price: number;
   weightPerSqm?: number; // Peso ou Preço por m² usado para cálculo
-  type?: 'fixed' | 'articulated'; // NOVO: Tipo de fixação
+  type?: 'fixed' | 'articulated' | 'standard'; // NOVO: Tipo de fixação
   isLastStep?: boolean; // Indica se deve ser posicionado sempre no último degrau da opção
   isFlushWithSlab?: boolean; // Rente à laje
   direction?: 'straight' | 'left' | 'right'; // Direção da curva
@@ -258,3 +258,4 @@ export interface SavedQuote {
     status?: QuoteStatus;
     attachments?: ProjectFile[];
 }
+
