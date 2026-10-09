@@ -1758,7 +1758,7 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
       </header>
 
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-        <div className="p-6 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-10">
+        <div className="p-6 md:p-10 flex flex-col gap-10 max-w-4xl mx-auto">
           <div className="space-y-6">
             <SectionTitle title="1. Dados do Cliente" />
 
@@ -4137,6 +4137,7 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
 
         {/* Seção de Textos Customizáveis */}
         <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-6 md:p-8">
+        <div className="max-w-4xl mx-auto">
           <SectionTitle
             title="5. Textos Customizáveis do Contrato"
             icon={<span>✏️</span>}
@@ -4189,7 +4190,9 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
         </div>
 
         {/* Seção de IA para Cláusulas */}
-        <div className="bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700 p-6 md:p-8">
+                </div>
+<div className="bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700 p-6 md:p-8">
+        <div className="max-w-4xl mx-auto">
           <SectionTitle
             title="6. Cláusulas Adicionais (IA)"
             icon={<span>🤖</span>}
@@ -4323,6 +4326,7 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
               </p>
             )}
           </div>
+        </div>
         </div>
       </div>
     </div>
