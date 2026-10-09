@@ -329,12 +329,12 @@ const Contract = () => {
       price: 0,
       width: 0,
       length: 0,
-      type: "articulated",
-      hasSideGuardrail: false,
-      hasFrontGuardrail: false,
-      direction: "straight",
-      isAngled: false,
-      isAccessoriesOnly: true,
+      type: "standard",
+        hasSideGuardrail: false,
+        hasFrontGuardrail: false,
+        direction: "straight",
+        isAngled: false,
+        isAccessoriesOnly: true,
       hasGuardrail: true,
       guardrailFormat: "normal",
       guardrailSide: "left",
@@ -351,12 +351,12 @@ const Contract = () => {
       price: 0,
       width: 0,
       length: 0,
-      type: "articulated",
-      hasSideGuardrail: false,
-      hasFrontGuardrail: false,
-      direction: "straight",
-      isAngled: false,
-      isAccessoriesOnly: true,
+      type: "standard",
+        hasSideGuardrail: false,
+        hasFrontGuardrail: false,
+        direction: "straight",
+        isAngled: false,
+        isAccessoriesOnly: true,
       hasGate: true,
       gateSide: "left",
       gateLength: 100,
@@ -4334,3 +4334,5 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
 };
 
 export default Contract;
+
+

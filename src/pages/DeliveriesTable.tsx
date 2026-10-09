@@ -342,7 +342,7 @@ export const DeliveriesTable: React.FC = () => {
         const landings = getProp(parsedData, 'landings');
         
         if (landings && landings.length > 0) {
-            const hasArticulated = landings.some((l:any) => l.type === 'articulated');
+            const hasArticulated = landings.some((l:any) => l.type === 'articulated' && !l.isAccessoriesOnly);
             if (hasArticulated) att.push('PATAMAR RETRÁTIL');
             
             landings.forEach((l: any) => {
@@ -839,3 +839,4 @@ export const DeliveriesTable: React.FC = () => {
         </div>
     );
 };
+
