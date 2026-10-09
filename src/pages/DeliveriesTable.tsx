@@ -95,16 +95,16 @@ export const DeliveriesTable: React.FC = () => {
         const selectedOption = parsedData.selectedOption || parsedData;
         
         const steps = getProp(parsedData, 'steps') ?? getProp(parsedData, 'desiredSteps') ?? getProp(parsedData, 'degraus');
-        const tread = getProp(parsedData, 'treadDepth') ?? getProp(parsedData, 'tread');
-        const height = getProp(parsedData, 'stepHeight') ?? getProp(parsedData, 'height');
-        const width = getProp(parsedData, 'stairWidth') ?? getProp(parsedData, 'width');
+        const tread = getProp(parsedData, 'treadDepth') ?? getProp(parsedData, 'treadDepthCm') ?? getProp(parsedData, 'tread') ?? getProp(parsedData, 'pisante');
+        const height = getProp(parsedData, 'stepHeight') ?? getProp(parsedData, 'stepHeightCm') ?? getProp(parsedData, 'height') ?? getProp(parsedData, 'altura');
+        const width = getProp(parsedData, 'stairWidth') ?? getProp(parsedData, 'widthCm') ?? getProp(parsedData, 'width') ?? getProp(parsedData, 'largura');
 
         const quoteType = getProp(parsedData, 'quoteType');
         const isIndependent = quoteType === 'landing' || quoteType === 'guardrail' || quoteType === 'gate';
         
         let med = '';
         
-        if (!isIndependent) {
+        if (!isIndependent && (steps !== undefined || tread !== undefined)) {
             if (inputData?.wallFixation) med += `FIXAÇÃO NA PAREDE: ${inputData.wallFixation.toUpperCase()}\n`;
             med += `DEGRAUS: ${steps}\n`;
             med += `PISADA: ${tread}cm\n`;
@@ -146,22 +146,12 @@ export const DeliveriesTable: React.FC = () => {
             const thicknessM = 3.0 / 1000;
             const STEEL_DENSITY = 7850;
 
+            let stepsWeight = 0;
+            let beamsWeight = 0;
+            
             if (treadNum > 0 && heightNum > 0 && widthNum > 0 && stepsNum > 0) {
                 const stepAreaM2 = ((treadNum + 6) / 100) * (widthNum / 100);
-                const stepsWeight = stepAreaM2 * thicknessM * stepsNum * STEEL_DENSITY;
-
-                let landingsAreaM2 = 0;
-                const landings = getProp(parsedData, 'landings');
-                if (landings && landings.length > 0) {
-                    landings.forEach((l: any) => {
-                        if (!l.isAccessoriesOnly) {
-                            const lLen = (extractNum(l.length) || 0) + 20;
-                            const lWid = (extractNum(l.width) || 0) + 20;
-                            landingsAreaM2 += (lLen / 100) * (lWid / 100);
-                        }
-                    });
-                }
-                const landingsWeight = landingsAreaM2 * thicknessM * STEEL_DENSITY;
+                stepsWeight = stepAreaM2 * thicknessM * stepsNum * STEEL_DENSITY;
 
                 const baseH = (stepsNum * treadNum) / 100;
                 const heightM = (stepsNum * heightNum) / 100;
@@ -174,27 +164,44 @@ export const DeliveriesTable: React.FC = () => {
                 const volumePerMeter = tubeAreaM2 * 0.002;
                 const weightPerMeter = volumePerMeter * STEEL_DENSITY;
                 
-                let beamsWeight = (diagonalM * weightPerMeter) * numBeams;
+                beamsWeight = (diagonalM * weightPerMeter) * numBeams;
+            }
+
+            let landingsAreaM2 = 0;
+            let landingsBeamsWeight = 0;
+            const landings = getProp(parsedData, 'landings');
+            
+            if (landings && landings.length > 0) {
+                const tubeAreaM2 = (2 * 0.1) + (2 * 0.05);
+                const volumePerMeter = tubeAreaM2 * 0.002;
+                const weightPerMeter = volumePerMeter * STEEL_DENSITY;
                 
-                if (landings && landings.length > 0) {
-                    landings.forEach((l: any) => {
-                        if (!l.isAccessoriesOnly) {
-                            const pLen = (extractNum(l.length) || 0) / 100;
-                            beamsWeight += (pLen * weightPerMeter) * 2;
-                        }
-                    });
-                }
-                
-                const escadaWeight = stepsWeight + beamsWeight;
-                const totalWeightKg = escadaWeight + landingsWeight;
-                
+                landings.forEach((l: any) => {
+                    if (!l.isAccessoriesOnly) {
+                        const lLen = (extractNum(l.length) || 0) + 20;
+                        const lWid = (extractNum(l.width) || 0) + 20;
+                        landingsAreaM2 += (lLen / 100) * (lWid / 100);
+                        
+                        const pLenM = (extractNum(l.length) || 0) / 100;
+                        landingsBeamsWeight += (pLenM * weightPerMeter) * 2;
+                    }
+                });
+            }
+            const landingsWeight = (landingsAreaM2 * thicknessM * STEEL_DENSITY) + landingsBeamsWeight;
+
+            const escadaWeight = stepsWeight + beamsWeight;
+            const totalWeightKg = escadaWeight + landingsWeight;
+            
+            if (totalWeightKg > 0) {
                 const escadaCost = escadaWeight * 13.80;
                 const landingsCost = landingsWeight * 13.80;
                 const totalCost = totalWeightKg * 13.80;
 
                 med += `[ PESOS E MATERIAIS ]\n`;
-                med += `PESO ESCADA: ${escadaWeight.toFixed(1)} kg\n`;
-                med += `CUSTO AÇO (ESCADA): R$ ${escadaCost.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n`;
+                if (escadaWeight > 0) {
+                    med += `PESO ESCADA: ${escadaWeight.toFixed(1)} kg\n`;
+                    med += `CUSTO AÇO (ESCADA): R$ ${escadaCost.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n`;
+                }
                 
                 if (landingsWeight > 0) {
                     med += `PESO PATAMAR: ${landingsWeight.toFixed(1)} kg\n`;
@@ -222,7 +229,7 @@ export const DeliveriesTable: React.FC = () => {
                     med += `[ ACESSÓRIO AVULSO ]\n`;
                 } else {
                     const type = l.type === 'articulated' ? 'ARTICULADO' : 'FIXO';
-                    med += `[ PATAMAR ${idx + 1} - ${type} ] Medida: ${l.length}cm x ${l.width}cm\n`;
+                    med += `[ PATAMAR ${idx + 1} - ${type} ] Medida: ${l.length || 0}cm x ${l.width || 0}cm\n`;
                 }
                 
                 if (l.hasGuardrail) {
@@ -873,6 +880,10 @@ export const DeliveriesTable: React.FC = () => {
         </div>
     );
 };
+
+
+
+
 
 
 
