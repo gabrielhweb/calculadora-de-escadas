@@ -646,8 +646,20 @@ export const DeliveriesTable: React.FC = () => {
                                         freightInfo = contract.hingesQty;
                                     }
 
-                                    let measurements = contract.measurementsNotes !== undefined ? contract.measurementsNotes : getEscadaMeasurements(data);
-                                      let measurementsAdicionais = contract.measurementsNotesAdicionais !== undefined ? contract.measurementsNotesAdicionais : getAdicionaisMeasurements(data);
+                                                                        let measurements = contract.measurementsNotes !== undefined ? contract.measurementsNotes : getEscadaMeasurements(data);
+                                    
+                                    // Auto-upgrade old saved strings to the new split layout and calculate missing totals
+                                    const isOldFormat = typeof measurements === 'string' && (
+                                        measurements.includes('- G. Corpo (F:') || 
+                                        measurements.includes('PESO APROX. (ESCADA):') ||
+                                        measurements.includes('PATAMAR 1 (FIXO):') ||
+                                        (measurements.includes('DEGRAUS') && !measurements.includes('=== DADOS'))
+                                    );
+                                    if (isOldFormat) {
+                                        measurements = getEscadaMeasurements(data);
+                                    }
+
+                                    let measurementsAdicionais = contract.measurementsNotesAdicionais !== undefined ? contract.measurementsNotesAdicionais : getAdicionaisMeasurements(data);
                                       const dateColor = getDateColorClass(contract.deliveryDate);
                                     
                                     const queueItem = queueItems.find(q => q.contractId === contract.id);
@@ -861,6 +873,7 @@ export const DeliveriesTable: React.FC = () => {
         </div>
     );
 };
+
 
 
 
