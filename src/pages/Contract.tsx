@@ -172,7 +172,7 @@ const Contract = () => {
     // Sincroniza automaticamente os furos (cutStepType) com a Parede escolhida, caso não tenha sido alterado manualmente
     useEffect(() => {
         if (userManuallyChangedCut) return;
-        const isHollow = treadMaterial === 'chapa_vazada';
+        const isHollow = treadMaterial === 'chapa_vazada' || treadMaterial === 'wood';
         if (wallFixation === 'right') {
             setCutStepType(isHollow ? 'hollow_right' : 'right');
         } else {
