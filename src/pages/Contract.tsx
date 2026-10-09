@@ -2549,16 +2549,28 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                         </label>
                                     </div>
                                     
-                                    {/* INPUT MANUAL DE VALOR EM REAIS */}
-                                    <div className="flex items-center gap-2">
-                                        <span className="font-bold text-blue-800 dark:text-blue-300">R$</span>
-                                        <input 
-                                            type="number" 
-                                            value={hybridSignalValue} 
-                                            onChange={(e) => handleHybridSignalValueChange(e.target.value)}
-                                            placeholder="0,00"
-                                            className="w-full p-2 border border-blue-300 rounded font-bold text-lg text-blue-900 focus:outline-none focus:border-highlight"
-                                        />
+                                    {/* INPUTS MANUAIS DE VALOR EM REAIS E PORCENTAGEM */}
+                                    <div className="flex gap-4">
+                                        <div className="flex-1 flex items-center gap-2">
+                                            <span className="font-bold text-blue-800 dark:text-blue-300">R$</span>
+                                            <input 
+                                                type="number" 
+                                                value={hybridSignalValue} 
+                                                onChange={(e) => handleHybridSignalValueChange(e.target.value)}
+                                                placeholder="0,00"
+                                                className="w-full p-2 border border-blue-300 rounded font-bold text-lg text-blue-900 focus:outline-none focus:border-highlight"
+                                            />
+                                        </div>
+                                        <div className="flex-1 flex items-center gap-2">
+                                            <span className="font-bold text-blue-800 dark:text-blue-300">%</span>
+                                            <input 
+                                                type="number" 
+                                                value={signalPercent} 
+                                                onChange={(e) => handleHybridSignalPercentChange(parseFloat(e.target.value) || 0)}
+                                                placeholder="0.0"
+                                                className="w-full p-2 border border-blue-300 rounded font-bold text-lg text-blue-900 focus:outline-none focus:border-highlight"
+                                            />
+                                        </div>
                                     </div>
 
                                     {/* SLIDER AINDA DISPONÍVEL COMO OPÇÃO */}
