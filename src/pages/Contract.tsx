@@ -1886,77 +1886,266 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
           </div>
 
           <div className="space-y-6">
-            {computedQuoteType !== "guardrail" &&
-              computedQuoteType !== "landing" && (
-                <>
-                  <SectionTitle title="2. Especificações (Item 1)" />
-                  <div className="grid grid-cols-2 gap-4">
-                    <ContractInput
-                      label="Altura (cm)"
-                      value={totalHeight}
-                      onChange={(e: any) => setTotalHeight(e.target.value)}
-                      type="number"
-                    />
-                    <ContractInput
-                      label="Largura (cm)"
-                      value={width}
-                      onChange={(e: any) => setWidth(e.target.value)}
-                      type="number"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <ContractInput
-                      label="Total Peças"
-                      value={totalSteps}
-                      onChange={(e: any) => setTotalSteps(e.target.value)}
-                      type="number"
-                    />
-                    <ContractInput
-                      label="Comprimento"
-                      value={totalLength}
-                      onChange={(e: any) => setTotalLength(e.target.value)}
-                      type="number"
-                    />
-                  </div>
-                </>
-              )}
-            {computedQuoteType === "stair" && (
-              <div className="mt-4 p-4 border border-gray-200 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-800 flex flex-col md:flex-row gap-4 items-end">
-                <div className="flex-1">
-                  <label className="flex items-center gap-2 cursor-pointer mb-2">
-                    <input
-                      type="checkbox"
-                      checked={hasStairSideBar}
-                      onChange={(e) => {
-                        setHasStairSideBar(e.target.checked);
-                        if (
-                          e.target.checked &&
-                          (!stairSideBarPrice || stairSideBarPrice === "0")
-                        ) {
-                          setStairSideBarPrice("498");
-                        }
-                      }}
-                      className="w-5 h-5 accent-highlight"
-                    />
-                    <span className="text-sm font-bold text-gray-700 dark:text-gray-300 uppercase">
-                      Possui Barra Lateral da Escada?
-                    </span>
-                  </label>
-                </div>
-                {hasStairSideBar && (
-                  <div className="flex-1 w-full md:w-auto">
-                    <ContractInput
-                      label="Valor da Barra Lateral"
-                      value={stairSideBarPrice}
-                      onChange={(e: any) =>
-                        setStairSideBarPrice(e.target.value)
-                      }
-                      type="number"
-                    />
+            <SectionTitle title="2. Especificações (Item 1)" />
+          {(() => {
+            const computedQuoteType =
+              contractFormatOverride !== "auto"
+                ? contractFormatOverride
+                : originalInputData?.quoteType || "stair";
+            if (computedQuoteType === "guardrail") return null;
+
+            return (
+              <div className="space-y-6 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                <SectionTitle
+                  title={
+                    computedQuoteType === "landing"
+                      ? "Detalhes do Patamar"
+                      : "Detalhes da Escada"
+                  }
+                  icon={<span>🪜</span>}
+                />
+                {/* Medidas da Escada */}
+                {computedQuoteType !== "guardrail" && computedQuoteType !== "landing" && (
+                  <>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                      <ContractInput label="Altura Total (cm)" value={totalHeight} onChange={(e: any) => setTotalHeight(e.target.value)} type="number" />
+                      <ContractInput label="Largura (cm)" value={width} onChange={(e: any) => setWidth(e.target.value)} type="number" />
+                      <ContractInput label="Comprimento Total (cm)" value={totalLength} onChange={(e: any) => setTotalLength(e.target.value)} type="number" />
+                      <ContractInput label="Total Peças" value={totalSteps} onChange={(e: any) => setTotalSteps(e.target.value)} type="number" />
+                    </div>
+                  </>
+                )}
+                {computedQuoteType === "stair" && (
+                  <div className="mt-4 p-4 border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-900 flex flex-col md:flex-row gap-4 items-end">
+                    <div className="flex-1">
+                      <label className="flex items-center gap-2 cursor-pointer mb-2">
+                        <input type="checkbox" checked={hasStairSideBar} onChange={(e) => {
+                          setHasStairSideBar(e.target.checked);
+                          if (e.target.checked && (!stairSideBarPrice || stairSideBarPrice === "0")) {
+                            setStairSideBarPrice("498");
+                          }
+                        }} className="w-5 h-5 accent-highlight" />
+                        <span className="text-sm font-bold text-gray-700 dark:text-gray-300 uppercase">
+                          Possui Barra Lateral da Escada?
+                        </span>
+                      </label>
+                    </div>
+                    {hasStairSideBar && (
+                      <div className="flex-1 w-full md:w-auto">
+                        <ContractInput label="Valor da Barra Lateral" value={stairSideBarPrice} onChange={(e: any) => setStairSideBarPrice(e.target.value)} type="number" />
+                      </div>
+                    )}
                   </div>
                 )}
+
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Material */}
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                      Material dos Degraus
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => setTreadMaterial("metal")}
+                        className={`py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === "metal" ? "bg-gray-800 text-white shadow" : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-100"}`}
+                      >
+                        Metal
+                      </button>
+                      <button
+                        onClick={() => setTreadMaterial("wood")}
+                        className={`py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === "wood" ? "bg-orange-700 text-white shadow" : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-100"}`}
+                      >
+                        Madeira
+                      </button>
+                      <button
+                        onClick={() => setTreadMaterial("chapa_xadrez")}
+                        className={`py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === "chapa_xadrez" ? "bg-gray-800 text-white shadow" : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-100"}`}
+                      >
+                        Chapa Xadrez
+                      </button>
+                      <button
+                        onClick={() => setTreadMaterial("chapa_vazada")}
+                        className={`py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === "chapa_vazada" ? "bg-gray-800 text-white shadow" : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-100"}`}
+                      >
+                        Chapa Vazada
+                      </button>
+                    </div>
+                    {treadMaterial === "wood" && (
+                      <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
+                        <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-2">
+                          Tipo de Madeira
+                        </label>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                          <button
+                            onClick={() => setWoodType("ambas")}
+                            className={`py-2 px-3 rounded font-bold text-xs transition ${woodType === "ambas" || !woodType ? "bg-orange-600 text-white shadow" : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-100"}`}
+                          >
+                            Garapeira ou Muiracatiara
+                          </button>
+                          <button
+                            onClick={() => setWoodType("garapeira")}
+                            className={`py-2 px-3 rounded font-bold text-xs transition ${woodType === "garapeira" ? "bg-orange-600 text-white shadow" : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-100"}`}
+                          >
+                            Garapeira
+                          </button>
+                          <button
+                            onClick={() => setWoodType("muiracatiara")}
+                            className={`py-2 px-3 rounded font-bold text-xs transition ${woodType === "muiracatiara" ? "bg-orange-600 text-white shadow" : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-100"}`}
+                          >
+                            Muiracatiara
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Direção */}
+                  {computedQuoteType !== "landing" && (
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                        Desenho (Sentido da Subida)
+                      </label>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setStairDirection("standard")}
+                          className={`flex-1 py-2 px-3 rounded font-bold text-sm transition ${stairDirection === "standard" ? "bg-blue-600 text-white shadow" : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-100"}`}
+                        >
+                          Padrão (Direita)
+                        </button>
+                        <button
+                          onClick={() => setStairDirection("mirrored")}
+                          className={`flex-1 py-2 px-3 rounded font-bold text-sm transition ${stairDirection === "mirrored" ? "bg-purple-600 text-white shadow" : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-100"}`}
+                        >
+                          Espelhado (Esquerda)
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Fixação na Parede */}
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                      Lado da Fixação (Parede)
+                    </label>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setWallFixation("left")}
+                        className={`flex-1 py-2 px-3 rounded font-bold text-sm transition ${wallFixation === "left" ? "bg-emerald-600 text-white shadow" : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-100"}`}
+                      >
+                        Parede à Esquerda
+                      </button>
+                      <button
+                        onClick={() => setWallFixation("right")}
+                        className={`flex-1 py-2 px-3 rounded font-bold text-sm transition ${wallFixation === "right" ? "bg-emerald-600 text-white shadow" : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-100"}`}
+                      >
+                        Parede à Direita
+                      </button>
+                      <button
+                        onClick={() => setWallFixation("frontal")}
+                        className={`flex-1 py-2 px-3 rounded font-bold text-sm transition ${wallFixation === "frontal" ? "bg-emerald-600 text-white shadow" : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-100"}`}
+                      >
+                        Fixação Frontal
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Medidas Extras e Opções */}
+                  {computedQuoteType !== "landing" && (
+                    <>
+                      <div>
+                        <ContractInput
+                          label="Altura do Degrau (cm)"
+                          value={stepHeight}
+                          onChange={(e: any) => setStepHeight(e.target.value)}
+                          type="number"
+                        />
+                      </div>
+                      <div>
+                        <ContractInput
+                          label="Profundidade do Pisante (cm)"
+                          value={treadDepth}
+                          onChange={(e: any) => setTreadDepth(e.target.value)}
+                          type="number"
+                        />
+                      </div>
+                      <div>
+                        <ContractInput
+                          label="Amortecedores"
+                          value={dampers}
+                          onChange={(e: any) => setDampers(e.target.value)}
+                          type="number"
+                          disabled={hasWheels || isFixedStair}
+                        />
+                      </div>
+
+                      {/* Opções de Modelo de Escada */}
+                      <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 items-end mt-2">
+                        <div className="flex flex-col gap-2">
+                          <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
+                            Modelo de Escada
+                          </label>
+                          <select
+                            value={
+                              isFixedStair
+                                ? "fixed"
+                                : hasWheels
+                                  ? "wheels"
+                                  : "dampers"
+                            }
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val === "fixed") {
+                                setIsFixedStair(true);
+                                setHasWheels(false);
+                              } else if (val === "wheels") {
+                                setIsFixedStair(false);
+                                setHasWheels(true);
+                              } else {
+                                setIsFixedStair(false);
+                                setHasWheels(false);
+                              }
+                            }}
+                            className="w-full text-sm font-bold p-3 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 h-14"
+                          >
+                            <option value="dampers">
+                              Articulada Lateral / Amortecedor
+                            </option>
+                            <option value="wheels">
+                              Avanço Frontal / Rodinha
+                            </option>
+                            <option value="fixed">Escada Fixa</option>
+                          </select>
+                        </div>
+
+                        {hasWheels && (
+                          <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded border border-blue-100 dark:border-blue-800">
+                            <label className="block text-xs font-bold text-blue-900 dark:text-blue-200 mb-1">
+                              Posição Corrimão (Rodinhas):
+                            </label>
+                            <select
+                              value={handrailSide}
+                              onChange={(e) =>
+                                setHandrailSide(
+                                  e.target.value as "left" | "right" | "both",
+                                )
+                              }
+                              className="w-full text-xs font-bold p-1 rounded bg-white dark:bg-gray-700 text-black dark:text-white border border-blue-200 dark:border-blue-700 outline-none focus:ring-1 focus:ring-highlight"
+                            >
+                              <option value="left">Só Esquerdo</option>
+                              <option value="right">Só Direito</option>
+                              <option value="both">Nos Dois Lados</option>
+                            </select>
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
-            )}
+            );
+          })()}
+
 
             <div className="flex items-center justify-between mb-4 mt-4">
               <h3 className="text-sm font-black text-gray-900 dark:text-gray-100 uppercase flex items-center gap-2">
@@ -2973,291 +3162,31 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
             </div>
           </div>
 
-          <div className="mb-6 bg-white dark:bg-gray-800 p-4 rounded-lg shadow border border-gray-200 dark:border-gray-700">
-            <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300 uppercase mb-3">
-              Formato do Contrato (Texto)
+
+
+          <div className="mb-6 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mt-6">
+            <h3 className="text-sm font-black text-gray-900 dark:text-gray-100 uppercase mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+              Formato do Contrato (O que será impresso)
             </h3>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="formatOverride"
-                  checked={contractFormatOverride === "auto"}
-                  onChange={() => setContractFormatOverride("auto")}
-                  className="text-highlight focus:ring-highlight"
-                />
-                <span className="text-sm text-gray-800 dark:text-gray-200">
-                  Automático
-                </span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="formatOverride"
-                  checked={contractFormatOverride === "stair"}
-                  onChange={() => setContractFormatOverride("stair")}
-                  className="text-highlight focus:ring-highlight"
-                />
-                <span className="text-sm text-gray-800 dark:text-gray-200">
-                  Escada Completa
-                </span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="formatOverride"
-                  checked={contractFormatOverride === "landing"}
-                  onChange={() => setContractFormatOverride("landing")}
-                  className="text-highlight focus:ring-highlight"
-                />
-                <span className="text-sm text-gray-800 dark:text-gray-200">
-                  Somente Patamar(es)
-                </span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="formatOverride"
-                  checked={contractFormatOverride === "guardrail"}
-                  onChange={() => setContractFormatOverride("guardrail")}
-                  className="text-highlight focus:ring-highlight"
-                />
-                <span className="text-sm text-gray-800 dark:text-gray-200">
-                  Guarda-Corpo/Portão
-                </span>
-              </label>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Escolha qual tipo de objeto principal o contrato deve detalhar. "Automático" baseia-se nos dados do orçamento.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+              {[
+                { val: "auto", label: "Automático" },
+                { val: "stair", label: "Escada Completa" },
+                { val: "landing", label: "Somente Patamar(es)" },
+                { val: "guardrail", label: "Guarda-Corpo/Portão" }
+              ].map(opt => (
+                <button
+                  type="button"
+                  key={opt.val}
+                  onClick={() => setContractFormatOverride(opt.val as any)}
+                  className={`py-3 px-2 rounded-lg text-xs font-bold border-2 transition-all flex items-center justify-center text-center ${contractFormatOverride === opt.val ? 'border-highlight bg-highlight/10 text-highlight' : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300'}`}
+                >
+                  {opt.label}
+                </button>
+              ))}
             </div>
-            <p className="text-xs text-gray-500 mt-2">
-              Escolha se deseja forçar o PDF a omitir a escada principal no
-              texto do objeto contratual.
-            </p>
           </div>
-
-          {/* NOVO: CONTROLES DE MATERIAL E DIREÇÃO */}
-          {(() => {
-            const computedQuoteType =
-              contractFormatOverride !== "auto"
-                ? contractFormatOverride
-                : originalInputData?.quoteType || "stair";
-            if (computedQuoteType === "guardrail") return null;
-
-            return (
-              <div className="space-y-6 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-                <SectionTitle
-                  title={
-                    computedQuoteType === "landing"
-                      ? "Detalhes do Patamar"
-                      : "Detalhes da Escada"
-                  }
-                  icon={<span>🪜</span>}
-                />
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Material */}
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
-                      Material dos Degraus
-                    </label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        onClick={() => setTreadMaterial("metal")}
-                        className={`py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === "metal" ? "bg-gray-800 text-white shadow" : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-100"}`}
-                      >
-                        Metal
-                      </button>
-                      <button
-                        onClick={() => setTreadMaterial("wood")}
-                        className={`py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === "wood" ? "bg-orange-700 text-white shadow" : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-100"}`}
-                      >
-                        Madeira
-                      </button>
-                      <button
-                        onClick={() => setTreadMaterial("chapa_xadrez")}
-                        className={`py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === "chapa_xadrez" ? "bg-gray-800 text-white shadow" : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-100"}`}
-                      >
-                        Chapa Xadrez
-                      </button>
-                      <button
-                        onClick={() => setTreadMaterial("chapa_vazada")}
-                        className={`py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === "chapa_vazada" ? "bg-gray-800 text-white shadow" : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-100"}`}
-                      >
-                        Chapa Vazada
-                      </button>
-                    </div>
-                    {treadMaterial === "wood" && (
-                      <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
-                        <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-2">
-                          Tipo de Madeira
-                        </label>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                          <button
-                            onClick={() => setWoodType("ambas")}
-                            className={`py-2 px-3 rounded font-bold text-xs transition ${woodType === "ambas" || !woodType ? "bg-orange-600 text-white shadow" : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-100"}`}
-                          >
-                            Garapeira ou Muiracatiara
-                          </button>
-                          <button
-                            onClick={() => setWoodType("garapeira")}
-                            className={`py-2 px-3 rounded font-bold text-xs transition ${woodType === "garapeira" ? "bg-orange-600 text-white shadow" : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-100"}`}
-                          >
-                            Garapeira
-                          </button>
-                          <button
-                            onClick={() => setWoodType("muiracatiara")}
-                            className={`py-2 px-3 rounded font-bold text-xs transition ${woodType === "muiracatiara" ? "bg-orange-600 text-white shadow" : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-100"}`}
-                          >
-                            Muiracatiara
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Direção */}
-                  {computedQuoteType !== "landing" && (
-                    <div>
-                      <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
-                        Desenho (Sentido da Subida)
-                      </label>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => setStairDirection("standard")}
-                          className={`flex-1 py-2 px-3 rounded font-bold text-sm transition ${stairDirection === "standard" ? "bg-blue-600 text-white shadow" : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-100"}`}
-                        >
-                          Padrão (Direita)
-                        </button>
-                        <button
-                          onClick={() => setStairDirection("mirrored")}
-                          className={`flex-1 py-2 px-3 rounded font-bold text-sm transition ${stairDirection === "mirrored" ? "bg-purple-600 text-white shadow" : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-100"}`}
-                        >
-                          Espelhado (Esquerda)
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Fixação na Parede */}
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
-                      Lado da Fixação (Parede)
-                    </label>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => setWallFixation("left")}
-                        className={`flex-1 py-2 px-3 rounded font-bold text-sm transition ${wallFixation === "left" ? "bg-emerald-600 text-white shadow" : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-100"}`}
-                      >
-                        Parede à Esquerda
-                      </button>
-                      <button
-                        onClick={() => setWallFixation("right")}
-                        className={`flex-1 py-2 px-3 rounded font-bold text-sm transition ${wallFixation === "right" ? "bg-emerald-600 text-white shadow" : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-100"}`}
-                      >
-                        Parede à Direita
-                      </button>
-                      <button
-                        onClick={() => setWallFixation("frontal")}
-                        className={`flex-1 py-2 px-3 rounded font-bold text-sm transition ${wallFixation === "frontal" ? "bg-emerald-600 text-white shadow" : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-100"}`}
-                      >
-                        Fixação Frontal
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Medidas Extras e Opções */}
-                  {computedQuoteType !== "landing" && (
-                    <>
-                      <div>
-                        <ContractInput
-                          label="Altura do Degrau (cm)"
-                          value={stepHeight}
-                          onChange={(e: any) => setStepHeight(e.target.value)}
-                          type="number"
-                        />
-                      </div>
-                      <div>
-                        <ContractInput
-                          label="Profundidade do Pisante (cm)"
-                          value={treadDepth}
-                          onChange={(e: any) => setTreadDepth(e.target.value)}
-                          type="number"
-                        />
-                      </div>
-                      <div>
-                        <ContractInput
-                          label="Amortecedores"
-                          value={dampers}
-                          onChange={(e: any) => setDampers(e.target.value)}
-                          type="number"
-                          disabled={hasWheels || isFixedStair}
-                        />
-                      </div>
-
-                      {/* Opções de Modelo de Escada */}
-                      <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 items-end mt-2">
-                        <div className="flex flex-col gap-2">
-                          <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
-                            Modelo de Escada
-                          </label>
-                          <select
-                            value={
-                              isFixedStair
-                                ? "fixed"
-                                : hasWheels
-                                  ? "wheels"
-                                  : "dampers"
-                            }
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              if (val === "fixed") {
-                                setIsFixedStair(true);
-                                setHasWheels(false);
-                              } else if (val === "wheels") {
-                                setIsFixedStair(false);
-                                setHasWheels(true);
-                              } else {
-                                setIsFixedStair(false);
-                                setHasWheels(false);
-                              }
-                            }}
-                            className="w-full text-sm font-bold p-3 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 h-14"
-                          >
-                            <option value="dampers">
-                              Articulada Lateral / Amortecedor
-                            </option>
-                            <option value="wheels">
-                              Avanço Frontal / Rodinha
-                            </option>
-                            <option value="fixed">Escada Fixa</option>
-                          </select>
-                        </div>
-
-                        {hasWheels && (
-                          <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded border border-blue-100 dark:border-blue-800">
-                            <label className="block text-xs font-bold text-blue-900 dark:text-blue-200 mb-1">
-                              Posição Corrimão (Rodinhas):
-                            </label>
-                            <select
-                              value={handrailSide}
-                              onChange={(e) =>
-                                setHandrailSide(
-                                  e.target.value as "left" | "right" | "both",
-                                )
-                              }
-                              className="w-full text-xs font-bold p-1 rounded bg-white dark:bg-gray-700 text-black dark:text-white border border-blue-200 dark:border-blue-700 outline-none focus:ring-1 focus:ring-highlight"
-                            >
-                              <option value="left">Só Esquerdo</option>
-                              <option value="right">Só Direito</option>
-                              <option value="both">Nos Dois Lados</option>
-                            </select>
-                          </div>
-                        )}
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
-            );
-          })()}
 
           <div className="space-y-6">
             <SectionTitle title="3. Valores & Entrega" />
