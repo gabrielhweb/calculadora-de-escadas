@@ -217,7 +217,7 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
             const structuralLandings = opt.landings.filter((l: any) => !l.isAccessoriesOnly);
             if (structuralLandings.length > 1 && inputData.quoteType !== 'guardrail') {
                 // Mantém um pequeno recuo visual apenas se for um grupo, mas alinhado corretamente
-                doc.text(`  • Soma de ${opt.landings.length} Patamares:`, pageMargin, currentY);
+                doc.text(`  • Soma de ${structuralLandings.length} Patamares:`, pageMargin, currentY);
                 doc.text(formatCurrencyBRL(landingsPrice), pageWidth - pageMargin, currentY, { align: 'right' });
                 currentY += 6;
             }
@@ -255,29 +255,47 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
                 
                 let flushText = landing.isFlushWithSlab ? " Rente a Laje" : " 1 abaixo da Laje";
 
-                let guardText = "";
-                if (landing.hasSideGuardrail && landing.hasFrontGuardrail) guardText = " + Guarda Corpo Lat/Front";
-                else if (landing.hasSideGuardrail) guardText = " + Guarda Corpo Lateral";
-                else if (landing.hasFrontGuardrail) guardText = " + Guarda Corpo Frontal";
-                
-                if (landing.hasGuardrail) guardText += " + Guarda-Corpo";
-                if (landing.hasGate) guardText += " + Portão";
-
-                // Monta a linha com o tipo explícito
-                // CORREÇÃO: Removemos a indentação (espaços) do início da string
-                const description = `- Patamar ${typeText}${flushText} de ${lM}m (C) x ${wM}m (L)${guardText}`;
+                // Monta a linha com o tipo explícito SEM concatenar acessórios
+                const description = `- Patamar ${typeText}${flushText} de ${lM}m (C) x ${wM}m (L)`;
                 const price = formatCurrencyBRL(landing.price);
                 
-                // Calcula espaço disponível para o texto (total - margens - espaço pro preço - folga)
                 const availableWidth = pageWidth - (pageMargin * 2) - 40; 
                 
                 const splitDesc = doc.splitTextToSize(description, availableWidth);
                 doc.text(splitDesc, pageMargin, currentY);
-                
-                // Imprime o preço alinhado à direita na mesma linha do início da descrição
                 doc.text(price, pageWidth - pageMargin, currentY, { align: 'right' });
-                
                 currentY += (splitDesc.length * 5) + 1;
+
+                // Agora imprime os acessórios anexados a este patamar em linhas abaixo
+                if (landing.hasSideGuardrail && landing.hasFrontGuardrail) {
+                    doc.text("  - Guarda Corpo Lateral e Frontal", pageMargin, currentY);
+                    currentY += 5;
+                } else if (landing.hasSideGuardrail) {
+                    doc.text("  - Guarda Corpo Lateral", pageMargin, currentY);
+                    currentY += 5;
+                } else if (landing.hasFrontGuardrail) {
+                    doc.text("  - Guarda Corpo Frontal", pageMargin, currentY);
+                    currentY += 5;
+                }
+
+                if (landing.hasGuardrail) {
+                    let gDesc = "  - Guarda-Corpo";
+                    if (landing.guardrailFormat === 'L') {
+                        gDesc = `  - Guarda-corpo em L, composto por dois lados:\n    1º lado: ${landing.guardrailLength || 0}cm (C) × ${landing.guardrailHeight || 90}cm (A);\n    2º lado: ${landing.guardrailLength2 || 0}cm (C) × ${landing.guardrailHeight || 90}cm (A).`;
+                    } else if (landing.guardrailFormat === 'U') {
+                        gDesc = `  - Guarda-corpo em U, composto por três lados:\n    1º lado: ${landing.guardrailLength || 0}cm (C) × ${landing.guardrailHeight || 90}cm (A);\n    2º lado: ${landing.guardrailLength2 || 0}cm (C) × ${landing.guardrailHeight || 90}cm (A);\n    3º lado: ${landing.guardrailLength3 || 0}cm (C) × ${landing.guardrailHeight || 90}cm (A).`;
+                    } else {
+                        gDesc = `  - Guarda-Corpo (${landing.guardrailFormat || 'normal'}) com ${landing.guardrailHeight || 90}cm alt.`;
+                    }
+                    const splitGDesc = doc.splitTextToSize(gDesc, availableWidth);
+                    doc.text(splitGDesc, pageMargin, currentY);
+                    currentY += (splitGDesc.length * 5);
+                }
+
+                if (landing.hasGate) {
+                    doc.text(`  - Portãozinho de ${landing.gateLength || 100}cm x ${landing.gateHeight || 90}cm`, pageMargin, currentY);
+                    currentY += 5;
+                }
             });
         }
 

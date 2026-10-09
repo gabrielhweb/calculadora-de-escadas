@@ -1386,6 +1386,21 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
 
                         <ContractInput label="Nome / Razão Social *" value={clientName} onChange={(e: any) => setClientName(e.target.value)} />
                         
+                        <div className="grid grid-cols-2 gap-3 mt-2 mb-2">
+                            <ContractInput 
+                                label={personType === 'pj' ? 'CNPJ' : 'CPF'} 
+                                value={clientDoc} 
+                                onChange={handleDocChange} 
+                            />
+                            {personType === 'pf' && (
+                                <ContractInput 
+                                    label="RG" 
+                                    value={clientRG} 
+                                    onChange={handleRGChange} 
+                                />
+                            )}
+                        </div>
+                        
                         
                         <ContractInput 
                             label="E-mail (Para notificações da fábrica)" 
