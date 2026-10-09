@@ -268,32 +268,32 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
 
                 // Agora imprime os acessórios anexados a este patamar em linhas abaixo
                 if (landing.hasSideGuardrail && landing.hasFrontGuardrail) {
-                    doc.text("  - Guarda Corpo Lateral e Frontal", pageMargin, currentY);
+                    doc.text("+ [Acessório] Guarda Corpo Lateral e Frontal", pageMargin + 5, currentY);
                     currentY += 5;
                 } else if (landing.hasSideGuardrail) {
-                    doc.text("  - Guarda Corpo Lateral", pageMargin, currentY);
+                    doc.text("+ [Acessório] Guarda Corpo Lateral", pageMargin + 5, currentY);
                     currentY += 5;
                 } else if (landing.hasFrontGuardrail) {
-                    doc.text("  - Guarda Corpo Frontal", pageMargin, currentY);
+                    doc.text("+ [Acessório] Guarda Corpo Frontal", pageMargin + 5, currentY);
                     currentY += 5;
                 }
 
                 if (landing.hasGuardrail) {
-                    let gDesc = "  - Guarda-Corpo";
+                    let gDesc = "+ [Acessório] Guarda-Corpo";
                     if (landing.guardrailFormat === 'L') {
-                        gDesc = `  - Guarda-corpo em L, composto por dois lados:\n    1º lado: ${landing.guardrailLength || 0}cm (C) × ${landing.guardrailHeight || 90}cm (A);\n    2º lado: ${landing.guardrailLength2 || 0}cm (C) × ${landing.guardrailHeight || 90}cm (A).`;
+                        gDesc = `+ [Acessório] Guarda-corpo em L, composto por dois lados:\n    1º lado: ${landing.guardrailLength || 0}cm (C) × ${landing.guardrailHeight || 90}cm (A);\n    2º lado: ${landing.guardrailLength2 || 0}cm (C) × ${landing.guardrailHeight || 90}cm (A).`;
                     } else if (landing.guardrailFormat === 'U') {
-                        gDesc = `  - Guarda-corpo em U, composto por três lados:\n    1º lado: ${landing.guardrailLength || 0}cm (C) × ${landing.guardrailHeight || 90}cm (A);\n    2º lado: ${landing.guardrailLength2 || 0}cm (C) × ${landing.guardrailHeight || 90}cm (A);\n    3º lado: ${landing.guardrailLength3 || 0}cm (C) × ${landing.guardrailHeight || 90}cm (A).`;
+                        gDesc = `+ [Acessório] Guarda-corpo em U, composto por três lados:\n    1º lado: ${landing.guardrailLength || 0}cm (C) × ${landing.guardrailHeight || 90}cm (A);\n    2º lado: ${landing.guardrailLength2 || 0}cm (C) × ${landing.guardrailHeight || 90}cm (A);\n    3º lado: ${landing.guardrailLength3 || 0}cm (C) × ${landing.guardrailHeight || 90}cm (A).`;
                     } else {
-                        gDesc = `  - Guarda-Corpo (${landing.guardrailFormat || 'normal'}) com ${landing.guardrailHeight || 90}cm alt.`;
+                        gDesc = `+ [Acessório] Guarda-Corpo (${landing.guardrailFormat || 'normal'}) com ${landing.guardrailHeight || 90}cm alt.`;
                     }
                     const splitGDesc = doc.splitTextToSize(gDesc, availableWidth);
-                    doc.text(splitGDesc, pageMargin, currentY);
+                    doc.text(splitGDesc, pageMargin + 5, currentY);
                     currentY += (splitGDesc.length * 5);
                 }
 
                 if (landing.hasGate) {
-                    doc.text(`  - Portãozinho de ${landing.gateLength || 100}cm x ${landing.gateHeight || 90}cm`, pageMargin, currentY);
+                    doc.text(`+ [Acessório] Portãozinho de ${landing.gateLength || 100}cm x ${landing.gateHeight || 90}cm`, pageMargin + 5, currentY);
                     currentY += 5;
                 }
             });
