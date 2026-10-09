@@ -144,8 +144,14 @@ export const DeliveriesTable: React.FC = () => {
         const landings = getProp(parsedData, 'landings');
         if (landings && landings.length > 0) {
             landings.forEach((l: any, idx: number) => {
-                const type = l.type === 'articulated' ? 'ARTICULADO' : 'FIXO';
-                med += `PATAMAR ${idx + 1} (${type}): ${l.length}cm x ${l.width}cm\n`;
+                if (l.isAccessoriesOnly) {
+                    med += `ACESSÓRIO AVULSO:
+`;
+                } else {
+                    const type = l.type === 'articulated' ? 'ARTICULADO' : 'FIXO';
+                    med += `PATAMAR ${idx + 1} (${type}): ${l.length}cm x ${l.width}cm
+`;
+                }
                 if (l.hasGuardrail) {
                     const format = l.guardrailFormat || 'normal';
                     const side = l.guardrailSide ? ` [Lado: ${l.guardrailSide}]` : '';
@@ -839,4 +845,5 @@ export const DeliveriesTable: React.FC = () => {
         </div>
     );
 };
+
 

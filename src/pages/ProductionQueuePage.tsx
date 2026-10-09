@@ -1149,7 +1149,11 @@ export default function ProductionQueue() {
 
                                                                                         return (
                                                                                             <div key={i} className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded border border-gray-200 dark:border-gray-600">
-                                                                                                <p className="font-semibold text-gray-800 dark:text-gray-200 text-sm mb-1">Patamar {i+1} ({l.shape})</p>
+                                                                                                {l.isAccessoriesOnly ? (
+                                                                                                    <p className="font-semibold text-gray-800 dark:text-gray-200 text-sm mb-1">Acessório Avulso</p>
+                                                                                                ) : (
+                                                                                                    <p className="font-semibold text-gray-800 dark:text-gray-200 text-sm mb-1">Patamar {i+1} ({l.shape})</p>
+                                                                                                )}
                                                                                                 {l.hasGuardrail && (
                                                                                                     <p className="text-xs text-gray-600 dark:text-gray-400 whitespace-pre-wrap">
                                                                                                         {gMed}
