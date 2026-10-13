@@ -17,9 +17,9 @@ export const drawProductionPage = (doc: jsPDF, props: ProductionPdfProps) => {
 
     const numSteps = totalSteps - (landings?.length || 0);
 
-    const treadDepthMm = Math.round(treadDepthCm * 10);
-    const stepHeightMm = Math.round(stepHeightCm * 10);
-    const widthMm = Math.round(widthCm * 10);
+    const treadDepthMm = treadDepthCm > 100 ? Math.round(treadDepthCm) : Math.round(treadDepthCm * 10);
+    const stepHeightMm = stepHeightCm > 100 ? Math.round(stepHeightCm) : Math.round(stepHeightCm * 10);
+    const widthMm = widthCm > 200 ? Math.round(widthCm) : Math.round(widthCm * 10);
     const uShapeWidthMm = treadDepthMm;
     const isHollow = cutStepType.startsWith('hollow');
 
@@ -94,7 +94,7 @@ export const drawProductionPage = (doc: jsPDF, props: ProductionPdfProps) => {
     const pisadaWidth = doc.getTextWidth(pisadaText);
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    const displayPisada = isHollow ? treadDepthMm : treadDepthMm + 10;
+    const displayPisada = treadDepthMm + 10; // Sempre 10mm a mais que o contrato
     doc.text(`${displayPisada}mm`, 130 + pisadaWidth + 2, 80);
     
     doc.setFontSize(10);
@@ -152,7 +152,7 @@ export const drawProductionPage = (doc: jsPDF, props: ProductionPdfProps) => {
         // 180mm largura no topo da caixa
         doc.setFontSize(16);
         doc.setFont('helvetica', 'bold');
-        doc.text(`${treadDepthMm - 10}mm`, 255, 48, { align: 'center' });
+        doc.text(`${treadDepthMm}mm`, 255, 48, { align: 'center' }); // Sempre igual ao contrato
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
         doc.text('largura', 255, 53, { align: 'center' });
@@ -376,7 +376,24 @@ export const drawGuardrailsPage = (doc: jsPDF, landings: any[], clientName: stri
                 }
             }
 
-            let gBars = gBarsOverride || Math.max(2, Math.round((gLength - 6) / 15) + 1);
+            let gGapOverride;
+            if (isGate) {
+                // Gate
+            } else {
+                if (sideIndex === 1) gGapOverride = landing.guardrailGapOverride;
+                else if (sideIndex === 2) gGapOverride = landing.guardrailGapOverride2;
+                else if (sideIndex === 3) gGapOverride = landing.guardrailGapOverride3;
+            }
+
+            let gBars = gBarsOverride;
+            if (!gBars && gGapOverride && gGapOverride > 0) {
+                const innerL = Math.max(0, gLength - 6);
+                const gapsCalc = (innerL + 3) / (gGapOverride + 3);
+                gBars = Math.max(2, Math.round(gapsCalc) + 1);
+            }
+            if (!gBars) {
+                gBars = Math.max(2, Math.round((gLength - 6) / 15) + 1);
+            }
             let numInnerBars = Math.max(0, gBars - 2);
             let gapCm = numInnerBars >= 0 ? ((gLength - 4 - (numInnerBars * 3)) / (numInnerBars + 1)) : 0;
 

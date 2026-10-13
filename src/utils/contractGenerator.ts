@@ -173,10 +173,11 @@ export const generateContractPDF = (data: ContractData) => {
   }
 
   let fixationText = 'sem fixação na parede';
-  if (data.inputData.wallFixation === 'left') fixationText = 'Fixação na Parede ESQUERDA';
-  else if (data.inputData.wallFixation === 'right') fixationText = 'Fixação na Parede DIREITA';
-  else if (data.inputData.wallFixation === 'frontal') fixationText = 'Fixação FRONTAL';
-  else if (data.inputData.stairGeometry && data.inputData.stairGeometry.includes('Fixação')) {
+  const effectiveWall = data.inputData?.wallFixation || (data.inputData?.cutStepType?.includes('right') ? 'right' : (data.inputData?.cutStepType?.includes('left') ? 'left' : undefined));
+  if (effectiveWall === 'left') fixationText = 'Fixação na Parede ESQUERDA';
+  else if (effectiveWall === 'right') fixationText = 'Fixação na Parede DIREITA';
+  else if (effectiveWall === 'frontal') fixationText = 'Fixação FRONTAL';
+  else if (data.inputData?.stairGeometry && data.inputData.stairGeometry.includes('Fixação')) {
       fixationText = data.inputData.stairGeometry;
   }
 

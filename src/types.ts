@@ -105,7 +105,8 @@ export interface CalculatorInput {
   handrailThickness?: number;
   // Visualização Avançada e Geometria
   stairDirection?: 'standard' | 'mirrored'; // standard = sobe p/ direita, mirrored = sobe p/ esquerda
-  wallFixation?: 'left' | 'right' | 'frontal'; // NOVO: Lado da fixação na parede
+  wallFixation?: 'left' | 'right' | 'frontal';
+  cutStepType?: string; // NOVO: Lado da fixação na parede
   stairGeometry?: string; // NOVO: Reta parede esq, Reta parede dir, L, U, etc.
   referenceDoor?: ReferenceDoor;
 

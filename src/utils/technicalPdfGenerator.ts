@@ -388,10 +388,15 @@ export const generateUnifiedTechnicalPDF = (props: TechnicalDataProps) => {
   let hasFirstPageDrawn = false;
 
       let finalCutType = props.cutStepType;
-    if (props.treadMaterial === 'wood') {
-        if (!finalCutType.startsWith('hollow')) {
-            finalCutType = finalCutType === 'right' ? 'hollow_right' : 'hollow_left';
-        }
+    const isVazadaOrWood = props.treadMaterial === 'wood' || props.treadMaterial === 'chapa_vazada';
+
+    // Sincroniza os furos e o desenho com o lado da parede
+    if (props.wallFixation === 'right' || (!props.wallFixation && finalCutType?.includes('right'))) {
+        finalCutType = isVazadaOrWood ? 'hollow_right' : 'right';
+    } else if (props.wallFixation === 'left' || (!props.wallFixation && finalCutType?.includes('left'))) {
+        finalCutType = isVazadaOrWood ? 'hollow_left' : 'left';
+    } else if (isVazadaOrWood && !finalCutType?.startsWith('hollow')) {
+        finalCutType = finalCutType === 'right' ? 'hollow_right' : 'hollow_left';
     }
 
     if (props.quoteType === 'stair') {

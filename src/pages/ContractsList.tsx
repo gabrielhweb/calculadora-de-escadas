@@ -83,7 +83,8 @@ export const ContractsList: React.FC = () => {
         treadDepth: '',
         stepHeight: '',
         stairWidth: '',
-        totalSteps: ''
+        totalSteps: '',
+        wallFixation: 'left' as 'left' | 'right' | 'frontal'
     });
 
     
@@ -194,7 +195,8 @@ export const ContractsList: React.FC = () => {
             treadDepth: '',
             stepHeight: '',
             stairWidth: '',
-            totalSteps: ''
+            totalSteps: '',
+            wallFixation: 'left'
         });
         setIsModalOpen(true);
     };
@@ -253,6 +255,8 @@ export const ContractsList: React.FC = () => {
         }
         val = Number(val) || 0;
 
+        const wFix = (getProp('wallFixation') || (getProp('cutStepType')?.includes('right') ? 'right' : 'left')) as 'left' | 'right' | 'frontal';
+
         setFormData({
             clientName: contract.clientName || '',
             totalValue: val,
@@ -264,7 +268,8 @@ export const ContractsList: React.FC = () => {
             treadDepth: tDepth !== undefined && tDepth !== null ? String(tDepth) : '',
             stepHeight: sHeight !== undefined && sHeight !== null ? String(sHeight) : '',
             stairWidth: sWidth !== undefined && sWidth !== null ? String(sWidth) : '',
-            totalSteps: sSteps !== undefined && sSteps !== null ? String(sSteps) : ''
+            totalSteps: sSteps !== undefined && sSteps !== null ? String(sSteps) : '',
+            wallFixation: wFix || 'left'
         });
         setIsModalOpen(true);
     };
@@ -286,6 +291,21 @@ export const ContractsList: React.FC = () => {
             if (formData.stepHeight) parsedContractData.altura = Number(formData.stepHeight) || 0;
             if (formData.stairWidth) parsedContractData.largura = Number(formData.stairWidth) || 0;
             if (formData.totalSteps) parsedContractData.degraus = Number(formData.totalSteps) || 0;
+
+            if (formData.wallFixation) {
+                parsedContractData.wallFixation = formData.wallFixation;
+                if (!parsedContractData.inputData) parsedContractData.inputData = {};
+                parsedContractData.inputData.wallFixation = formData.wallFixation;
+                const currentCut = parsedContractData.inputData.cutStepType || parsedContractData.cutStepType || '';
+                const isHollow = currentCut.startsWith('hollow') || parsedContractData.inputData.treadMaterial === 'wood' || parsedContractData.inputData.treadMaterial === 'chapa_vazada';
+                if (formData.wallFixation === 'right') {
+                    parsedContractData.cutStepType = isHollow ? 'hollow_right' : 'right';
+                    parsedContractData.inputData.cutStepType = isHollow ? 'hollow_right' : 'right';
+                } else if (formData.wallFixation === 'left') {
+                    parsedContractData.cutStepType = isHollow ? 'hollow_left' : 'left';
+                    parsedContractData.inputData.cutStepType = isHollow ? 'hollow_left' : 'left';
+                }
+            }
 
             let finalDate = new Date().toISOString();
             try {
@@ -577,7 +597,7 @@ export const ContractsList: React.FC = () => {
                 }
             }
 
-            const landings = parsedData?.landings || parsedData?.inputData?.landings || [];
+            const landings = parsedData?.landings || parsedData?.inputData?.landings || parsedData?.selectedOption?.landings || [];
             if (!landings || !Array.isArray(landings)) {
                 alert("Nenhum patamar encontrado neste contrato.");
                 return;
@@ -1011,6 +1031,18 @@ export const ContractsList: React.FC = () => {
                                             onChange={(e) => setFormData({...formData, totalSteps: e.target.value})}
                                             className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
                                         />
+                                    </div>
+                                    <div className="col-span-2">
+                                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Fixação na Parede (Lado dos Furos)</label>
+                                        <select 
+                                            value={formData.wallFixation}
+                                            onChange={(e) => setFormData({...formData, wallFixation: e.target.value as any})}
+                                            className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                                        >
+                                            <option value="left">Parede à Esquerda (Furos no Lado Esquerdo)</option>
+                                            <option value="right">Parede à Direita (Furos no Lado Direito)</option>
+                                            <option value="frontal">Fixação Frontal (Sem furos laterais)</option>
+                                        </select>
                                     </div>
                                 </div>
                             </div>

@@ -63,16 +63,48 @@ export const DeliveriesTable: React.FC = () => {
         window.print();
     };
 
-    const parseContractData = (dataStr: any) => {
+    const parseContractData = (dataStr: any, contractObj?: any) => {
+        let parsed: any = null;
         try {
-            let parsed = typeof dataStr === 'string' ? JSON.parse(dataStr) : dataStr;
-            while (typeof parsed === 'string') {
-                parsed = JSON.parse(parsed);
+            parsed = typeof dataStr === 'string' ? JSON.parse(dataStr) : dataStr;
+            let maxIters = 5;
+            while (typeof parsed === 'string' && maxIters > 0) {
+                try {
+                    parsed = JSON.parse(parsed);
+                } catch (e) {
+                    break;
+                }
+                maxIters--;
             }
-            return parsed;
+            maxIters = 5;
+            while (parsed && parsed.contractData && maxIters > 0) {
+                let inner = parsed.contractData;
+                while (typeof inner === 'string') {
+                    try {
+                        inner = JSON.parse(inner);
+                    } catch (e) {
+                        break;
+                    }
+                }
+                parsed = inner;
+                maxIters--;
+            }
         } catch (e) {
-            return null;
+            parsed = null;
         }
+
+        if (!parsed) parsed = {};
+
+        // Injeta campos diretos do objeto do contrato se existirem
+        if (contractObj) {
+            if (contractObj.treadDepth && !parsed.treadDepth && !parsed.pisante) parsed.treadDepth = contractObj.treadDepth;
+            if (contractObj.stepHeight && !parsed.stepHeight && !parsed.altura) parsed.stepHeight = contractObj.stepHeight;
+            if (contractObj.stairWidth && !parsed.stairWidth && !parsed.largura) parsed.stairWidth = contractObj.stairWidth;
+            if (contractObj.totalSteps && !parsed.steps && !parsed.degraus) parsed.steps = contractObj.totalSteps;
+            if (contractObj.wallFixation && !parsed.wallFixation) parsed.wallFixation = contractObj.wallFixation;
+        }
+
+        return parsed;
     };
 
     const getFullAddress = (userData: any) => {
@@ -125,18 +157,12 @@ export const DeliveriesTable: React.FC = () => {
             .replace(/\(both\)/gi, '(Ambos)')
             .replace(/MATERIAL:\s*WOOD/gi, 'MATERIAL: MADEIRA')
             .replace(/MATERIAL:\s*METAL/gi, 'MATERIAL: METAL')
-            .replace(/MATERIAL:\s*STEEL/gi, 'MATERIAL: AÇO')
+            .replace(/MATERIAL:\s*STEEL/gi, 'MATERIAL: METAL')
             .replace(/MATERIAL:\s*GLASS/gi, 'MATERIAL: VIDRO');
 
-        // Remover informações repetidas do portão embutidas no guarda-corpo
+        // Remover repetição de informações de portão embutidas no guarda-corpo
         cleaned = cleaned.replace(/\s*\(\+\d+cm\s*Portão\)/gi, '');
 
-        // Remover repetição de pesos do patamar e total de aço que já estão na coluna de Frete
-        cleaned = cleaned.replace(/PESO PATAMAR:\s*[\d,.]+\s*kg\n?/gi, '');
-        cleaned = cleaned.replace(/CUSTO AÇO \(PATAMAR\):\s*R\$\s*[\d,.]+\n?/gi, '');
-        cleaned = cleaned.replace(/PESO ESCADA:\s*[\d,.]+\s*kg\n?/gi, '');
-        cleaned = cleaned.replace(/TOTAL DE AÇO:\s*[\d,.]+\s*kg\n?/gi, '');
-        cleaned = cleaned.replace(/CUSTO TOTAL AÇO:\s*R\$\s*[\d,.]+\n?/gi, '');
         cleaned = cleaned.replace(/-{10,}\n?/g, '');
         cleaned = cleaned.replace(/\[\s*PESOS E MATERIAIS\s*\]\n?/gi, '');
         cleaned = cleaned.replace(/CUSTO AÇO \(ESCADA\):/gi, 'CUSTO AÇO:');
@@ -147,15 +173,35 @@ export const DeliveriesTable: React.FC = () => {
         return cleaned;
     };
 
-    const getEscadaMeasurements = (parsedData: any) => {
-        if (!parsedData) return '';
-        const inputData = parsedData.inputData || parsedData;
-        const selectedOption = parsedData.selectedOption || parsedData;
+    const getEscadaMeasurements = (parsedData: any, contractObj?: any) => {
+        if (!parsedData && !contractObj) return '';
+        const inputData = parsedData?.inputData || parsedData;
+        const selectedOption = parsedData?.selectedOption || parsedData;
         
-        const steps = getProp(parsedData, 'steps') ?? getProp(parsedData, 'desiredSteps') ?? getProp(parsedData, 'degraus');
-        const tread = getProp(parsedData, 'treadDepth') ?? getProp(parsedData, 'treadDepthCm') ?? getProp(parsedData, 'tread') ?? getProp(parsedData, 'pisante');
-        const height = getProp(parsedData, 'stepHeight') ?? getProp(parsedData, 'stepHeightCm') ?? getProp(parsedData, 'height') ?? getProp(parsedData, 'altura');
-        const width = getProp(parsedData, 'stairWidth') ?? getProp(parsedData, 'widthCm') ?? getProp(parsedData, 'width') ?? getProp(parsedData, 'largura');
+        let steps = getProp(parsedData, 'steps') ?? getProp(parsedData, 'desiredSteps') ?? getProp(parsedData, 'totalSteps') ?? getProp(parsedData, 'structureSteps') ?? getProp(parsedData, 'degraus');
+        let tread = getProp(parsedData, 'treadDepth') ?? getProp(parsedData, 'treadDepthCm') ?? getProp(parsedData, 'tread') ?? getProp(parsedData, 'pisante') ?? getProp(parsedData, 'pisada');
+        let height = getProp(parsedData, 'stepHeight') ?? getProp(parsedData, 'stepHeightCm') ?? getProp(parsedData, 'height') ?? getProp(parsedData, 'altura');
+        let width = getProp(parsedData, 'stairWidth') ?? getProp(parsedData, 'widthCm') ?? getProp(parsedData, 'width') ?? getProp(parsedData, 'largura');
+
+        if ((!steps || !tread || !height || !width) && contractObj?.measurementsNotes) {
+            const mText = contractObj.measurementsNotes;
+            if (!steps) {
+                const matchDeg = mText.match(/DEGRAUS:\s*(\d+)/i);
+                if (matchDeg) steps = Number(matchDeg[1]);
+            }
+            if (!tread) {
+                const matchPis = mText.match(/PISADA:\s*([\d,.]+)/i);
+                if (matchPis) tread = parseFloat(matchPis[1].replace(',', '.'));
+            }
+            if (!height) {
+                const matchAlt = mText.match(/ALTURA:\s*([\d,.]+)/i);
+                if (matchAlt) height = parseFloat(matchAlt[1].replace(',', '.'));
+            }
+            if (!width) {
+                const matchLar = mText.match(/LARGURA:\s*([\d,.]+)/i);
+                if (matchLar) width = parseFloat(matchLar[1].replace(',', '.'));
+            }
+        }
 
         const quoteType = getProp(parsedData, 'quoteType');
         const isIndependent = quoteType === 'landing' || quoteType === 'guardrail' || quoteType === 'gate';
@@ -163,13 +209,14 @@ export const DeliveriesTable: React.FC = () => {
         let med = '';
         
         if (!isIndependent && (steps !== undefined || tread !== undefined)) {
-            if (inputData?.wallFixation) {
+            const wallFix = getProp(parsedData, 'wallFixation') || (getProp(parsedData, 'cutStepType')?.includes('right') ? 'right' : (getProp(parsedData, 'cutStepType')?.includes('left') ? 'left' : undefined));
+            if (wallFix) {
                 const fixMap: Record<string, string> = {
                     left: 'ESQUERDA',
                     right: 'DIREITA',
                     frontal: 'FRONTAL'
                 };
-                const fix = fixMap[inputData.wallFixation.toLowerCase()] || inputData.wallFixation.toUpperCase();
+                const fix = fixMap[wallFix.toLowerCase()] || wallFix.toUpperCase();
                 med += `FIXAÇÃO NA PAREDE: ${fix}\n`;
             }
             if (steps !== undefined) med += `DEGRAUS: ${steps}\n`;
@@ -194,13 +241,13 @@ export const DeliveriesTable: React.FC = () => {
                 med += `MATERIAL: METAL\n`;
             }
 
-            if (inputData?.hasStairSideBar) {
+            if (getProp(parsedData, 'hasStairSideBar')) {
                 med += `BARRA LATERAL: SIM\n`;
             }
             med += `\n`;
         }
 
-        // --- CÁLCULO DE CUSTO DO AÇO DA ESCADA (SEM REPETIÇÕES) ---
+        // --- CÁLCULO DE PESO E CUSTO DO AÇO DA ESCADA ---
         try {
             const extractNum = (val: any) => {
                 if (typeof val === 'number') return val;
@@ -230,7 +277,8 @@ export const DeliveriesTable: React.FC = () => {
                 const diagonalM = Math.sqrt(baseH * baseH + heightM * heightM);
                 
                 let numBeams = 2;
-                if (inputData?.stairGeometry === 'Reta Parede Esq/Dir (1 Viga)') numBeams = 1;
+                const stairGeometry = getProp(parsedData, 'stairGeometry');
+                if (stairGeometry === 'Reta Parede Esq/Dir (1 Viga)') numBeams = 1;
                 
                 const tubeAreaM2 = (2 * 0.1) + (2 * 0.05);
                 const volumePerMeter = tubeAreaM2 * 0.002;
@@ -242,6 +290,7 @@ export const DeliveriesTable: React.FC = () => {
             const escadaWeight = stepsWeight + beamsWeight;
             if (escadaWeight > 0) {
                 const escadaCost = escadaWeight * 13.80;
+                med += `PESO ESCADA: ${escadaWeight.toFixed(1)} kg\n`;
                 med += `CUSTO AÇO: R$ ${escadaCost.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n`;
             }
         } catch (e) {
@@ -408,14 +457,28 @@ export const DeliveriesTable: React.FC = () => {
     };
 
     const getProp = (parsed: any, key: string) => {
+        if (!parsed) return undefined;
         if (parsed?.selectedOption && parsed.selectedOption[key] !== undefined && parsed.selectedOption[key] !== '') return parsed.selectedOption[key];
         if (parsed?.inputData && parsed.inputData[key] !== undefined && parsed.inputData[key] !== '') return parsed.inputData[key];
         if (parsed && parsed[key] !== undefined && parsed[key] !== '') return parsed[key];
-        return undefined;
+        if (parsed?.userData && parsed.userData[key] !== undefined && parsed.userData[key] !== '') return parsed.userData[key];
+
+        const searchProp = (obj: any, target: string, depth = 0): any => {
+            if (!obj || typeof obj !== 'object' || depth > 5) return undefined;
+            if (target in obj && obj[target] !== undefined && obj[target] !== '') return obj[target];
+            for (const k of Object.keys(obj)) {
+                if (obj[k] && typeof obj[k] === 'object') {
+                    const res = searchProp(obj[k], target, depth + 1);
+                    if (res !== undefined) return res;
+                }
+            }
+            return undefined;
+        };
+        return searchProp(parsed, key);
     };
 
-    const getFreightDimensions = (parsedData: any) => {
-        if (!parsedData) return '';
+    const getFreightDimensions = (parsedData: any, contractObj?: any) => {
+        if (!parsedData && !contractObj) return '-';
         const extractNum = (val: any) => {
             if (typeof val === 'number') return val;
             if (typeof val === 'string') {
@@ -425,12 +488,53 @@ export const DeliveriesTable: React.FC = () => {
             return 0;
         };
         
-        const numSteps = extractNum(getProp(parsedData, 'steps') ?? getProp(parsedData, 'desiredSteps') ?? getProp(parsedData, 'degraus'));
-        const treadDepthCm = extractNum(getProp(parsedData, 'treadDepth') ?? getProp(parsedData, 'treadDepthCm') ?? getProp(parsedData, 'pisante'));
-        const stepHeightCm = extractNum(getProp(parsedData, 'stepHeight') ?? getProp(parsedData, 'stepHeightCm') ?? getProp(parsedData, 'altura'));
-        const widthCm = extractNum(getProp(parsedData, 'stairWidth') ?? getProp(parsedData, 'widthCm') ?? getProp(parsedData, 'width') ?? getProp(parsedData, 'largura'));
+        let numSteps = extractNum(getProp(parsedData, 'steps') ?? getProp(parsedData, 'desiredSteps') ?? getProp(parsedData, 'totalSteps') ?? getProp(parsedData, 'structureSteps') ?? getProp(parsedData, 'degraus'));
+        let treadDepthCm = extractNum(getProp(parsedData, 'treadDepth') ?? getProp(parsedData, 'treadDepthCm') ?? getProp(parsedData, 'tread') ?? getProp(parsedData, 'pisante') ?? getProp(parsedData, 'pisada'));
+        let stepHeightCm = extractNum(getProp(parsedData, 'stepHeight') ?? getProp(parsedData, 'stepHeightCm') ?? getProp(parsedData, 'height') ?? getProp(parsedData, 'altura'));
+        let widthCm = extractNum(getProp(parsedData, 'stairWidth') ?? getProp(parsedData, 'widthCm') ?? getProp(parsedData, 'width') ?? getProp(parsedData, 'largura'));
 
-        if (!numSteps || !treadDepthCm || !stepHeightCm) return '-';
+        if ((!numSteps || !treadDepthCm || !stepHeightCm) && contractObj?.measurementsNotes) {
+            const mText = contractObj.measurementsNotes;
+            if (!numSteps) {
+                const matchDeg = mText.match(/DEGRAUS:\s*(\d+)/i);
+                if (matchDeg) numSteps = Number(matchDeg[1]);
+            }
+            if (!treadDepthCm) {
+                const matchPis = mText.match(/PISADA:\s*([\d,.]+)/i);
+                if (matchPis) treadDepthCm = parseFloat(matchPis[1].replace(',', '.'));
+            }
+            if (!stepHeightCm) {
+                const matchAlt = mText.match(/ALTURA:\s*([\d,.]+)/i);
+                if (matchAlt) stepHeightCm = parseFloat(matchAlt[1].replace(',', '.'));
+            }
+            if (!widthCm) {
+                const matchLar = mText.match(/LARGURA:\s*([\d,.]+)/i);
+                if (matchLar) widthCm = parseFloat(matchLar[1].replace(',', '.'));
+            }
+        }
+
+        const thicknessM = 3.0 / 1000;
+        const STEEL_DENSITY = 7850;
+
+        let landingsAreaM2 = 0;
+        const landings = getProp(parsedData, 'landings') || getProp(parsedData, 'patamares');
+        if (landings && landings.length > 0) {
+            landings.forEach((l: any) => {
+                const lLen = (Number(l.length) || 0) + 20;
+                const lWid = (Number(l.width) || 0) + 20;
+                landingsAreaM2 += (lLen * lWid) / 10000;
+            });
+        }
+        const landingsWeight = landingsAreaM2 * (3.34 / 1000) * STEEL_DENSITY;
+
+        if (!numSteps || !treadDepthCm || !stepHeightCm) {
+            if (landingsWeight > 0 && landings && landings.length > 0) {
+                const maxL = Math.max(...landings.map((l: any) => (Number(l.length) || 0) / 100));
+                const maxW = Math.max(...landings.map((l: any) => (Number(l.width) || 0) / 100));
+                return `COMPRIMENTO: ${(maxL || 1).toFixed(2)}m\nLARGURA: ${(maxW || 1).toFixed(2)}m\nALTURA: 0.15m\nPESO (PATAMAR): ${landingsWeight.toFixed(1)}kg\nPESO TOTAL: ${landingsWeight.toFixed(1)}kg`;
+            }
+            return '-';
+        }
 
         const optionalItems = getProp(parsedData, 'optionalItems');
         const maxHandrailHeightM = (optionalItems && optionalItems.some((i: any) => i.id === 'corrimao_aco')) ? 0.8 : 0;
@@ -440,7 +544,6 @@ export const DeliveriesTable: React.FC = () => {
         const blueLineCm = (treadDepthCm * stepHeightCm) / stepHypotenuseCm;
         const stringerWidthM = (blueLineCm + 16.5) / 100;
         
-        // Matemática solicitada pelo usuário para Largura do Pacote de Frete
         const handrailCm = maxHandrailHeightM > 0 ? 80 : 0;
         const pacoteLarguraM = ((treadDepthCm + 1) + handrailCm + 16.5) / 100;
         const pacoteAlturaM = 0.08;
@@ -451,20 +554,8 @@ export const DeliveriesTable: React.FC = () => {
         const diagonalExata = tamanhoViga + maxHandrailHeightM + pontasM;
 
         // Weight
-        const thicknessM = 3.0 / 1000;
-        const STEEL_DENSITY = 7850;
         const stepAreaM2 = ((treadDepthCm + 6) / 100) * (widthCm / 100);
         const stepsWeight = stepAreaM2 * thicknessM * numSteps * STEEL_DENSITY;
-        let landingsAreaM2 = 0;
-        const landings = getProp(parsedData, 'landings');
-        if (landings && landings.length > 0) {
-            landings.forEach((l: any) => {
-                const lLen = (Number(l.length) || 0) + 20;
-                const lWid = (Number(l.width) || 0) + 20;
-                landingsAreaM2 += (lLen * lWid) / 10000;
-            });
-        }
-        const landingsWeight = landingsAreaM2 * (3.34 / 1000) * STEEL_DENSITY;
         const redLineCm = stepHypotenuseCm * numSteps;
         const stringerAreaM2 = (redLineCm / 100) * (stringerWidthM) * 2;
         const stringerWeight = stringerAreaM2 * thicknessM * STEEL_DENSITY;
@@ -662,34 +753,54 @@ export const DeliveriesTable: React.FC = () => {
                                 </tr>
                             ) : (
                                 contracts.map(contract => {
-                                    const data = parseContractData(contract.contractData);
-                                    const address = contract.customAddress !== undefined ? contract.customAddress : getFullAddress(data?.userData);
+                                    const data = parseContractData(contract.contractData, contract);
+                                    const address = (contract.customAddress !== undefined && contract.customAddress.trim() !== '') ? contract.customAddress : getFullAddress(data?.userData);
                                     
-                                    const attention = contract.deliveryNotes !== undefined ? contract.deliveryNotes : getDefaultAttention(data);
-                                    let freightInfo = getFreightDimensions(data);
+                                    const attention = (contract.deliveryNotes !== undefined && contract.deliveryNotes.trim() !== '' && contract.deliveryNotes.trim() !== '-') 
+                                        ? contract.deliveryNotes 
+                                        : getDefaultAttention(data);
+
+                                    let freightInfo = getFreightDimensions(data, contract);
                                     if (contract.hingesQty !== undefined 
                                         && contract.hingesQty.trim() !== '-'
                                         && contract.hingesQty.trim() !== ''
                                         && !contract.hingesQty.toLowerCase().includes('dobradiça')
                                         && !contract.hingesQty.includes('QTD VOLUMES')
                                     ) {
-                                        freightInfo = contract.hingesQty;
+                                        if (!contract.hingesQty.includes('PESO') && freightInfo !== '-') {
+                                            freightInfo = contract.hingesQty + '\n' + freightInfo;
+                                        } else {
+                                            freightInfo = contract.hingesQty;
+                                        }
                                     }
 
-                                                                        let measurements = contract.measurementsNotes !== undefined ? contract.measurementsNotes : getEscadaMeasurements(data);
+                                    let measurements = (contract.measurementsNotes !== undefined && contract.measurementsNotes.trim() !== '' && contract.measurementsNotes.trim() !== '-')
+                                        ? contract.measurementsNotes 
+                                        : getEscadaMeasurements(data, contract);
                                     
                                     // Auto-upgrade old saved strings to the new split layout and calculate missing totals
                                     const isOldFormat = typeof measurements === 'string' && (
                                         measurements.includes('- G. Corpo (F:') || 
                                         measurements.includes('PESO APROX. (ESCADA):') ||
                                         measurements.includes('PATAMAR 1 (FIXO):') ||
-                                        (measurements.includes('DEGRAUS') && !measurements.includes('=== DADOS'))
+                                        (measurements.includes('DEGRAUS') && !measurements.includes('=== DADOS') && !measurements.includes('PISADA')) ||
+                                        (!measurements.includes('DEGRAUS') && getEscadaMeasurements(data, contract).includes('DEGRAUS'))
                                     );
-                                    if (isOldFormat) {
-                                        measurements = getEscadaMeasurements(data);
+                                    if (isOldFormat || !measurements || measurements.trim() === '-') {
+                                        const freshMed = getEscadaMeasurements(data, contract);
+                                        if (freshMed) measurements = freshMed;
                                     }
+                                    measurements = cleanAndTranslateMeasurements(measurements);
 
-                                    let measurementsAdicionais = contract.measurementsNotesAdicionais !== undefined ? contract.measurementsNotesAdicionais : getAdicionaisMeasurements(data);
+                                    let measurementsAdicionais = (contract.measurementsNotesAdicionais !== undefined && contract.measurementsNotesAdicionais.trim() !== '' && contract.measurementsNotesAdicionais.trim() !== '-')
+                                        ? contract.measurementsNotesAdicionais 
+                                        : getAdicionaisMeasurements(data);
+
+                                    if (!measurementsAdicionais || measurementsAdicionais.trim() === '-') {
+                                        const freshAdic = getAdicionaisMeasurements(data);
+                                        if (freshAdic) measurementsAdicionais = freshAdic;
+                                    }
+                                    measurementsAdicionais = cleanAndTranslateMeasurements(measurementsAdicionais);
                                       const dateColor = getDateColorClass(contract.deliveryDate);
                                     
                                     const queueItem = queueItems.find(q => q.contractId === contract.id);
