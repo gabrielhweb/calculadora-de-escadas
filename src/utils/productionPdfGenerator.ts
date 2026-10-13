@@ -395,7 +395,9 @@ export const drawGuardrailsPage = (doc: jsPDF, landings: any[], clientName: stri
                 gBars = Math.max(2, Math.round((gLength - 6) / 15) + 1);
             }
             let numInnerBars = Math.max(0, gBars - 2);
-            let gapCm = numInnerBars >= 0 ? ((gLength - 4 - (numInnerBars * 3)) / (numInnerBars + 1)) : 0;
+            let gapCm = (gGapOverride && gGapOverride > 0) 
+                ? gGapOverride 
+                : (numInnerBars >= 0 ? ((gLength - 6 - (numInnerBars * 3)) / (numInnerBars + 1)) : 0);
 
             // Fixo no patamar (+10 nas pontas)
             let isFixed = false;

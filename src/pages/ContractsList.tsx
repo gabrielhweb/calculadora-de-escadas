@@ -597,9 +597,24 @@ export const ContractsList: React.FC = () => {
                 }
             }
 
-            const landings = parsedData?.landings || parsedData?.inputData?.landings || parsedData?.selectedOption?.landings || [];
-            if (!landings || !Array.isArray(landings)) {
-                alert("Nenhum patamar encontrado neste contrato.");
+            let landings = parsedData?.landings || parsedData?.inputData?.landings || parsedData?.selectedOption?.landings || [];
+            
+            // Suporte a orçamentos de guarda-corpos avulsos
+            const standaloneGuardrails = parsedData?.standaloneGuardrails || parsedData?.inputData?.standaloneGuardrails || [];
+            if ((!landings || landings.length === 0) && standaloneGuardrails.length > 0) {
+                landings = standaloneGuardrails.map((g: any, idx: number) => ({
+                    id: `standalone-${idx}`,
+                    hasGuardrail: true,
+                    guardrailLength: g.length || 0,
+                    guardrailHeight: g.height || 90,
+                    guardrailBarsOverride: g.bars,
+                    guardrailGapOverride: g.gap,
+                    guardrailFormat: 'normal'
+                }));
+            }
+
+            if (!landings || !Array.isArray(landings) || landings.length === 0) {
+                alert("Nenhum patamar ou guarda-corpo encontrado neste contrato.");
                 return;
             }
 
