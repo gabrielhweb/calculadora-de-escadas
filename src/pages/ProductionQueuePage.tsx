@@ -28,10 +28,55 @@ export interface DashboardItem {
   source: 'quote' | 'contract' | 'queue';
   profit?: number;
   cost?: number;
+  baseStairCost?: number;
+  freightCost?: number;
+  tollCost?: number;
   customCosts?: CustomCost[];
   originalData: any;
   createdAt: string;
 }
+
+export const estimateFreightFromLocation = (location: string): number => {
+    if (!location || typeof location !== 'string') return 0;
+    const loc = location.toLowerCase();
+
+    // Fábrica em Campinas (CEP 13104-096)
+    if (loc.includes('campinas') || loc.includes('valinhos') || loc.includes('vinhedo') || loc.includes('hortolândia') || loc.includes('hortolandia') || loc.includes('sumaré') || loc.includes('sumare') || loc.includes('paulínia') || loc.includes('paulinia') || loc.includes('indaiatuba')) {
+        return 90;
+    }
+    if (loc.includes('sorocaba') || loc.includes('votorantim')) {
+        return 228.80;
+    }
+    if (loc.includes('são paulo') || loc.includes('sao paulo') || loc.includes('capital') || loc.includes('jardim marília') || loc.includes('marilia') || loc.includes('perus') || loc.includes('itaim') || loc.includes('tatuapé') || loc.includes('tatuape') || loc.includes('zona leste') || loc.includes('zona sul') || loc.includes('zona oeste') || loc.includes('zona norte') || loc.includes('osasco') || loc.includes('guarulhos')) {
+        return 185.00;
+    }
+    if (loc.includes('santo andré') || loc.includes('santo andre') || loc.includes('são bernardo') || loc.includes('sao bernardo') || loc.includes('são caetano') || loc.includes('sao caetano') || loc.includes('diadema') || loc.includes('mauá') || loc.includes('maua') || loc.includes('abc')) {
+        return 220.00;
+    }
+    if (loc.includes('santos') || loc.includes('praia grande') || loc.includes('guarujá') || loc.includes('guaruja') || loc.includes('litoral') || loc.includes('são sebastião') || loc.includes('ubatuba')) {
+        return 290.00;
+    }
+    if (loc.includes('poços de caldas') || loc.includes('pocos de caldas') || loc.includes('pouso alegre') || loc.includes('minas') || loc.includes('mg')) {
+        return 340.00;
+    }
+    if (loc.includes('cravinhos') || loc.includes('ribeirão preto') || loc.includes('ribeirao preto') || loc.includes('franca') || loc.includes('sertãozinho') || loc.includes('sertaozinho') || loc.includes('araraquara') || loc.includes('são carlos') || loc.includes('sao carlos')) {
+        return 420.00;
+    }
+    if (loc.includes('rio de janeiro') || loc.includes('rj') || loc.includes('botânico') || loc.includes('botanico') || loc.includes('niterói') || loc.includes('niteroi')) {
+        return 850.00;
+    }
+    if (loc.includes('curitiba') || loc.includes('pr') || loc.includes('paraná') || loc.includes('parana')) {
+        return 680.00;
+    }
+
+    if (loc.includes('- sp') || loc.includes(', sp') || loc.includes('/sp')) {
+        return 190.00;
+    }
+    if (loc.trim().length > 3 && loc.trim() !== 'retroativo') {
+        return 160.00;
+    }
+    return 0;
+};
 
 const STAGES: { id: BoardStage, label: string, color: string, headerColor: string }[] = [
     { id: 'orcamento', label: 'Orçamentos', color: 'bg-yellow-400 text-white', headerColor: 'border-yellow-400 text-yellow-600' },
@@ -100,8 +145,17 @@ export default function ProductionQueue() {
 
         const updateItems = () => {
             const queueWithSyncedDates = loadedQueue.map(q => {
-                if (q.originalData.contractId && rawContractsData[q.originalData.contractId]) {
-                    const contractData = rawContractsData[q.originalData.contractId];
+                let contractData = q.originalData?.contractId ? rawContractsData[q.originalData.contractId] : null;
+                if (!contractData) {
+                    const normTitle = normalizeStr(q.title);
+                    const matchId = Object.keys(rawContractsData).find(id => normalizeStr(rawContractsData[id].clientName) === normTitle);
+                    if (matchId) {
+                        contractData = rawContractsData[matchId];
+                        q.originalData.contractId = matchId;
+                    }
+                }
+
+                if (contractData) {
                     if (contractData.deliveryDate) {
                         q.originalData.deliveryDate = contractData.deliveryDate;
                     }
@@ -109,18 +163,42 @@ export default function ProductionQueue() {
                         q.originalData.location = contractData.customAddress;
                     } 
                     
-                    if (contractData.contractData) {
-                        try {
-                            const parsed = JSON.parse(contractData.contractData);
-                            q.originalData.parsedContractData = parsed;
-                            
-                            if (!q.originalData.location) {
-                                const addr = parsed?.userData?.address;
-                                if (addr && (addr.street || addr.city)) {
-                                    q.originalData.location = `${addr.street || ''}, ${addr.number || ''} - ${addr.city || ''}`.replace(/^, /, '');
-                                }
-                            }
-                        } catch(e){}
+                    let parsed: any = contractData.contractData;
+                    if (typeof parsed === 'string') {
+                        let maxIters = 5;
+                        while (typeof parsed === 'string' && maxIters > 0) {
+                            try { parsed = JSON.parse(parsed); } catch(e) { break; }
+                            maxIters--;
+                        }
+                    }
+                    if (parsed?.contractData) {
+                        let inner = parsed.contractData;
+                        let maxIters = 5;
+                        while (typeof inner === 'string' && maxIters > 0) {
+                            try { inner = JSON.parse(inner); } catch(e) { break; }
+                            maxIters--;
+                        }
+                        parsed = inner;
+                    }
+                    if (!parsed || typeof parsed !== 'object') parsed = {};
+
+                    if (contractData.treadDepth && !parsed.treadDepth && !parsed.pisante) parsed.treadDepth = contractData.treadDepth;
+                    if (contractData.stepHeight && !parsed.stepHeight && !parsed.altura) parsed.stepHeight = contractData.stepHeight;
+                    if (contractData.stairWidth && !parsed.stairWidth && !parsed.largura) parsed.stairWidth = contractData.stairWidth;
+                    if (contractData.totalSteps && !parsed.steps && !parsed.degraus) parsed.steps = contractData.totalSteps;
+                    if (contractData.wallFixation && !parsed.wallFixation) parsed.wallFixation = contractData.wallFixation;
+                    if (contractData.freightCost && !parsed.freightCost) parsed.freightCost = contractData.freightCost;
+                    if (contractData.tollCost && !parsed.tollCost) parsed.tollCost = contractData.tollCost;
+                    if (contractData.measurementsNotes && !parsed.measurementsNotes) parsed.measurementsNotes = contractData.measurementsNotes;
+
+                    q.originalData.parsedContractData = parsed;
+                    q.originalData.contractData = contractData;
+
+                    if (!q.originalData.location) {
+                        const addr = parsed?.userData?.address;
+                        if (addr && (addr.street || addr.city)) {
+                            q.originalData.location = `${addr.street || ''}, ${addr.number || ''} - ${addr.city || ''}`.replace(/^, /, '');
+                        }
                     }
                     if (contractData.clientName && contractData.clientName !== 'NOVO CLIENTE (Editar)') {
                         q.title = contractData.clientName;
@@ -133,13 +211,13 @@ export default function ProductionQueue() {
             const queueContractIds = new Set(loadedQueue.map(q => q.originalData?.contractId).filter(Boolean));
             const missingContracts = Object.keys(rawContractsData).filter(id => {
                 const c = rawContractsData[id];
-                return c.status === 'producao' && !queueContractIds.has(id);
+                return c.status === 'producao' && c.status !== 'cancelado' && !queueContractIds.has(id);
             }).map(id => {
                 const data = rawContractsData[id];
                 return {
                     id: id,
                     title: data.clientName,
-                    subtitle: 'Retroativo',
+                    subtitle: data.customAddress || 'Retroativo',
                     stage: 'contrato' as any,
                     value: data.totalValue || 0,
                     source: 'contract' as any,
@@ -195,6 +273,7 @@ export default function ProductionQueue() {
                     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
                 }
             });
+
             // COMPUTAR CUSTOS REAIS
             all = all.map(item => {
                 let autoCost = 0;
@@ -214,13 +293,31 @@ export default function ProductionQueue() {
                     maxIters--;
                 }
                 if (pcd?.contractData) {
-                    pcd = pcd.contractData;
-                    maxIters = 5;
-                    while (typeof pcd === 'string' && maxIters > 0) {
-                        try { pcd = JSON.parse(pcd); } catch(e) { break; }
-                        maxIters--;
+                    let inner = pcd.contractData;
+                    let maxIters2 = 5;
+                    while (typeof inner === 'string' && maxIters2 > 0) {
+                        try { inner = JSON.parse(inner); } catch(e) { break; }
+                        maxIters2--;
                     }
+                    pcd = inner;
                 }
+                if (!pcd || typeof pcd !== 'object') pcd = {};
+
+                const contractObj = (item.originalData?.contractId ? rawContractsData[item.originalData.contractId] : null) || 
+                    rawContractsData[item.id] || 
+                    Object.values(rawContractsData).find((c: any) => normalizeStr(c.clientName) === normalizeStr(item.title));
+
+                if (contractObj) {
+                    if (contractObj.treadDepth && !pcd.treadDepth && !pcd.pisante) pcd.treadDepth = contractObj.treadDepth;
+                    if (contractObj.stepHeight && !pcd.stepHeight && !pcd.altura) pcd.stepHeight = contractObj.stepHeight;
+                    if (contractObj.stairWidth && !pcd.stairWidth && !pcd.largura) pcd.stairWidth = contractObj.stairWidth;
+                    if (contractObj.totalSteps && !pcd.steps && !pcd.degraus) pcd.steps = contractObj.totalSteps;
+                    if (contractObj.wallFixation && !pcd.wallFixation) pcd.wallFixation = contractObj.wallFixation;
+                    if (contractObj.freightCost && !pcd.freightCost) pcd.freightCost = contractObj.freightCost;
+                    if (contractObj.tollCost && !pcd.tollCost) pcd.tollCost = contractObj.tollCost;
+                    if (contractObj.measurementsNotes && !pcd.measurementsNotes) pcd.measurementsNotes = contractObj.measurementsNotes;
+                }
+
                 if (item.originalData) item.originalData.parsedContractData = pcd;
                 
                 let val = item.value || 0;
@@ -229,20 +326,90 @@ export default function ProductionQueue() {
                     else if (pcd?.selectedOption?.totalPrice) val = pcd.selectedOption.totalPrice;
                     else if (pcd?.finalStairPrice) val = (pcd.finalStairPrice || 0) + (pcd.finalLandingsPrice || 0);
                     else if (item.originalData?.totalValue) val = item.originalData.totalValue;
+                    else if (contractObj?.totalValue) val = contractObj.totalValue;
                 }
                 item.value = val;
                 
-                // Calculo de chapas, patamar e tubos
-                if (pcd) {
-                    const STEEL_PRICE_PER_KG = 13.80;
-                    const TUBE_PRICE_PER_METER = 10;
-                    let totalTubosLinear = 0;
-                    let pesoAcoKg = 0;
+                const getProp = (parsed: any, key: string) => {
+                    if (parsed?.selectedOption && parsed.selectedOption[key] !== undefined && parsed.selectedOption[key] !== '') return parsed.selectedOption[key];
+                    if (parsed?.inputData && parsed.inputData[key] !== undefined && parsed.inputData[key] !== '') return parsed.inputData[key];
+                    if (parsed && parsed[key] !== undefined && parsed[key] !== '') return parsed[key];
+                    if (contractObj && (contractObj as any)[key] !== undefined && (contractObj as any)[key] !== '') return (contractObj as any)[key];
+                    return undefined;
+                };
+
+                let treadNum = Number(getProp(pcd, 'treadDepth')) || Number(getProp(pcd, 'treadDepthCm')) || Number(getProp(pcd, 'pisante')) || Number(getProp(pcd, 'tread')) || 0;
+                let heightNum = Number(getProp(pcd, 'stepHeight')) || Number(getProp(pcd, 'stepHeightCm')) || Number(getProp(pcd, 'altura')) || Number(getProp(pcd, 'height')) || 0;
+                let widthNum = Number(getProp(pcd, 'stairWidth')) || Number(getProp(pcd, 'widthCm')) || Number(getProp(pcd, 'largura')) || Number(getProp(pcd, 'width')) || 0;
+                let stepsNum = Number(getProp(pcd, 'structureSteps')) || Number(getProp(pcd, 'steps')) || Number(getProp(pcd, 'desiredSteps')) || Number(getProp(pcd, 'totalSteps')) || Number(getProp(pcd, 'degraus')) || 0;
+
+                const notes = contractObj?.measurementsNotes || pcd?.measurementsNotes || item.subtitle || '';
+                if (notes && typeof notes === 'string') {
+                    if (!stepsNum) {
+                        const m = notes.match(/(?:DEGRAUS:?\s*(\d+)|(\d+)\s*degraus)/i);
+                        if (m) stepsNum = Number(m[1] || m[2]);
+                    }
+                    if (!treadNum) {
+                        const m = notes.match(/(?:PISADA:?\s*([\d,.]+)|PISANTE:?\s*([\d,.]+)|([\d,.]+)\s*cm\s*pisada)/i);
+                        if (m) treadNum = parseFloat((m[1] || m[2] || m[3]).replace(',', '.'));
+                    }
+                    if (!heightNum) {
+                        const m = notes.match(/(?:ALTURA:?\s*([\d,.]+)|([\d,.]+)\s*cm\s*altura)/i);
+                        if (m) heightNum = parseFloat((m[1] || m[2]).replace(',', '.'));
+                    }
+                    if (!widthNum) {
+                        const m = notes.match(/(?:LARGURA:?\s*([\d,.]+)|([\d,.]+)\s*cm\s*largura)/i);
+                        if (m) widthNum = parseFloat((m[1] || m[2]).replace(',', '.'));
+                    }
+                }
+
+                if (!heightNum && stepsNum > 0) {
+                    const totH = Number(getProp(pcd, 'totalHeight')) || Number(getProp(pcd, 'alturaTotal')) || 0;
+                    if (totH > 0) heightNum = totH / stepsNum;
+                    else heightNum = 19;
+                }
+                if (!treadNum && stepsNum > 0) treadNum = 25;
+                if (!widthNum && (stepsNum > 0 || treadNum > 0)) widthNum = 70;
+
+                const STEEL_PRICE_PER_KG = 13.80;
+                const TUBE_PRICE_PER_METER = 10;
+                const STEEL_DENSITY = 7850;
+                const thicknessM = 3.0 / 1000;
+
+                let pesoAcoKg = 0;
+                if (stepsNum > 0 && treadNum > 0) {
+                    const stepAreaM2 = ((treadNum + 6) / 100) * (widthNum / 100);
+                    const stepsWeight = stepAreaM2 * thicknessM * stepsNum * STEEL_DENSITY;
                     
-                    if (pcd.landings) {
-                        pcd.landings.forEach((l: any) => {
-                            // Guarda-corpo
-                            if (l.hasGuardrail) {
+                    const h = heightNum > 0 ? heightNum : 19;
+                    const stepHypotenuseCm = Math.sqrt(Math.pow(treadNum, 2) + Math.pow(h, 2));
+                    const redLineCm = stepHypotenuseCm * stepsNum;
+                    const blueLineCm = (treadNum * h) / stepHypotenuseCm;
+                    const stringerWidthCm = blueLineCm + 16.5;
+                    const stringerAreaM2 = (redLineCm / 100) * (stringerWidthCm / 100) * 2;
+                    const stringerWeight = stringerAreaM2 * thicknessM * STEEL_DENSITY;
+                    
+                    pesoAcoKg += (stepsWeight + stringerWeight);
+                }
+
+                const landingsList = getProp(pcd, 'landings') || getProp(pcd, 'patamares');
+                if (landingsList && Array.isArray(landingsList)) {
+                    let landingsAreaM2 = 0;
+                    landingsList.forEach((l: any) => {
+                        if (!l.isAccessoriesOnly) {
+                            const lLen = (Number(l.length) || 0) + 20;
+                            const lWid = (Number(l.width) || 0) + 20;
+                            landingsAreaM2 += (lLen * lWid) / 10000;
+                        }
+                    });
+                    const landingsWeight = landingsAreaM2 * (3.34 / 1000) * STEEL_DENSITY;
+                    pesoAcoKg += landingsWeight;
+                }
+
+                let totalTubosLinear = 0;
+                if (landingsList && Array.isArray(landingsList)) {
+                    landingsList.forEach((l: any) => {
+                        if (l.hasGuardrail) {
                             const numSides = l.guardrailFormat === 'U' ? 3 : l.guardrailFormat === 'L' ? 2 : 1;
                             const totalLinear = (l.guardrailLength || 0) + (numSides >= 2 ? (l.guardrailLength2 || 0) : 0) + (numSides >= 3 ? (l.guardrailLength3 || 0) : 0);
                             const h = l.guardrailHeight || 90;
@@ -257,76 +424,46 @@ export default function ProductionQueue() {
                                 const t2 = Math.max(2, Math.max(1, Math.round(innerL2 / 15)) + 1);
                                 hL2 = ((h - 6) / 100) * t2;
                             }
-                            
                             let hL3 = 0;
                             if (numSides >= 3) {
                                 const innerL3 = Math.max(0, (l.guardrailLength3 || 0) - 6);
                                 const t3 = Math.max(2, Math.max(1, Math.round(innerL3 / 15)) + 1);
                                 hL3 = ((h - 6) / 100) * t3;
                             }
-                            
                             const totalVertical = hL1 + hL2 + hL3;
-                            const baseLinear = (totalLinear / 100) * 2; // 2 barras horizontais
+                            const baseLinear = (totalLinear / 100) * 2;
                             totalTubosLinear += totalVertical + baseLinear;
                         }
-                        
-                        // Portão
                         if (l.hasGate && l.gateLength > 0 && l.gateHeight > 0) {
                             const gateLen = l.gateLength;
                             const gateH = l.gateHeight;
                             const innerL = Math.max(0, gateLen - 6);
                             const t = Math.max(2, Math.max(1, Math.round(innerL / 15)) + 1);
-                            
                             const horiz = (gateLen / 100) * 2;
                             const vert = ((gateH - 6) / 100) * t;
                             totalTubosLinear += horiz + vert;
                         }
-                        });
-                    }
-                    
-                    // Calcular Peso do Aço (Baseado no DeliveriesTable.tsx)
-                    const STEEL_DENSITY = 7850;
-                    const thicknessM = 3.0 / 1000;
-                    
-                    const getProp = (parsed: any, key: string) => {
-                        if (parsed?.selectedOption && parsed.selectedOption[key] !== undefined && parsed.selectedOption[key] !== '') return parsed.selectedOption[key];
-                        if (parsed?.inputData && parsed.inputData[key] !== undefined && parsed.inputData[key] !== '') return parsed.inputData[key];
-                        if (parsed && parsed[key] !== undefined && parsed[key] !== '') return parsed[key];
-                        return undefined;
-                    };
-                    
-                    const treadNum = Number(getProp(pcd, 'treadDepth')) || Number(getProp(pcd, 'treadDepthCm')) || Number(getProp(pcd, 'pisante')) || 0;
-                    const heightNum = Number(getProp(pcd, 'stepHeight')) || Number(getProp(pcd, 'stepHeightCm')) || Number(getProp(pcd, 'altura')) || 0;
-                    const widthNum = Number(getProp(pcd, 'stairWidth')) || Number(getProp(pcd, 'widthCm')) || Number(getProp(pcd, 'largura')) || 0;
-                    const stepsNum = Number(getProp(pcd, 'structureSteps')) || Number(getProp(pcd, 'steps')) || Number(getProp(pcd, 'desiredSteps')) || Number(getProp(pcd, 'totalSteps')) || Number(getProp(pcd, 'degraus')) || 0;
-                    
-                    if (treadNum > 0 && heightNum > 0 && widthNum > 0 && stepsNum > 0) {
-                        const stepAreaM2 = ((treadNum + 6) / 100) * (widthNum / 100);
-                        const stepsWeight = stepAreaM2 * thicknessM * stepsNum * STEEL_DENSITY;
-                        
-                        let landingsAreaM2 = 0;
-                        const landingsList = getProp(pcd, 'landings');
-                        if (landingsList && landingsList.length > 0) {
-                            landingsList.forEach((l: any) => {
-                                const lLen = (Number(l.length) || 0) + 20;
-                                const lWid = (Number(l.width) || 0) + 20;
-                                landingsAreaM2 += (lLen * lWid) / 10000;
-                            });
-                        }
-                        const landingsWeight = landingsAreaM2 * (3.34 / 1000) * STEEL_DENSITY;
-                        
-                        const stepHypotenuseCm = Math.sqrt(Math.pow(treadNum, 2) + Math.pow(heightNum, 2));
-                        const redLineCm = stepHypotenuseCm * stepsNum;
-                        const blueLineCm = (treadNum * heightNum) / stepHypotenuseCm;
-                        const stringerWidthCm = blueLineCm + 16.5;
-                        const stringerAreaM2 = (redLineCm / 100) * (stringerWidthCm / 100) * 2;
-                        const stringerWeight = stringerAreaM2 * thicknessM * STEEL_DENSITY;
-                        
-                        const escadaWeight = stepsWeight + stringerWeight;
-                        pesoAcoKg = escadaWeight + landingsWeight;
-                    }
-                    
-                    autoCost += (totalTubosLinear * TUBE_PRICE_PER_METER) + (pesoAcoKg * STEEL_PRICE_PER_KG);
+                    });
+                }
+
+                const standaloneGuardrails = getProp(pcd, 'standaloneGuardrails');
+                if (standaloneGuardrails && Array.isArray(standaloneGuardrails)) {
+                    standaloneGuardrails.forEach((g: any) => {
+                        const len = Number(g.length) || 0;
+                        const h = Number(g.height) || 90;
+                        const innerL = Math.max(0, len - 6);
+                        const t = Math.max(2, Math.max(1, Math.round(innerL / 15)) + 1);
+                        const horiz = (len / 100) * 2;
+                        const vert = ((h - 6) / 100) * t;
+                        totalTubosLinear += horiz + vert;
+                    });
+                }
+
+                autoCost = (totalTubosLinear * TUBE_PRICE_PER_METER) + (pesoAcoKg * STEEL_PRICE_PER_KG);
+
+                // Estimativa de fabricação da escada do Jefferson (caso medidas não tenham sido salvas)
+                if (autoCost === 0 && val > 0) {
+                    autoCost = Math.round(val * 0.216 * 100) / 100;
                 }
 
                 // Extras + Legacy
@@ -340,25 +477,47 @@ export default function ProductionQueue() {
                     legacyCustomTotal = (item as any).customCosts.reduce((acc: number, c: any) => acc + (c.value || 0), 0);
                 }
 
-                // Add built-in costs from the contract if they exist (Freight, Toll, Installation, etc)
-                let builtinCosts = 0;
-                if (pcd) {
-                    builtinCosts += Number(pcd.freightCost) || 0;
-                    builtinCosts += Number(pcd.tollCost) || 0;
+                // Custo de Deslocamento e Pedágios
+                let freightVal = Number(getProp(pcd, 'freightCost')) || 
+                                 Number(getProp(pcd, 'freightPrice')) || 
+                                 Number(getProp(pcd, 'freight')) || 
+                                 Number(getProp(pcd, 'logistics')?.totalFreightCost) || 
+                                 Number(contractObj?.freightCost) || 
+                                 Number((item.originalData as any)?.freightCost) || 0;
+
+                if (freightVal === 0) {
+                    const loc = item.subtitle || (item.originalData as any)?.location || contractObj?.customAddress || '';
+                    freightVal = estimateFreightFromLocation(loc);
                 }
-                
-                // Taxes & Commissions
-                const finalVal = item.value || 0;
-                const taxCost = finalVal * (globalSettings.taxPercentage / 100);
-                const commCost = finalVal * (globalSettings.commissionPercentage / 100);
-                
-                const finalTotalCost = autoCost + extraCostsTotal + legacyCustomTotal + builtinCosts + taxCost + commCost;
-                const finalProfit = finalVal - finalTotalCost;
+
+                let tollVal = Number(getProp(pcd, 'tollCost')) || 
+                              Number(contractObj?.tollCost) || 
+                              Number((item.originalData as any)?.tollCost) || 0;
+
+                const taxCost = val * (globalSettings.taxPercentage / 100);
+                const commCost = val * (globalSettings.commissionPercentage / 100);
+
+                const baseStairCost = autoCost + taxCost + commCost;
+                const builtinCosts = freightVal + tollVal;
+                const finalTotalCost = baseStairCost + extraCostsTotal + legacyCustomTotal + builtinCosts;
+                const finalProfit = val - finalTotalCost;
 
                 return {
                     ...item,
+                    value: val,
                     cost: finalTotalCost,
-                    profit: finalProfit
+                    profit: finalProfit,
+                    baseStairCost: baseStairCost,
+                    freightCost: freightVal,
+                    tollCost: tollVal,
+                    originalData: {
+                        ...item.originalData,
+                        parsedContractData: {
+                            ...pcd,
+                            freightCost: freightVal,
+                            tollCost: tollVal
+                        }
+                    }
                 };
             });
             setItems(all);
@@ -712,12 +871,60 @@ export default function ProductionQueue() {
     const handleDeleteOrder = async (item: DashboardItem) => {
         if (!window.confirm(`Tem certeza que deseja EXCLUIR definitivamente o item "${item.title}" da fila de produção?`)) return;
         try {
-            const { deleteDoc } = await import('firebase/firestore');
+            const { deleteDoc, doc, collection, query, where, getDocs, updateDoc } = await import('firebase/firestore');
+            const { db } = await import('../firebase');
+
+            const contractId = item.originalData?.contractId || (item.source === 'contract' ? item.id : null);
+
+            // 1. Imediatamente remove do estado local para feedback instantâneo na tela
+            setItems(prev => prev.filter(i => {
+                if (i.id === item.id) return false;
+                if (contractId && (i.id === contractId || i.originalData?.contractId === contractId)) return false;
+                return true;
+            }));
+
+            // 2. Se for da fila (production_queue), deleta o documento
             if (item.source === 'queue') {
                 await deleteDoc(doc(db, 'production_queue', item.id));
-            } else if (item.source === 'contract') {
-                await deleteDoc(doc(db, 'contracts', item.id));
-            } else if (item.source === 'quote') {
+            }
+
+            // 3. Se tiver contractId vinculado, atualiza status para cancelado e limpa duplicatas
+            if (contractId) {
+                try {
+                    await updateDoc(doc(db, 'contracts', contractId), { status: 'cancelado' });
+                } catch (e) {
+                    try {
+                        await deleteDoc(doc(db, 'contracts', contractId));
+                    } catch (err2) {}
+                }
+
+                try {
+                    const q = query(collection(db, 'production_queue'), where('contractId', '==', contractId));
+                    const snap = await getDocs(q);
+                    snap.forEach(async (dSnap) => {
+                        await deleteDoc(doc(db, 'production_queue', dSnap.id));
+                    });
+                } catch (e) {}
+            }
+
+            // 4. Se for contrato direto (retroativo)
+            if (item.source === 'contract') {
+                try {
+                    await updateDoc(doc(db, 'contracts', item.id), { status: 'cancelado' });
+                } catch (e) {
+                    await deleteDoc(doc(db, 'contracts', item.id));
+                }
+                try {
+                    const q = query(collection(db, 'production_queue'), where('contractId', '==', item.id));
+                    const snap = await getDocs(q);
+                    snap.forEach(async (dSnap) => {
+                        await deleteDoc(doc(db, 'production_queue', dSnap.id));
+                    });
+                } catch (e) {}
+            }
+
+            // 5. Se for orçamento (saved_quotes)
+            if (item.source === 'quote') {
                 await deleteDoc(doc(db, 'saved_quotes', item.id));
             }
         } catch (error) {
@@ -997,7 +1204,7 @@ export default function ProductionQueue() {
                                                         </tr>
 
                                                         {/* Expanded Area for Costs */}
-                                                        {isExpanded && item.source === 'queue' && (
+                                                        {isExpanded && (item.source === 'queue' || item.source === 'contract') && (
                                                             <tr>
                                                                 <td colSpan={9} className="p-0 border-b border-gray-200 dark:border-gray-700">
                                                                     <div className="bg-indigo-50/50 dark:bg-indigo-900/10 p-6 shadow-inner border-y border-indigo-100 dark:border-indigo-800/50 flex flex-col gap-6">
@@ -1206,14 +1413,16 @@ export default function ProductionQueue() {
                                                                                                 <td className="px-4 py-2 text-gray-600 dark:text-gray-400">Custos Base Calculadora (Aço, Tubos, Impostos)</td>
                                                                                                 <td className="px-4 py-2 text-right font-medium text-gray-800 dark:text-gray-200 whitespace-nowrap">
                                                                                                     {(() => {
-                                                                                                        const pcd = item.originalData?.parsedContractData || item.originalData?.contractData;
-                                                                                                        let builtin = 0;
-                                                                                                        if (pcd) {
-                                                                                                            builtin += Number(pcd.freightCost) || 0;
-                                                                                                            builtin += Number(pcd.tollCost) || 0;
-                                                                                                        }
-                                                                                                        const customT = item.customCosts?.reduce((a,c)=>a+c.value,0) || 0;
-                                                                                                        const val = (item.cost || 0) - customT - builtin;
+                                                                                                        const val = item.baseStairCost !== undefined ? item.baseStairCost : (() => {
+                                                                                                            const pcd = item.originalData?.parsedContractData || item.originalData?.contractData;
+                                                                                                            let builtin = (item.freightCost || 0) + (item.tollCost || 0);
+                                                                                                            if (!builtin && pcd) {
+                                                                                                                builtin += Number(pcd.freightCost) || 0;
+                                                                                                                builtin += Number(pcd.tollCost) || 0;
+                                                                                                            }
+                                                                                                            const customT = item.customCosts?.reduce((a,c)=>a+c.value,0) || 0;
+                                                                                                            return Math.max(0, (item.cost || 0) - customT - builtin);
+                                                                                                        })();
                                                                                                         return (
                                                                                                             <>
                                                                                                               {formatCurrencyBRL(val)}
@@ -1226,26 +1435,31 @@ export default function ProductionQueue() {
                                                                                             </tr>
                                                                                             
                                                                                             {(() => {
-                                                                                                const pcd = item.originalData?.parsedContractData || item.originalData?.contractData;
-                                                                                                if (!pcd) return null;
+                                                                                                const fCost = (item.freightCost !== undefined && item.freightCost > 0) 
+                                                                                                    ? item.freightCost 
+                                                                                                    : (Number(item.originalData?.parsedContractData?.freightCost) || Number(item.originalData?.contractData?.freightCost) || 0);
+                                                                                                const tCost = (item.tollCost !== undefined && item.tollCost > 0)
+                                                                                                    ? item.tollCost
+                                                                                                    : (Number(item.originalData?.parsedContractData?.tollCost) || Number(item.originalData?.contractData?.tollCost) || 0);
+
                                                                                                 return (
                                                                                                     <>
-                                                                                                        {Number(pcd.freightCost) > 0 && (
+                                                                                                        {fCost > 0 && (
                                                                                                             <tr className="hover:bg-gray-50 dark:hover:bg-gray-750">
                                                                                                                 <td className="px-4 py-2 text-gray-600 dark:text-gray-400 border-l-4 border-indigo-500 pl-3">Custo de Deslocamento (Distância IA)</td>
                                                                                                                 <td className="px-4 py-2 text-right text-indigo-600 dark:text-indigo-400 font-medium whitespace-nowrap">
-                                                                                                                    {formatCurrencyBRL(Number(pcd.freightCost))}
-                                                                                                                    {item.value ? <span className="text-sm text-indigo-400 ml-2 font-bold">({((Number(pcd.freightCost) / item.value) * 100).toFixed(1)}%)</span> : null}
+                                                                                                                    {formatCurrencyBRL(fCost)}
+                                                                                                                    {item.value ? <span className="text-sm text-indigo-400 ml-2 font-bold">({((fCost / item.value) * 100).toFixed(1)}%)</span> : null}
                                                                                                                 </td>
                                                                                                                 <td></td>
                                                                                                             </tr>
                                                                                                         )}
-                                                                                                        {Number(pcd.tollCost) > 0 && (
+                                                                                                        {tCost > 0 && (
                                                                                                             <tr className="hover:bg-gray-50 dark:hover:bg-gray-750">
                                                                                                                 <td className="px-4 py-2 text-gray-600 dark:text-gray-400 border-l-4 border-indigo-500 pl-3">Custo de Pedágios (IA)</td>
                                                                                                                 <td className="px-4 py-2 text-right text-indigo-600 dark:text-indigo-400 font-medium whitespace-nowrap">
-                                                                                                                    {formatCurrencyBRL(Number(pcd.tollCost))}
-                                                                                                                    {item.value ? <span className="text-sm text-indigo-400 ml-2 font-bold">({((Number(pcd.tollCost) / item.value) * 100).toFixed(1)}%)</span> : null}
+                                                                                                                    {formatCurrencyBRL(tCost)}
+                                                                                                                    {item.value ? <span className="text-sm text-indigo-400 ml-2 font-bold">({((tCost / item.value) * 100).toFixed(1)}%)</span> : null}
                                                                                                                 </td>
                                                                                                                 <td></td>
                                                                                                             </tr>
