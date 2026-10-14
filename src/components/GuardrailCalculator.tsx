@@ -191,8 +191,22 @@ export default function GuardrailCalculator({ onCalculate }: GuardrailCalculator
                                 </button>
                                 
                                 <h3 className="text-sm font-black uppercase text-gray-400 border-b border-gray-100 dark:border-gray-700 pb-2 mb-4">
-                                    {g.hasGate ? 'Port�ozinho' : 'Guarda-Corpo'} #{idx + 1}
+                                    {g.hasGate ? (g.gateIsBipartido ? 'Portãozinho (Bipartido)' : 'Portãozinho') : 'Guarda-Corpo'} #{idx + 1}
                                 </h3>
+
+                                {g.hasGate && (
+                                    <div className="mb-3">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input 
+                                                type="checkbox"
+                                                checked={!!g.gateIsBipartido}
+                                                onChange={(e) => updateGuardrail(g.id, { gateIsBipartido: e.target.checked })}
+                                                className="w-4 h-4 text-highlight rounded border-gray-300 focus:ring-highlight"
+                                            />
+                                            <span className="text-xs font-bold text-gray-700 dark:text-gray-300">Portão Bipartido (duas folhas)?</span>
+                                        </label>
+                                    </div>
+                                )}
 
                                 <div className="mt-2">
                                     <GuardrailEditor 

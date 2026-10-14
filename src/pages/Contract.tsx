@@ -629,6 +629,12 @@ const Contract = () => {
           if (data.finalStairPrice !== undefined) {
             setStairPrice(Number(data.finalStairPrice).toFixed(2));
             setLandingsPrice(Number(data.finalLandingsPrice || 0).toFixed(2));
+            if (data.finalGuardrailPrice !== undefined) {
+              setGuardrailPrice(Number(data.finalGuardrailPrice).toFixed(2));
+            }
+            if (data.finalGatePrice !== undefined) {
+              setGatePrice(Number(data.finalGatePrice).toFixed(2));
+            }
           } else {
             const safeLandings = Array.isArray(fallbackOption.landings)
               ? fallbackOption.landings.filter(Boolean)
@@ -1193,10 +1199,9 @@ const Contract = () => {
           landings: landings,
         },
         finalStairPrice: parseFloat(stairPrice) || 0,
-        finalLandingsPrice:
-          (parseFloat(landingsPrice) || 0) +
-          (parseFloat(guardrailPrice) || 0) +
-          (parseFloat(gatePrice) || 0),
+        finalLandingsPrice: parseFloat(landingsPrice) || 0,
+        finalGuardrailPrice: parseFloat(guardrailPrice) || 0,
+        finalGatePrice: parseFloat(gatePrice) || 0,
         hasStairSideBar: hasStairSideBar,
         stairSideBarPrice: parseFloat(stairSideBarPrice) || 0,
         inputData: {
@@ -1432,10 +1437,11 @@ const Contract = () => {
       },
       // PASSANDO OS PREÇOS SEPARADOS EXPLICITAMENTE
       finalStairPrice: parseFloat(stairPrice) || 0,
-      finalLandingsPrice:
-        (parseFloat(landingsPrice) || 0) +
-        (parseFloat(guardrailPrice) || 0) +
-        (parseFloat(gatePrice) || 0),
+      finalLandingsPrice: parseFloat(landingsPrice) || 0,
+      finalGuardrailPrice: parseFloat(guardrailPrice) || 0,
+      finalGatePrice: parseFloat(gatePrice) || 0,
+      hasStairSideBar: hasStairSideBar,
+      stairSideBarPrice: parseFloat(stairSideBarPrice) || 0,
 
       inputData: {
         ...(originalInputData || {}),
@@ -1657,10 +1663,11 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
         landings: landings,
       },
       finalStairPrice: parseFloat(stairPrice) || 0,
-      finalLandingsPrice:
-        (parseFloat(landingsPrice) || 0) +
-        (parseFloat(guardrailPrice) || 0) +
-        (parseFloat(gatePrice) || 0),
+      finalLandingsPrice: parseFloat(landingsPrice) || 0,
+      finalGuardrailPrice: parseFloat(guardrailPrice) || 0,
+      finalGatePrice: parseFloat(gatePrice) || 0,
+      hasStairSideBar: hasStairSideBar,
+      stairSideBarPrice: parseFloat(stairSideBarPrice) || 0,
       inputData: {
         ...(originalInputData || {}),
         type: originalInputData?.type || "straight",
@@ -2513,6 +2520,23 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                 Possui Portãozinho?
                               </span>
                             </label>
+                            {landing.hasGate && (
+                              <label className="flex items-center gap-2 cursor-pointer mt-1 mb-2">
+                                <input
+                                  type="checkbox"
+                                  checked={!!landing.gateIsBipartido}
+                                  onChange={(e) =>
+                                    updateLanding(landing.id, {
+                                      gateIsBipartido: e.target.checked,
+                                    })
+                                  }
+                                  className="w-4 h-4 text-highlight rounded border-gray-300 focus:ring-highlight"
+                                />
+                                <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                                  Portão Bipartido (duas folhas)?
+                                </span>
+                              </label>
+                            )}
                             {landing.hasGate &&
                               (() => {
                                 const gateLength =
@@ -2919,6 +2943,22 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                               </div>
                             </div>
 
+                            <label className="flex items-center gap-2 cursor-pointer mt-2 mb-2">
+                              <input
+                                type="checkbox"
+                                checked={!!landing.gateIsBipartido}
+                                onChange={(e) =>
+                                  updateLanding(landing.id, {
+                                    gateIsBipartido: e.target.checked,
+                                  })
+                                }
+                                className="w-4 h-4 text-highlight rounded border-gray-300 focus:ring-highlight"
+                              />
+                              <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                                Portão Bipartido (duas folhas)?
+                              </span>
+                            </label>
+
                             <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
                               <ContractInput
                                 label="Comp. (cm)"
@@ -3052,6 +3092,21 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                           </span>
 
                           <div className="mt-6 space-y-3">
+                            <label className="flex items-center gap-2 cursor-pointer mt-1 mb-2">
+                              <input
+                                type="checkbox"
+                                checked={!!landing.gateIsBipartido}
+                                onChange={(e) =>
+                                  updateLanding(landing.id, {
+                                    gateIsBipartido: e.target.checked,
+                                  })
+                                }
+                                className="w-4 h-4 text-highlight rounded border-gray-300 focus:ring-highlight"
+                              />
+                              <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                                Portão Bipartido (duas folhas)?
+                              </span>
+                            </label>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                               <ContractInput
                                 label="Comp. (cm)"

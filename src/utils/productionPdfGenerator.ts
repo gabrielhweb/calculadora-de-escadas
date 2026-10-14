@@ -85,26 +85,25 @@ export const drawProductionPage = (doc: jsPDF, props: ProductionPdfProps) => {
     doc.setFont('helvetica', 'normal');
     doc.text('ESPESSURA 1/8"', 150, 39, { align: 'center' });
     
-    // Lado Esquerdo (pisada e altura)
-    // Movidos para posições absolutas seguras
+    // Lado Esquerdo (pisada e altura) - posicionados junto ao corte do degrau na viga
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     const pisadaText = 'pisada';
-    doc.text(pisadaText, 130, 80);
+    doc.text(pisadaText, 102, 74);
     const pisadaWidth = doc.getTextWidth(pisadaText);
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
     const displayPisada = treadDepthMm + 10; // Sempre 10mm a mais que o contrato
-    doc.text(`${displayPisada}mm`, 130 + pisadaWidth + 2, 80);
+    doc.text(`${displayPisada}mm`, 102 + pisadaWidth + 2, 74);
     
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     const alturaText = 'altura';
-    doc.text(alturaText, 130, 115);
+    doc.text(alturaText, 102, 105);
     const alturaWidth = doc.getTextWidth(alturaText);
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.text(`${stepHeightMm}mm`, 130 + alturaWidth + 2, 115);
+    doc.text(`${stepHeightMm}mm`, 102 + alturaWidth + 2, 105);
     
     // Lado Direito
     if (!isHollow) {
@@ -139,15 +138,13 @@ export const drawProductionPage = (doc: jsPDF, props: ProductionPdfProps) => {
         doc.text(`2,65mm`, infoX + eW + 2, infoY + 20);
 
     } else {
-        // Textos lado direito para vazado (baseado no PDF CELSO)
+        // Textos lado direito para vazado (face frontal da caixa 3D)
         doc.setFontSize(16);
         doc.setFont('helvetica', 'bold');
-        
-        // 600mm comprimento na lateral esquerda da caixa
-        doc.text(`${widthMm}mm`, 210, 85, { align: 'right' });
+        doc.text(`${widthMm}mm`, 235, 103, { align: 'center' });
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
-        doc.text('comprimento', 210, 90, { align: 'right' });
+        doc.text('comprimento', 235, 108, { align: 'center' });
 
         // 180mm largura no topo da caixa
         doc.setFontSize(16);
@@ -348,7 +345,9 @@ export const drawGuardrailsPage = (doc: jsPDF, landings: any[], clientName: stri
             doc.setFontSize(12);
             doc.setTextColor(255, 0, 0);
             
-            let titleStr = isGate ? 'PROJETO DE PORTÃO' : 'PROJETO DE GUARDA-CORPO';
+            let titleStr = isGate
+                ? (landing.gateIsBipartido ? 'PROJETO DE PORTÃO (BIPARTIDO)' : 'PROJETO DE PORTÃO')
+                : 'PROJETO DE GUARDA-CORPO';
             let subtitle = ` - PATAMAR ${index + 1}`;
             if (!isGate && numSides > 1) {
                 subtitle += ` (LADO ${sideIndex})`;
@@ -563,7 +562,7 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[], startY: num
             doc.setTextColor(0, 0, 0);
             let titleText = 'Guarda-Corpo e Portão';
             if (hasG && !hasGate) titleText = 'Guarda-Corpo';
-            if (!hasG && hasGate) titleText = 'Portão';
+            if (!hasG && hasGate) titleText = landing.gateIsBipartido ? 'Portão (Bipartido)' : 'Portão';
             doc.text(titleText, rightX + rightW / 2, currentY, { align: 'center' });
         }
 
@@ -610,7 +609,8 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[], startY: num
             }
         }
         if (hasGate) {
-            pieces.push({ type: 'gate', title: `Imagem ${pieces.length + 1}: Portão`, length: landing.gateLength || 100, outerH: landing.gateHeight || 90, innerH: (landing.gateHeight || 90) - 13, override: landing.gateBarsOverride });
+            const gateTitle = landing.gateIsBipartido ? 'Portão (Bipartido)' : 'Portão';
+            pieces.push({ type: 'gate', title: `Imagem ${pieces.length + 1}: ${gateTitle}`, length: landing.gateLength || 100, outerH: landing.gateHeight || 90, innerH: (landing.gateHeight || 90) - 13, override: landing.gateBarsOverride });
         }
 
         const totalPieces = pieces.length;
@@ -709,7 +709,8 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[], startY: num
             const drawAcc = (acc: any, box: any) => {
                 const isGate = acc.hasGate;
                 const format = acc.guardrailFormat || 'straight';
-                const titleText = isGate ? 'Portão' : 'Guarda-Corpo';
+                const isBipartido = acc.gateIsBipartido || acc.isBipartido;
+                const titleText = isGate ? (isBipartido ? 'Portão (Bipartido)' : 'Portão') : 'Guarda-Corpo';
 
                 doc.setFontSize(14);
                 doc.setFont('helvetica', 'bold');

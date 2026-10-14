@@ -150,7 +150,7 @@ export const generateProposalDescription = (inputData: any, opt: any): string =>
                 inputData.landings.forEach((landing: any) => {
                     if (!landing.isAccessoriesOnly) {
                         desc += `- Patamar Auxiliar (${landing.width}x${landing.length}cm) com base em aço carbono.\n`;
-                        if (landing.hasGate) desc += `  + Inclui Portãozinho ${landing.gateLength}x${landing.gateHeight}cm.\n`;
+                        if (landing.hasGate) desc += `  + Inclui Portãozinho${landing.gateIsBipartido ? ' (Bipartido)' : ''} ${landing.gateLength}x${landing.gateHeight}cm.\n`;
                         if (landing.hasGuardrail) desc += `  + Inclui Guarda-Corpo (${landing.guardrailFormat || 'normal'}).\n`;
                     }
                 });
@@ -234,6 +234,9 @@ export const generateProposalDescription = (inputData: any, opt: any): string =>
     const text2 = `-Com ${opt.structureSteps} ${degrausLabel} com dimensões de ${stepH} centímetros de altura e pisante ${materialText} de ${tread} centímetros${damperDesc}.`;
     
     let fullText = `${text1}\n\n${text2}`;
+    if (inputData.hasStairSideBar) {
+        fullText += `\n\n- Inclui barra lateral de apoio na escada.`;
+    }
 
     return fullText;
 };

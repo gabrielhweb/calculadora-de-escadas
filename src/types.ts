@@ -45,6 +45,7 @@ export interface LandingInfo {
   gateHeight?: number;
   gatePricePerMeter?: number;
   gateBarsOverride?: number;
+  gateIsBipartido?: boolean; // Portão bipartido (duas folhas)
   isAngled?: boolean;
   isAccessoriesOnly?: boolean; // NOVO: Não cobrar a chapa do patamar, cobrar apenas os acessórios (Guarda-Corpo/Portão)
   chapaPrice?: number; // Preço isolado da chapa do patamar

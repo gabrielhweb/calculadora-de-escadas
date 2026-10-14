@@ -38,6 +38,8 @@ export interface ContractData {
   // PREÇOS SEPARADOS EXPLICITAMENTE
   finalStairPrice: number;
   finalLandingsPrice: number;
+  finalGuardrailPrice?: number;
+  finalGatePrice?: number;
   hasStairSideBar?: boolean;
   stairSideBarPrice?: number;
 
@@ -216,6 +218,14 @@ export const generateContractPDF = (data: ContractData) => {
       addText('(OBS: Representações de portas ou janelas em desenhos anexos são meramente ilustrativas para conferência de medidas de passagem e não fazem parte deste fornecimento.)', 10, false, 'justify');
   }
 
+  // Listar os acessórios avulsos (Guarda-Corpo/Portão)
+  let accessories: any[] = [];
+  if (data.inputData.quoteType === 'guardrail' && data.inputData.standaloneGuardrails) {
+      accessories = data.inputData.standaloneGuardrails;
+  } else if (data.selectedOption.landings) {
+      accessories = data.selectedOption.landings.filter(l => l.isAccessoriesOnly);
+  }
+
   // --- LÓGICA PARA LISTAR PATAMARES COM TIPO ---
   if (data.selectedOption.landings && data.selectedOption.landings.length > 0) {
       let patamarIdx = 1;
@@ -263,25 +273,27 @@ export const generateContractPDF = (data: ContractData) => {
             }
 
             if (landing.hasGate) {
-                addText(`    + [Acessório] Portãozinho de ${landing.gateLength || 100}cm x ${landing.gateHeight || 90}cm`, 11, false, 'left');
+                const isBipartido = landing.gateIsBipartido;
+                const gateLabel = isBipartido ? "Portãozinho (Bipartido)" : "Portãozinho";
+                addText(`    + [Acessório] ${gateLabel} de ${landing.gateLength || 100}cm x ${landing.gateHeight || 90}cm`, 11, false, 'left');
             }
           patamarIdx++;
       });
       
 
-      // Listar os acessórios avulsos (Guarda-Corpo/Portão)
-      let accessories: any[] = [];
-      if (data.inputData.quoteType === 'guardrail' && data.inputData.standaloneGuardrails) {
-          accessories = data.inputData.standaloneGuardrails;
-      } else if (data.selectedOption.landings) {
-          accessories = data.selectedOption.landings.filter(l => l.isAccessoriesOnly);
-      }
-
       if (accessories.length > 0) {
           accessories.forEach((acc, idx) => {
-              const accPrice = formatCurrencyBRL(computeLandingPrice(acc));
+              let priceNum = computeLandingPrice(acc);
+              if (acc.hasGate && data.finalGatePrice !== undefined && data.finalGatePrice > 0) {
+                  priceNum = data.finalGatePrice;
+              } else if ((acc.hasGuardrail || data.inputData.quoteType === 'guardrail') && data.finalGuardrailPrice !== undefined && data.finalGuardrailPrice > 0) {
+                  priceNum = data.finalGuardrailPrice;
+              }
+              const accPrice = formatCurrencyBRL(priceNum);
               if (acc.hasGate) {
-                  addText(`-Portão: ${acc.gateLength || acc.length || 100}cm (C) x ${acc.gateHeight || acc.height || 90}cm (A) - Valor: ${accPrice}`, 11, false, 'left');
+                  const isBipartido = acc.gateIsBipartido || acc.isBipartido;
+                  const gateLabel = isBipartido ? "Portão (Bipartido)" : "Portão";
+                  addText(`-${gateLabel}: ${acc.gateLength || acc.length || 100}cm (C) x ${acc.gateHeight || acc.height || 90}cm (A) - Valor: ${accPrice}`, 11, false, 'left');
               } else if (acc.hasGuardrail || data.inputData.quoteType === 'guardrail') {
                   const gLen = acc.guardrailLength || acc.length || 100;
                   const gHei = acc.guardrailHeight || acc.height || 90;
@@ -291,8 +303,8 @@ export const generateContractPDF = (data: ContractData) => {
       }
   }
 
-  // --- PRECIFICAÇÃO SEPARADA (ESCADA vs PATAMARES) ---
-  // USAMOS OS VALORES EXPLICITOS PASSADOS PELA TELA AGORA
+  // --- PRECIFICAÇÃO SEPARADA (ESCADA vs PATAMARES vs ACESSÓRIOS) ---
+  // USAMOS OS VALORES EXPLICITOS PASSADOS PELA TELA
   
   if (!data.inputData.isAdendo) {
       if (data.inputData.quoteType === 'guardrail') {
@@ -309,24 +321,30 @@ export const generateContractPDF = (data: ContractData) => {
   }
 
   if (data.finalLandingsPrice > 0) {
-        const hasAccessories = data.selectedOption?.landings?.some((l: any) => l.isAccessoriesOnly);
-        const hasRealLandings = data.selectedOption?.landings?.some((l: any) => !l.isAccessoriesOnly);
-        let label = 'Valor Patamares (Total)';
-        if (hasAccessories && !hasRealLandings) {
-            // Do not print total for accessories, user requested it only inline
-        } else if (hasAccessories && hasRealLandings) {
-            label = 'Valor Patamares / Acessórios (Total)';
-            addText(`-${label}: ${formatCurrencyBRL(data.finalLandingsPrice)}`, 11, false, 'left');
-        } else {
-            addText(`-${label}: ${formatCurrencyBRL(data.finalLandingsPrice)}`, 11, false, 'left');
-        }
-    }
+      const realLandingsCount = data.selectedOption?.landings?.filter((l: any) => !l.isAccessoriesOnly)?.length || 0;
+      const countText = realLandingsCount > 0 ? ` (${realLandingsCount} un)` : '';
+      addText(`-Valor Patamares${countText}: ${formatCurrencyBRL(data.finalLandingsPrice)}`, 11, false, 'left');
+  }
+
+  // Se houver preço de guarda-corpo informado e não foi impresso na listagem de acessórios avulsos
+  const printedGuardrailInAcc = accessories.some((a: any) => a.hasGuardrail || data.inputData.quoteType === 'guardrail');
+  if (data.finalGuardrailPrice !== undefined && data.finalGuardrailPrice > 0 && !printedGuardrailInAcc) {
+      addText(`-Valor Guarda-Corpo: ${formatCurrencyBRL(data.finalGuardrailPrice)}`, 11, false, 'left');
+  }
+
+  // Se houver preço de portão informado e não foi impresso na listagem de acessórios avulsos
+  const printedGateInAcc = accessories.some((a: any) => a.hasGate);
+  if (data.finalGatePrice !== undefined && data.finalGatePrice > 0 && !printedGateInAcc) {
+      const anyBipartido = data.selectedOption?.landings?.some((l: any) => l.hasGate && l.gateIsBipartido);
+      const gateLabel = anyBipartido ? "Valor Portão (Bipartido)" : "Valor Portão";
+      addText(`-${gateLabel}: ${formatCurrencyBRL(data.finalGatePrice)}`, 11, false, 'left');
+  }
   
   if (data.hasStairSideBar) {
       addText(`-Escada com Barra Lateral: ${formatCurrencyBRL(data.stairSideBarPrice || 0)}`, 11, false, 'left');
   }
   
-  const structureTotal = data.finalStairPrice + data.finalLandingsPrice + (data.hasStairSideBar ? (data.stairSideBarPrice || 0) : 0);
+  const structureTotal = (data.finalStairPrice || 0) + (data.finalLandingsPrice || 0) + (data.finalGuardrailPrice || 0) + (data.finalGatePrice || 0) + (data.hasStairSideBar ? (data.stairSideBarPrice || 0) : 0);
   
   // --- LISTAGEM DE ITENS ADICIONAIS ---
   if (data.inputData.optionalItems && data.inputData.optionalItems.length > 0) {

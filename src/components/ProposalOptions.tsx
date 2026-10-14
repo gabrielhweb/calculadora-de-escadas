@@ -1171,6 +1171,15 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                                     </div>
                                 ))}
 
+                                {inputData?.hasStairSideBar && stairSideBarPrice > 0 && (
+                                    <div className="flex justify-between items-center text-gray-600 dark:text-gray-300">
+                                        <span>Barra Lateral:</span>
+                                        <span className="font-bold text-gray-800 dark:text-gray-200">
+                                            {formatCurrencyBRL(stairSideBarPrice)}
+                                        </span>
+                                    </div>
+                                )}
+
                                 {/* Linha Extras */}
                                 {inputData?.optionalItems && inputData.optionalItems.length > 0 && (
                                     <>

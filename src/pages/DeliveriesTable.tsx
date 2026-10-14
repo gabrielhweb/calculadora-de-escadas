@@ -518,7 +518,7 @@ export const DeliveriesTable: React.FC = () => {
                     const gatePriceFinal = Math.round((gateTrueLinearFinal / 100) * 10);
                     const gateWeight = (gateTrueLinearFinal / 100) * 0.88;
 
-                    med += `PORTÃO\n`;
+                    med += l.gateIsBipartido ? `PORTÃO (BIPARTIDO)\n` : `PORTÃO\n`;
                     if (side) med += side;
                     med += `Medida: ${len}x${h}cm\n`;
                     med += `Linear: ${gateTrueLinearFinal}cm\n`;

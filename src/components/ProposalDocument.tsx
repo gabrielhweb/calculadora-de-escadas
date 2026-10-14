@@ -155,6 +155,7 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
         let textBlockHeight = 6; // Título
         textBlockHeight += (lines.length * 5) + 2;
         textBlockHeight += 6; // Preço Escada
+        if (inputData.hasStairSideBar) textBlockHeight += 6;
         if (opt.landings.length > 0) textBlockHeight += 5 + (opt.landings.length * 6); 
         textBlockHeight += 6; // Frete
         textBlockHeight += 6; // Instalação
@@ -190,7 +191,8 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
 
         const landingsPrice = opt.landings.reduce((acc, l) => acc + (l.isAccessoriesOnly ? 0 : l.price), 0);
         const accessoriesPrice = opt.landings.reduce((acc, l) => acc + (l.isAccessoriesOnly ? l.price : 0), 0);
-        const structureOnly = opt.totalPrice - landingsPrice - accessoriesPrice;
+        const sideBarPrice = (inputData.hasStairSideBar ? (inputData.stairSideBarPrice || 0) : 0);
+        const structureOnly = opt.totalPrice - landingsPrice - accessoriesPrice - sideBarPrice;
         
         // Valor da Escada
         if (!inputData.isAdendo) {
@@ -209,6 +211,12 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
             doc.text(escadaText, pageMargin, currentY);
             doc.text(escadaPrice, pageWidth - pageMargin, currentY, { align: 'right' });
             currentY += 6;
+
+            if (inputData.hasStairSideBar && sideBarPrice > 0) {
+                doc.text(`- Escada com Barra Lateral:`, pageMargin, currentY);
+                doc.text(formatCurrencyBRL(sideBarPrice), pageWidth - pageMargin, currentY, { align: 'right' });
+                currentY += 6;
+            }
         }
         
         // Patamares
@@ -226,7 +234,8 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
                 if (landing.isAccessoriesOnly) {
                     let desc = '';
                     if (landing.hasGate) {
-                         desc = `- Portãozinho de ${landing.gateLength}cm x ${landing.gateHeight}cm`;
+                         const gateLabel = landing.gateIsBipartido ? "Portãozinho (Bipartido)" : "Portãozinho";
+                         desc = `- ${gateLabel} de ${landing.gateLength}cm x ${landing.gateHeight}cm`;
                     } else {
                          if (landing.guardrailFormat === 'L') {
                              desc = `- Guarda-corpo em L, composto por dois lados:\n  1º lado: ${landing.guardrailLength || 0}cm (C) × ${landing.guardrailHeight || 90}cm (A);\n  2º lado: ${landing.guardrailLength2 || 0}cm (C) × ${landing.guardrailHeight || 90}cm (A).`;
@@ -293,7 +302,8 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
                 }
 
                 if (landing.hasGate) {
-                    doc.text(`+ [Acessório] Portãozinho de ${landing.gateLength || 100}cm x ${landing.gateHeight || 90}cm`, pageMargin + 5, currentY);
+                    const gateLabel = landing.gateIsBipartido ? "Portãozinho (Bipartido)" : "Portãozinho";
+                    doc.text(`+ [Acessório] ${gateLabel} de ${landing.gateLength || 100}cm x ${landing.gateHeight || 90}cm`, pageMargin + 5, currentY);
                     currentY += 5;
                 }
             });

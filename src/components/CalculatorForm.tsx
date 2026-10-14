@@ -1116,6 +1116,18 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                                         <span className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase">Possui Portãozinho?</span>
                                     </label>
                                     
+                                    {landing.hasGate && (
+                                        <label className="flex items-center gap-2 cursor-pointer mb-2">
+                                            <input 
+                                                type="checkbox"
+                                                checked={!!landing.gateIsBipartido}
+                                                onChange={(e) => updateLanding(landing.id, { gateIsBipartido: e.target.checked })}
+                                                className="w-4 h-4 text-highlight rounded border-gray-300 focus:ring-highlight"
+                                            />
+                                            <span className="text-xs font-bold text-gray-700 dark:text-gray-300">Portão Bipartido (duas folhas)?</span>
+                                        </label>
+                                    )}
+
                                     {landing.hasGate && (() => {
                                         const gateLength = landing.gateLength !== undefined ? landing.gateLength : 100;
                                         const gateHeight = landing.gateHeight !== undefined ? landing.gateHeight : 90;
@@ -1452,6 +1464,17 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                                                 ))}
                                             </select>
                                         </div>
+                                    </div>
+                                    <div className="flex items-center gap-2 mt-2">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input 
+                                                type="checkbox"
+                                                checked={!!landing.gateIsBipartido}
+                                                onChange={(e) => updateLanding(landing.id, { gateIsBipartido: e.target.checked })}
+                                                className="w-4 h-4 text-highlight rounded border-gray-300 focus:ring-highlight"
+                                            />
+                                            <span className="text-xs font-bold text-gray-700 dark:text-gray-300">Portão Bipartido (duas folhas)?</span>
+                                        </label>
                                     </div>
                                     <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
                                         <InputField 
