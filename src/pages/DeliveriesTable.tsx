@@ -175,7 +175,6 @@ export const DeliveriesTable: React.FC = () => {
 
         cleaned = cleaned.replace(/-{10,}\n?/g, '');
         cleaned = cleaned.replace(/\[\s*PESOS E MATERIAIS\s*\]\n?/gi, '');
-        cleaned = cleaned.replace(/CUSTO AÇO \(ESCADA\):/gi, 'CUSTO AÇO:');
 
         // Limpar quebras de linha excessivas
         cleaned = cleaned.replace(/\n{3,}/g, '\n\n').trim();
@@ -183,8 +182,107 @@ export const DeliveriesTable: React.FC = () => {
         return cleaned;
     };
 
+    const getProp = (parsed: any, key: string) => {
+        if (!parsed) return undefined;
+        if (parsed?.selectedOption && parsed.selectedOption[key] !== undefined && parsed.selectedOption[key] !== '') return parsed.selectedOption[key];
+        if (parsed?.inputData && parsed.inputData[key] !== undefined && parsed.inputData[key] !== '') return parsed.inputData[key];
+        if (parsed && parsed[key] !== undefined && parsed[key] !== '') return parsed[key];
+        if (parsed?.userData && parsed.userData[key] !== undefined && parsed.userData[key] !== '') return parsed.userData[key];
+
+        const searchProp = (obj: any, target: string, depth = 0): any => {
+            if (!obj || typeof obj !== 'object' || depth > 5) return undefined;
+            if (target in obj && obj[target] !== undefined && obj[target] !== '') return obj[target];
+            for (const k of Object.keys(obj)) {
+                if (obj[k] && typeof obj[k] === 'object') {
+                    const res = searchProp(obj[k], target, depth + 1);
+                    if (res !== undefined) return res;
+                }
+            }
+            return undefined;
+        };
+        return searchProp(parsed, key);
+    };
+
+    const extractNum = (val: any) => {
+        if (typeof val === 'number') return val;
+        if (typeof val === 'string') {
+            const match = val.replace(',', '.').match(/[\d.]+/);
+            return match ? Number(match[0]) : 0;
+        }
+        return 0;
+    };
+
+    const isNoStairContract = (data: any, contractObj?: any): boolean => {
+        if (!data && !contractObj) return false;
+        
+        // 1. Tipo de orçamento explicitamente sem escada
+        const qType = getProp(data, 'quoteType') || contractObj?.quoteType;
+        if (qType === 'landing' || qType === 'guardrail' || qType === 'gate') return true;
+        
+        // 2. Adendo ou independente
+        if (getProp(data, 'isAdendo') === true || contractObj?.isAdendo === true) return true;
+        if (getProp(data, 'isIndependent') === true || contractObj?.isIndependent === true) return true;
+        
+        // 3. Preços explícitos (escada zerada mas com adicionais ou valor total)
+        const finalStairPrice = extractNum(getProp(data, 'finalStairPrice') ?? getProp(data, 'stairPrice') ?? contractObj?.stairPrice);
+        const finalLandingsPrice = extractNum(getProp(data, 'finalLandingsPrice') ?? getProp(data, 'landingsPrice') ?? contractObj?.landingsPrice);
+        if (finalStairPrice === 0 && (finalLandingsPrice > 0 || (contractObj?.totalValue || 0) > 0)) return true;
+
+        // 4. Degraus zerados
+        const structureSteps = getProp(data, 'structureSteps');
+        if (structureSteps !== undefined && extractNum(structureSteps) === 0) return true;
+        const totalSteps = getProp(data, 'totalSteps') ?? contractObj?.totalSteps;
+        if (totalSteps !== undefined && extractNum(totalSteps) === 0) return true;
+
+        // 5. Descrição do objeto indica patamar/adicionais sem escada
+        const objDesc = (getProp(data, 'objectDescriptionText') || contractObj?.objectDescriptionText || '').toLowerCase();
+        if (objDesc) {
+            const mentionsLandingOrAdic = objDesc.includes('patamar') || objDesc.includes('guarda-corpo') || objDesc.includes('portão') || objDesc.includes('itens avulsos');
+            const mentionsStair = objDesc.includes('escada articulada') || objDesc.includes('escada fixa');
+            if (mentionsLandingOrAdic && !mentionsStair) return true;
+        }
+
+        // 6. Tem patamares e a observação de medidas não tem DEGRAUS nem PISADA
+        const rawNotes = contractObj?.measurementsNotes || '';
+        const notesWithoutWeight = rawNotes
+            .replace(/PESO\s*(?:ESCADA|TOTAL|AÇO)?:\s*[\d,.]+\s*kg/gi, '')
+            .replace(/CUSTO\s*(?:AÇO|TOTAL)?(?:\s*\(ESCADA\))?:\s*(?:R\$\s*)?[\d,.]+/gi, '')
+            .trim();
+        const hasStairNotes = /DEGRAUS:\s*[1-9]/i.test(notesWithoutWeight) || /PISADA:\s*[1-9]/i.test(notesWithoutWeight);
+        
+        const landings = getProp(data, 'landings') || getProp(data, 'patamares') || [];
+        const hasRealLandings = Array.isArray(landings) && landings.some((l: any) => !l.isAccessoriesOnly);
+
+        if (hasRealLandings && !hasStairNotes) {
+            return true;
+        }
+
+        return false;
+    };
+
+    const getLandingsTotalSteel = (parsedData: any) => {
+        let totalWeight = 0;
+        let totalCost = 0;
+        const landings = getProp(parsedData, 'landings') || getProp(parsedData, 'patamares');
+        if (landings && landings.length > 0) {
+            landings.forEach((l: any) => {
+                if (l.isAccessoriesOnly || (Number(l.length) || 0) <= 0 || (Number(l.width) || 0) <= 0) return;
+                const lLen = (Number(l.length) || 0) + 20;
+                const lWid = (Number(l.width) || 0) + 20;
+                const pArea = (lLen * lWid) / 10000;
+                const pWeight = pArea * (3.34 / 1000) * 7850;
+                const pCost = pWeight * 13.80;
+                totalWeight += pWeight;
+                totalCost += pCost;
+            });
+        }
+        return { totalWeight, totalCost };
+    };
+
     const getEscadaMeasurements = (parsedData: any, contractObj?: any) => {
         if (!parsedData && !contractObj) return '';
+        if (isNoStairContract(parsedData, contractObj)) return '';
+
         const inputData = parsedData?.inputData || parsedData;
         const selectedOption = parsedData?.selectedOption || parsedData;
         
@@ -213,12 +311,9 @@ export const DeliveriesTable: React.FC = () => {
             }
         }
 
-        const quoteType = getProp(parsedData, 'quoteType');
-        const isIndependent = quoteType === 'landing' || quoteType === 'guardrail' || quoteType === 'gate';
-        
         let med = '';
         
-        if (!isIndependent && (steps !== undefined || tread !== undefined)) {
+        if (steps !== undefined || tread !== undefined) {
             const wallFix = getProp(parsedData, 'wallFixation') || (getProp(parsedData, 'cutStepType')?.includes('right') ? 'right' : (getProp(parsedData, 'cutStepType')?.includes('left') ? 'left' : undefined));
             if (wallFix) {
                 const fixMap: Record<string, string> = {
@@ -259,15 +354,6 @@ export const DeliveriesTable: React.FC = () => {
 
         // --- CÁLCULO DE PESO E CUSTO DO AÇO DA ESCADA ---
         try {
-            const extractNum = (val: any) => {
-                if (typeof val === 'number') return val;
-                if (typeof val === 'string') {
-                    const match = val.replace(',', '.').match(/[\d.]+/);
-                    return match ? Number(match[0]) : 0;
-                }
-                return 0;
-            };
-
             const treadNum = extractNum(tread);
             const heightNum = extractNum(height);
             const widthNum = extractNum(width);
@@ -298,8 +384,14 @@ export const DeliveriesTable: React.FC = () => {
             const escadaWeight = stepsWeight + stringerWeight;
             if (escadaWeight > 0) {
                 const escadaCost = escadaWeight * 13.80;
+                const { totalWeight: landingsWeight, totalCost: landingsCost } = getLandingsTotalSteel(parsedData);
+                const totalSteelWeight = escadaWeight + landingsWeight;
+                const totalSteelCost = escadaCost + landingsCost;
+
                 med += `PESO ESCADA: ${escadaWeight.toFixed(1)} kg\n`;
-                med += `CUSTO AÇO: R$ ${escadaCost.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n`;
+                med += `TOTAL DE AÇO: ${totalSteelWeight.toFixed(1)} kg\n`;
+                med += `CUSTO AÇO (ESCADA): R$ ${escadaCost.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n`;
+                med += `CUSTO TOTAL AÇO: R$ ${totalSteelCost.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n`;
             }
         } catch (e) {
             console.error("Erro ao estimar peso/custo na Fila", e);
@@ -393,12 +485,16 @@ export const DeliveriesTable: React.FC = () => {
 
                     const totalGuardrailLinear = trueLinear1 + trueLinear2 + trueLinear3;
                     
+                    const guardrailWeight = (totalGuardrailLinear / 100) * 0.88;
                     med += `GUARDA-CORPO (${format})\n`;
                     if (side) med += side;
                     med += `Comprimento: ${baseHorizontal}cm\n`;
                     med += `Altura: ${h}cm\n`;
                     med += `Linear: ${totalGuardrailLinear}cm\n`;
                     med += `Tubos: ${totalOverallBars} un\n`;
+                    if (guardrailWeight > 0) {
+                        med += `Peso Aço: ~${guardrailWeight.toFixed(1)} kg\n`;
+                    }
                     med += `Custo: R$ ${totalPrice}\n\n`;
                     
                     segmentsText.forEach(seg => {
@@ -420,12 +516,16 @@ export const DeliveriesTable: React.FC = () => {
 
                     const gateTrueLinearFinal = Math.round((totalBars * h) + (2 * len));
                     const gatePriceFinal = Math.round((gateTrueLinearFinal / 100) * 10);
+                    const gateWeight = (gateTrueLinearFinal / 100) * 0.88;
 
                     med += `PORTÃO\n`;
                     if (side) med += side;
                     med += `Medida: ${len}x${h}cm\n`;
                     med += `Linear: ${gateTrueLinearFinal}cm\n`;
                     med += `Tubos: ${totalBars} un (vãos ${exactGap.toFixed(1)}cm)\n`;
+                    if (gateWeight > 0) {
+                        med += `Peso Aço: ~${gateWeight.toFixed(1)} kg\n`;
+                    }
                     med += `Custo: R$ ${gatePriceFinal}\n\n`;
                 }
                 med += `\n`;
@@ -437,9 +537,15 @@ export const DeliveriesTable: React.FC = () => {
             standaloneGuardrails.forEach((g: any, idx: number) => {
                 const matText = g.material === 'glass' ? 'VIDRO' : 'AÇO/FERRO';
                 const side = g.side ? `Lado: ${translateSide(g.side)}\n` : '';
+                const gLinear = ((g.length || 0) * 2) + (Math.max(1, Math.round((g.length || 0) / 15)) * (g.height || 90));
+                const gWeight = (gLinear / 100) * 0.88;
                 med += `GUARDA-CORPO AVULSO ${idx + 1} (${matText})\n`;
                 if (side) med += side;
-                med += `Comprimento: ${g.length || 0}cm\nAltura: ${g.height || 90}cm\n\n`;
+                med += `Comprimento: ${g.length || 0}cm\nAltura: ${g.height || 90}cm\n`;
+                if (gWeight > 0) {
+                    med += `Peso Aço: ~${gWeight.toFixed(1)} kg\n`;
+                }
+                med += `\n`;
             });
         }
 
@@ -477,39 +583,20 @@ export const DeliveriesTable: React.FC = () => {
         return att.join(' - ');
     };
 
-    const getProp = (parsed: any, key: string) => {
-        if (!parsed) return undefined;
-        if (parsed?.selectedOption && parsed.selectedOption[key] !== undefined && parsed.selectedOption[key] !== '') return parsed.selectedOption[key];
-        if (parsed?.inputData && parsed.inputData[key] !== undefined && parsed.inputData[key] !== '') return parsed.inputData[key];
-        if (parsed && parsed[key] !== undefined && parsed[key] !== '') return parsed[key];
-        if (parsed?.userData && parsed.userData[key] !== undefined && parsed.userData[key] !== '') return parsed.userData[key];
-
-        const searchProp = (obj: any, target: string, depth = 0): any => {
-            if (!obj || typeof obj !== 'object' || depth > 5) return undefined;
-            if (target in obj && obj[target] !== undefined && obj[target] !== '') return obj[target];
-            for (const k of Object.keys(obj)) {
-                if (obj[k] && typeof obj[k] === 'object') {
-                    const res = searchProp(obj[k], target, depth + 1);
-                    if (res !== undefined) return res;
-                }
-            }
-            return undefined;
-        };
-        return searchProp(parsed, key);
-    };
-
-    const extractNum = (val: any) => {
-        if (typeof val === 'number') return val;
-        if (typeof val === 'string') {
-            const match = val.replace(',', '.').match(/[\d.]+/);
-            return match ? Number(match[0]) : 0;
-        }
-        return 0;
-    };
-
     const ensureWeightAndCost = (measurements: string, data: any, contract: any) => {
         let text = (measurements || '').trim();
         if (text === '-') text = '';
+
+        if (isNoStairContract(data, contract)) {
+            // Se não tem escada, limpa qualquer peso ou custo de escada que tenha sido gerado indevidamente
+            text = text
+                .replace(/PESO ESCADA:\s*[\d,.]+\s*kg\n?/gi, '')
+                .replace(/TOTAL DE AÇO:\s*[\d,.]+\s*kg\n?/gi, '')
+                .replace(/CUSTO AÇO(?:\s*\(ESCADA\))?:\s*(?:R\$\s*)?[\d,.]+\n?/gi, '')
+                .replace(/CUSTO TOTAL AÇO:\s*(?:R\$\s*)?[\d,.]+\n?/gi, '')
+                .trim();
+            return text;
+        }
 
         // Tenta extrair valores estruturados
         let steps = extractNum(getProp(data, 'steps') ?? getProp(data, 'desiredSteps') ?? getProp(data, 'totalSteps') ?? getProp(data, 'structureSteps') ?? getProp(data, 'degraus') ?? contract?.totalSteps);
@@ -535,13 +622,33 @@ export const DeliveriesTable: React.FC = () => {
             if (m) width = parseFloat((m[1] || m[2]).replace(',', '.'));
         }
 
+        if (height > 50 && steps > 0) {
+            height = height / steps;
+        }
+
         if (!height && steps > 0) {
             const totH = extractNum(getProp(data, 'totalHeight') ?? getProp(data, 'alturaTotal'));
             if (totH > 0) height = totH / steps;
+            else height = 19;
+        }
+
+        if (!tread && steps > 0) {
+            tread = 20;
         }
 
         if (!width && (steps > 0 || tread > 0)) {
             width = 60;
+        }
+
+        // Tentar extrair peso da escada pré-existente no texto ou no frete caso falte dados de degraus
+        let existingEscadaWeight = 0;
+        const matchPeso = text.match(/PESO ESCADA:\s*([\d,.]+)\s*kg/i);
+        if (matchPeso) {
+            existingEscadaWeight = parseFloat(matchPeso[1].replace(',', '.'));
+        }
+        if (!existingEscadaWeight && contract?.hingesQty) {
+            const mHinges = contract.hingesQty.match(/PESO\s*(?:\(ESCADA\)|ESCADA):\s*([\d,.]+)\s*kg/i);
+            if (mHinges) existingEscadaWeight = parseFloat(mHinges[1].replace(',', '.'));
         }
 
         // Se o texto não tinha degraus mas encontramos degraus
@@ -549,13 +656,13 @@ export const DeliveriesTable: React.FC = () => {
             const fresh = getEscadaMeasurements(data, contract);
             if (fresh) text = fresh;
             else {
-                text = `DEGRAUS: ${steps}\nPISADA: ${tread}cm\nALTURA: ${height ? height.toFixed(2) : '20'}cm\nLARGURA: ${width}cm\n`;
+                text = `DEGRAUS: ${steps}\nPISADA: ${tread}cm\nALTURA: ${height ? height.toFixed(2) : '19'}cm\nLARGURA: ${width}cm\n`;
             }
         }
 
-        // Se ainda não tem PESO ESCADA ou CUSTO AÇO, calcula e adiciona
+        let escadaWeight = 0;
         if (steps > 0 && tread > 0) {
-            const h = height > 0 ? height : 20;
+            const h = height > 0 ? height : 19;
             const w = width > 0 ? width : 60;
             const thicknessM = 3.0 / 1000;
             const STEEL_DENSITY = 7850;
@@ -575,25 +682,32 @@ export const DeliveriesTable: React.FC = () => {
             const stringerAreaM2 = (redLineCm / 100) * stringerWidthM * numBeams;
             const stringerWeight = stringerAreaM2 * thicknessM * STEEL_DENSITY;
 
-            const escadaWeight = stepsWeight + stringerWeight;
+            escadaWeight = stepsWeight + stringerWeight;
+        }
+
+        if (escadaWeight === 0 && existingEscadaWeight > 0) {
+            escadaWeight = existingEscadaWeight;
+        }
+
+        if (escadaWeight > 0) {
             const escadaCost = escadaWeight * 13.80;
+            const { totalWeight: landingsWeight, totalCost: landingsCost } = getLandingsTotalSteel(data);
+            const totalSteelWeight = escadaWeight + landingsWeight;
+            const totalSteelCost = escadaCost + landingsCost;
 
-            if (escadaWeight > 0) {
-                const pesoStr = `PESO ESCADA: ${escadaWeight.toFixed(1)} kg`;
-                const custoStr = `CUSTO AÇO: R$ ${escadaCost.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            const pesoEscadaStr = `PESO ESCADA: ${escadaWeight.toFixed(1)} kg`;
+            const totalAcoStr = `TOTAL DE AÇO: ${totalSteelWeight.toFixed(1)} kg`;
+            const custoEscadaStr = `CUSTO AÇO (ESCADA): R$ ${escadaCost.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            const custoTotalStr = `CUSTO TOTAL AÇO: R$ ${totalSteelCost.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-                if (text.includes('PESO ESCADA:')) {
-                    text = text.replace(/PESO ESCADA:\s*[\d,.]+\s*kg/i, pesoStr);
-                } else {
-                    text = text.trim() + `\n${pesoStr}`;
-                }
+            text = text
+                .replace(/PESO ESCADA:\s*[\d,.]+\s*kg\n?/gi, '')
+                .replace(/TOTAL DE AÇO:\s*[\d,.]+\s*kg\n?/gi, '')
+                .replace(/CUSTO AÇO(?:\s*\(ESCADA\))?:\s*(?:R\$\s*)?[\d,.]+\n?/gi, '')
+                .replace(/CUSTO TOTAL AÇO:\s*(?:R\$\s*)?[\d,.]+\n?/gi, '')
+                .trim();
 
-                if (text.includes('CUSTO AÇO:')) {
-                    text = text.replace(/CUSTO AÇO:\s*(?:R\$\s*)?[\d,.]+/i, custoStr);
-                } else {
-                    text = text.trim() + `\n${custoStr}`;
-                }
-            }
+            text = text + `\n${pesoEscadaStr}\n${totalAcoStr}\n${custoEscadaStr}\n${custoTotalStr}`;
         }
 
         return text;
@@ -602,13 +716,15 @@ export const DeliveriesTable: React.FC = () => {
     const getFreightDimensions = (parsedData: any, contractObj?: any, measurementsText?: string) => {
         if (!parsedData && !contractObj && !measurementsText) return '-';
         
-        let numSteps = extractNum(getProp(parsedData, 'steps') ?? getProp(parsedData, 'desiredSteps') ?? getProp(parsedData, 'totalSteps') ?? getProp(parsedData, 'structureSteps') ?? getProp(parsedData, 'degraus') ?? contractObj?.totalSteps);
-        let treadDepthCm = extractNum(getProp(parsedData, 'treadDepth') ?? getProp(parsedData, 'treadDepthCm') ?? getProp(parsedData, 'tread') ?? getProp(parsedData, 'pisante') ?? getProp(parsedData, 'pisada') ?? contractObj?.treadDepth);
-        let stepHeightCm = extractNum(getProp(parsedData, 'stepHeight') ?? getProp(parsedData, 'stepHeightCm') ?? getProp(parsedData, 'height') ?? getProp(parsedData, 'altura') ?? contractObj?.stepHeight);
-        let widthCm = extractNum(getProp(parsedData, 'stairWidth') ?? getProp(parsedData, 'widthCm') ?? getProp(parsedData, 'width') ?? getProp(parsedData, 'largura') ?? contractObj?.stairWidth);
+        const noStair = isNoStairContract(parsedData, contractObj);
+
+        let numSteps = noStair ? 0 : extractNum(getProp(parsedData, 'steps') ?? getProp(parsedData, 'desiredSteps') ?? getProp(parsedData, 'totalSteps') ?? getProp(parsedData, 'structureSteps') ?? getProp(parsedData, 'degraus') ?? contractObj?.totalSteps);
+        let treadDepthCm = noStair ? 0 : extractNum(getProp(parsedData, 'treadDepth') ?? getProp(parsedData, 'treadDepthCm') ?? getProp(parsedData, 'tread') ?? getProp(parsedData, 'pisante') ?? getProp(parsedData, 'pisada') ?? contractObj?.treadDepth);
+        let stepHeightCm = noStair ? 0 : extractNum(getProp(parsedData, 'stepHeight') ?? getProp(parsedData, 'stepHeightCm') ?? getProp(parsedData, 'height') ?? getProp(parsedData, 'altura') ?? contractObj?.stepHeight);
+        let widthCm = noStair ? 0 : extractNum(getProp(parsedData, 'stairWidth') ?? getProp(parsedData, 'widthCm') ?? getProp(parsedData, 'width') ?? getProp(parsedData, 'largura') ?? contractObj?.stairWidth);
 
         const sourceText = measurementsText || contractObj?.measurementsNotes || '';
-        if ((!numSteps || !treadDepthCm || !stepHeightCm) && sourceText) {
+        if (!noStair && (!numSteps || !treadDepthCm || !stepHeightCm) && sourceText) {
             if (!numSteps) {
                 const matchDeg = sourceText.match(/(?:DEGRAUS:?\s*(\d+)|(\d+)\s*degraus)/i);
                 if (matchDeg) numSteps = Number(matchDeg[1] || matchDeg[2]);
@@ -627,12 +743,12 @@ export const DeliveriesTable: React.FC = () => {
             }
         }
 
-        if (!stepHeightCm && numSteps > 0) {
+        if (!noStair && !stepHeightCm && numSteps > 0) {
             const totH = extractNum(getProp(parsedData, 'totalHeight') ?? getProp(parsedData, 'alturaTotal'));
             if (totH > 0) stepHeightCm = totH / numSteps;
         }
 
-        if (!widthCm && (numSteps > 0 || treadDepthCm > 0)) {
+        if (!noStair && !widthCm && (numSteps > 0 || treadDepthCm > 0)) {
             widthCm = 60;
         }
 
@@ -651,10 +767,11 @@ export const DeliveriesTable: React.FC = () => {
         }
         const landingsWeight = landingsAreaM2 * (3.34 / 1000) * STEEL_DENSITY;
 
-        if (!numSteps || !treadDepthCm || !stepHeightCm) {
+        if (noStair || !numSteps || !treadDepthCm || !stepHeightCm) {
             if (landingsWeight > 0 && landings && landings.length > 0) {
-                const maxL = Math.max(...landings.map((l: any) => (Number(l.length) || 0) / 100));
-                const maxW = Math.max(...landings.map((l: any) => (Number(l.width) || 0) / 100));
+                const realLandings = landings.filter((l: any) => !l.isAccessoriesOnly && (Number(l.length) || 0) > 0);
+                const maxL = realLandings.length > 0 ? Math.max(...realLandings.map((l: any) => (Number(l.length) || 0) / 100)) : 1;
+                const maxW = realLandings.length > 0 ? Math.max(...realLandings.map((l: any) => (Number(l.width) || 0) / 100)) : 1;
                 return `COMPRIMENTO: ${(maxL || 1).toFixed(2)}m\nLARGURA: ${(maxW || 1).toFixed(2)}m\nALTURA: 0.15m\nPESO (PATAMAR): ${landingsWeight.toFixed(1)}kg\nPESO TOTAL: ${landingsWeight.toFixed(1)}kg`;
             }
             return '-';
@@ -904,6 +1021,7 @@ export const DeliveriesTable: React.FC = () => {
                                     measurementsAdicionais = cleanAndTranslateMeasurements(measurementsAdicionais);
 
                                     // 3. Frete (garante dimensões do pacote e pesos totais)
+                                    const noStair = isNoStairContract(data, contract);
                                     let freightInfo = getFreightDimensions(data, contract, measurements);
                                     if (contract.hingesQty !== undefined 
                                         && contract.hingesQty.trim() !== '-'
@@ -911,7 +1029,10 @@ export const DeliveriesTable: React.FC = () => {
                                         && !contract.hingesQty.toLowerCase().includes('dobradiça')
                                         && !contract.hingesQty.includes('QTD VOLUMES')
                                     ) {
-                                        if (!contract.hingesQty.includes('PESO') && freightInfo !== '-') {
+                                        if (noStair && contract.hingesQty.includes('PESO (ESCADA)')) {
+                                            // Se o pedido não tem escada mas o frete salvo continha pacote de escada antigo, recalcula apenas com patamares
+                                            freightInfo = getFreightDimensions(data, contract, measurements);
+                                        } else if (!contract.hingesQty.includes('PESO') && freightInfo !== '-') {
                                             freightInfo = contract.hingesQty + '\n' + freightInfo;
                                         } else {
                                             freightInfo = contract.hingesQty;
@@ -1072,28 +1193,30 @@ export const DeliveriesTable: React.FC = () => {
                                                     contentEditable 
                                                     suppressContentEditableWarning
                                                     onBlur={(e) => {
-                                                        if (e.target.innerText !== measurements) {
-                                                            handleUpdateContract(contract.id, 'measurementsNotes', e.target.innerText);
+                                                        const val = e.target.innerText.trim();
+                                                        if (val !== (measurements || '-')) {
+                                                            handleUpdateContract(contract.id, 'measurementsNotes', val === '-' ? '' : val);
                                                         }
                                                     }}
                                                 >
-                                                    {measurements}
+                                                    {measurements || '-'}
                                                 </div>
                                             </td>
-                                              <td className="p-2 align-top text-xs font-mono">
-                                                  <div 
-                                                      className="editable-cell px-2 py-1 whitespace-pre-wrap"
-                                                      contentEditable 
-                                                      suppressContentEditableWarning
-                                                      onBlur={(e) => {
-                                                          if (e.target.innerText !== measurementsAdicionais) {
-                                                              handleUpdateContract(contract.id, 'measurementsNotesAdicionais', e.target.innerText);
-                                                          }
-                                                      }}
-                                                  >
-                                                      {measurementsAdicionais}
-                                                  </div>
-                                              </td>
+                                            <td className="p-2 align-top text-xs font-mono">
+                                                <div 
+                                                    className="editable-cell px-2 py-1 whitespace-pre-wrap"
+                                                    contentEditable 
+                                                    suppressContentEditableWarning
+                                                    onBlur={(e) => {
+                                                        const val = e.target.innerText.trim();
+                                                        if (val !== (measurementsAdicionais || '-')) {
+                                                            handleUpdateContract(contract.id, 'measurementsNotesAdicionais', val === '-' ? '' : val);
+                                                        }
+                                                    }}
+                                                >
+                                                    {measurementsAdicionais || '-'}
+                                                </div>
+                                            </td>
                                             <td className="p-2 align-middle print-hidden flex flex-col gap-2">
                                                 <button 
                                                     onClick={() => handleMarkAsDelivered(contract.id)}
