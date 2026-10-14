@@ -145,13 +145,13 @@ export const DeliveriesTable: React.FC = () => {
             .replace(/FIXAÇÃO NA PAREDE:\s*LEFT/gi, 'FIXAÇÃO NA PAREDE: ESQUERDA')
             .replace(/FIXAÇÃO NA PAREDE:\s*RIGHT/gi, 'FIXAÇÃO NA PAREDE: DIREITA')
             .replace(/FIXAÇÃO NA PAREDE:\s*FRONTAL/gi, 'FIXAÇÃO NA PAREDE: FRONTAL')
-            .replace(/\[Lado:\s*left\]/gi, '[Lado: Esquerda]')
-            .replace(/\[Lado:\s*right\]/gi, '[Lado: Direita]')
-            .replace(/\[Lado:\s*both\]/gi, '[Lado: Ambos]')
-            .replace(/\[Lado:\s*frontal\]/gi, '[Lado: Frente]')
-            .replace(/\[Lado:\s*front\]/gi, '[Lado: Frente]')
-            .replace(/\[Lado:\s*back\]/gi, '[Lado: Atrás]')
-            .replace(/\[Lado:\s*rear\]/gi, '[Lado: Atrás]')
+            .replace(/\[Lado:\s*left\]/gi, 'Lado: Esquerda')
+            .replace(/\[Lado:\s*right\]/gi, 'Lado: Direita')
+            .replace(/\[Lado:\s*both\]/gi, 'Lado: Ambos')
+            .replace(/\[Lado:\s*frontal\]/gi, 'Lado: Frente')
+            .replace(/\[Lado:\s*front\]/gi, 'Lado: Frente')
+            .replace(/\[Lado:\s*back\]/gi, 'Lado: Atrás')
+            .replace(/\[Lado:\s*rear\]/gi, 'Lado: Atrás')
             .replace(/\(left\)/gi, '(Esquerda)')
             .replace(/\(right\)/gi, '(Direita)')
             .replace(/\(both\)/gi, '(Ambos)')
@@ -159,6 +159,16 @@ export const DeliveriesTable: React.FC = () => {
             .replace(/MATERIAL:\s*METAL/gi, 'MATERIAL: METAL')
             .replace(/MATERIAL:\s*STEEL/gi, 'MATERIAL: METAL')
             .replace(/MATERIAL:\s*GLASS/gi, 'MATERIAL: VIDRO');
+
+        // Limpeza de poluição visual (colchetes, setas, base -> comprimento)
+        cleaned = cleaned
+            .replace(/\[\s*Lado:\s*([^\]]+)\]/gi, 'Lado: $1')
+            .replace(/\[\s*ACESSÓRIO AVULSO\s*\]/gi, 'ACESSÓRIO AVULSO')
+            .replace(/\[\s*EXTRAS CADASTRADOS\s*\]/gi, 'EXTRAS CADASTRADOS:')
+            .replace(/\[\s*PATAMAR\s*(\d+)\s*-\s*([^\]]+)\]/gi, 'PATAMAR $1 ($2)')
+            .replace(/Base:\s*([\d,.]+\s*cm)\s*\|\s*Altura:\s*([\d,.]+\s*cm)/gi, 'Comprimento: $1\nAltura: $2')
+            .replace(/Base:\s*([\d,.]+\s*cm)/gi, 'Comprimento: $1')
+            .replace(/>>\s*/g, '');
 
         // Remover repetição de informações de portão embutidas no guarda-corpo
         cleaned = cleaned.replace(/\s*\(\+\d+cm\s*Portão\)/gi, '');
@@ -266,28 +276,26 @@ export const DeliveriesTable: React.FC = () => {
             const STEEL_DENSITY = 7850;
 
             let stepsWeight = 0;
-            let beamsWeight = 0;
+            let stringerWeight = 0;
             
             if (treadNum > 0 && heightNum > 0 && widthNum > 0 && stepsNum > 0) {
                 const stepAreaM2 = ((treadNum + 6) / 100) * (widthNum / 100);
                 stepsWeight = stepAreaM2 * thicknessM * stepsNum * STEEL_DENSITY;
 
-                const baseH = (stepsNum * treadNum) / 100;
-                const heightM = (stepsNum * heightNum) / 100;
-                const diagonalM = Math.sqrt(baseH * baseH + heightM * heightM);
+                const stepHypotenuseCm = Math.sqrt(Math.pow(treadNum, 2) + Math.pow(heightNum, 2));
+                const blueLineCm = (treadNum * heightNum) / stepHypotenuseCm;
+                const stringerWidthM = (blueLineCm + 16.5) / 100;
+                const redLineCm = stepHypotenuseCm * stepsNum;
                 
                 let numBeams = 2;
                 const stairGeometry = getProp(parsedData, 'stairGeometry');
                 if (stairGeometry === 'Reta Parede Esq/Dir (1 Viga)') numBeams = 1;
                 
-                const tubeAreaM2 = (2 * 0.1) + (2 * 0.05);
-                const volumePerMeter = tubeAreaM2 * 0.002;
-                const weightPerMeter = volumePerMeter * STEEL_DENSITY;
-                
-                beamsWeight = (diagonalM * weightPerMeter) * numBeams;
+                const stringerAreaM2 = (redLineCm / 100) * stringerWidthM * numBeams;
+                stringerWeight = stringerAreaM2 * thicknessM * STEEL_DENSITY;
             }
 
-            const escadaWeight = stepsWeight + beamsWeight;
+            const escadaWeight = stepsWeight + stringerWeight;
             if (escadaWeight > 0) {
                 const escadaCost = escadaWeight * 13.80;
                 med += `PESO ESCADA: ${escadaWeight.toFixed(1)} kg\n`;
@@ -307,24 +315,24 @@ export const DeliveriesTable: React.FC = () => {
         if (landings && landings.length > 0) {
             landings.forEach((l: any, idx: number) => {
                 if (l.isAccessoriesOnly) {
-                    med += `[ ACESSÓRIO AVULSO ]\n`;
+                    med += `ACESSÓRIO AVULSO\n`;
                 } else {
                     const type = l.type === 'articulated' ? 'ARTICULADO' : 'FIXO';
-                    med += `[ PATAMAR ${idx + 1} - ${type} ] Medida: ${l.length || 0}cm x ${l.width || 0}cm\n`;
+                    med += `PATAMAR ${idx + 1} (${type})\nMedida: ${l.length || 0}cm x ${l.width || 0}cm\n`;
                     const lLen = (Number(l.length) || 0) + 20;
                     const lWid = (Number(l.width) || 0) + 20;
                     const pArea = (lLen * lWid) / 10000;
                     const pWeight = pArea * (3.34 / 1000) * 7850;
                     const pCost = pWeight * 13.80;
                     if (pWeight > 0) {
-                        med += `   Peso Patamar: ${pWeight.toFixed(1)} kg\n`;
-                        med += `   Custo Aço: R$ ${pCost.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n`;
+                        med += `Peso Patamar: ${pWeight.toFixed(1)} kg\n`;
+                        med += `Custo Aço: R$ ${pCost.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n`;
                     }
                 }
                 
                 if (l.hasGuardrail) {
                     const format = (l.guardrailFormat || 'normal').toUpperCase();
-                    const side = l.guardrailSide ? ` [Lado: ${translateSide(l.guardrailSide)}]` : '';
+                    const side = l.guardrailSide ? `Lado: ${translateSide(l.guardrailSide)}\n` : '';
                     const h = l.guardrailHeight || 90;
                     const numSides = format === 'U' ? 3 : format === 'L' ? 2 : 1;
                     
@@ -358,7 +366,7 @@ export const DeliveriesTable: React.FC = () => {
                         trueLinear1 = Math.round((seg1.totalBars * h) + (2 * (l.guardrailLength || 0)));
                         const price1 = Math.round((trueLinear1 / 100) * 10);
                         totalPrice += price1;
-                        segmentsText.push(`Lado 1${sName1}: Comp. ${l.guardrailLength || 0}cm | Linear ${trueLinear1}cm | ${seg1.totalBars} un (vãos ${gap1}cm)`);
+                        segmentsText.push(`• Lado 1${sName1}:\n  Comp. ${l.guardrailLength || 0}cm | Linear ${trueLinear1}cm | ${seg1.totalBars} un (vãos ${gap1}cm)`);
                     }
                     if (numSides >= 2) {
                         const seg2 = calcSeg(l.guardrailLength2 || 0, l.guardrailBarsOverride2);
@@ -368,7 +376,7 @@ export const DeliveriesTable: React.FC = () => {
                             trueLinear2 = Math.round((seg2.totalBars * h) + (2 * (l.guardrailLength2 || 0)));
                             const price2 = Math.round((trueLinear2 / 100) * 10);
                             totalPrice += price2;
-                            segmentsText.push(`Lado 2${sName2}: Comp. ${l.guardrailLength2 || 0}cm | Linear ${trueLinear2}cm | ${seg2.totalBars} un (vãos ${gap2}cm)`);
+                            segmentsText.push(`• Lado 2${sName2}:\n  Comp. ${l.guardrailLength2 || 0}cm | Linear ${trueLinear2}cm | ${seg2.totalBars} un (vãos ${gap2}cm)`);
                         }
                     }
                     if (numSides >= 3) {
@@ -379,25 +387,27 @@ export const DeliveriesTable: React.FC = () => {
                             trueLinear3 = Math.round((seg3.totalBars * h) + (2 * (l.guardrailLength3 || 0)));
                             const price3 = Math.round((trueLinear3 / 100) * 10);
                             totalPrice += price3;
-                            segmentsText.push(`Lado 3${sName3}: Comp. ${l.guardrailLength3 || 0}cm | Linear ${trueLinear3}cm | ${seg3.totalBars} un (vãos ${gap3}cm)`);
+                            segmentsText.push(`• Lado 3${sName3}:\n  Comp. ${l.guardrailLength3 || 0}cm | Linear ${trueLinear3}cm | ${seg3.totalBars} un (vãos ${gap3}cm)`);
                         }
                     }
 
                     const totalGuardrailLinear = trueLinear1 + trueLinear2 + trueLinear3;
                     
-                    med += `>> GUARDA-CORPO (${format})${side}\n`;
-                    med += `   Base: ${baseHorizontal}cm | Altura: ${h}cm\n`;
-                    med += `   Linear: ${totalGuardrailLinear}cm\n`;
-                    med += `   Tubos: ${totalOverallBars} un\n`;
-                    med += `   Custo: R$ ${totalPrice}\n`;
+                    med += `GUARDA-CORPO (${format})\n`;
+                    if (side) med += side;
+                    med += `Comprimento: ${baseHorizontal}cm\n`;
+                    med += `Altura: ${h}cm\n`;
+                    med += `Linear: ${totalGuardrailLinear}cm\n`;
+                    med += `Tubos: ${totalOverallBars} un\n`;
+                    med += `Custo: R$ ${totalPrice}\n\n`;
                     
                     segmentsText.forEach(seg => {
-                        med += `   • ${seg}\n`;
+                        med += `${seg}\n\n`;
                     });
                 }
                 
                 if (l.hasGate) {
-                    const side = l.gateSide ? ` [Lado: ${translateSide(l.gateSide)}]` : '';
+                    const side = l.gateSide ? `Lado: ${translateSide(l.gateSide)}\n` : '';
                     const len = l.gateLength || 0;
                     const h = l.gateHeight || 90;
                     
@@ -411,11 +421,12 @@ export const DeliveriesTable: React.FC = () => {
                     const gateTrueLinearFinal = Math.round((totalBars * h) + (2 * len));
                     const gatePriceFinal = Math.round((gateTrueLinearFinal / 100) * 10);
 
-                    med += `>> PORTÃO${side}\n`;
-                    med += `   Medida: ${len}x${h}cm\n`;
-                    med += `   Linear: ${gateTrueLinearFinal}cm\n`;
-                    med += `   Tubos: ${totalBars} un (vãos ${exactGap.toFixed(1)}cm)\n`;
-                    med += `   Custo: R$ ${gatePriceFinal}\n`;
+                    med += `PORTÃO\n`;
+                    if (side) med += side;
+                    med += `Medida: ${len}x${h}cm\n`;
+                    med += `Linear: ${gateTrueLinearFinal}cm\n`;
+                    med += `Tubos: ${totalBars} un (vãos ${exactGap.toFixed(1)}cm)\n`;
+                    med += `Custo: R$ ${gatePriceFinal}\n\n`;
                 }
                 med += `\n`;
             });
@@ -425,15 +436,16 @@ export const DeliveriesTable: React.FC = () => {
         if (standaloneGuardrails && standaloneGuardrails.length > 0) {
             standaloneGuardrails.forEach((g: any, idx: number) => {
                 const matText = g.material === 'glass' ? 'VIDRO' : 'AÇO/FERRO';
-                const side = g.side ? ` [Lado: ${translateSide(g.side)}]` : '';
-                med += `>> GUARDA-CORPO AVULSO ${idx + 1} (${matText})${side}\n`;
-                med += `   Comprimento: ${g.length || 0}cm | Altura: ${g.height || 90}cm\n\n`;
+                const side = g.side ? `Lado: ${translateSide(g.side)}\n` : '';
+                med += `GUARDA-CORPO AVULSO ${idx + 1} (${matText})\n`;
+                if (side) med += side;
+                med += `Comprimento: ${g.length || 0}cm\nAltura: ${g.height || 90}cm\n\n`;
             });
         }
 
         const optionalItems = getProp(parsedData, 'optionalItems');
         if (optionalItems && optionalItems.length > 0) {
-            med += `[ EXTRAS CADASTRADOS ]\n`;
+            med += `EXTRAS CADASTRADOS:\n`;
             optionalItems.forEach((opt: any) => {
                 let name = opt.name || opt.id || '';
                 name = translateSide(name)
@@ -551,28 +563,35 @@ export const DeliveriesTable: React.FC = () => {
             const stepAreaM2 = ((tread + 6) / 100) * (w / 100);
             const stepsWeight = stepAreaM2 * thicknessM * steps * STEEL_DENSITY;
 
-            const baseH = (steps * tread) / 100;
-            const heightM = (steps * h) / 100;
-            const diagonalM = Math.sqrt(baseH * baseH + heightM * heightM);
+            const stepHypotenuseCm = Math.sqrt(Math.pow(tread, 2) + Math.pow(h, 2));
+            const blueLineCm = (tread * h) / stepHypotenuseCm;
+            const stringerWidthM = (blueLineCm + 16.5) / 100;
+            const redLineCm = stepHypotenuseCm * steps;
 
             let numBeams = 2;
             const stairGeometry = getProp(data, 'stairGeometry');
             if (stairGeometry === 'Reta Parede Esq/Dir (1 Viga)') numBeams = 1;
 
-            const tubeAreaM2 = (2 * 0.1) + (2 * 0.05);
-            const volumePerMeter = tubeAreaM2 * 0.002;
-            const weightPerMeter = volumePerMeter * STEEL_DENSITY;
-            const beamsWeight = (diagonalM * weightPerMeter) * numBeams;
+            const stringerAreaM2 = (redLineCm / 100) * stringerWidthM * numBeams;
+            const stringerWeight = stringerAreaM2 * thicknessM * STEEL_DENSITY;
 
-            const escadaWeight = stepsWeight + beamsWeight;
+            const escadaWeight = stepsWeight + stringerWeight;
             const escadaCost = escadaWeight * 13.80;
 
             if (escadaWeight > 0) {
-                if (!text.includes('PESO ESCADA:')) {
-                    text = text.trim() + `\nPESO ESCADA: ${escadaWeight.toFixed(1)} kg`;
+                const pesoStr = `PESO ESCADA: ${escadaWeight.toFixed(1)} kg`;
+                const custoStr = `CUSTO AÇO: R$ ${escadaCost.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+                if (text.includes('PESO ESCADA:')) {
+                    text = text.replace(/PESO ESCADA:\s*[\d,.]+\s*kg/i, pesoStr);
+                } else {
+                    text = text.trim() + `\n${pesoStr}`;
                 }
-                if (!text.includes('CUSTO AÇO:')) {
-                    text = text.trim() + `\nCUSTO AÇO: R$ ${escadaCost.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+                if (text.includes('CUSTO AÇO:')) {
+                    text = text.replace(/CUSTO AÇO:\s*(?:R\$\s*)?[\d,.]+/i, custoStr);
+                } else {
+                    text = text.trim() + `\n${custoStr}`;
                 }
             }
         }
@@ -624,6 +643,7 @@ export const DeliveriesTable: React.FC = () => {
         const landings = getProp(parsedData, 'landings') || getProp(parsedData, 'patamares');
         if (landings && landings.length > 0) {
             landings.forEach((l: any) => {
+                if (l.isAccessoriesOnly || (Number(l.length) || 0) <= 0 || (Number(l.width) || 0) <= 0) return;
                 const lLen = (Number(l.length) || 0) + 20;
                 const lWid = (Number(l.width) || 0) + 20;
                 landingsAreaM2 += (lLen * lWid) / 10000;
