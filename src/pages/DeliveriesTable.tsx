@@ -507,9 +507,8 @@ export const DeliveriesTable: React.FC = () => {
                         } else {
                             med += `Tubos: ${totalOverallBars} un\n`;
                         }
-                        if (guardrailWeight > 0) {
-                            med += `Peso Aço: ~${guardrailWeight.toFixed(1)} kg\n`;
-                        }
+                        // Cálculo de peso preservado no código, mas ocultado da tabela a pedido do usuário:
+                        // if (guardrailWeight > 0) med += `Peso Aço: ~${guardrailWeight.toFixed(1)} kg\n`;
                         med += `Custo: R$ ${totalPrice}\n\n`;
                     } else {
                         med += `GUARDA-CORPO (${format})\n\n`;
@@ -541,9 +540,8 @@ export const DeliveriesTable: React.FC = () => {
                         med += `Comprimento: ${baseHorizontal}cm\n`;
                         med += `Linear: ${totalGuardrailLinear}cm\n`;
                         med += `Tubos: ${totalOverallBars} un\n`;
-                        if (guardrailWeight > 0) {
-                            med += `Peso Aço: ~${guardrailWeight.toFixed(1)} kg\n`;
-                        }
+                        // Cálculo de peso preservado no código, mas ocultado da tabela a pedido do usuário:
+                        // if (guardrailWeight > 0) med += `Peso Aço: ~${guardrailWeight.toFixed(1)} kg\n`;
                         med += `Custo: R$ ${totalPrice}\n\n`;
                     }
                 }
@@ -589,9 +587,8 @@ export const DeliveriesTable: React.FC = () => {
                 med += `GUARDA-CORPO AVULSO ${idx + 1} (${matText})\n`;
                 if (side) med += side;
                 med += `Comprimento: ${g.length || 0}cm\nAltura: ${g.height || 90}cm\n`;
-                if (gWeight > 0) {
-                    med += `Peso Aço: ~${gWeight.toFixed(1)} kg\n`;
-                }
+                // Cálculo de peso preservado no código, mas ocultado da tabela a pedido do usuário:
+                // if (gWeight > 0) med += `Peso Aço: ~${gWeight.toFixed(1)} kg\n`;
                 med += `\n`;
             });
         }
