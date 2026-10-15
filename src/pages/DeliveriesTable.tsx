@@ -748,10 +748,10 @@ export const DeliveriesTable: React.FC = () => {
             const custoTotalStr = `CUSTO TOTAL AÇO: R$ ${totalSteelCost.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
             text = text
-                .replace(/PESO ESCADA:\s*[\d,.]+\s*kg\n?/gi, '')
+                .replace(/PESO\s*(?:ESCADA|\(ESCADA\)|TOTAL DE AÇO|TOTAL)?:\s*[\d,.]+\s*kg\n?/gi, '')
                 .replace(/TOTAL DE AÇO:\s*[\d,.]+\s*kg\n?/gi, '')
-                .replace(/CUSTO AÇO(?:\s*\(ESCADA\))?:\s*(?:R\$\s*)?[\d,.]+\n?/gi, '')
-                .replace(/CUSTO TOTAL AÇO:\s*(?:R\$\s*)?[\d,.]+\n?/gi, '')
+                .replace(/CUSTO\s*(?:AÇO)?(?:\s*\(ESCADA\))?:\s*(?:R\$\s*)?[\d,.]+\n?/gi, '')
+                .replace(/CUSTO TOTAL(?:\s*AÇO)?:\s*(?:R\$\s*)?[\d,.]+\n?/gi, '')
                 .trim();
 
             text = text + `\n${pesoEscadaStr}\n${totalAcoStr}\n${custoEscadaStr}\n${custoTotalStr}`;
@@ -1069,6 +1069,11 @@ export const DeliveriesTable: React.FC = () => {
                                         if (freshEscada) measurements = freshEscada;
                                     }
 
+                                    // Remove itens de adicionais (patamar/guarda-corpo/portão) que possam ter ficado salvos em measurementsNotes antigas
+                                    measurements = measurements
+                                        .replace(/(?:PATAMAR|GUARDA-CORPO|PORTÃO|ACESSÓRIO AVULSO)[\s\S]*?(?=(?:PESO ESCADA|TOTAL DE AÇO|CUSTO AÇO|CUSTO TOTAL AÇO|$))/gi, '')
+                                        .trim();
+
                                     measurements = cleanAndTranslateMeasurements(measurements);
                                     measurements = ensureWeightAndCost(measurements, data, contract);
 
@@ -1083,9 +1088,11 @@ export const DeliveriesTable: React.FC = () => {
                                     }
                                     measurementsAdicionais = cleanAndTranslateMeasurements(measurementsAdicionais);
 
-                                    // 3. Frete (garante dimensões do pacote e pesos totais)
+                                    // 3. Frete (garante dimensões do pacote e pesos totais sem duplicações)
                                     const noStair = isNoStairContract(data, contract);
-                                    let freightInfo = getFreightDimensions(data, contract, measurements);
+                                    const calculatedFreight = getFreightDimensions(data, contract, measurements);
+                                    let freightInfo = '';
+
                                     if (contract.hingesQty !== undefined 
                                         && contract.hingesQty.trim() !== '-'
                                         && contract.hingesQty.trim() !== ''
@@ -1093,23 +1100,30 @@ export const DeliveriesTable: React.FC = () => {
                                         && !contract.hingesQty.includes('QTD VOLUMES')
                                     ) {
                                         if (noStair && contract.hingesQty.includes('PESO (ESCADA)')) {
-                                            // Se o pedido não tem escada mas o frete salvo continha pacote de escada antigo, recalcula apenas com patamares
-                                            freightInfo = getFreightDimensions(data, contract, measurements);
-                                        } else if (!contract.hingesQty.includes('PESO') && freightInfo !== '-') {
-                                            freightInfo = contract.hingesQty + '\n' + freightInfo;
+                                            freightInfo = calculatedFreight;
                                         } else {
-                                            freightInfo = contract.hingesQty;
+                                            freightInfo = contract.hingesQty.trim();
                                         }
                                     }
-                                    if (!freightInfo || freightInfo.trim() === '-' || !freightInfo.includes('PESO')) {
-                                        const recalc = getFreightDimensions(data, contract, measurements);
-                                        if (recalc && recalc !== '-') {
-                                            if (freightInfo && freightInfo !== '-' && !freightInfo.includes('PESO')) {
-                                                freightInfo = freightInfo.trim() + '\n' + recalc;
-                                            } else {
-                                                freightInfo = recalc;
+
+                                    if (!freightInfo || freightInfo === '-' || !freightInfo.includes('COMPRIMENTO:')) {
+                                        freightInfo = calculatedFreight;
+                                    }
+
+                                    // Desduplica linhas repetidas em freightInfo (caso tenha sido salvo anteriormente com duplicações)
+                                    if (freightInfo && freightInfo !== '-') {
+                                        const fLines = freightInfo.split('\n').map(l => l.trim()).filter(Boolean);
+                                        const uniqueFLines: string[] = [];
+                                        const seenF = new Set<string>();
+                                        fLines.forEach(l => {
+                                            const keyMatch = l.match(/^([A-Z\s()]+:)/);
+                                            const key = keyMatch ? keyMatch[1] : l;
+                                            if (!seenF.has(key)) {
+                                                seenF.add(key);
+                                                uniqueFLines.push(l);
                                             }
-                                        }
+                                        });
+                                        freightInfo = uniqueFLines.join('\n');
                                     }
                                       const dateColor = getDateColorClass(contract.deliveryDate);
                                     
