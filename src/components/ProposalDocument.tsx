@@ -201,10 +201,10 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
                 const lengthText = inputData.standaloneGuardrails 
                     ? (inputData.standaloneGuardrails.reduce((sum, g) => sum + (Number(g.length) || 0), 0) / 100).toFixed(2) + 'm' 
                     : (opt.totalLength / 100).toFixed(2) + 'm';
-                escadaText = `-Valor Guarda-Corpos/Portões (${lengthText}):`;
+                escadaText = `- Guarda-Corpos e Portões (${lengthText}):`;
             } else if (inputData.quoteType === 'landing') {
                 const landingsCount = opt.landings ? opt.landings.length : 1;
-                escadaText = `-Valor Patamares (${landingsCount} un):`;
+                escadaText = `- Patamares (${landingsCount} un):`;
             }
             const escadaPrice = formatCurrencyBRL(structureOnly);
             doc.setFont('helvetica', 'normal');
@@ -225,24 +225,24 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
             const structuralLandings = opt.landings.filter((l: any) => !l.isAccessoriesOnly);
             if (structuralLandings.length > 1 && inputData.quoteType !== 'guardrail') {
                 // Mantém um pequeno recuo visual apenas se for um grupo, mas alinhado corretamente
-                doc.text(`  • Soma de ${structuralLandings.length} Patamares:`, pageMargin, currentY);
+                doc.text(`  Soma de ${structuralLandings.length} Patamares:`, pageMargin, currentY);
                 doc.text(formatCurrencyBRL(landingsPrice), pageWidth - pageMargin, currentY, { align: 'right' });
                 currentY += 6;
             }
 
-                        opt.landings.forEach((landing) => {
+            opt.landings.forEach((landing) => {
                 if (landing.isAccessoriesOnly) {
                     let desc = '';
                     if (landing.hasGate) {
                          const gateLabel = landing.gateIsBipartido ? "Portãozinho (Bipartido)" : "Portãozinho";
-                         desc = `- ${gateLabel} de ${landing.gateLength}cm x ${landing.gateHeight}cm`;
+                         desc = `- ${gateLabel} de ${landing.gateLength}cm de comprimento x ${landing.gateHeight}cm de altura`;
                     } else {
                          if (landing.guardrailFormat === 'L') {
-                             desc = `- Guarda-corpo em L, composto por dois lados:\n  1º lado: ${landing.guardrailLength || 0}cm (C) × ${landing.guardrailHeight || 90}cm (A);\n  2º lado: ${landing.guardrailLength2 || 0}cm (C) × ${landing.guardrailHeight || 90}cm (A).`;
+                             desc = `- Guarda-corpo em L, composto por dois lados:\n  1º lado: ${landing.guardrailLength || 0}cm de comprimento x ${landing.guardrailHeight || 90}cm de altura;\n  2º lado: ${landing.guardrailLength2 || 0}cm de comprimento x ${landing.guardrailHeight || 90}cm de altura.`;
                          } else if (landing.guardrailFormat === 'U') {
-                             desc = `- Guarda-corpo em U, composto por três lados:\n  1º lado: ${landing.guardrailLength || 0}cm (C) × ${landing.guardrailHeight || 90}cm (A);\n  2º lado: ${landing.guardrailLength2 || 0}cm (C) × ${landing.guardrailHeight || 90}cm (A);\n  3º lado: ${landing.guardrailLength3 || 0}cm (C) × ${landing.guardrailHeight || 90}cm (A).`;
+                             desc = `- Guarda-corpo em U, composto por três lados:\n  1º lado: ${landing.guardrailLength || 0}cm de comprimento x ${landing.guardrailHeight || 90}cm de altura;\n  2º lado: ${landing.guardrailLength2 || 0}cm de comprimento x ${landing.guardrailHeight || 90}cm de altura;\n  3º lado: ${landing.guardrailLength3 || 0}cm de comprimento x ${landing.guardrailHeight || 90}cm de altura.`;
                          } else {
-                             desc = `- Guarda-Corpo (${landing.guardrailFormat || 'normal'}) com ${landing.guardrailHeight || 90}cm alt.`;
+                             desc = `- Guarda-Corpo com ${landing.guardrailHeight || 90}cm de altura`;
                          }
                     }
                     const price = formatCurrencyBRL(landing.price);
@@ -265,7 +265,7 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
                 let flushText = landing.isFlushWithSlab ? " Rente a Laje" : " 1 abaixo da Laje";
 
                 // Monta a linha com o tipo explícito SEM concatenar acessórios
-                const description = `- Patamar ${typeText}${flushText} de ${lM}m (C) x ${wM}m (L)`;
+                const description = `- Patamar ${typeText}${flushText} de ${lM}m de comprimento x ${wM}m de largura`;
                 const price = formatCurrencyBRL(landing.price);
                 
                 const availableWidth = pageWidth - (pageMargin * 2) - 40; 
@@ -277,24 +277,24 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
 
                 // Agora imprime os acessórios anexados a este patamar em linhas abaixo
                 if (landing.hasSideGuardrail && landing.hasFrontGuardrail) {
-                    doc.text("+ [Acessório] Guarda Corpo Lateral e Frontal", pageMargin + 5, currentY);
+                    doc.text("- Guarda-Corpo Lateral e Frontal", pageMargin + 5, currentY);
                     currentY += 5;
                 } else if (landing.hasSideGuardrail) {
-                    doc.text("+ [Acessório] Guarda Corpo Lateral", pageMargin + 5, currentY);
+                    doc.text("- Guarda-Corpo Lateral", pageMargin + 5, currentY);
                     currentY += 5;
                 } else if (landing.hasFrontGuardrail) {
-                    doc.text("+ [Acessório] Guarda Corpo Frontal", pageMargin + 5, currentY);
+                    doc.text("- Guarda-Corpo Frontal", pageMargin + 5, currentY);
                     currentY += 5;
                 }
 
                 if (landing.hasGuardrail) {
-                    let gDesc = "+ [Acessório] Guarda-Corpo";
+                    let gDesc = "- Guarda-Corpo";
                     if (landing.guardrailFormat === 'L') {
-                        gDesc = `+ [Acessório] Guarda-corpo em L, composto por dois lados:\n    1º lado: ${landing.guardrailLength || 0}cm (C) × ${landing.guardrailHeight || 90}cm (A);\n    2º lado: ${landing.guardrailLength2 || 0}cm (C) × ${landing.guardrailHeight || 90}cm (A).`;
+                        gDesc = `- Guarda-corpo em L, composto por dois lados:\n    1º lado: ${landing.guardrailLength || 0}cm de comprimento x ${landing.guardrailHeight || 90}cm de altura;\n    2º lado: ${landing.guardrailLength2 || 0}cm de comprimento x ${landing.guardrailHeight || 90}cm de altura.`;
                     } else if (landing.guardrailFormat === 'U') {
-                        gDesc = `+ [Acessório] Guarda-corpo em U, composto por três lados:\n    1º lado: ${landing.guardrailLength || 0}cm (C) × ${landing.guardrailHeight || 90}cm (A);\n    2º lado: ${landing.guardrailLength2 || 0}cm (C) × ${landing.guardrailHeight || 90}cm (A);\n    3º lado: ${landing.guardrailLength3 || 0}cm (C) × ${landing.guardrailHeight || 90}cm (A).`;
+                        gDesc = `- Guarda-corpo em U, composto por três lados:\n    1º lado: ${landing.guardrailLength || 0}cm de comprimento x ${landing.guardrailHeight || 90}cm de altura;\n    2º lado: ${landing.guardrailLength2 || 0}cm de comprimento x ${landing.guardrailHeight || 90}cm de altura;\n    3º lado: ${landing.guardrailLength3 || 0}cm de comprimento x ${landing.guardrailHeight || 90}cm de altura.`;
                     } else {
-                        gDesc = `+ [Acessório] Guarda-Corpo (${landing.guardrailFormat || 'normal'}) com ${landing.guardrailHeight || 90}cm alt.`;
+                        gDesc = `- Guarda-Corpo com ${landing.guardrailHeight || 90}cm de altura`;
                     }
                     const splitGDesc = doc.splitTextToSize(gDesc, availableWidth);
                     doc.text(splitGDesc, pageMargin + 5, currentY);
@@ -303,7 +303,7 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
 
                 if (landing.hasGate) {
                     const gateLabel = landing.gateIsBipartido ? "Portãozinho (Bipartido)" : "Portãozinho";
-                    doc.text(`+ [Acessório] ${gateLabel} de ${landing.gateLength || 100}cm x ${landing.gateHeight || 90}cm`, pageMargin + 5, currentY);
+                    doc.text(`- ${gateLabel} de ${landing.gateLength || 100}cm de comprimento x ${landing.gateHeight || 90}cm de altura`, pageMargin + 5, currentY);
                     currentY += 5;
                 }
             });
@@ -313,7 +313,7 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
 
         // Frete
         if (freightCost + tollCost > 0) {
-            doc.text(`- Frete${isTransportadora ? ' (Transportadora)**' : ''}:`, pageMargin, currentY);
+            doc.text(`- Frete${isTransportadora ? ' (Transportadora)' : ''}:`, pageMargin, currentY);
             doc.text(formatCurrencyBRL(freightCost + tollCost), pageWidth - pageMargin, currentY, { align: 'right' });
         } else {
             doc.setTextColor(0, 0, 0); 
@@ -326,10 +326,10 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
 
         // Instalação
         if (installationCost > 0) {
-             doc.text(`-Instalação (Local de fácil acesso):`, pageMargin, currentY);
+             doc.text(`- Instalação (Local de fácil acesso):`, pageMargin, currentY);
              doc.text(formatCurrencyBRL(installationCost), pageWidth - pageMargin, currentY, { align: 'right' });
         } else {
-             doc.text(`-Instalação:`, pageMargin, currentY);
+             doc.text(`- Instalação:`, pageMargin, currentY);
              doc.setFont('helvetica', 'bold');
              doc.text(`POR CONTA DO CLIENTE`, pageWidth - pageMargin, currentY, { align: 'right' });
              doc.setFont('helvetica', 'normal');

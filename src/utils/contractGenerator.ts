@@ -247,35 +247,35 @@ export const generateContractPDF = (data: ContractData) => {
           
           let flushText = landing.isFlushWithSlab ? "Rente a Laje" : "1 abaixo da Laje";
           
-                                  addText(`-Patamar (${typeText} - ${dirText})${bracketText}: ${flushText} de ${lM}m (C) x ${wM}m (L)`, 11, false, 'left');
+          addText(`- Patamar (${typeText} - ${dirText})${bracketText}: ${flushText} de ${lM}m de comprimento x ${wM}m de largura`, 11, false, 'left');
 
             if (landing.hasSideGuardrail && landing.hasFrontGuardrail) {
-                addText("    + [Acessório] Guarda Corpo Lateral e Frontal", 11, false, 'left');
+                addText("    - Guarda-Corpo Lateral e Frontal", 11, false, 'left');
             } else if (landing.hasSideGuardrail) {
-                addText("    + [Acessório] Guarda Corpo Lateral", 11, false, 'left');
+                addText("    - Guarda-Corpo Lateral", 11, false, 'left');
             } else if (landing.hasFrontGuardrail) {
-                addText("    + [Acessório] Guarda Corpo Frontal", 11, false, 'left');
+                addText("    - Guarda-Corpo Frontal", 11, false, 'left');
             }
 
             if (landing.hasGuardrail) {
                 if (landing.guardrailFormat === 'L') {
-                    addText(`    + [Acessório] Guarda-corpo em L, composto por dois lados:
-    1º lado: ${landing.guardrailLength || 0}cm (C) x ${landing.guardrailHeight || 90}cm (A);
-    2º lado: ${landing.guardrailLength2 || 0}cm (C) x ${landing.guardrailHeight || 90}cm (A).`, 11, false, 'left');
+                    addText(`    - Guarda-corpo em L, composto por dois lados:
+    1º lado: ${landing.guardrailLength || 0}cm de comprimento x ${landing.guardrailHeight || 90}cm de altura;
+    2º lado: ${landing.guardrailLength2 || 0}cm de comprimento x ${landing.guardrailHeight || 90}cm de altura.`, 11, false, 'left');
                 } else if (landing.guardrailFormat === 'U') {
-                    addText(`    + [Acessório] Guarda-corpo em U, composto por três lados:
-    1º lado: ${landing.guardrailLength || 0}cm (C) x ${landing.guardrailHeight || 90}cm (A);
-    2º lado: ${landing.guardrailLength2 || 0}cm (C) x ${landing.guardrailHeight || 90}cm (A);
-    3º lado: ${landing.guardrailLength3 || 0}cm (C) x ${landing.guardrailHeight || 90}cm (A).`, 11, false, 'left');
+                    addText(`    - Guarda-corpo em U, composto por três lados:
+    1º lado: ${landing.guardrailLength || 0}cm de comprimento x ${landing.guardrailHeight || 90}cm de altura;
+    2º lado: ${landing.guardrailLength2 || 0}cm de comprimento x ${landing.guardrailHeight || 90}cm de altura;
+    3º lado: ${landing.guardrailLength3 || 0}cm de comprimento x ${landing.guardrailHeight || 90}cm de altura.`, 11, false, 'left');
                 } else {
-                    addText(`    + [Acessório] Guarda-Corpo (${landing.guardrailFormat || 'normal'}) com ${landing.guardrailHeight || 90}cm alt.`, 11, false, 'left');
+                    addText(`    - Guarda-Corpo com ${landing.guardrailHeight || 90}cm de altura`, 11, false, 'left');
                 }
             }
 
             if (landing.hasGate) {
                 const isBipartido = landing.gateIsBipartido;
                 const gateLabel = isBipartido ? "Portãozinho (Bipartido)" : "Portãozinho";
-                addText(`    + [Acessório] ${gateLabel} de ${landing.gateLength || 100}cm x ${landing.gateHeight || 90}cm`, 11, false, 'left');
+                addText(`    - ${gateLabel} de ${landing.gateLength || 100}cm de comprimento x ${landing.gateHeight || 90}cm de altura`, 11, false, 'left');
             }
           patamarIdx++;
       });
@@ -293,11 +293,11 @@ export const generateContractPDF = (data: ContractData) => {
               if (acc.hasGate) {
                   const isBipartido = acc.gateIsBipartido || acc.isBipartido;
                   const gateLabel = isBipartido ? "Portão (Bipartido)" : "Portão";
-                  addText(`-${gateLabel}: ${acc.gateLength || acc.length || 100}cm (C) x ${acc.gateHeight || acc.height || 90}cm (A) - Valor: ${accPrice}`, 11, false, 'left');
+                  addText(`- ${gateLabel}: ${acc.gateLength || acc.length || 100}cm de comprimento x ${acc.gateHeight || acc.height || 90}cm de altura - Valor: ${accPrice}`, 11, false, 'left');
               } else if (acc.hasGuardrail || data.inputData.quoteType === 'guardrail') {
                   const gLen = acc.guardrailLength || acc.length || 100;
                   const gHei = acc.guardrailHeight || acc.height || 90;
-                  addText(`-Guarda-Corpo: ${gLen}cm (C) x ${gHei}cm (A) - Valor: ${accPrice}`, 11, false, 'left');
+                  addText(`- Guarda-Corpo: ${gLen}cm de comprimento x ${gHei}cm de altura - Valor: ${accPrice}`, 11, false, 'left');
               }
           });
       }

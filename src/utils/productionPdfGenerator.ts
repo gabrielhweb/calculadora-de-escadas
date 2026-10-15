@@ -607,19 +607,19 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[], startY: num
                 
                 let title = `Lado ${i}`;
                 if (numSides === 1) {
-                    title = landing.guardrailSide ? `G.C. (${landing.guardrailSide})` : 'Guarda-Corpo';
+                    title = landing.guardrailSide ? `Guarda-Corpo (${landing.guardrailSide})` : 'Guarda-Corpo';
                 } else if (numSides === 2) {
                     if (landing.guardrailSide?.toLowerCase().includes('esquerdo')) {
-                        title = i === 1 ? 'G.C. (Esquerdo)' : 'G.C. (Frontal)';
+                        title = i === 1 ? 'Guarda-Corpo (Esquerdo)' : 'Guarda-Corpo (Frontal)';
                     } else if (landing.guardrailSide?.toLowerCase().includes('direito')) {
-                        title = i === 1 ? 'G.C. (Direito)' : 'G.C. (Frontal)';
+                        title = i === 1 ? 'Guarda-Corpo (Direito)' : 'Guarda-Corpo (Frontal)';
                     } else {
-                        title = i === 1 ? 'G.C. (Lateral)' : 'G.C. (Frontal)';
+                        title = i === 1 ? 'Guarda-Corpo (Lateral)' : 'Guarda-Corpo (Frontal)';
                     }
                 } else if (numSides === 3) {
-                    if (i === 1) title = 'G.C. (Esquerdo)';
-                    else if (i === 2) title = 'G.C. (Frontal)';
-                    else if (i === 3) title = 'G.C. (Direito)';
+                    if (i === 1) title = 'Guarda-Corpo (Esquerdo)';
+                    else if (i === 2) title = 'Guarda-Corpo (Frontal)';
+                    else if (i === 3) title = 'Guarda-Corpo (Direito)';
                 }
                 
                 title = `Imagem ${pieces.length + 1}: ${title}`;
@@ -713,7 +713,7 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[], startY: num
             doc.setFontSize(8);
             doc.setFont('helvetica', 'normal');
             doc.setTextColor(100, 100, 100);
-            doc.text(`${p.length}cm (C) x ${p.outerH}cm (A) | Vãos de ${gapCm.toFixed(1)}cm`, box.x + box.w / 2, py - 6, { align: 'center' });
+            doc.text(`${p.length}cm de comprimento x ${p.outerH}cm de altura - Vãos: ${gapCm.toFixed(1)}cm`, box.x + box.w / 2, py - 6, { align: 'center' });
 
             doc.setDrawColor(40, 50, 60);
             doc.setLineWidth(1.5);
@@ -748,7 +748,7 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[], startY: num
                 doc.setFontSize(7.5);
                 doc.setFont('helvetica', 'bold');
                 doc.setTextColor(220, 38, 38);
-                doc.text(`Vãos: ${gapCm.toFixed(1)}cm`, box.x + box.w / 2, py + drawH + 5, { align: 'center' });
+                doc.text(`Espaçamento entre os tubos: ${gapCm.toFixed(1)}cm`, box.x + box.w / 2, py + drawH + 5, { align: 'center' });
                 doc.setTextColor(0, 0, 0);
             }
         });
@@ -806,7 +806,7 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[], startY: num
                 doc.setFontSize(8);
                 doc.setFont('helvetica', 'normal');
                 doc.setTextColor(100, 100, 100);
-                doc.text(`${gL}cm (C) x ${gH}cm (A) | Vãos de ${gapCm.toFixed(1)}cm`, box.x + box.w / 2, box.y + 4.5, { align: 'center' });
+                doc.text(`${gL}cm de comprimento x ${gH}cm de altura - Vãos: ${gapCm.toFixed(1)}cm`, box.x + box.w / 2, box.y + 4.5, { align: 'center' });
 
                 const padding = 10;
                 const maxW = box.w - padding * 2;
@@ -851,7 +851,7 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[], startY: num
                 doc.setFontSize(8);
                 doc.setFont('helvetica', 'bold');
                 doc.setTextColor(220, 38, 38);
-                doc.text(`Espaçamento entre tubos (vãos): ${gapCm.toFixed(1)}cm`, box.x + box.w / 2, py + drawH + 5, { align: 'center' });
+                doc.text(`Espaçamento entre os tubos: ${gapCm.toFixed(1)}cm`, box.x + box.w / 2, py + drawH + 5, { align: 'center' });
                 doc.setTextColor(0, 0, 0);
             };
 

@@ -150,8 +150,8 @@ export const generateProposalDescription = (inputData: any, opt: any): string =>
                 inputData.landings.forEach((landing: any) => {
                     if (!landing.isAccessoriesOnly) {
                         desc += `- Patamar Auxiliar (${landing.width}x${landing.length}cm) com base em aço carbono.\n`;
-                        if (landing.hasGate) desc += `  + Inclui Portãozinho${landing.gateIsBipartido ? ' (Bipartido)' : ''} ${landing.gateLength}x${landing.gateHeight}cm.\n`;
-                        if (landing.hasGuardrail) desc += `  + Inclui Guarda-Corpo (${landing.guardrailFormat || 'normal'}).\n`;
+                        if (landing.hasGate) desc += `  - Inclui Portãozinho${landing.gateIsBipartido ? ' (Bipartido)' : ''} ${landing.gateLength}x${landing.gateHeight}cm.\n`;
+                        if (landing.hasGuardrail) desc += `  - Inclui Guarda-Corpo.\n`;
                     }
                 });
             }
