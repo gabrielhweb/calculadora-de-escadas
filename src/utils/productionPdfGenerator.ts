@@ -85,25 +85,25 @@ export const drawProductionPage = (doc: jsPDF, props: ProductionPdfProps) => {
     doc.setFont('helvetica', 'normal');
     doc.text('ESPESSURA 1/8"', 150, 39, { align: 'center' });
     
-    // Lado Esquerdo (pisada e altura) - posicionados junto ao corte do degrau na viga
+    // Lado Esquerdo (pisada e altura) - posicionados exatamente junto ao corte do degrau na viga
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     const pisadaText = 'pisada';
-    doc.text(pisadaText, 102, 74);
+    doc.text(pisadaText, 86, 73);
     const pisadaWidth = doc.getTextWidth(pisadaText);
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
     const displayPisada = treadDepthMm + 10; // Sempre 10mm a mais que o contrato
-    doc.text(`${displayPisada}mm`, 102 + pisadaWidth + 2, 74);
+    doc.text(`${displayPisada}mm`, 86 + pisadaWidth + 2, 73);
     
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     const alturaText = 'altura';
-    doc.text(alturaText, 102, 105);
+    doc.text(alturaText, 86, 85);
     const alturaWidth = doc.getTextWidth(alturaText);
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.text(`${stepHeightMm}mm`, 102 + alturaWidth + 2, 105);
+    doc.text(`${stepHeightMm}mm`, 86 + alturaWidth + 2, 85);
     
     // Lado Direito
     if (!isHollow) {
@@ -138,15 +138,15 @@ export const drawProductionPage = (doc: jsPDF, props: ProductionPdfProps) => {
         doc.text(`2,65mm`, infoX + eW + 2, infoY + 20);
 
     } else {
-        // Textos lado direito para vazado (face frontal da caixa 3D)
-        doc.setFontSize(16);
+        // Textos lado direito para vazado (face frontal da caixa 3D do degrau)
+        doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
-        doc.text(`${widthMm}mm`, 235, 103, { align: 'center' });
-        doc.setFontSize(10);
+        doc.text(`${widthMm}mm`, 236, 91.5, { align: 'center' });
+        doc.setFontSize(8);
         doc.setFont('helvetica', 'normal');
-        doc.text('comprimento', 235, 108, { align: 'center' });
+        doc.text('comprimento', 236, 95.5, { align: 'center' });
 
-        // 180mm largura no topo da caixa
+        // Pisada/largura no topo da caixa
         doc.setFontSize(16);
         doc.setFont('helvetica', 'bold');
         doc.text(`${treadDepthMm}mm`, 255, 48, { align: 'center' }); // Sempre igual ao contrato
@@ -155,7 +155,7 @@ export const drawProductionPage = (doc: jsPDF, props: ProductionPdfProps) => {
         doc.text('largura', 255, 53, { align: 'center' });
         
         const infoX = 220;
-        const infoY = 125;
+        const infoY = 120;
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
         doc.text(`QUANTIDADE:`, infoX, infoY);
@@ -166,7 +166,14 @@ export const drawProductionPage = (doc: jsPDF, props: ProductionPdfProps) => {
 
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
-        doc.text(`ESPESSURA 3,00mm`, infoX, infoY + 10);
+        doc.text(`COMPRIMENTO:`, infoX, infoY + 8);
+        const cW = doc.getTextWidth(`COMPRIMENTO:`);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${widthMm}mm`, infoX + cW + 2, infoY + 8);
+
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`ESPESSURA 3,00mm (DOBRA 25mm)`, infoX, infoY + 16);
     }
 };
 

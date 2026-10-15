@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, where, onSnapshot, doc, updateDoc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, updateDoc, addDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../components/AuthProvider';
 import { SavedContract } from '../types';
@@ -243,6 +243,10 @@ export const DeliveriesTable: React.FC = () => {
         }
 
         // 6. Tem patamares e a observação de medidas não tem DEGRAUS nem PISADA
+        // Mas se os dados do contrato tiverem degraus cadastrados, NUNCA é contrato sem escada!
+        const hasStairData = (extractNum(getProp(data, 'steps') ?? getProp(data, 'desiredSteps') ?? getProp(data, 'totalSteps') ?? getProp(data, 'structureSteps') ?? getProp(data, 'degraus') ?? contractObj?.totalSteps) > 0);
+        if (hasStairData) return false;
+
         const rawNotes = contractObj?.measurementsNotes || '';
         const notesWithoutWeight = rawNotes
             .replace(/PESO\s*(?:ESCADA|TOTAL|AÇO)?:\s*[\d,.]+\s*kg/gi, '')
@@ -253,7 +257,7 @@ export const DeliveriesTable: React.FC = () => {
         const landings = getProp(data, 'landings') || getProp(data, 'patamares') || [];
         const hasRealLandings = Array.isArray(landings) && landings.some((l: any) => !l.isAccessoriesOnly);
 
-        if (hasRealLandings && !hasStairNotes) {
+        if (hasRealLandings && !hasStairNotes && !hasStairData) {
             return true;
         }
 
@@ -331,8 +335,9 @@ export const DeliveriesTable: React.FC = () => {
 
             const treadMaterial = getProp(parsedData, 'treadMaterial');
             const woodType = getProp(parsedData, 'woodType');
+            const cutStepType = getProp(parsedData, 'cutStepType');
 
-            if (treadMaterial === 'wood') {
+            if (treadMaterial === 'wood' || woodType) {
                 let wood = 'MADEIRA';
                 if (woodType === 'garapeira') wood += ' (GARAPEIRA)';
                 else if (woodType === 'muiracatiara') wood += ' (MUIRACATIARA)';
@@ -340,10 +345,12 @@ export const DeliveriesTable: React.FC = () => {
                 med += `MATERIAL: ${wood}\n`;
             } else if (treadMaterial === 'chapa_xadrez') {
                 med += `MATERIAL: CHAPA XADREZ\n`;
-            } else if (treadMaterial === 'chapa_vazada') {
+            } else if (treadMaterial === 'chapa_vazada' || cutStepType?.includes('hollow')) {
                 med += `MATERIAL: CHAPA VAZADA\n`;
             } else if (treadMaterial === 'metal' || treadMaterial === 'steel') {
                 med += `MATERIAL: METAL\n`;
+            } else if (steps !== undefined) {
+                med += `MATERIAL: AÇO CARBONO\n`;
             }
 
             if (getProp(parsedData, 'hasStairSideBar')) {
@@ -423,8 +430,9 @@ export const DeliveriesTable: React.FC = () => {
                 }
                 
                 if (l.hasGuardrail) {
+                    if (med.trim() !== '') med += '\n';
+
                     const format = (l.guardrailFormat || 'normal').toUpperCase();
-                    const side = l.guardrailSide ? `Lado: ${translateSide(l.guardrailSide)}\n` : '';
                     const h = l.guardrailHeight || 90;
                     const numSides = format === 'U' ? 3 : format === 'L' ? 2 : 1;
                     
@@ -440,7 +448,6 @@ export const DeliveriesTable: React.FC = () => {
                     };
 
                     let totalOverallBars = 0;
-                    let segmentsText: string[] = [];
                     
                     const sideNames = l.guardrailSide ? l.guardrailSide.split(/ e |, /).map(translateSide) : [];
                     const sName1 = sideNames[0] ? ` (${sideNames[0]})` : '';
@@ -452,57 +459,97 @@ export const DeliveriesTable: React.FC = () => {
                     let trueLinear1 = 0, trueLinear2 = 0, trueLinear3 = 0;
                     
                     const seg1 = calcSeg(l.guardrailLength || 0, l.guardrailBarsOverride);
+                    let gap1 = 0;
+                    let price1 = 0;
                     if (seg1) {
                         totalOverallBars += seg1.totalBars;
-                        const gap1 = l.guardrailGapOverride !== undefined ? l.guardrailGapOverride : parseFloat(seg1.exactGap.toFixed(1));
+                        gap1 = l.guardrailGapOverride !== undefined ? l.guardrailGapOverride : parseFloat(seg1.exactGap.toFixed(1));
                         trueLinear1 = Math.round((seg1.totalBars * h) + (2 * (l.guardrailLength || 0)));
-                        const price1 = Math.round((trueLinear1 / 100) * 10);
+                        price1 = Math.round((trueLinear1 / 100) * 10);
                         totalPrice += price1;
-                        segmentsText.push(`• Lado 1${sName1}:\n  Comp. ${l.guardrailLength || 0}cm | Linear ${trueLinear1}cm | ${seg1.totalBars} un (vãos ${gap1}cm)`);
                     }
+
+                    let seg2 = null, gap2 = 0, price2 = 0;
                     if (numSides >= 2) {
-                        const seg2 = calcSeg(l.guardrailLength2 || 0, l.guardrailBarsOverride2);
+                        seg2 = calcSeg(l.guardrailLength2 || 0, l.guardrailBarsOverride2);
                         if (seg2) {
                             totalOverallBars += seg2.totalBars - 1;
-                            const gap2 = l.guardrailGapOverride2 !== undefined ? l.guardrailGapOverride2 : parseFloat(seg2.exactGap.toFixed(1));
+                            gap2 = l.guardrailGapOverride2 !== undefined ? l.guardrailGapOverride2 : parseFloat(seg2.exactGap.toFixed(1));
                             trueLinear2 = Math.round((seg2.totalBars * h) + (2 * (l.guardrailLength2 || 0)));
-                            const price2 = Math.round((trueLinear2 / 100) * 10);
+                            price2 = Math.round((trueLinear2 / 100) * 10);
                             totalPrice += price2;
-                            segmentsText.push(`• Lado 2${sName2}:\n  Comp. ${l.guardrailLength2 || 0}cm | Linear ${trueLinear2}cm | ${seg2.totalBars} un (vãos ${gap2}cm)`);
                         }
                     }
+
+                    let seg3 = null, gap3 = 0, price3 = 0;
                     if (numSides >= 3) {
-                        const seg3 = calcSeg(l.guardrailLength3 || 0, l.guardrailBarsOverride3);
+                        seg3 = calcSeg(l.guardrailLength3 || 0, l.guardrailBarsOverride3);
                         if (seg3) {
                             totalOverallBars += seg3.totalBars - 1;
-                            const gap3 = l.guardrailGapOverride3 !== undefined ? l.guardrailGapOverride3 : parseFloat(seg3.exactGap.toFixed(1));
+                            gap3 = l.guardrailGapOverride3 !== undefined ? l.guardrailGapOverride3 : parseFloat(seg3.exactGap.toFixed(1));
                             trueLinear3 = Math.round((seg3.totalBars * h) + (2 * (l.guardrailLength3 || 0)));
-                            const price3 = Math.round((trueLinear3 / 100) * 10);
+                            price3 = Math.round((trueLinear3 / 100) * 10);
                             totalPrice += price3;
-                            segmentsText.push(`• Lado 3${sName3}:\n  Comp. ${l.guardrailLength3 || 0}cm | Linear ${trueLinear3}cm | ${seg3.totalBars} un (vãos ${gap3}cm)`);
                         }
                     }
 
                     const totalGuardrailLinear = trueLinear1 + trueLinear2 + trueLinear3;
-                    
                     const guardrailWeight = (totalGuardrailLinear / 100) * 0.88;
-                    med += `GUARDA-CORPO (${format})\n`;
-                    if (side) med += side;
-                    med += `Comprimento: ${baseHorizontal}cm\n`;
-                    med += `Altura: ${h}cm\n`;
-                    med += `Linear: ${totalGuardrailLinear}cm\n`;
-                    med += `Tubos: ${totalOverallBars} un\n`;
-                    if (guardrailWeight > 0) {
-                        med += `Peso Aço: ~${guardrailWeight.toFixed(1)} kg\n`;
+
+                    if (numSides === 1) {
+                        const sideLabel = sideNames[0] ? sideNames[0].toUpperCase() : format;
+                        med += `GUARDA-CORPO (${sideLabel})\n`;
+                        med += `Comprimento: ${l.guardrailLength || 0}cm\n`;
+                        med += `Altura: ${h}cm\n`;
+                        med += `Linear: ${trueLinear1}cm\n`;
+                        if (seg1) {
+                            med += `Tubos: ${seg1.totalBars} un (vãos ${gap1}cm)\n`;
+                        } else {
+                            med += `Tubos: ${totalOverallBars} un\n`;
+                        }
+                        if (guardrailWeight > 0) {
+                            med += `Peso Aço: ~${guardrailWeight.toFixed(1)} kg\n`;
+                        }
+                        med += `Custo: R$ ${totalPrice}\n\n`;
+                    } else {
+                        med += `GUARDA-CORPO (${format})\n\n`;
+                        if (seg1) {
+                            med += `• Lado 1${sName1}:\n`;
+                            med += `Comprimento: ${l.guardrailLength || 0}cm\n`;
+                            med += `Altura: ${h}cm\n`;
+                            med += `Linear: ${trueLinear1}cm\n`;
+                            med += `Tubos: ${seg1.totalBars} un (vãos ${gap1}cm)\n`;
+                            med += `Custo: R$ ${price1}\n\n`;
+                        }
+                        if (numSides >= 2 && seg2) {
+                            med += `• Lado 2${sName2}:\n`;
+                            med += `Comprimento: ${l.guardrailLength2 || 0}cm\n`;
+                            med += `Altura: ${h}cm\n`;
+                            med += `Linear: ${trueLinear2}cm\n`;
+                            med += `Tubos: ${seg2.totalBars} un (vãos ${gap2}cm)\n`;
+                            med += `Custo: R$ ${price2}\n\n`;
+                        }
+                        if (numSides >= 3 && seg3) {
+                            med += `• Lado 3${sName3}:\n`;
+                            med += `Comprimento: ${l.guardrailLength3 || 0}cm\n`;
+                            med += `Altura: ${h}cm\n`;
+                            med += `Linear: ${trueLinear3}cm\n`;
+                            med += `Tubos: ${seg3.totalBars} un (vãos ${gap3}cm)\n`;
+                            med += `Custo: R$ ${price3}\n\n`;
+                        }
+                        med += `Total Guarda-Corpo:\n`;
+                        med += `Comprimento: ${baseHorizontal}cm\n`;
+                        med += `Linear: ${totalGuardrailLinear}cm\n`;
+                        med += `Tubos: ${totalOverallBars} un\n`;
+                        if (guardrailWeight > 0) {
+                            med += `Peso Aço: ~${guardrailWeight.toFixed(1)} kg\n`;
+                        }
+                        med += `Custo: R$ ${totalPrice}\n\n`;
                     }
-                    med += `Custo: R$ ${totalPrice}\n\n`;
-                    
-                    segmentsText.forEach(seg => {
-                        med += `${seg}\n\n`;
-                    });
                 }
                 
                 if (l.hasGate) {
+                    if (med.trim() !== '') med += '\n';
                     const side = l.gateSide ? `Lado: ${translateSide(l.gateSide)}\n` : '';
                     const len = l.gateLength || 0;
                     const h = l.gateHeight || 90;
@@ -894,6 +941,17 @@ export const DeliveriesTable: React.FC = () => {
         }
     };
 
+    const handleDeleteContract = async (id: string, name?: string) => {
+        if (window.confirm(`Tem certeza que deseja excluir o contrato de "${name || 'Cliente'}" da produção?`)) {
+            try {
+                await deleteDoc(doc(db, 'contracts', id));
+            } catch (e) {
+                console.error('Erro ao excluir contrato:', e);
+                alert('Erro ao excluir contrato.');
+            }
+        }
+    };
+
     return (
         <div className="max-w-[1400px] mx-auto p-4 sm:p-6 print:p-0">
             <style>
@@ -1005,6 +1063,11 @@ export const DeliveriesTable: React.FC = () => {
                                     let measurements = (contract.measurementsNotes !== undefined && contract.measurementsNotes.trim() !== '' && contract.measurementsNotes.trim() !== '-')
                                         ? contract.measurementsNotes 
                                         : getEscadaMeasurements(data, contract);
+
+                                    if (!measurements || measurements.trim() === '-') {
+                                        const freshEscada = getEscadaMeasurements(data, contract);
+                                        if (freshEscada) measurements = freshEscada;
+                                    }
 
                                     measurements = cleanAndTranslateMeasurements(measurements);
                                     measurements = ensureWeightAndCost(measurements, data, contract);
@@ -1224,6 +1287,13 @@ export const DeliveriesTable: React.FC = () => {
                                                     title="Marcar como entregue"
                                                 >
                                                     Entregue ✓
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleDeleteContract(contract.id, contract.clientName)}
+                                                    className="w-full bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-bold py-1.5 px-2 rounded text-xs transition-colors shadow-sm"
+                                                    title="Excluir contrato duplicado ou cancelado"
+                                                >
+                                                    Excluir 🗑️
                                                 </button>
                                                 <label className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-2 rounded text-xs transition-colors shadow-sm cursor-pointer text-center block" title="Anexar Imagem">
                                                     Anexar Imagem
