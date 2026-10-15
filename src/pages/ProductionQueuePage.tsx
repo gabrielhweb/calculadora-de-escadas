@@ -328,6 +328,40 @@ export default function ProductionQueue() {
                     else if (item.originalData?.totalValue) val = item.originalData.totalValue;
                     else if (contractObj?.totalValue) val = contractObj.totalValue;
                 }
+
+                // Obter o valor real da venda SEM os juros de cartão (para não inflar o faturamento nem o lucro)
+                const explicitBase = Number(pcd?.baseTotalValue) || 
+                                     Number(pcd?.paymentDetails?.baseSaleValue) || 
+                                     Number(contractObj?.baseTotalValue) || 
+                                     Number(item.originalData?.baseTotalValue);
+
+                const interestVal = Number(pcd?.interestValue) || 
+                                    Number(pcd?.paymentDetails?.interestValue) || 
+                                    Number(pcd?.paymentDetails?.totalInterestAmount) || 
+                                    Number(contractObj?.interestValue) || 
+                                    Number(item.originalData?.interestValue) || 0;
+
+                const stairP = Number(pcd?.finalStairPrice) || 0;
+                const landingsP = Number(pcd?.finalLandingsPrice) || 0;
+                const guardrailP = Number(pcd?.finalGuardrailPrice) || 0;
+                const gateP = Number(pcd?.finalGatePrice) || 0;
+                const sideBarP = pcd?.hasStairSideBar ? (Number(pcd?.stairSideBarPrice) || 0) : 0;
+                const optPrice = Number(pcd?.selectedOption?.totalPrice) || 0;
+                const structTotal = (stairP + landingsP + guardrailP + gateP + sideBarP) || optPrice;
+                const freightP = Number(pcd?.freightCost) || Number(contractObj?.freightCost) || 0;
+                const installP = Number(pcd?.installationCost) || Number(contractObj?.installationCost) || 0;
+                const extrasP = Number(pcd?.extrasCost) || Number(contractObj?.extrasCost) || 0;
+                const discountP = Number(pcd?.paymentDetails?.discountValue) || 0;
+                const calculatedBase = Math.max(0, (structTotal + freightP + installP + extrasP) - discountP);
+
+                if (explicitBase > 0) {
+                    val = explicitBase;
+                } else if (interestVal > 0 && val > interestVal) {
+                    val = val - interestVal;
+                } else if (calculatedBase > 0 && calculatedBase < val - 1) {
+                    // Se o total registrado incluir juros da maquininha, deduz para obter o valor real recebido
+                    val = calculatedBase;
+                }
                 item.value = val;
                 
                 const getProp = (parsed: any, key: string) => {
@@ -705,8 +739,12 @@ export default function ProductionQueue() {
             ? item.originalData.customPaidValue
             : ((item.originalData.downPayment || 0) + (item.originalData.balanceStatus === 'paid' ? item.originalData.balanceDue : 0));
         
+        if (item.value > 0 && (item.originalData.balanceStatus === 'paid' || initialValue > item.value)) {
+            initialValue = item.value;
+        }
+
         setPaidModalValue(initialValue > 0 ? initialValue.toString() : '');
-        setPaidModalPercent(currentPercent > 0 ? currentPercent.toFixed(2) : '');
+        setPaidModalPercent(currentPercent > 0 ? Math.min(100, currentPercent).toFixed(2) : '');
         setPaidModalOpen(true);
     };
 
@@ -1061,7 +1099,11 @@ export default function ProductionQueue() {
                                                         ? item.originalData.customPaidValue
                                                         : ((item.originalData.downPayment || 0) + 
                                                           (item.originalData.balanceStatus === 'paid' ? item.originalData.balanceDue : 0));
-                                                    percentPaid = item.value > 0 ? (paid / item.value) * 100 : 0;
+                                                    if (item.originalData.balanceStatus === 'paid' || (item.value > 0 && paid >= item.value)) {
+                                                        percentPaid = 100;
+                                                    } else {
+                                                        percentPaid = item.value > 0 ? Math.min(100, Math.max(0, (paid / item.value) * 100)) : 0;
+                                                    }
                                                 }
                                                 let pMethod = "N/A";
                                                 if (item.originalData?.paymentMethod) pMethod = item.originalData.paymentMethod;

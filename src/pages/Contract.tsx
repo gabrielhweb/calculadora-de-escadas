@@ -27,6 +27,7 @@ import {
   updateDoc,
   collection,
   query,
+  where,
   getDocs,
   getDoc,
 } from "firebase/firestore";
@@ -718,6 +719,27 @@ const Contract = () => {
                 "Link de Pagamento (Cartão de Crédito)",
             ),
           );
+          if (paymentDetails.enableInterest !== undefined) {
+            setEnableInterest(!!paymentDetails.enableInterest);
+          }
+          if (paymentDetails.interestValue !== undefined && paymentDetails.interestValue !== "") {
+            setInterestValue(paymentDetails.interestValue.toString());
+          }
+          if (paymentDetails.hideInterestLabel !== undefined) {
+            setHideInterestLabel(!!paymentDetails.hideInterestLabel);
+          }
+          if (paymentDetails.enableSignalInterest !== undefined) {
+            setEnableSignalInterest(!!paymentDetails.enableSignalInterest);
+          }
+          if (paymentDetails.signalInterestValue !== undefined && paymentDetails.signalInterestValue !== "") {
+            setSignalInterestValue(paymentDetails.signalInterestValue.toString());
+          }
+          if (paymentDetails.signalInstallments) {
+            setSignalInstallments(Number(paymentDetails.signalInstallments));
+          }
+          if (paymentDetails.hideSignalInterestLabel !== undefined) {
+            setHideSignalInterestLabel(!!paymentDetails.hideSignalInterestLabel);
+          }
         }
 
         if (data.additionalClauses && Array.isArray(data.additionalClauses)) {
@@ -1244,6 +1266,11 @@ const Contract = () => {
           cashMethodName,
           isCustomPix,
           pixInstallmentsList,
+          enableInterest,
+          interestValue: enableInterest
+            ? parseFloat(interestValue.replace(",", ".")) || 0
+            : 0,
+          hideInterestLabel,
           enableSignalInterest,
           signalInterestValue: enableSignalInterest
             ? parseFloat(signalInterestValue.replace(",", ".")) || 0
@@ -1251,7 +1278,15 @@ const Contract = () => {
           signalInstallments,
           signalInstallmentValue: signalInstallmentVal,
           hideSignalInterestLabel,
+          totalInterestAmount:
+            (enableInterest ? interestMoney : 0) +
+            (enableSignalInterest ? signalInterestMoney : 0),
+          baseSaleValue: discountedBase,
         },
+        baseTotalValue: discountedBase,
+        interestValue:
+          (enableInterest ? interestMoney : 0) +
+          (enableSignalInterest ? signalInterestMoney : 0),
         additionalClauses: customClauses,
         objectDescriptionText,
         finishText,
@@ -1267,6 +1302,10 @@ const Contract = () => {
         createdAt: new Date().toISOString(),
         clientName: clientName,
         totalValue: paymentMethod === "pix" ? pixTotal : totalGeralFinal,
+        baseTotalValue: discountedBase,
+        interestValue:
+          (enableInterest ? interestMoney : 0) +
+          (enableSignalInterest ? signalInterestMoney : 0),
         status: "falta_assinar" as const,
         contractData: JSON.parse(JSON.stringify(contractData)),
         userId: user.uid,
@@ -1280,6 +1319,27 @@ const Contract = () => {
         // Remove id e createdAt para não sobrescrever na atualização
         const { id, createdAt, status, ...updateData } = newSavedContract;
         await updateDoc(doc(db, "contracts", editingContractId), updateData);
+
+        // Se houver pedido vinculado na fila de produção, sincroniza também
+        try {
+          const qQueue = query(
+            collection(db, "production_queue"),
+            where("contractId", "==", editingContractId),
+          );
+          const qSnap = await getDocs(qQueue);
+          qSnap.forEach(async (docSnap) => {
+            await updateDoc(doc(db, "production_queue", docSnap.id), {
+              baseTotalValue: discountedBase,
+              interestValue:
+                (enableInterest ? interestMoney : 0) +
+                (enableSignalInterest ? signalInterestMoney : 0),
+              clientName: clientName,
+            });
+          });
+        } catch (e) {
+          console.warn("Aviso ao sincronizar fila de produção na edição", e);
+        }
+
         alert("Contrato atualizado com sucesso!");
         navigate("/contratos");
         return;
@@ -1299,14 +1359,14 @@ const Contract = () => {
           balanceDue = pixTotal - downPayment;
         } else if (paymentMethod === "card") {
           downPayment = 0;
-          balanceDue = totalGeralFinal;
+          balanceDue = discountedBase; // Valor real recebido pela empresa (sem os juros da maquininha)
         } else if (paymentMethod === "hybrid") {
           if (pixTiming === "delivery") {
-            downPayment = discountedBase - finalHybridSignal; // Cartão é o sinal
+            downPayment = Math.max(0, discountedBase - finalHybridSignal); // Cartão é o sinal
             balanceDue = finalHybridSignal; // PIX é o restante
           } else {
             downPayment = finalHybridSignal; // PIX é o sinal
-            balanceDue = discountedBase - finalHybridSignal; // Cartão é o restante
+            balanceDue = Math.max(0, discountedBase - finalHybridSignal); // Cartão é o restante
           }
         }
 
@@ -1323,10 +1383,10 @@ const Contract = () => {
             const woodCost =
               (settingsData.woodCostPerStep || 0) * totalStepsNum;
             const taxCost =
-              newSavedContract.totalValue *
+              discountedBase *
               ((settingsData.taxPercentage || 0) / 100);
             const commissionCost =
-              newSavedContract.totalValue *
+              discountedBase *
               ((settingsData.commissionPercentage || 0) / 100);
 
             estimatedTotalCost =
@@ -1336,7 +1396,7 @@ const Contract = () => {
               commissionCost +
               parseFloat(freightPrice) +
               parseFloat(installationPrice);
-            estimatedProfit = newSavedContract.totalValue - estimatedTotalCost;
+            estimatedProfit = discountedBase - estimatedTotalCost;
           }
         } catch (err) {
           console.error("Erro ao calcular lucro:", err);
@@ -1350,6 +1410,11 @@ const Contract = () => {
           deliveryDate: "",
           downPayment: downPayment,
           balanceDue: balanceDue,
+          value: discountedBase,
+          baseTotalValue: discountedBase,
+          interestValue:
+            (enableInterest ? interestMoney : 0) +
+            (enableSignalInterest ? signalInterestMoney : 0),
           status: "in_queue" as const,
           boardStage: "contrato" as const,
           location: `${neighborhood || ""} - ${city || ""}`,
