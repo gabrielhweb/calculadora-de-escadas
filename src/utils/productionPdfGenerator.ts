@@ -89,21 +89,21 @@ export const drawProductionPage = (doc: jsPDF, props: ProductionPdfProps) => {
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     const pisadaText = 'pisada';
-    doc.text(pisadaText, 91, 90.5);
+    doc.text(pisadaText, 88, 86);
     const pisadaWidth = doc.getTextWidth(pisadaText);
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
     const displayPisada = treadDepthMm + 10; // Sempre 10mm a mais que o contrato
-    doc.text(`${displayPisada}mm`, 91 + pisadaWidth + 2, 90.5);
+    doc.text(`${displayPisada}mm`, 88 + pisadaWidth + 2, 86);
     
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     const alturaText = 'altura';
-    doc.text(alturaText, 109, 110);
+    doc.text(alturaText, 107, 108);
     const alturaWidth = doc.getTextWidth(alturaText);
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.text(`${stepHeightMm}mm`, 109 + alturaWidth + 2, 110);
+    doc.text(`${stepHeightMm}mm`, 107 + alturaWidth + 2, 108);
     
     // Lado Direito
     if (!isHollow) {
