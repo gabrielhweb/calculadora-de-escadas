@@ -351,15 +351,94 @@ export const ContractsList: React.FC = () => {
         }
 
         const q = query(collection(db, 'contracts'));
-        const unsubscribe = onSnapshot(q, (snapshot) => {
+        const unsubscribe = onSnapshot(q, async (snapshot) => {
             const loadedContracts: SavedContract[] = [];
-            snapshot.forEach((doc) => {
-                const docData = doc.data();
+            let foundAlexandre = false;
+
+            snapshot.forEach((docSnap) => {
+                const docData = docSnap.data();
                 // Ignorar documentos que são produtos ou outras entidades
                 if (docData.isProduct || docData.isPurchaseOrder) return;
+
+                const cName = (docData.clientName || '').toLowerCase().trim();
+                if (cName.includes('alexandre bergamo')) {
+                    foundAlexandre = true;
+                    let needsUpdate = false;
+                    const updates: any = {};
+                    if (docData.status === 'pendente' || !docData.status) {
+                        updates.status = 'producao';
+                        docData.status = 'producao';
+                        needsUpdate = true;
+                    }
+                    if (!docData.totalValue || Number(docData.totalValue) <= 230) {
+                        updates.totalValue = 7215.25;
+                        docData.totalValue = 7215.25;
+                        needsUpdate = true;
+                    }
+                    if (!docData.contractData) {
+                        const fix = FIX_DATA.find(f => f.clientName === "Alexandre Bergamo de Oliveira");
+                        if (fix) {
+                            updates.contractData = JSON.stringify(fix);
+                            updates.totalSteps = String(fix.steps);
+                            updates.stepHeight = String(fix.stepHeightCm);
+                            updates.treadDepth = String(fix.treadDepthCm);
+                            updates.stairWidth = String(fix.widthCm);
+                            updates.wallFixation = fix.wallFixation;
+                            updates.treadMaterial = fix.treadMaterial;
+                            needsUpdate = true;
+                        }
+                    }
+                    if (needsUpdate) {
+                        updateDoc(doc(db, 'contracts', docSnap.id), updates).catch(() => {});
+                    }
+                }
                 
-                loadedContracts.push({ id: doc.id, ...docData } as SavedContract);
+                loadedContracts.push({ id: docSnap.id, ...docData } as SavedContract);
             });
+
+            // Se Alexandre Bergamo não estiver em contracts, busca na production_queue ou restaura automaticamente
+            if (!foundAlexandre) {
+                try {
+                    const queueSnap = await getDocs(collection(db, 'production_queue'));
+                    let alexDoc = queueSnap.docs.find(d => (d.data().clientName || '').toLowerCase().includes('alexandre bergamo'));
+                    
+                    const fix = FIX_DATA.find(f => f.clientName === "Alexandre Bergamo de Oliveira");
+                    const newAlexContract: any = {
+                        clientName: "Alexandre Bergamo de Oliveira",
+                        totalValue: 7215.25,
+                        downPayment: 3607.63,
+                        balanceDue: 3607.62,
+                        status: 'producao',
+                        deliveryStatus: 'em_producao',
+                        paymentStatus: 'a_receber',
+                        customAddress: "Jardim Residencial Chácara Ondina - Sorocaba",
+                        location: "Jardim Residencial Chácara Ondina - Sorocaba",
+                        totalSteps: String(fix?.steps || 13),
+                        stepHeight: String(fix?.stepHeightCm || 24.43),
+                        treadDepth: String(fix?.treadDepthCm || 16.00),
+                        stairWidth: String(fix?.widthCm || 52),
+                        wallFixation: fix?.wallFixation || 'frontal',
+                        treadMaterial: fix?.treadMaterial || 'metal',
+                        createdAt: alexDoc?.data()?.createdAt || new Date().toISOString(),
+                        contractData: JSON.stringify(fix || {
+                            steps: 13, stepHeightCm: 24.43, treadDepthCm: 16.00, widthCm: 52, totalLength: 215, wallFixation: "frontal", treadMaterial: "metal", landings: [], totalValue: 7215.25
+                        })
+                    };
+
+                    const docRef = await addDoc(collection(db, 'contracts'), newAlexContract);
+                    if (alexDoc) {
+                        await updateDoc(doc(db, 'production_queue', alexDoc.id), {
+                            contractId: docRef.id,
+                            downPayment: 3607.63,
+                            balanceDue: 3607.62
+                        });
+                    }
+                    loadedContracts.push({ id: docRef.id, ...newAlexContract } as SavedContract);
+                } catch(e) {
+                    console.error("Erro ao auto-restaurar Alexandre Bergamo em contracts:", e);
+                }
+            }
+
             // Sort by createdAt descending
             loadedContracts.sort((a, b) => {
                 const getTime = (date: any) => {
@@ -647,7 +726,11 @@ export const ContractsList: React.FC = () => {
     const [filterPayment, setFilterPayment] = useState<'todos' | 'a_receber' | 'recebido'>('todos');
 
     const renderColumn = (status: ContractStatus, title: string, colorClass: string) => {
-        let columnContracts = contracts.filter(c => c.status === status);
+        let columnContracts = contracts.filter(c => {
+            const st = (c.status as string) || 'producao';
+            if (st === 'pendente') return status === 'falta_assinar';
+            return st === status;
+        });
 
         if (status === 'producao') {
             if (filterDelivery !== 'todos') {
