@@ -733,6 +733,14 @@ export const DeliveriesTable: React.FC = () => {
             escadaWeight = existingEscadaWeight;
         }
 
+        // Fallback garantido: Se ainda estiver zerado mas tem degraus (ou escada), estima ~7.5kg por degrau
+        if (escadaWeight === 0 && steps > 0) {
+            escadaWeight = steps * 7.5;
+        } else if (escadaWeight === 0 && !isNoStairContract(data, contract) && (contract?.totalValue || 0) > 0) {
+            // Estima com base no valor médio de escada (~14 degraus = 105kg)
+            escadaWeight = 105;
+        }
+
         if (escadaWeight > 0) {
             const escadaCost = escadaWeight * 13.80;
             const { totalWeight: landingsWeight, totalCost: landingsCost } = getLandingsTotalSteel(data);
@@ -818,7 +826,15 @@ export const DeliveriesTable: React.FC = () => {
                 const maxW = realLandings.length > 0 ? Math.max(...realLandings.map((l: any) => (Number(l.width) || 0) / 100)) : 1;
                 return `COMPRIMENTO: ${(maxL || 1).toFixed(2)}m\nLARGURA: ${(maxW || 1).toFixed(2)}m\nALTURA: 0.15m\nPESO (PATAMAR): ${landingsWeight.toFixed(1)}kg\nPESO TOTAL: ${landingsWeight.toFixed(1)}kg`;
             }
-            return '-';
+            if (noStair) return '-';
+
+            // Fallback para escadas com dados resumidos no contrato
+            const fallbackSteps = numSteps || 14;
+            const fallbackTread = treadDepthCm || 24;
+            const fallbackHeight = stepHeightCm || 20;
+            const fallbackEscadaWeight = fallbackSteps * 7.5;
+            const totalKg = fallbackEscadaWeight + landingsWeight;
+            return `COMPRIMENTO: 3.50m\nLARGURA: 0.70m\nALTURA: 0.08m\nPESO (ESCADA): ${fallbackEscadaWeight.toFixed(1)}kg\nPESO TOTAL: ${totalKg.toFixed(1)}kg`;
         }
 
         const optionalItems = getProp(parsedData, 'optionalItems');
