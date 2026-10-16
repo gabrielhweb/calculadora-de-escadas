@@ -69,7 +69,8 @@ export const InputField: React.FC<{
         value={value}
         onChange={onChange}
         disabled={disabled}
-        className={`flex-1 min-w-0 p-1.5 px-2 rounded-l-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight focus:ring-1 focus:ring-highlight transition font-bold text-base ${disabled ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed' : 'bg-white dark:bg-gray-800 text-black dark:text-white'}`}
+        autoComplete="off"
+        className={`flex-1 min-w-0 p-2 sm:p-1.5 px-3 rounded-l-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight focus:ring-1 focus:ring-highlight transition font-bold text-base ${disabled ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed' : 'bg-white dark:bg-gray-800 text-black dark:text-white'}`}
         placeholder={placeholder || (isOptional ? "Automático" : label)}
         min="0"
         step="any"
@@ -78,14 +79,14 @@ export const InputField: React.FC<{
           <select 
             value={currentUnit} 
             onChange={(e) => onUnitChange(e.target.value as 'cm'|'m')}
-            className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white p-3 rounded-r-md border-2 border-l-0 border-gray-300 dark:border-gray-600 font-bold focus:outline-none focus:border-highlight cursor-pointer"
+            className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white p-2 sm:p-3 rounded-r-md border-2 border-l-0 border-gray-300 dark:border-gray-600 font-bold focus:outline-none focus:border-highlight cursor-pointer text-sm sm:text-base"
             disabled={disabled}
           >
               <option value="cm">cm</option>
               <option value="m">m</option>
           </select>
       ) : (
-        unit && <span className={`bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white p-3 rounded-r-md border-2 border-l-0 border-gray-300 dark:border-gray-600 font-bold min-w-[3rem] text-center flex items-center justify-center ${disabled ? 'text-gray-400' : ''}`}>{unit}</span>
+        unit && <span className={`bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white p-2 sm:p-3 rounded-r-md border-2 border-l-0 border-gray-300 dark:border-gray-600 font-bold min-w-[2.5rem] sm:min-w-[3rem] text-center flex items-center justify-center text-xs sm:text-sm ${disabled ? 'text-gray-400' : ''}`}>{unit}</span>
       )}
     </div>
     {helperText && <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 italic">{helperText}</p>}
@@ -362,7 +363,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
           </div>
       </div>
       
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 sticky top-24">
+      <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 lg:sticky lg:top-24">
       <h2 className="text-2xl font-black mb-6 text-gray-900 dark:text-white flex items-center border-b-2 border-highlight pb-4">
         <CalculatorIcon /> 
         Medidas
@@ -383,7 +384,8 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                     type="number"
                     value={totalHeight}
                     onChange={(e) => setTotalHeight(e.target.value)}
-                    className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-1.5 px-2 rounded-l-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight transition font-bold text-base"
+                    autoComplete="off"
+                    className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-2 sm:p-1.5 px-3 rounded-l-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight transition font-bold text-base"
                     placeholder="300"
                     min="0"
                     step="any"
@@ -391,7 +393,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                     <select
                     value={heightUnit}
                     onChange={(e) => setHeightUnit(e.target.value as 'cm' | 'm')}
-                    className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white p-3 rounded-r-md border-2 border-l-0 border-gray-300 dark:border-gray-600 font-bold cursor-pointer outline-none"
+                    className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white p-2 sm:p-3 rounded-r-md border-2 border-l-0 border-gray-300 dark:border-gray-600 font-bold cursor-pointer outline-none text-sm sm:text-base"
                     >
                     <option value="cm">cm</option>
                     <option value="m">m</option>

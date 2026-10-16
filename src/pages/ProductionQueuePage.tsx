@@ -1661,6 +1661,7 @@ export default function ProductionQueue() {
                                 type="number"
                                 placeholder="Ex: 50"
                                 value={paidModalPercent}
+                                autoComplete="off"
                                 onChange={(e) => {
                                     setPaidModalPercent(e.target.value);
                                     const perc = parseFloat(e.target.value);
@@ -1680,6 +1681,7 @@ export default function ProductionQueue() {
                                 type="number"
                                 placeholder={`Ex: ${paidModalItem.value / 2}`}
                                 value={paidModalValue}
+                                autoComplete="off"
                                 onChange={(e) => {
                                     setPaidModalValue(e.target.value);
                                     const val = parseFloat(e.target.value);
