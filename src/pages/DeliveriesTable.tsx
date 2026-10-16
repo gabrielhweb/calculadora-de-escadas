@@ -1109,7 +1109,7 @@ export const DeliveriesTable: React.FC = () => {
                                     }
 
                                     // Remove itens de adicionais (patamar/guarda-corpo/portão) que possam ter ficado salvos em measurementsNotes antigas
-                                    measurements = measurements
+                                    measurements = (measurements || '')
                                         .replace(/(?:PATAMAR|GUARDA-CORPO|PORTÃO|ACESSÓRIO AVULSO)[\s\S]*?(?=(?:PESO ESCADA|TOTAL DE AÇO|CUSTO AÇO|CUSTO TOTAL AÇO|$))/gi, '')
                                         .trim();
 
