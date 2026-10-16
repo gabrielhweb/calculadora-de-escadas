@@ -85,25 +85,25 @@ export const drawProductionPage = (doc: jsPDF, props: ProductionPdfProps) => {
     doc.setFont('helvetica', 'normal');
     doc.text('ESPESSURA 1/8"', 150, 39, { align: 'center' });
     
-    // Lado Esquerdo (pisada e altura) - posicionados exatamente junto ao corte do degrau na viga
+    // Lado Esquerdo (pisada na seta azul e altura na seta rosa) - posicionados junto ao corte do degrau na viga
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     const pisadaText = 'pisada';
-    doc.text(pisadaText, 86, 73);
+    doc.text(pisadaText, 88, 86);
     const pisadaWidth = doc.getTextWidth(pisadaText);
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
     const displayPisada = treadDepthMm + 10; // Sempre 10mm a mais que o contrato
-    doc.text(`${displayPisada}mm`, 86 + pisadaWidth + 2, 73);
+    doc.text(`${displayPisada}mm`, 88 + pisadaWidth + 2, 86);
     
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     const alturaText = 'altura';
-    doc.text(alturaText, 86, 85);
+    doc.text(alturaText, 112, 110);
     const alturaWidth = doc.getTextWidth(alturaText);
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.text(`${stepHeightMm}mm`, 86 + alturaWidth + 2, 85);
+    doc.text(`${stepHeightMm}mm`, 112 + alturaWidth + 2, 110);
     
     // Lado Direito
     if (!isHollow) {
