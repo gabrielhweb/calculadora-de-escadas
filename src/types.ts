@@ -175,7 +175,7 @@ export interface SavedContract {
   installationImages?: string[];
 }
 
-export type BoardStage = 'orcamento' | 'contrato' | 'corte' | 'soldagem' | 'pronta' | 'concluido';
+export type BoardStage = 'orcamento' | 'contrato' | 'corte' | 'soldagem' | 'pronta' | 'instalacao' | 'concluido';
 
 export interface CostSettings {
   steelCostPerStep: number;
