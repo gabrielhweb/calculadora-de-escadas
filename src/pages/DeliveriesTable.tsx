@@ -95,6 +95,31 @@ export const DeliveriesTable: React.FC = () => {
 
         if (!parsed) parsed = {};
 
+        // Dados históricos/retroativos conhecidos para contratos cadastrados manualmente ou migrados
+        const KNOWN_CONTRACTS_DATA: Record<string, any> = {
+            "mario dos reis filho": { steps: 11, stepHeight: 23.54, treadDepth: 20, stairWidth: 58, totalHeight: 283, totalLength: 225, wallFixation: "right", treadMaterial: "metal" },
+            "diego ferreira santos": { steps: 13, stepHeight: 22.14, treadDepth: 20, stairWidth: 60, totalHeight: 310, totalLength: 267, wallFixation: "left", treadMaterial: "metal" },
+            "alexandre bergamo de oliveira": { steps: 13, stepHeight: 24.43, treadDepth: 16, stairWidth: 52, totalHeight: 342, totalLength: 215, wallFixation: "frontal", treadMaterial: "metal" },
+            "andréa aragão ferreira rovina": { steps: 13, stepHeight: 23.00, treadDepth: 20, stairWidth: 70, totalHeight: 322, totalLength: 267, wallFixation: "right", treadMaterial: "wood", woodType: "muiracatiara" },
+            "andrea aragao ferreira rovina": { steps: 13, stepHeight: 23.00, treadDepth: 20, stairWidth: 70, totalHeight: 322, totalLength: 267, wallFixation: "right", treadMaterial: "wood", woodType: "muiracatiara" },
+            "joquebede dos santos coelho rodrigues": { steps: 11, stepHeight: 25.17, treadDepth: 13, stairWidth: 60, totalHeight: 302, totalLength: 149, wallFixation: "right", treadMaterial: "metal" },
+            "ricardo torres soares": { steps: 13, stepHeight: 22.14, treadDepth: 20, stairWidth: 60, totalHeight: 310, totalLength: 337, wallFixation: "left", treadMaterial: "metal", landings: [{ type: "fixo", width: 70, length: 70, customHeight: "" }] },
+            "felipe pagliarde cerezer": { steps: 7, stepHeight: 24.25, treadDepth: 20, stairWidth: 70, totalHeight: 194, totalLength: 144, wallFixation: "right", treadMaterial: "metal" },
+            "felipe pagliarde": { steps: 7, stepHeight: 24.25, treadDepth: 20, stairWidth: 70, totalHeight: 194, totalLength: 144, wallFixation: "right", treadMaterial: "metal" },
+            "márcia campos nogueira": { steps: 13, stepHeight: 20.93, treadDepth: 20, stairWidth: 60, totalHeight: 293, totalLength: 267, wallFixation: "left", treadMaterial: "metal" },
+            "marcia campos nogueira": { steps: 13, stepHeight: 20.93, treadDepth: 20, stairWidth: 60, totalHeight: 293, totalLength: 267, wallFixation: "left", treadMaterial: "metal" }
+        };
+
+        const clientKey = (contractObj?.clientName || '').toLowerCase().trim();
+        if (KNOWN_CONTRACTS_DATA[clientKey]) {
+            const known = KNOWN_CONTRACTS_DATA[clientKey];
+            Object.keys(known).forEach(k => {
+                if (parsed[k] === undefined || parsed[k] === null || parsed[k] === '') {
+                    parsed[k] = known[k];
+                }
+            });
+        }
+
         // Injeta campos diretos do objeto do contrato se existirem
         if (contractObj) {
             if (contractObj.treadDepth && !parsed.treadDepth && !parsed.pisante) parsed.treadDepth = contractObj.treadDepth;
@@ -1073,11 +1098,12 @@ export const DeliveriesTable: React.FC = () => {
                                         : getDefaultAttention(data);
 
                                     // 1. Fabricação Escada (garante medidas, peso e custo do aço)
-                                    let measurements = (contract.measurementsNotes !== undefined && contract.measurementsNotes.trim() !== '' && contract.measurementsNotes.trim() !== '-')
+                                    let rawNotes = (contract.measurementsNotes || '').trim();
+                                    let measurements = (rawNotes !== '' && rawNotes !== '-' && rawNotes.length > 5)
                                         ? contract.measurementsNotes 
                                         : getEscadaMeasurements(data, contract);
 
-                                    if (!measurements || measurements.trim() === '-') {
+                                    if (!measurements || measurements.trim() === '-' || measurements.trim().length <= 5) {
                                         const freshEscada = getEscadaMeasurements(data, contract);
                                         if (freshEscada) measurements = freshEscada;
                                     }
