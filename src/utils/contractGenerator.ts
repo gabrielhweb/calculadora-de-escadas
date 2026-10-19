@@ -403,7 +403,13 @@ export const generateContractPDF = (data: ContractData) => {
   addText('3.8 Este contrato terá validade de 15 (quinze) dias corridos, contados da data de seu envio ao(à) comprador(a). Caso não haja o pagamento inicial dentro desse período, será necessária a emissão de um novo contrato, podendo haver atualização dos valores, prazos e demais condições.', 11, false, 'justify');
   currentY += 5;
 
-  const freightModeStr = String(data.inputData?.logistics?.freightMode || '').toLowerCase().trim();
+  const freightModeStr = String(
+    data.inputData?.logistics?.freightMode || 
+    (data.inputData as any)?.freightMode || 
+    (data as any)?.logistics?.freightMode || 
+    (data as any)?.freightMode || 
+    ''
+  ).toLowerCase().trim();
   const isTransportadora = freightModeStr === 'transportadora';
 
   addText('4. DO PRAZO DE ENTREGA', 11, true, 'left');
@@ -627,10 +633,10 @@ export const generateContractPDF = (data: ContractData) => {
           }
       }
 
-      addText('.', 11, false, 'left');
-      currentY += 5;
-
-      addText('6.2 O não pagamento da parcela final na data da entrega configurará mora imediata, sujeitando o devedor à incidência de multa de 4% sobre o montante em aberto a partir do primeiro dia útil subsequente, acrescido de juros moratórios de 1% ao mês até a liquidação do débito.', 11, false, 'justify');
+      if (!isTransportadora) {
+          currentY += 5;
+          addText('6.2 O não pagamento da parcela final na data da entrega configurará mora imediata, sujeitando o devedor à incidência de multa de 4% sobre o montante em aberto a partir do primeiro dia útil subsequente, acrescido de juros moratórios de 1% ao mês até a liquidação do débito.', 11, false, 'justify');
+      }
     }
   
   currentY += 10;
