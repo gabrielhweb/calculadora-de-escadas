@@ -384,7 +384,7 @@ export const drawGuardrailsPage = (doc: jsPDF, landings: any[], clientName: stri
 
             let gGapOverride;
             if (isGate) {
-                // Gate
+                gGapOverride = landing.gateGapOverride;
             } else {
                 if (sideIndex === 1) gGapOverride = landing.guardrailGapOverride;
                 else if (sideIndex === 2) gGapOverride = landing.guardrailGapOverride2;
@@ -393,17 +393,17 @@ export const drawGuardrailsPage = (doc: jsPDF, landings: any[], clientName: stri
 
             let gBars = gBarsOverride;
             if (!gBars && gGapOverride && gGapOverride > 0) {
-                const innerL = Math.max(0, gLength - 6);
+                const innerL = Math.max(0, gLength - 4);
                 const gapsCalc = (innerL + 3) / (gGapOverride + 3);
                 gBars = Math.max(2, Math.round(gapsCalc) + 1);
             }
             if (!gBars) {
-                gBars = Math.max(2, Math.round((gLength - 6) / 15) + 1);
+                gBars = Math.max(2, Math.round((gLength - 4) / 15) + 1);
             }
             let numInnerBars = Math.max(0, gBars - 2);
             let gapCm = (gGapOverride && gGapOverride > 0) 
                 ? gGapOverride 
-                : (numInnerBars >= 0 ? ((gLength - 6 - (numInnerBars * 3)) / (numInnerBars + 1)) : 0);
+                : (numInnerBars >= 0 ? ((gLength - 4 - (numInnerBars * 3)) / (numInnerBars + 1)) : 0);
 
             // Fixo no patamar (+10 nas pontas)
             let isFixed = false;
@@ -510,6 +510,142 @@ export const drawGuardrailsPage = (doc: jsPDF, landings: any[], clientName: stri
 };
 
 import { patamarGenericoBase64 } from './patamarGenericoBase64';
+
+const drawProposalPiece = (doc: jsPDF, box: { x: number, y: number, w: number, h: number }, p: any) => {
+    const isGate = !!p.isGate;
+    const titleText = p.title;
+    const gL = Number(p.length) || 0;
+    const gH = Number(p.outerH || p.height) || 90;
+    const innerH = Number(p.innerH) || (gH - 13);
+    const isFixed = !!p.isFixed;
+    const outerHeight = isFixed ? gH + 10 : gH;
+
+    let gBars = p.override;
+    const gGap = p.gapOverride;
+
+    if (!gBars && gGap && gGap > 0) {
+        const innerL = Math.max(0, gL - 4);
+        const gapsCalc = (innerL + 3) / (gGap + 3);
+        gBars = Math.max(2, Math.round(gapsCalc) + 1);
+    }
+    if (!gBars) {
+        gBars = Math.max(2, Math.round((gL - 4) / 15) + 1);
+    }
+    const numInnerBars = Math.max(0, gBars - 2);
+    const gapCm = (gGap && gGap > 0)
+        ? gGap
+        : (numInnerBars >= 0 ? ((gL - 4 - (numInnerBars * 3)) / (numInnerBars + 1)) : 0);
+
+    // Title
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text(titleText, box.x + box.w / 2, box.y + 4, { align: 'center' });
+
+    // Subtitle
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 100, 100);
+    doc.text(`${gL}cm de comprimento x ${outerHeight}cm de altura - Vãos: ${gapCm.toFixed(1)}cm`, box.x + box.w / 2, box.y + 8.5, { align: 'center' });
+
+    // Dimensions for drawing area
+    const margin = { top: 18, bottom: 16, left: 14, right: 14 };
+    const maxDrawW = box.w - margin.left - margin.right;
+    const maxDrawH = box.h - margin.top - margin.bottom;
+
+    const scale = Math.min(maxDrawW / Math.max(gL, 40), maxDrawH / Math.max(outerHeight, 40));
+    const drawW = gL * scale;
+    const drawH = outerHeight * scale;
+
+    const px = box.x + (box.w - drawW) / 2;
+    const py = box.y + margin.top + (maxDrawH - drawH) / 2;
+
+    // 1. Green top line & text
+    doc.setDrawColor(34, 197, 94);
+    doc.setLineWidth(0.5);
+    doc.line(px, py - 2.5, px + drawW, py - 2.5);
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(34, 197, 94);
+    doc.text(`${gL}cm`, px + drawW / 2, py - 3.5, { align: 'center' });
+
+    // 2. Orange bottom line & text
+    doc.setDrawColor(249, 115, 22);
+    doc.setLineWidth(0.5);
+    doc.line(px + 2, py + drawH + 3, px + drawW - 2, py + drawH + 3);
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(249, 115, 22);
+    doc.text(`${gL - 4}cm`, px + drawW / 2, py + drawH + 6.5, { align: 'center' });
+
+    // 3. Red right line & text (Height)
+    doc.setDrawColor(239, 68, 68);
+    doc.setLineWidth(0.5);
+    doc.line(px + drawW + 3, py, px + drawW + 3, py + drawH);
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(239, 68, 68);
+    doc.text(`${outerHeight}cm`, px + drawW + 4.5, py + drawH / 2 + 1, { align: 'left' });
+    if (isFixed) {
+        doc.setFontSize(5.5);
+        doc.text('(+10cm)', px + drawW + 4.5, py + drawH / 2 + 4, { align: 'left' });
+    }
+
+    // 4. Blue left line & text (Inner height)
+    doc.setDrawColor(59, 130, 246);
+    doc.setLineWidth(0.5);
+    doc.line(px - 3, py + 2, px - 3, py + drawH);
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(59, 130, 246);
+    doc.text(`${innerH}cm`, px - 4.5, py + drawH / 2 + 1, { align: 'right' });
+
+    // 5. Structure frame (Dark slate #1f2937)
+    doc.setFillColor(31, 41, 55);
+    doc.rect(px, py, drawW, 1.8, 'F');
+    doc.rect(px + 1.8, py + drawH - 2.2, drawW - 3.6, 1.8, 'F');
+    const footH = isFixed ? 3.5 : 2;
+    doc.rect(px, py, 1.8, drawH + footH, 'F');
+    doc.rect(px + drawW - 1.8, py, 1.8, drawH + footH, 'F');
+
+    // Inner vertical tubes
+    const step = (drawW - 3.6) / (numInnerBars + 1);
+    for (let b = 1; b <= numInnerBars; b++) {
+        const bx = px + 1.8 + b * step - 0.75;
+        doc.rect(bx, py + 1.8, 1.5, drawH - 4.0, 'F');
+    }
+
+    // 6. Gate Hinges & Latch (if isGate)
+    if (isGate) {
+        doc.setFillColor(107, 114, 128);
+        doc.circle(px - 0.8, py + 4, 1.0, 'F');
+        doc.circle(px - 0.8, py + drawH - 5, 1.0, 'F');
+        doc.rect(px + drawW, py + drawH / 2 - 1.5, 1.5, 3.0, 'F');
+    }
+
+    // 7. Pink dashed gap line & text
+    if (numInnerBars > 0) {
+        const gapStartX = px + 1.8;
+        const gapEndX = px + 1.8 + step - 0.75;
+        const midY = py + drawH / 2;
+        doc.setDrawColor(236, 72, 153);
+        doc.setLineWidth(0.4);
+        doc.setLineDashPattern([1.5, 1], 0);
+        doc.line(gapStartX, midY, gapEndX, midY);
+        doc.setLineDashPattern([], 0);
+        doc.setFontSize(6.5);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(236, 72, 153);
+        doc.text(`${gapCm.toFixed(1)}cm`, (gapStartX + gapEndX) / 2, midY - 1.2, { align: 'center' });
+    }
+
+    // 8. Bottom caption text
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(236, 72, 153);
+    doc.text(`Espaçamento entre os tubos: ${gapCm.toFixed(1)}cm`, box.x + box.w / 2, box.y + box.h - 1.5, { align: 'center' });
+    doc.setTextColor(0, 0, 0);
+};
 
 export const drawProposalSummaryPage = (doc: jsPDF, landings: any[], startY: number = 20): number => {
     let finalY = startY;
@@ -681,76 +817,16 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[], startY: num
         pieces.forEach((p, idx) => {
             const box = bboxes[idx];
             if (!box) return;
-            const padding = 10;
-            const maxW = box.w - padding * 2;
-            const maxH = box.h - 32;
-            const scale = Math.min(maxW / Math.max(p.length, 50), maxH / Math.max(p.outerH, 50));
-            const drawW = p.length * scale;
-            const drawH = p.outerH * scale;
-
-            const px = box.x + (box.w - drawW) / 2;
-            const py = box.y + 18 + (maxH - drawH) / 2;
-
-            let gBars = p.override;
-            if (!gBars && p.gapOverride && p.gapOverride > 0) {
-                const innerL = Math.max(0, p.length - 6);
-                const gapsCalc = (innerL + 3) / (p.gapOverride + 3);
-                gBars = Math.max(2, Math.round(gapsCalc) + 1);
-            }
-            if (!gBars) {
-                gBars = Math.max(2, Math.round((p.length - 6) / 15) + 1);
-            }
-            const numInnerBars = Math.max(0, gBars - 2);
-            const gapCm = (p.gapOverride && p.gapOverride > 0) 
-                ? p.gapOverride 
-                : (numInnerBars >= 0 ? ((p.length - 6 - (numInnerBars * 3)) / (numInnerBars + 1)) : 0);
-
-            doc.setFontSize(11);
-            doc.setFont('helvetica', 'bold');
-            doc.setTextColor(0,0,0);
-            doc.text(p.title, box.x + box.w / 2, py - 10, { align: 'center' });
-
-            doc.setFontSize(8);
-            doc.setFont('helvetica', 'normal');
-            doc.setTextColor(100, 100, 100);
-            doc.text(`${p.length}cm de comprimento x ${p.outerH}cm de altura - Vãos: ${gapCm.toFixed(1)}cm`, box.x + box.w / 2, py - 6, { align: 'center' });
-
-            doc.setDrawColor(40, 50, 60);
-            doc.setLineWidth(1.5);
-            doc.rect(px, py, drawW, drawH);
-            
-            const spacing = drawW / (numInnerBars + 1);
-            doc.setLineWidth(0.8);
-            for (let b = 1; b <= numInnerBars; b++) {
-                const bx = px + b * spacing;
-                doc.line(bx, py, bx, py + drawH);
-            }
-
-            if (numInnerBars > 0) {
-                const gapStartX = px + 1;
-                const gapEndX = px + spacing - 1;
-                const midY = py + drawH / 2;
-                doc.setDrawColor(220, 38, 38);
-                doc.setLineWidth(0.6);
-                doc.line(gapStartX, midY - 2, gapStartX, midY + 2);
-                doc.line(gapEndX, midY - 2, gapEndX, midY + 2);
-                doc.setLineDashPattern([1.5, 1.5], 0);
-                doc.line(gapStartX, midY, gapEndX, midY);
-                doc.setLineDashPattern([], 0);
-                doc.setFontSize(7.5);
-                doc.setFont('helvetica', 'bold');
-                doc.setTextColor(220, 38, 38);
-                doc.text(`${gapCm.toFixed(1)}cm`, (gapStartX + gapEndX) / 2, midY - 1.5, { align: 'center' });
-                doc.setTextColor(0, 0, 0);
-            }
-
-            if (box.h >= 60) {
-                doc.setFontSize(7.5);
-                doc.setFont('helvetica', 'bold');
-                doc.setTextColor(220, 38, 38);
-                doc.text(`Espaçamento entre os tubos: ${gapCm.toFixed(1)}cm`, box.x + box.w / 2, py + drawH + 5, { align: 'center' });
-                doc.setTextColor(0, 0, 0);
-            }
+            drawProposalPiece(doc, box, {
+                title: p.title,
+                length: p.length,
+                outerH: p.outerH,
+                innerH: p.innerH,
+                isGate: p.type === 'gate',
+                isFixed: p.isFixed,
+                override: p.override,
+                gapOverride: p.gapOverride
+            });
         });
     });
 
@@ -774,85 +850,23 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[], startY: num
             const acc2 = accessories[i + 1]; // Pode ser undefined
 
             const drawAcc = (acc: any, box: any) => {
-                const isGate = acc.hasGate;
-                const format = acc.guardrailFormat || 'straight';
+                const isGate = !!acc.hasGate;
                 const isBipartido = acc.gateIsBipartido || acc.isBipartido;
                 const titleText = isGate ? (isBipartido ? 'Portão (Bipartido)' : 'Portão') : 'Guarda-Corpo';
-
-                doc.setFontSize(14);
-                doc.setFont('helvetica', 'bold');
-                doc.setTextColor(0, 0, 0);
-                doc.text(titleText, box.x + box.w / 2, box.y, { align: 'center' });
-
                 const gL = isGate ? acc.gateLength || 100 : acc.guardrailLength || 0;
                 const gH = isGate ? acc.gateHeight || 90 : acc.guardrailHeight || 90;
-                const gBars = isGate ? acc.gateBarsOverride : acc.guardrailBarsOverride;
-                const gGap = isGate ? acc.gateGapOverride : acc.guardrailGapOverride;
+                const isFixed = !isGate && !!acc.guardrailFixedToLanding;
 
-                let totalBars = gBars;
-                if (!totalBars && gGap && gGap > 0) {
-                    const innerL = Math.max(0, gL - 6);
-                    const gapsCalc = (innerL + 3) / (gGap + 3);
-                    totalBars = Math.max(2, Math.round(gapsCalc) + 1);
-                }
-                if (!totalBars) {
-                    totalBars = Math.max(2, Math.round((gL - 6) / 15) + 1);
-                }
-                const numInnerBars = Math.max(0, totalBars - 2);
-                const gapCm = (gGap && gGap > 0)
-                    ? gGap
-                    : (numInnerBars >= 0 ? ((gL - 6 - (numInnerBars * 3)) / (numInnerBars + 1)) : 0);
-
-                doc.setFontSize(8);
-                doc.setFont('helvetica', 'normal');
-                doc.setTextColor(100, 100, 100);
-                doc.text(`${gL}cm de comprimento x ${gH}cm de altura - Vãos: ${gapCm.toFixed(1)}cm`, box.x + box.w / 2, box.y + 4.5, { align: 'center' });
-
-                const padding = 10;
-                const maxW = box.w - padding * 2;
-                const maxH = box.h - 22;
-
-                const scale = Math.min(maxW / Math.max(gL, 50), maxH / Math.max(gH, 50));
-                const drawW = gL * scale;
-                const drawH = gH * scale;
-
-                const px = box.x + (box.w - drawW) / 2;
-                const py = box.y + 11 + (maxH - drawH) / 2;
-
-                doc.setDrawColor(40, 50, 60);
-                doc.setLineWidth(1.5);
-                doc.rect(px, py, drawW, drawH);
-                
-                const spacing = drawW / (numInnerBars + 1);
-                doc.setLineWidth(0.8);
-                for (let b = 1; b <= numInnerBars; b++) {
-                    const bx = px + b * spacing;
-                    doc.line(bx, py, bx, py + drawH);
-                }
-
-                if (numInnerBars > 0) {
-                    const gapStartX = px + 1;
-                    const gapEndX = px + spacing - 1;
-                    const midY = py + drawH / 2;
-                    doc.setDrawColor(220, 38, 38);
-                    doc.setLineWidth(0.6);
-                    doc.line(gapStartX, midY - 2, gapStartX, midY + 2);
-                    doc.line(gapEndX, midY - 2, gapEndX, midY + 2);
-                    doc.setLineDashPattern([1.5, 1.5], 0);
-                    doc.line(gapStartX, midY, gapEndX, midY);
-                    doc.setLineDashPattern([], 0);
-                    doc.setFontSize(7.5);
-                    doc.setFont('helvetica', 'bold');
-                    doc.setTextColor(220, 38, 38);
-                    doc.text(`${gapCm.toFixed(1)}cm`, (gapStartX + gapEndX) / 2, midY - 1.5, { align: 'center' });
-                    doc.setTextColor(0, 0, 0);
-                }
-
-                doc.setFontSize(8);
-                doc.setFont('helvetica', 'bold');
-                doc.setTextColor(220, 38, 38);
-                doc.text(`Espaçamento entre os tubos: ${gapCm.toFixed(1)}cm`, box.x + box.w / 2, py + drawH + 5, { align: 'center' });
-                doc.setTextColor(0, 0, 0);
+                drawProposalPiece(doc, box, {
+                    title: titleText,
+                    length: gL,
+                    outerH: isFixed ? gH + 10 : gH,
+                    innerH: gH - 13,
+                    isGate: isGate,
+                    isFixed: isFixed,
+                    override: isGate ? acc.gateBarsOverride : acc.guardrailBarsOverride,
+                    gapOverride: isGate ? acc.gateGapOverride : acc.guardrailGapOverride
+                });
             };
 
             const fullW = 190;

@@ -1135,7 +1135,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                                         const gateHeight = landing.gateHeight !== undefined ? landing.gateHeight : 90;
                                         const gatePricePerMeter = landing.gatePricePerMeter !== undefined ? landing.gatePricePerMeter : 50;
                                         
-                                        let innerL = gateLength - 6;
+                                        let innerL = gateLength - 4;
                                         if (innerL < 0) innerL = 0;
                                         const baseGaps = Math.max(1, Math.round(innerL / 15));
                                         const baseBars = baseGaps + 1;
@@ -1314,7 +1314,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                                                 const gateHeight = landing.gateHeight !== undefined ? landing.gateHeight : 90;
                                                 const gatePricePerMeter = landing.gatePricePerMeter !== undefined ? landing.gatePricePerMeter : 50;
                                                 
-                                                let innerL = gateLength - 6;
+                                                let innerL = gateLength - 4;
                                                 if (innerL < 0) innerL = 0;
                                                 const baseGaps = Math.max(1, Math.round(innerL / 15));
                                                 let totalBars = landing.gateBarsOverride !== undefined ? landing.gateBarsOverride : (baseGaps + 1);

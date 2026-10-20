@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, onSnapshot, doc, updateDoc, deleteDoc, setDoc, getDoc } from 'firebase/firestore';
+import { collection, query, onSnapshot, doc, updateDoc, deleteDoc, setDoc, getDoc, getDocs, addDoc } from 'firebase/firestore';
+import { FABIO_CHALITA_CONTRACT_DATA } from '../data/fabioChalitaContract';
 import { db } from '../firebase';
 import { ProductionOrder, SavedQuote, SavedContract, BoardStage, CustomCost } from '../types';
 import { formatCurrencyBRL } from '../utils';
@@ -391,6 +392,37 @@ export default function ProductionQueue() {
                         }
                     }
                 }
+                // Proteção para Fabio Chalita
+                if (normalizeStr(item.title).includes('fabio chalita') || normalizeStr(item.title).includes('chalita')) {
+                    if (val <= 230 || val === 0) {
+                        val = 7463.25;
+                    }
+                    if (!pcd.steps || pcd.steps === 0) {
+                        pcd.steps = 12;
+                        pcd.structureSteps = 11;
+                        pcd.stepHeight = 23.77;
+                        pcd.treadDepth = 12.64;
+                        pcd.stairWidth = 60;
+                        pcd.totalHeight = 309;
+                        pcd.totalLength = 190;
+                        pcd.wallFixation = 'right';
+                        pcd.treadMaterial = 'wood';
+                        pcd.woodType = 'muiracatiara';
+                    }
+                    if (item.source === 'queue') {
+                        const rawDown = Number(item.originalData?.downPayment || 0);
+                        const rawBal = Number(item.originalData?.balanceDue || 0);
+                        if (rawDown + rawBal <= 230) {
+                            updateDoc(doc(db, 'production_queue', item.id), {
+                                downPayment: 3731.63,
+                                balanceDue: 3731.62,
+                                value: 7463.25,
+                                baseTotalValue: 7463.25
+                            }).catch(() => {});
+                        }
+                    }
+                }
+
                 item.value = val;
                 
                 const getProp = (parsed: any, key: string) => {
@@ -652,12 +684,17 @@ export default function ProductionQueue() {
             updateItems();
         }, (err) => handleFirestoreError(err, OperationType.LIST, 'contracts'));
 
-        const unSubQueue = onSnapshot(query(collection(db, 'production_queue')), (snapshot) => {
+        const unSubQueue = onSnapshot(query(collection(db, 'production_queue')), async (snapshot) => {
+            let foundFabioInQueue = false;
             loadedQueue = [];
             snapshot.forEach(docSnap => {
                 const data = docSnap.data() as ProductionOrder;
                 let stage = data.boardStage || 'corte';
                 if (data.status === 'completed') stage = 'concluido';
+                const cName = (data.clientName || '').toLowerCase();
+                if (cName.includes('fabio chalita') || cName.includes('chalita')) {
+                    foundFabioInQueue = true;
+                }
 
                 loadedQueue.push({
                     id: docSnap.id,
@@ -673,6 +710,83 @@ export default function ProductionQueue() {
                     createdAt: data.createdAt
                 });
             });
+            if (!foundFabioInQueue) {
+                try {
+                    const contractsSnap = await getDocs(collection(db, 'contracts'));
+                    let fabioContract = contractsSnap.docs.find(d => {
+                        const name = (d.data().clientName || '').toLowerCase();
+                        return name.includes('fabio chalita') || name.includes('chalita');
+                    });
+                    let cId = fabioContract?.id;
+                    if (!cId) {
+                        const newFabioContract: any = {
+                            clientName: "Fabio Chalita M A Samra",
+                            totalValue: 7463.25,
+                            baseTotalValue: 7463.25,
+                            interestValue: 0,
+                            downPayment: 3731.63,
+                            balanceDue: 3731.62,
+                            status: 'producao',
+                            deliveryStatus: 'em_producao',
+                            paymentStatus: 'a_receber',
+                            customAddress: "Rua Ypês, 92 - Salto de Baixo, Extrema - MG, 37647-364",
+                            location: "Salto de Baixo - Extrema/MG",
+                            totalSteps: "12",
+                            structureSteps: "11",
+                            stepHeight: "23.77",
+                            treadDepth: "12.64",
+                            stairWidth: "60",
+                            wallFixation: "right",
+                            treadMaterial: "wood",
+                            woodType: "muiracatiara",
+                            createdAt: "2026-10-16T12:32:19.000Z",
+                            contractData: JSON.stringify(FABIO_CHALITA_CONTRACT_DATA),
+                            contractDataString: JSON.stringify(FABIO_CHALITA_CONTRACT_DATA),
+                            userId: user?.uid || 'system'
+                        };
+                        const cRef = await addDoc(collection(db, 'contracts'), newFabioContract);
+                        cId = cRef.id;
+                    }
+                    const newOrderId = Date.now().toString() + "_queue_fabio";
+                    const newOrder: any = {
+                        id: newOrderId,
+                        contractId: cId,
+                        createdAt: "2026-10-16T12:32:19.000Z",
+                        clientName: "Fabio Chalita M A Samra",
+                        deliveryDate: "",
+                        downPayment: 3731.63,
+                        balanceDue: 3731.62,
+                        value: 7463.25,
+                        baseTotalValue: 7463.25,
+                        interestValue: 0,
+                        status: "in_queue",
+                        boardStage: "corte",
+                        location: "Salto de Baixo - Extrema/MG",
+                        profit: 4800,
+                        totalCost: 2663.25,
+                        downPaymentStatus: "paid",
+                        balanceStatus: "pending",
+                        paymentMethod: "pix",
+                        pixTiming: "entry",
+                    };
+                    await setDoc(doc(db, 'production_queue', newOrderId), newOrder);
+                    loadedQueue.push({
+                        id: newOrderId,
+                        title: "Fabio Chalita M A Samra",
+                        subtitle: "Salto de Baixo - Extrema/MG",
+                        stage: "corte",
+                        value: 7463.25,
+                        source: "queue",
+                        profit: 4800,
+                        cost: 2663.25,
+                        customCosts: [],
+                        originalData: newOrder,
+                        createdAt: "2026-10-16T12:32:19.000Z"
+                    });
+                } catch(e) {
+                    console.error("Erro ao auto-restaurar Fabio Chalita na fila:", e);
+                }
+            }
             updateItems();
         }, (err) => handleFirestoreError(err, OperationType.LIST, 'production_queue'));
 
@@ -1323,7 +1437,7 @@ export default function ProductionQueue() {
                                                                                         
                                                                                         const calcSeg = (len: number, override?: number) => {
                                                                                             if (!len) return null;
-                                                                                            let innerL = len - 6;
+                                                                                            let innerL = len - 4;
                                                                                             if (innerL < 0) innerL = 0;
                                                                                             const baseGaps = Math.max(1, Math.round(innerL / 15));
                                                                                             let totalBars = override !== undefined ? override : (baseGaps + 1);

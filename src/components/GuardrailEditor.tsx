@@ -10,7 +10,7 @@ export const GuardrailEditor = ({ landing, updateLanding, InputField, isGate = f
     const gPricePerMeter = landing.guardrailPricePerMeter !== undefined ? landing.guardrailPricePerMeter : 50;
 
     const renderSegment = (length: number, override: number | undefined, updateOverride: (val: number | undefined) => void, label: string, gapOverride: number | undefined, updateGap: (val: number | undefined) => void, priceOverride: number | undefined, updatePrice: (val: number | undefined) => void, isFixed: boolean = false) => {
-        let innerL = length - 6;
+        let innerL = length - 4;
         if (innerL < 0) innerL = 0;
         const baseGaps = Math.max(1, Math.round(innerL / 15));
         const baseBars = baseGaps + 1;

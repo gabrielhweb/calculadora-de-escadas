@@ -97,6 +97,8 @@ export const DeliveriesTable: React.FC = () => {
 
         // Dados históricos/retroativos conhecidos para contratos cadastrados manualmente ou migrados
         const KNOWN_CONTRACTS_DATA: Record<string, any> = {
+            "fabio chalita m a samra": { steps: 12, structureSteps: 11, stepHeight: 23.77, treadDepth: 12.64, stairWidth: 60, totalHeight: 309, totalLength: 190, wallFixation: "right", treadMaterial: "wood", woodType: "muiracatiara", landings: [{ length: 40, width: 60, price: 1440, type: "articulated", direction: "right", isFlushWithSlab: false, frenchBrackets: 2, hasSideGuardrail: true }] },
+            "fabio chalita": { steps: 12, structureSteps: 11, stepHeight: 23.77, treadDepth: 12.64, stairWidth: 60, totalHeight: 309, totalLength: 190, wallFixation: "right", treadMaterial: "wood", woodType: "muiracatiara", landings: [{ length: 40, width: 60, price: 1440, type: "articulated", direction: "right", isFlushWithSlab: false, frenchBrackets: 2, hasSideGuardrail: true }] },
             "mario dos reis filho": { steps: 11, stepHeight: 23.54, treadDepth: 20, stairWidth: 58, totalHeight: 283, totalLength: 225, wallFixation: "right", treadMaterial: "metal" },
             "diego ferreira santos": { steps: 13, stepHeight: 22.14, treadDepth: 20, stairWidth: 60, totalHeight: 310, totalLength: 267, wallFixation: "left", treadMaterial: "metal" },
             "alexandre bergamo de oliveira": { steps: 13, stepHeight: 24.43, treadDepth: 16, stairWidth: 52, totalHeight: 342, totalLength: 215, wallFixation: "frontal", treadMaterial: "metal" },
@@ -471,7 +473,7 @@ export const DeliveriesTable: React.FC = () => {
                     
                     const calcSeg = (len: number, override?: number) => {
                         if (!len) return null;
-                        let innerL = len - 6;
+                        let innerL = len - 4;
                         if (innerL < 0) innerL = 0;
                         const baseGaps = Math.max(1, Math.round(innerL / 15));
                         let totalBars = override !== undefined ? override : (baseGaps + 1);

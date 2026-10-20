@@ -6,7 +6,8 @@ import { generateContractPDF } from '../utils/contractGenerator';
 import { generateUnifiedTechnicalPDF } from '../utils/technicalPdfGenerator';
 import { generateGuardrailsOnlyPDF } from '../utils/productionPdfGenerator';
 import { generatePaymentReceiptPDF } from '../utils/paymentReceiptGenerator';
-import { collection, query, where, onSnapshot, doc, updateDoc, deleteDoc, getDocs, addDoc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, updateDoc, deleteDoc, getDocs, addDoc, setDoc } from 'firebase/firestore';
+import { FABIO_CHALITA_CONTRACT_DATA } from '../data/fabioChalitaContract';
 import { db, auth } from '../firebase';
 import { useAuth } from '../components/AuthProvider';
 
@@ -89,6 +90,7 @@ export const ContractsList: React.FC = () => {
 
     
     const FIX_DATA = [
+      { clientName: "Fabio Chalita M A Samra", steps: 12, structureSteps: 11, stepHeightCm: 23.77, treadDepthCm: 12.64, widthCm: 60, totalLength: 190, wallFixation: "right", treadMaterial: "wood", woodType: "muiracatiara", landings: [{ length: 40, width: 60, price: 1440, type: "articulated", direction: "right", isFlushWithSlab: false, frenchBrackets: 2, hasSideGuardrail: true }], totalValue: 7463.25 },
       { clientName: "Diego Ferreira Santos", steps: 13, stepHeightCm: 22.14, treadDepthCm: 20.00, widthCm: 60, totalLength: 267, wallFixation: "left", treadMaterial: "metal", landings: [], totalValue: 6327 },
       { clientName: "Alexandre Bergamo de Oliveira", steps: 13, stepHeightCm: 24.43, treadDepthCm: 16.00, widthCm: 52, totalLength: 215, wallFixation: "frontal", treadMaterial: "metal", landings: [], totalValue: 7215.25 },
       { clientName: "Andréa Aragão Ferreira Rovina", steps: 13, stepHeightCm: 23.00, treadDepthCm: 20.00, widthCm: 70, totalLength: 267, wallFixation: "right", treadMaterial: "wood", landings: [], totalValue: 7476.50 },
@@ -120,6 +122,7 @@ export const ContractsList: React.FC = () => {
         }
     };
     const INJECT_DATA = [
+        { name: "Fabio Chalita M A Samra", data: { steps: 12, structureSteps: 11, stepHeight: 23.77, treadDepth: 12.64, stairWidth: 60, totalHeight: 309, totalLength: 190, wallFixation: "right", treadMaterial: "wood", woodType: "muiracatiara", landings: [{ length: 40, width: 60, price: 1440, type: "articulated", direction: "right", isFlushWithSlab: false, frenchBrackets: 2, hasSideGuardrail: true }] } },
         { name: "Diego Ferreira Santos", data: { steps: 13, stepHeight: 22.14, treadDepth: 20, stairWidth: 60, totalHeight: 310, totalLength: 267, wallFixation: "left", treadMaterial: "metal" } },
         { name: "Alexandre Bergamo de Oliveira", data: { steps: 13, stepHeight: 24.43, treadDepth: 16, stairWidth: 52, totalHeight: 342, totalLength: 215, wallFixation: "front", treadMaterial: "metal" } },
         { name: "Andréa Aragão Ferreira Rovina", data: { steps: 13, stepHeight: 23.00, treadDepth: 20, stairWidth: 70, totalHeight: 322, totalLength: 267, wallFixation: "right", treadMaterial: "wood", woodType: "Muiracatiara" } },
@@ -354,6 +357,7 @@ export const ContractsList: React.FC = () => {
         const unsubscribe = onSnapshot(q, async (snapshot) => {
             const loadedContracts: SavedContract[] = [];
             let foundAlexandre = false;
+            let foundFabio = false;
 
             snapshot.forEach((docSnap) => {
                 const docData = docSnap.data();
@@ -393,6 +397,38 @@ export const ContractsList: React.FC = () => {
                     }
                 }
                 
+                if (cName.includes('fabio chalita') || cName.includes('chalita')) {
+                    foundFabio = true;
+                    let needsUpdate = false;
+                    const updates: any = {};
+                    if (docData.status === 'pendente' || !docData.status) {
+                        updates.status = 'producao';
+                        docData.status = 'producao';
+                        needsUpdate = true;
+                    }
+                    if (!docData.totalValue || Number(docData.totalValue) === 0) {
+                        updates.totalValue = 7463.25;
+                        docData.totalValue = 7463.25;
+                        needsUpdate = true;
+                    }
+                    if (!docData.contractData) {
+                        updates.contractData = JSON.stringify(FABIO_CHALITA_CONTRACT_DATA);
+                        updates.contractDataString = JSON.stringify(FABIO_CHALITA_CONTRACT_DATA);
+                        updates.totalSteps = "12";
+                        updates.structureSteps = "11";
+                        updates.stepHeight = "23.77";
+                        updates.treadDepth = "12.64";
+                        updates.stairWidth = "60";
+                        updates.wallFixation = "right";
+                        updates.treadMaterial = "wood";
+                        updates.woodType = "muiracatiara";
+                        needsUpdate = true;
+                    }
+                    if (needsUpdate) {
+                        updateDoc(doc(db, 'contracts', docSnap.id), updates).catch(() => {});
+                    }
+                }
+
                 loadedContracts.push({ id: docSnap.id, ...docData } as SavedContract);
             });
 
@@ -434,6 +470,81 @@ export const ContractsList: React.FC = () => {
                         });
                     }
                     loadedContracts.push({ id: docRef.id, ...newAlexContract } as SavedContract);
+
+
+            // Se Fabio Chalita não estiver em contracts, busca na production_queue ou restaura automaticamente
+            if (!foundFabio) {
+                try {
+                    const queueSnap = await getDocs(collection(db, 'production_queue'));
+                    let fabioDoc = queueSnap.docs.find(d => {
+                        const name = (d.data().clientName || '').toLowerCase();
+                        return name.includes('fabio chalita') || name.includes('chalita');
+                    });
+                    
+                    const newFabioContract: any = {
+                        clientName: "Fabio Chalita M A Samra",
+                        totalValue: 7463.25,
+                        baseTotalValue: 7463.25,
+                        interestValue: 0,
+                        downPayment: 3731.63,
+                        balanceDue: 3731.62,
+                        status: 'producao',
+                        deliveryStatus: 'em_producao',
+                        paymentStatus: 'a_receber',
+                        customAddress: "Rua Ypês, 92 - Salto de Baixo, Extrema - MG, 37647-364",
+                        location: "Salto de Baixo - Extrema/MG",
+                        totalSteps: "12",
+                        structureSteps: "11",
+                        stepHeight: "23.77",
+                        treadDepth: "12.64",
+                        stairWidth: "60",
+                        wallFixation: "right",
+                        treadMaterial: "wood",
+                        woodType: "muiracatiara",
+                        createdAt: "2026-10-16T12:32:19.000Z",
+                        contractData: JSON.stringify(FABIO_CHALITA_CONTRACT_DATA),
+                        contractDataString: JSON.stringify(FABIO_CHALITA_CONTRACT_DATA),
+                        userId: user?.uid || 'system'
+                    };
+
+                    const docRef = await addDoc(collection(db, 'contracts'), newFabioContract);
+                    if (fabioDoc) {
+                        await updateDoc(doc(db, 'production_queue', fabioDoc.id), {
+                            contractId: docRef.id,
+                            downPayment: 3731.63,
+                            balanceDue: 3731.62,
+                            value: 7463.25,
+                            baseTotalValue: 7463.25
+                        });
+                    } else {
+                        const newOrder: any = {
+                            id: Date.now().toString() + "_queue_fabio",
+                            contractId: docRef.id,
+                            createdAt: "2026-10-16T12:32:19.000Z",
+                            clientName: "Fabio Chalita M A Samra",
+                            deliveryDate: "",
+                            downPayment: 3731.63,
+                            balanceDue: 3731.62,
+                            value: 7463.25,
+                            baseTotalValue: 7463.25,
+                            interestValue: 0,
+                            status: "in_queue",
+                            boardStage: "corte",
+                            location: "Salto de Baixo - Extrema/MG",
+                            profit: 4800,
+                            totalCost: 2663.25,
+                            downPaymentStatus: "paid",
+                            balanceStatus: "pending",
+                            paymentMethod: "pix",
+                            pixTiming: "entry",
+                        };
+                        await setDoc(doc(db, 'production_queue', newOrder.id), newOrder);
+                    }
+                    loadedContracts.push({ id: docRef.id, ...newFabioContract } as SavedContract);
+                } catch(e) {
+                    console.error("Erro ao auto-restaurar Fabio Chalita em contracts:", e);
+                }
+            }
                 } catch(e) {
                     console.error("Erro ao auto-restaurar Alexandre Bergamo em contracts:", e);
                 }
