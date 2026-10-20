@@ -470,7 +470,10 @@ export const ContractsList: React.FC = () => {
                         });
                     }
                     loadedContracts.push({ id: docRef.id, ...newAlexContract } as SavedContract);
-
+                } catch(e) {
+                    console.error("Erro ao auto-restaurar Alexandre Bergamo em contracts:", e);
+                }
+            }
 
             // Se Fabio Chalita não estiver em contracts, busca na production_queue ou restaura automaticamente
             if (!foundFabio) {
@@ -543,10 +546,6 @@ export const ContractsList: React.FC = () => {
                     loadedContracts.push({ id: docRef.id, ...newFabioContract } as SavedContract);
                 } catch(e) {
                     console.error("Erro ao auto-restaurar Fabio Chalita em contracts:", e);
-                }
-            }
-                } catch(e) {
-                    console.error("Erro ao auto-restaurar Alexandre Bergamo em contracts:", e);
                 }
             }
 
@@ -1070,52 +1069,7 @@ export const ContractsList: React.FC = () => {
                     </h1>
                     <p className="text-gray-500 dark:text-gray-400 mt-1">Acompanhe o status de cada projeto na sua timeline.</p>
                 </div>
-                <div className="flex gap-2">
-                    <button
-                        onClick={() => {
-                            const frontals = contracts.filter(contract => {
-                                const c = contract as any;
-                                return (c.wallFixation === 'frontal') || 
-                                (c.inputData && c.inputData.wallFixation === 'frontal') ||
-                                JSON.stringify(c).toLowerCase().includes('frontal');
-                            });
-                            if (frontals.length === 0) alert('Nenhum contrato com escada frontal encontrado.');
-                            else {
-                                const names = frontals.map(contract => {
-                                    const c = contract as any;
-                                    return c.clientName || (c.inputData && c.inputData.clientName) || 'Sem nome';
-                                }).join(', ');
-                                alert('Contratos frontais encontrados: ' + names);
-                            }
-                        }}
-                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm transition-colors"
-                    >
-                        Buscar Frontal
-                    </button>
-                    <button 
-                        onClick={async () => {
-                            if (!window.confirm("Essa ação vai varrer TODOS os contratos e fila de produção, atualizar os cálculos de peso exato e salvar os resultados. Continuar?")) return;
-                            const { fixAllContractsAndQueue } = await import('../utils/fixDatabase');
-                            await fixAllContractsAndQueue();
-                        }}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition-colors text-sm"
-                    >
-                        [Temporário] Atualizar Cálculos do Banco
-                    </button>
-                    <button 
-                        onClick={exportDatabase}
-                        className="bg-gray-800 hover:bg-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition-colors text-sm"
-                    >
-                        📦 Backup
-                    </button>
-                    <button 
-                        onClick={openAddModal}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition-colors text-sm"
-                    >
-                        + Adicionar Pedido Retoativo
-                    </button>
-                </div>
-            </header>
+                </header>
 
             <div className="flex-1 flex flex-col md:flex-row gap-6 overflow-x-auto pb-4 custom-scrollbar">
                 {renderColumn('falta_assinar', 'Falta Assinar', 'border-yellow-400')}
