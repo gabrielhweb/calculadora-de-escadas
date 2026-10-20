@@ -427,12 +427,18 @@ export default function ProductionQueue() {
                 }
 
                 if (!heightNum && stepsNum > 0) {
-                    const totH = Number(getProp(pcd, 'totalHeight')) || Number(getProp(pcd, 'alturaTotal')) || 0;
+                    let totH = Number(getProp(pcd, 'totalHeight')) || Number(getProp(pcd, 'alturaTotal')) || 0;
+                    if (totH > 500) totH = totH / 10;
                     if (totH > 0) heightNum = totH / stepsNum;
                     else heightNum = 19;
                 }
                 if (!treadNum && stepsNum > 0) treadNum = 25;
                 if (!widthNum && (stepsNum > 0 || treadNum > 0)) widthNum = 70;
+
+                // Normalização de Unidades (se vier em milímetros em vez de centímetros)
+                if (widthNum > 150) widthNum = widthNum / 10;
+                if (treadNum > 60) treadNum = treadNum / 10;
+                if (heightNum > 60) heightNum = heightNum / 10;
 
                 const STEEL_PRICE_PER_KG = 13.80;
                 const TUBE_PRICE_PER_METER = 10;
@@ -460,8 +466,12 @@ export default function ProductionQueue() {
                     let landingsAreaM2 = 0;
                     landingsList.forEach((l: any) => {
                         if (!l.isAccessoriesOnly) {
-                            const lLen = (Number(l.length) || 0) + 20;
-                            const lWid = (Number(l.width) || 0) + 20;
+                            let lLen = Number(l.length) || 0;
+                            let lWid = Number(l.width) || 0;
+                            if (lLen > 250) lLen = lLen / 10;
+                            if (lWid > 250) lWid = lWid / 10;
+                            lLen += 20;
+                            lWid += 20;
                             landingsAreaM2 += (lLen * lWid) / 10000;
                         }
                     });
@@ -474,22 +484,29 @@ export default function ProductionQueue() {
                     landingsList.forEach((l: any) => {
                         if (l.hasGuardrail) {
                             const numSides = l.guardrailFormat === 'U' ? 3 : l.guardrailFormat === 'L' ? 2 : 1;
-                            const totalLinear = (l.guardrailLength || 0) + (numSides >= 2 ? (l.guardrailLength2 || 0) : 0) + (numSides >= 3 ? (l.guardrailLength3 || 0) : 0);
-                            const h = l.guardrailHeight || 90;
+                            let gL1 = Number(l.guardrailLength) || 0;
+                            let gL2 = Number(l.guardrailLength2) || 0;
+                            let gL3 = Number(l.guardrailLength3) || 0;
+                            if (gL1 > 350) gL1 = gL1 / 10;
+                            if (gL2 > 350) gL2 = gL2 / 10;
+                            if (gL3 > 350) gL3 = gL3 / 10;
+                            const totalLinear = gL1 + (numSides >= 2 ? gL2 : 0) + (numSides >= 3 ? gL3 : 0);
+                            let h = Number(l.guardrailHeight) || 90;
+                            if (h > 250) h = h / 10;
                             
-                            const innerL1 = Math.max(0, (l.guardrailLength || 0) - 6);
+                            const innerL1 = Math.max(0, gL1 - 6);
                             const t1 = Math.max(2, Math.max(1, Math.round(innerL1 / 15)) + 1);
                             const hL1 = ((h - 6) / 100) * t1;
                             
                             let hL2 = 0;
                             if (numSides >= 2) {
-                                const innerL2 = Math.max(0, (l.guardrailLength2 || 0) - 6);
+                                const innerL2 = Math.max(0, gL2 - 6);
                                 const t2 = Math.max(2, Math.max(1, Math.round(innerL2 / 15)) + 1);
                                 hL2 = ((h - 6) / 100) * t2;
                             }
                             let hL3 = 0;
                             if (numSides >= 3) {
-                                const innerL3 = Math.max(0, (l.guardrailLength3 || 0) - 6);
+                                const innerL3 = Math.max(0, gL3 - 6);
                                 const t3 = Math.max(2, Math.max(1, Math.round(innerL3 / 15)) + 1);
                                 hL3 = ((h - 6) / 100) * t3;
                             }
@@ -512,8 +529,10 @@ export default function ProductionQueue() {
                 const standaloneGuardrails = getProp(pcd, 'standaloneGuardrails');
                 if (standaloneGuardrails && Array.isArray(standaloneGuardrails)) {
                     standaloneGuardrails.forEach((g: any) => {
-                        const len = Number(g.length) || 0;
-                        const h = Number(g.height) || 90;
+                        let len = Number(g.length) || 0;
+                        let h = Number(g.height) || 90;
+                        if (len > 350) len = len / 10;
+                        if (h > 250) h = h / 10;
                         const innerL = Math.max(0, len - 6);
                         const t = Math.max(2, Math.max(1, Math.round(innerL / 15)) + 1);
                         const horiz = (len / 100) * 2;
@@ -524,9 +543,15 @@ export default function ProductionQueue() {
 
                 autoCost = (totalTubosLinear * TUBE_PRICE_PER_METER) + (pesoAcoKg * STEEL_PRICE_PER_KG);
 
-                // Estimativa de fabricação da escada do Jefferson (caso medidas não tenham sido salvas)
+                // Estimativa de fabricação da escada (caso medidas não tenham sido salvas)
                 if (autoCost === 0 && val > 0) {
                     autoCost = Math.round(val * 0.216 * 100) / 100;
+                }
+
+                // Trava de sanidade para o custo automático de materiais básicos (aço/tubos)
+                // Numa escada metálica comum, o custo de aço nunca deve ultrapassar 50% da venda total
+                if (val > 0 && autoCost > val * 0.5) {
+                    autoCost = Math.round(val * 0.25 * 100) / 100;
                 }
 
                 // Extras + Legacy

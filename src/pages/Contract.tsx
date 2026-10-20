@@ -1160,10 +1160,14 @@ const Contract = () => {
       // CALCULAR O PESO DA ESCADA
       let estimatedWeightKg = 0;
       try {
-        const tDepth = parseFloat(treadDepth) || 0;
-        const sHeight = parseFloat(stepHeight) || 0;
-        const w = parseFloat(width) || 0;
+        let tDepth = parseFloat(treadDepth) || 0;
+        let sHeight = parseFloat(stepHeight) || 0;
+        let w = parseFloat(width) || 0;
         const sNum = totalStepsNum;
+
+        if (w > 150) w /= 10;
+        if (tDepth > 60) tDepth /= 10;
+        if (sHeight > 60) sHeight /= 10;
         const thicknessM = 3.0 / 1000;
         const STEEL_DENSITY = 7850;
 

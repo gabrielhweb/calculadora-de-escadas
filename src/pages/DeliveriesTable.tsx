@@ -296,8 +296,12 @@ export const DeliveriesTable: React.FC = () => {
         if (landings && landings.length > 0) {
             landings.forEach((l: any) => {
                 if (l.isAccessoriesOnly || (Number(l.length) || 0) <= 0 || (Number(l.width) || 0) <= 0) return;
-                const lLen = (Number(l.length) || 0) + 20;
-                const lWid = (Number(l.width) || 0) + 20;
+                let lLen = Number(l.length) || 0;
+                let lWid = Number(l.width) || 0;
+                if (lLen > 250) lLen = lLen / 10;
+                if (lWid > 250) lWid = lWid / 10;
+                lLen += 20;
+                lWid += 20;
                 const pArea = (lLen * lWid) / 10000;
                 const pWeight = pArea * (3.34 / 1000) * 7850;
                 const pCost = pWeight * 13.80;
@@ -386,12 +390,16 @@ export const DeliveriesTable: React.FC = () => {
 
         // --- CÁLCULO DE PESO E CUSTO DO AÇO DA ESCADA ---
         try {
-            const treadNum = extractNum(tread);
-            const heightNum = extractNum(height);
-            const widthNum = extractNum(width);
-            const stepsNum = extractNum(steps);
+            let treadNum = extractNum(tread);
+            let heightNum = extractNum(height);
+            let widthNum = extractNum(width);
+            let stepsNum = extractNum(steps);
             const thicknessM = 3.0 / 1000;
             const STEEL_DENSITY = 7850;
+
+            if (widthNum > 150) widthNum = widthNum / 10;
+            if (treadNum > 60) treadNum = treadNum / 10;
+            if (heightNum > 60) heightNum = heightNum / 10;
 
             let stepsWeight = 0;
             let stringerWeight = 0;

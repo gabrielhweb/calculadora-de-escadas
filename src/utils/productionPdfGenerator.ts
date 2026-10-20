@@ -138,13 +138,13 @@ export const drawProductionPage = (doc: jsPDF, props: ProductionPdfProps) => {
         doc.text(`2,65mm`, infoX + eW + 2, infoY + 20);
 
     } else {
-        // Textos lado direito para vazado (face frontal da caixa 3D do degrau)
-        doc.setFontSize(14);
+        // Comprimento na lateral inclinada esquerda da caixa 3D (onde o cliente indicou)
+        doc.setFontSize(16);
         doc.setFont('helvetica', 'bold');
-        doc.text(`${widthMm}mm`, 236, 91.5, { align: 'center' });
-        doc.setFontSize(8);
+        doc.text(`${widthMm}mm`, 210, 75, { align: 'center' });
+        doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
-        doc.text('comprimento', 236, 95.5, { align: 'center' });
+        doc.text('comprimento', 210, 80, { align: 'center' });
 
         // Pisada/largura no topo da caixa
         doc.setFontSize(16);
