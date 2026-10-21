@@ -1,8 +1,17 @@
-import { createClient } from '@supabase/supabase-js';
+import pg from 'pg';
 
-const supabaseUrl = process.env.SUPABASE_URL || '';
-const supabaseKey = process.env.SUPABASE_KEY || '';
-const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
+const { Pool } = pg;
+
+let pool: any = null;
+function getPool() {
+    if (!pool && process.env.DATABASE_URL) {
+        pool = new Pool({
+            connectionString: process.env.DATABASE_URL,
+            ssl: process.env.DATABASE_URL.includes('localhost') ? false : { rejectUnauthorized: false }
+        });
+    }
+    return pool;
+}
 
 export default async function handler(req: any, res: any) {
     if (req.method !== 'POST') {
@@ -39,197 +48,204 @@ export default async function handler(req: any, res: any) {
 
     let usoGoogle = 0;
     let usoMapbox = 0;
+    let client: any = null;
 
-    // Busca de cotas no Supabase / PostgreSQL (com tolerância se a tabela ainda não tiver sido criada)
-    if (supabase) {
+    const dbPool = getPool();
+    if (dbPool) {
         try {
-            const { data, error } = await supabase
-                .from('controle_cotas_apis')
-                .select('mes_ano, uso_google, uso_mapbox')
-                .eq('mes_ano', mesAno)
-                .single();
+            client = await dbPool.connect();
+            let cotaQuery = await client.query(
+                'SELECT mes_ano, uso_google, uso_mapbox FROM controle_cotas_apis WHERE mes_ano = $1',
+                [mesAno]
+            );
 
-            if (error && error.code === 'PGRST116') {
-                // Não encontrado, insere inicial
-                await supabase.from('controle_cotas_apis').insert({
-                    mes_ano: mesAno,
-                    uso_google: 0,
-                    uso_mapbox: 0
-                });
-            } else if (data) {
-                usoGoogle = data.uso_google || 0;
-                usoMapbox = data.uso_mapbox || 0;
+            if (cotaQuery.rows.length === 0) {
+                await client.query(
+                    'INSERT INTO controle_cotas_apis (mes_ano, uso_google, uso_mapbox) VALUES ($1, 0, 0) ON CONFLICT (mes_ano) DO NOTHING',
+                    [mesAno]
+                );
+
+                cotaQuery = await client.query(
+                    'SELECT mes_ano, uso_google, uso_mapbox FROM controle_cotas_apis WHERE mes_ano = $1',
+                    [mesAno]
+                );
+            }
+
+            if (cotaQuery.rows.length > 0) {
+                usoGoogle = cotaQuery.rows[0].uso_google;
+                usoMapbox = cotaQuery.rows[0].uso_mapbox;
             }
         } catch (dbErr) {
-            console.warn('[ROTA] Aviso ao ler cotas do banco:', dbErr);
+            console.warn('[ROTA] Aviso ao ler cotas do PostgreSQL:', dbErr);
         }
     }
 
     const googleKey = process.env.GOOGLE_MAPS_API_KEY;
     const mapboxToken = process.env.MAPBOX_ACCESS_TOKEN;
 
-    // =========================================================================
-    // PRIORIDADE 1: Google Maps Routes API (Compute Routes)
-    // =========================================================================
-    if (usoGoogle < 39500 && googleKey) {
-        try {
-            const origin = {
-                location: {
-                    latLng: {
-                        latitude: visitas[0].latitude,
-                        longitude: visitas[0].longitude
+    try {
+        // PRIORIDADE 1: Google Maps Routes API
+        if (usoGoogle < 39500 && googleKey) {
+            try {
+                const origin = {
+                    location: {
+                        latLng: {
+                            latitude: visitas[0].latitude,
+                            longitude: visitas[0].longitude
+                        }
                     }
-                }
-            };
+                };
 
-            const destination = {
-                location: {
-                    latLng: {
-                        latitude: visitas[visitas.length - 1].latitude,
-                        longitude: visitas[visitas.length - 1].longitude
+                const destination = {
+                    location: {
+                        latLng: {
+                            latitude: visitas[visitas.length - 1].latitude,
+                            longitude: visitas[visitas.length - 1].longitude
+                        }
                     }
-                }
-            };
+                };
 
-            const intermediates = visitas.slice(1, -1).map(v => ({
-                location: {
-                    latLng: {
-                        latitude: v.latitude,
-                        longitude: v.longitude
+                const intermediates = visitas.slice(1, -1).map(v => ({
+                    location: {
+                        latLng: {
+                            latitude: v.latitude,
+                            longitude: v.longitude
+                        }
                     }
-                }
-            }));
+                }));
 
-            const googlePayload = {
-                origin,
-                destination,
-                intermediates,
-                travelMode: 'DRIVE',
-                routingPreference: 'TRAFFIC_AWARE_OPTIMAL',
-                optimizeWaypointOrder: true
-            };
+                const googlePayload = {
+                    origin,
+                    destination,
+                    intermediates,
+                    travelMode: 'DRIVE',
+                    routingPreference: 'TRAFFIC_AWARE_OPTIMAL',
+                    optimizeWaypointOrder: true
+                };
 
-            const googleResponse = await fetch('https://routes.googleapis.com/directions/v2:computeRoutes', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Goog-Api-Key': googleKey,
-                    'X-Goog-FieldMask': 'routes.optimizedIntermediateWaypointIndex'
-                },
-                body: JSON.stringify(googlePayload),
-                signal: AbortSignal.timeout(6000)
-            });
+                const googleResponse = await fetch('https://routes.googleapis.com/directions/v2:computeRoutes', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Goog-Api-Key': googleKey,
+                        'X-Goog-FieldMask': 'routes.optimizedIntermediateWaypointIndex'
+                    },
+                    body: JSON.stringify(googlePayload),
+                    signal: AbortSignal.timeout(6000)
+                });
 
-            if (googleResponse.status === 200) {
-                const googleData = await googleResponse.json();
-                const intermediateVisits = visitas.slice(1, -1);
-                const optimizedIndices = googleData.routes?.[0]?.optimizedIntermediateWaypointIndex || [];
+                if (googleResponse.status === 200) {
+                    const googleData = await googleResponse.json();
+                    const intermediateVisits = visitas.slice(1, -1);
+                    const optimizedIndices = googleData.routes?.[0]?.optimizedIntermediateWaypointIndex || [];
 
-                let visitasOrdenadas = [];
-                if (intermediateVisits.length > 0 && optimizedIndices.length === intermediateVisits.length) {
-                    const intermediatesOrdenados = optimizedIndices.map(idx => intermediateVisits[idx]);
-                    visitasOrdenadas = [visitas[0], ...intermediatesOrdenados, visitas[visitas.length - 1]];
-                } else {
-                    visitasOrdenadas = [...visitas];
-                }
+                    let visitasOrdenadas = [];
+                    if (intermediateVisits.length > 0 && optimizedIndices.length === intermediateVisits.length) {
+                        const intermediatesOrdenados = optimizedIndices.map((idx: number) => intermediateVisits[idx]);
+                        visitasOrdenadas = [visitas[0], ...intermediatesOrdenados, visitas[visitas.length - 1]];
+                    } else {
+                        visitasOrdenadas = [...visitas];
+                    }
 
-                // Incrementa no banco
-                if (supabase) {
-                    supabase.rpc('increment_uso_google', { p_mes_ano: mesAno }).catch(() => {
-                        supabase.from('controle_cotas_apis').update({ uso_google: usoGoogle + 1 }).eq('mes_ano', mesAno);
+                    if (client) {
+                        await client.query(
+                            'UPDATE controle_cotas_apis SET uso_google = uso_google + 1 WHERE mes_ano = $1',
+                            [mesAno]
+                        );
+                    }
+
+                    return res.status(200).json({
+                        api_utilizada: 'google',
+                        visitas: visitasOrdenadas
                     });
                 }
-
-                return res.status(200).json({
-                    api_utilizada: 'google',
-                    visitas: visitasOrdenadas
-                });
+            } catch (errGoogle) {
+                // Falha do Google: prossegue para Prioridade 2
             }
-        } catch (errGoogle: any) {
-            console.warn('[ROTA] Google Routes API falhou ou expirou:', errGoogle?.message);
         }
-    }
 
-    // =========================================================================
-    // PRIORIDADE 2: Mapbox Optimization API (driving-traffic)
-    // =========================================================================
-    if (usoMapbox < 99500 && mapboxToken) {
+        // PRIORIDADE 2: Mapbox Optimization API
+        if (usoMapbox < 99500 && mapboxToken) {
+            try {
+                const coordinatesString = visitas.map(v => `${v.longitude},${v.latitude}`).join(';');
+                const mapboxUrl = `https://api.mapbox.com/optimized-trips/v1/mapbox/driving-traffic/${coordinatesString}?source=first&destination=last&roundtrip=false&access_token=${mapboxToken}`;
+
+                const mapboxResponse = await fetch(mapboxUrl, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' },
+                    signal: AbortSignal.timeout(6000)
+                });
+
+                if (mapboxResponse.status === 200) {
+                    const mapboxData = await mapboxResponse.json();
+
+                    if (mapboxData.code === 'Ok' && Array.isArray(mapboxData.waypoints)) {
+                        const mapeado = visitas.map((v, i) => ({
+                            visita: v,
+                            ordem: mapboxData.waypoints[i]?.waypoint_index ?? i
+                        }));
+
+                        mapeado.sort((a, b) => a.ordem - b.ordem);
+                        const visitasOrdenadas = mapeado.map(item => item.visita);
+
+                        if (client) {
+                            await client.query(
+                                'UPDATE controle_cotas_apis SET uso_mapbox = uso_mapbox + 1 WHERE mes_ano = $1',
+                                [mesAno]
+                            );
+                        }
+
+                        return res.status(200).json({
+                            api_utilizada: 'mapbox',
+                            visitas: visitasOrdenadas
+                        });
+                    }
+                }
+            } catch (errMapbox) {
+                // Falha do Mapbox: prossegue para Prioridade 3
+            }
+        }
+
+        // PRIORIDADE 3: OSRM Público
         try {
             const coordinatesString = visitas.map(v => `${v.longitude},${v.latitude}`).join(';');
-            const mapboxUrl = `https://api.mapbox.com/optimized-trips/v1/mapbox/driving-traffic/${coordinatesString}?source=first&destination=last&roundtrip=false&access_token=${mapboxToken}`;
+            const osrmUrl = `https://router.project-osrm.org/trip/v1/driving/${coordinatesString}?source=first&destination=last&roundtrip=false`;
 
-            const mapboxResponse = await fetch(mapboxUrl, {
+            const osrmResponse = await fetch(osrmUrl, {
                 method: 'GET',
                 headers: { 'Accept': 'application/json' },
-                signal: AbortSignal.timeout(6000)
+                signal: AbortSignal.timeout(8000)
             });
 
-            if (mapboxResponse.status === 200) {
-                const mapboxData = await mapboxResponse.json();
+            if (osrmResponse.status === 200) {
+                const osrmData = await osrmResponse.json();
 
-                if (mapboxData.code === 'Ok' && Array.isArray(mapboxData.waypoints)) {
+                if (osrmData.code === 'Ok' && Array.isArray(osrmData.waypoints)) {
                     const mapeado = visitas.map((v, i) => ({
                         visita: v,
-                        ordem: mapboxData.waypoints[i]?.waypoint_index ?? i
+                        ordem: osrmData.waypoints[i]?.waypoint_index ?? i
                     }));
 
                     mapeado.sort((a, b) => a.ordem - b.ordem);
                     const visitasOrdenadas = mapeado.map(item => item.visita);
 
-                    if (supabase) {
-                        supabase.from('controle_cotas_apis').update({ uso_mapbox: usoMapbox + 1 }).eq('mes_ano', mesAno);
-                    }
-
                     return res.status(200).json({
-                        api_utilizada: 'mapbox',
+                        api_utilizada: 'osrm',
                         visitas: visitasOrdenadas
                     });
                 }
             }
-        } catch (errMapbox: any) {
-            console.warn('[ROTA] Mapbox Optimization API falhou ou expirou:', errMapbox?.message);
+
+            throw new Error('OSRM indisponível');
+        } catch (errOsrm) {
+            return res.status(200).json({
+                api_utilizada: 'osrm',
+                visitas: visitas
+            });
         }
-    }
-
-    // =========================================================================
-    // PRIORIDADE 3: OSRM Público
-    // =========================================================================
-    try {
-        const coordinatesString = visitas.map(v => `${v.longitude},${v.latitude}`).join(';');
-        const osrmUrl = `https://router.project-osrm.org/trip/v1/driving/${coordinatesString}?source=first&destination=last&roundtrip=false`;
-
-        const osrmResponse = await fetch(osrmUrl, {
-            method: 'GET',
-            headers: { 'Accept': 'application/json' },
-            signal: AbortSignal.timeout(8000)
-        });
-
-        if (osrmResponse.status === 200) {
-            const osrmData = await osrmResponse.json();
-
-            if (osrmData.code === 'Ok' && Array.isArray(osrmData.waypoints)) {
-                const mapeado = visitas.map((v, i) => ({
-                    visita: v,
-                    ordem: osrmData.waypoints[i]?.waypoint_index ?? i
-                }));
-
-                mapeado.sort((a, b) => a.ordem - b.ordem);
-                const visitasOrdenadas = mapeado.map(item => item.visita);
-
-                return res.status(200).json({
-                    api_utilizada: 'osrm',
-                    visitas: visitasOrdenadas
-                });
-            }
+    } finally {
+        if (client) {
+            client.release();
         }
-
-        throw new Error(`OSRM retornou status inválido: ${osrmResponse.status}`);
-    } catch (errOsrm: any) {
-        console.error('[ROTA] Todas as 3 APIs de roteamento falharam:', errOsrm?.message);
-        return res.status(200).json({
-            api_utilizada: 'osrm',
-            visitas: visitas,
-            aviso: 'Serviços de roteamento indisponíveis. Ordem original preservada.'
-        });
     }
 }
