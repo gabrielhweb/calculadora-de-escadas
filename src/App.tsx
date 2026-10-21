@@ -18,6 +18,7 @@ import SupplierCatalog from './pages/Purchases/SupplierCatalog';
 import NewOrder from './pages/Purchases/NewOrder';
 import OrderHistory from './pages/Purchases/OrderHistory';
 import PrintOrder from './pages/Purchases/PrintOrder';
+import TabelaVisitasDia from './pages/TabelaVisitasDia';
 import { AuthProvider } from './components/AuthProvider';
 import { useEffect } from 'react';
 import { getDocFromServer, doc } from 'firebase/firestore';
@@ -53,6 +54,7 @@ function App() {
             <Route path="recibo-pagamento" element={<CustomPaymentReceipt />} />
             <Route path="recibo-instalacao" element={<InstallationReceipt />} />
             <Route path="recibo-visita" element={<VisitReceipt />} />
+            <Route path="visitas" element={<TabelaVisitasDia />} />
             <Route path="transportadoras" element={<Carriers />} />
             <Route path="tabela-entregas" element={<DeliveriesTable />} />
             <Route path="compras" element={<PurchasesDashboard />} />
