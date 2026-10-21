@@ -107,7 +107,6 @@ export const TabelaVisitasView: React.FC<TabelaVisitasViewProps> = ({
             onAdicionarVisita(nova);
         }
 
-        // Limpar formulário
         setNovoCliente('');
         setNovoTelefone('');
         setNovoCep('');
@@ -121,7 +120,7 @@ export const TabelaVisitasView: React.FC<TabelaVisitasViewProps> = ({
     };
 
     return (
-        <div className="space-y-4">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
             <TabelaVisitasHeader
                 totalVisitas={visitas.length}
                 loading={loading}
@@ -131,7 +130,7 @@ export const TabelaVisitasView: React.FC<TabelaVisitasViewProps> = ({
                 onNovaVisita={() => setModalAberto(true)}
             />
 
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
                 <div className="overflow-x-auto">
                     <DndContext
                         sensors={sensors}
@@ -139,30 +138,30 @@ export const TabelaVisitasView: React.FC<TabelaVisitasViewProps> = ({
                         onDragEnd={onDragEnd}
                     >
                         <table className="w-full text-left">
-                            <thead className="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700">
+                            <thead className="bg-gray-100 dark:bg-gray-700/60 border-b-2 border-gray-200 dark:border-gray-600">
                                 <tr>
-                                    <th className="p-3.5 text-center text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-12">
+                                    <th className="p-3.5 text-center text-xs font-black text-gray-700 dark:text-gray-200 uppercase tracking-wider w-12">
                                         MOVER
                                     </th>
-                                    <th className="p-3.5 text-center text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-16">
+                                    <th className="p-3.5 text-center text-xs font-black text-gray-700 dark:text-gray-200 uppercase tracking-wider w-16">
                                         ORDEM
                                     </th>
-                                    <th className="p-3.5 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-24">
+                                    <th className="p-3.5 text-xs font-black text-gray-700 dark:text-gray-200 uppercase tracking-wider w-24">
                                         HORÁRIO
                                     </th>
-                                    <th className="p-3.5 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    <th className="p-3.5 text-xs font-black text-gray-700 dark:text-gray-200 uppercase tracking-wider">
                                         CLIENTE PROSPECT / CONTATO
                                     </th>
-                                    <th className="p-3.5 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    <th className="p-3.5 text-xs font-black text-gray-700 dark:text-gray-200 uppercase tracking-wider">
                                         ENDEREÇO DA VISITA
                                     </th>
-                                    <th className="p-3.5 text-center text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-28">
+                                    <th className="p-3.5 text-center text-xs font-black text-gray-700 dark:text-gray-200 uppercase tracking-wider w-28">
                                         LEAD
                                     </th>
-                                    <th className="p-3.5 text-center text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-32">
+                                    <th className="p-3.5 text-center text-xs font-black text-gray-700 dark:text-gray-200 uppercase tracking-wider w-32">
                                         STATUS
                                     </th>
-                                    <th className="p-3.5 text-right text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-40">
+                                    <th className="p-3.5 text-right text-xs font-black text-gray-700 dark:text-gray-200 uppercase tracking-wider w-40">
                                         AÇÕES
                                     </th>
                                 </tr>
@@ -175,10 +174,10 @@ export const TabelaVisitasView: React.FC<TabelaVisitasViewProps> = ({
                                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                                     {visitas.length === 0 ? (
                                         <tr>
-                                            <td colSpan={8} className="p-8 text-center text-gray-400 dark:text-gray-500">
+                                            <td colSpan={8} className="p-10 text-center text-gray-400 dark:text-gray-500">
                                                 <div className="flex flex-col items-center justify-center gap-2">
                                                     <span className="text-3xl">📍</span>
-                                                    <p className="font-semibold text-gray-700 dark:text-gray-300">
+                                                    <p className="font-bold text-gray-700 dark:text-gray-300">
                                                         Nenhuma visita cadastrada para hoje.
                                                     </p>
                                                     <p className="text-xs text-gray-500">
@@ -205,7 +204,7 @@ export const TabelaVisitasView: React.FC<TabelaVisitasViewProps> = ({
                 </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs text-gray-500 dark:text-gray-400 pt-2 px-1">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs text-gray-500 dark:text-gray-400 pt-4 px-1">
                 <span>
                     💡 Dica: Clique e arraste o ícone <strong>☰</strong> para reordenar as visitas antes de calcular a rota com trânsito.
                 </span>
@@ -216,16 +215,16 @@ export const TabelaVisitasView: React.FC<TabelaVisitasViewProps> = ({
 
             {/* Modal de Nova Visita */}
             {modalAberto && (
-                <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
-                        <div className="flex items-center justify-between pb-3 border-b border-gray-200 dark:border-gray-700 mb-4">
-                            <h3 className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-2">
+                <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl border-2 border-gray-300 dark:border-gray-600 max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
+                        <div className="flex items-center justify-between pb-3 border-b-2 border-highlight mb-4">
+                            <h3 className="text-xl font-black text-gray-900 dark:text-white flex items-center gap-2">
                                 <span>📍</span> Cadastrar Visita Técnica (Lead)
                             </h3>
                             <button
                                 type="button"
                                 onClick={() => setModalAberto(false)}
-                                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-lg font-bold p-1"
+                                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-lg font-bold p-1 cursor-pointer"
                             >
                                 ✕
                             </button>
@@ -233,7 +232,7 @@ export const TabelaVisitasView: React.FC<TabelaVisitasViewProps> = ({
 
                         <form onSubmit={handleSalvarNovaVisita} className="space-y-4">
                             <div>
-                                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">
+                                <label className="block text-sm font-black text-gray-900 dark:text-gray-100 mb-1">
                                     Nome do Lead / Cliente Prospect *
                                 </label>
                                 <input
@@ -242,13 +241,13 @@ export const TabelaVisitasView: React.FC<TabelaVisitasViewProps> = ({
                                     value={novoCliente}
                                     onChange={(e) => setNovoCliente(e.target.value)}
                                     placeholder="Ex: Dra. Camila Siqueira"
-                                    className="w-full p-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-2.5 rounded-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight font-bold text-sm"
                                 />
                             </div>
 
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">
+                                    <label className="block text-sm font-black text-gray-900 dark:text-gray-100 mb-1">
                                         Telefone / WhatsApp
                                     </label>
                                     <input
@@ -256,11 +255,11 @@ export const TabelaVisitasView: React.FC<TabelaVisitasViewProps> = ({
                                         value={novoTelefone}
                                         onChange={(e) => setNovoTelefone(e.target.value)}
                                         placeholder="(11) 99887-6655"
-                                        className="w-full p-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-2.5 rounded-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight font-bold text-sm"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">
+                                    <label className="block text-sm font-black text-gray-900 dark:text-gray-100 mb-1">
                                         Horário Previsto
                                     </label>
                                     <input
@@ -268,14 +267,14 @@ export const TabelaVisitasView: React.FC<TabelaVisitasViewProps> = ({
                                         value={novoHorario}
                                         onChange={(e) => setNovoHorario(e.target.value)}
                                         placeholder="09:30"
-                                        className="w-full p-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-2.5 rounded-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight font-bold text-sm"
                                     />
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-3 gap-2">
                                 <div className="col-span-1">
-                                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">
+                                    <label className="block text-sm font-black text-gray-900 dark:text-gray-100 mb-1">
                                         CEP
                                     </label>
                                     <input
@@ -289,12 +288,12 @@ export const TabelaVisitasView: React.FC<TabelaVisitasViewProps> = ({
                                             }
                                         }}
                                         placeholder="01310-100"
-                                        className="w-full p-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-2.5 rounded-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight font-bold text-sm"
                                     />
                                 </div>
                                 <div className="col-span-2">
-                                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">
-                                        Endereço Completo * {buscandoCep && <span className="text-blue-500">(Buscando...)</span>}
+                                    <label className="block text-sm font-black text-gray-900 dark:text-gray-100 mb-1">
+                                        Endereço Completo * {buscandoCep && <span className="text-highlight text-xs">(Buscando...)</span>}
                                     </label>
                                     <input
                                         type="text"
@@ -302,13 +301,13 @@ export const TabelaVisitasView: React.FC<TabelaVisitasViewProps> = ({
                                         value={novoEndereco}
                                         onChange={(e) => setNovoEndereco(e.target.value)}
                                         placeholder="Av. Paulista, 1000 - Bela Vista, SP"
-                                        className="w-full p-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-2.5 rounded-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight font-bold text-sm"
                                     />
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">
+                                <label className="block text-sm font-black text-gray-900 dark:text-gray-100 mb-1">
                                     Motivo da Visita
                                 </label>
                                 <input
@@ -316,19 +315,19 @@ export const TabelaVisitasView: React.FC<TabelaVisitasViewProps> = ({
                                     value={novoMotivo}
                                     onChange={(e) => setNovoMotivo(e.target.value)}
                                     placeholder="Ex: Medição técnica de vão, estudo estrutural"
-                                    className="w-full p-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-2.5 rounded-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight font-bold text-sm"
                                 />
                             </div>
 
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">
+                                    <label className="block text-sm font-black text-gray-900 dark:text-gray-100 mb-1">
                                         Temperatura do Lead
                                     </label>
                                     <select
                                         value={novaTemperatura}
                                         onChange={(e) => setNovaTemperatura(e.target.value as TemperaturaLead)}
-                                        className="w-full p-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-2.5 rounded-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight font-bold text-sm cursor-pointer"
                                     >
                                         <option value="QUENTE">🔥 QUENTE (Alta intenção)</option>
                                         <option value="MORNO">⚡ MORNO (Comparando)</option>
@@ -337,13 +336,13 @@ export const TabelaVisitasView: React.FC<TabelaVisitasViewProps> = ({
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">
+                                    <label className="block text-sm font-black text-gray-900 dark:text-gray-100 mb-1">
                                         Status da Visita
                                     </label>
                                     <select
                                         value={novoStatus}
                                         onChange={(e) => setNovoStatus(e.target.value as StatusVisita)}
-                                        className="w-full p-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-2.5 rounded-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight font-bold text-sm cursor-pointer"
                                     >
                                         <option value="PENDENTE">⏳ PENDENTE</option>
                                         <option value="EM_ROTA">🚗 EM ROTA</option>
@@ -353,27 +352,27 @@ export const TabelaVisitasView: React.FC<TabelaVisitasViewProps> = ({
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3 pt-1 border-t border-gray-200 dark:border-gray-700 text-xs text-gray-500">
+                            <div className="grid grid-cols-2 gap-3 pt-2 border-t border-gray-200 dark:border-gray-700">
                                 <div>
-                                    <label className="block text-[11px] font-bold text-gray-600 dark:text-gray-400 uppercase mb-0.5">
+                                    <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 uppercase mb-1">
                                         Latitude (Rota)
                                     </label>
                                     <input
                                         type="text"
                                         value={novaLatitude}
                                         onChange={(e) => setNovaLatitude(e.target.value)}
-                                        className="w-full p-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-xs text-gray-900 dark:text-white"
+                                        className="w-full p-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-xs text-gray-900 dark:text-white font-mono"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-[11px] font-bold text-gray-600 dark:text-gray-400 uppercase mb-0.5">
+                                    <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 uppercase mb-1">
                                         Longitude (Rota)
                                     </label>
                                     <input
                                         type="text"
                                         value={novaLongitude}
                                         onChange={(e) => setNovaLongitude(e.target.value)}
-                                        className="w-full p-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-xs text-gray-900 dark:text-white"
+                                        className="w-full p-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-xs text-gray-900 dark:text-white font-mono"
                                     />
                                 </div>
                             </div>
@@ -382,13 +381,13 @@ export const TabelaVisitasView: React.FC<TabelaVisitasViewProps> = ({
                                 <button
                                     type="button"
                                     onClick={() => setModalAberto(false)}
-                                    className="px-4 py-2 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors cursor-pointer"
+                                    className="px-4 py-2 text-sm font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors cursor-pointer"
                                 >
                                     Cancelar
                                 </button>
                                 <button
                                     type="submit"
-                                    className="px-5 py-2 text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow transition-colors cursor-pointer"
+                                    className="px-6 py-2.5 text-sm font-black bg-highlight hover:bg-amber-600 text-gray-950 rounded-lg shadow-md transition-colors cursor-pointer"
                                 >
                                     Salvar Visita
                                 </button>

@@ -21,21 +21,23 @@ const InputField: React.FC<InputFieldProps> = ({
 }) => (
     <div>
         <label className="block text-sm font-black text-gray-900 dark:text-gray-100 mb-1">{label}</label>
-        <div className="flex border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-highlight">
+        <div className="flex shadow-sm">
             <input
                 type="text"
                 value={value}
                 onChange={onChange}
                 placeholder={placeholder}
-                className="w-full p-2 bg-white dark:bg-gray-800 text-black dark:text-white outline-none"
+                className={`w-full bg-white dark:bg-gray-800 text-black dark:text-white p-2.5 px-3 border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight transition font-bold text-base ${
+                    unit ? 'rounded-l-md' : 'rounded-md'
+                }`}
             />
             {unit && (
-                <div className="bg-gray-100 dark:bg-gray-700 px-3 py-2 flex items-center font-bold text-gray-600 dark:text-gray-300 border-l border-gray-300 dark:border-gray-600">
+                <div className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white px-3.5 py-2 flex items-center font-bold border-2 border-l-0 border-gray-300 dark:border-gray-600 rounded-r-md">
                     {unit}
                 </div>
             )}
         </div>
-        {helperText && <p className="text-xs text-gray-500 mt-1">{helperText}</p>}
+        {helperText && <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{helperText}</p>}
     </div>
 );
 
@@ -267,18 +269,20 @@ export const FormularioReciboPDF: React.FC<FormularioReciboPDFProps> = ({
     };
 
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700">
-            <div className="bg-highlight px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                <h2 className="text-xl font-bold text-white uppercase flex items-center gap-2">
-                    <span className="text-2xl">📝</span> Gerar Recibo de Visita Técnica
-                </h2>
-                <p className="text-yellow-100 text-sm mt-1">
-                    Preencha os dados abaixo para gerar o PDF oficial de visita técnica com termo de abatimento.
-                </p>
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+            <div className="flex justify-between items-center mb-6 border-b-2 border-highlight pb-4">
+                <div>
+                    <h2 className="text-2xl font-black text-gray-900 dark:text-white flex items-center gap-2">
+                        <span>📝</span> Gerar Recibo de Visita Técnica
+                    </h2>
+                    <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm mt-1">
+                        Preencha os dados abaixo para gerar o PDF oficial de visita técnica com termo de abatimento em 14 dias.
+                    </p>
+                </div>
             </div>
 
-            <div className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <InputField
                         label="Número do Recibo"
                         value={receiptNumber}
@@ -339,7 +343,7 @@ export const FormularioReciboPDF: React.FC<FormularioReciboPDFProps> = ({
                         <select
                             value={paymentMethod}
                             onChange={(e) => setPaymentMethod(e.target.value)}
-                            className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-black dark:text-white outline-none focus-within:ring-2 focus-within:ring-highlight"
+                            className="w-full bg-white dark:bg-gray-800 text-black dark:text-white p-2.5 rounded-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight font-bold text-base cursor-pointer"
                         >
                             <option value="">Nenhuma / Deixar em Branco</option>
                             <option value="PIX">PIX</option>
@@ -358,10 +362,10 @@ export const FormularioReciboPDF: React.FC<FormularioReciboPDFProps> = ({
                     )}
                 </div>
 
-                <div className="mt-8 flex justify-end">
+                <div className="pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-end">
                     <button
                         onClick={handleGeneratePDF}
-                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors flex items-center gap-2 shadow-md cursor-pointer"
+                        className="bg-highlight hover:bg-amber-600 text-gray-950 font-black py-3 px-6 rounded-lg transition-colors flex items-center gap-2 shadow-md cursor-pointer"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                             <path
@@ -370,7 +374,7 @@ export const FormularioReciboPDF: React.FC<FormularioReciboPDFProps> = ({
                                 clipRule="evenodd"
                             />
                         </svg>
-                        Gerar PDF do Recibo
+                        <span>Gerar PDF do Recibo</span>
                     </button>
                 </div>
             </div>

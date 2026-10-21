@@ -74,7 +74,6 @@ export default function VisitReceipt() {
             if (salvo) {
                 const parsed = JSON.parse(salvo);
                 if (Array.isArray(parsed) && parsed.length > 0) {
-                    // Garantir que não carregue nomes de contratos antigos salvos no storage
                     const contemContrato = parsed.some((p: any) =>
                         p.cliente?.includes('Chalita') || p.cliente?.includes('Bergamo')
                     );
@@ -219,63 +218,60 @@ export default function VisitReceipt() {
     };
 
     return (
-        <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
-            {/* Cabeçalho Padronizado da Página */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-gray-200 dark:border-gray-700">
-                <div>
-                    <h1 className="text-2xl md:text-3xl font-black text-gray-900 dark:text-white tracking-tight">
-                        Gestão de Visitas Técnicas (Pré-Venda)
-                    </h1>
-                    <p className="text-gray-500 dark:text-gray-400 mt-1">
-                        Gerencie visitas de medição e orçamento, otimize rotas com trânsito e emita termos de visita técnica antes do fechamento do contrato.
-                    </p>
-                </div>
+        <div className="p-4 sm:p-8 max-w-7xl mx-auto">
+            {/* Header com os Botões/Tabs Grandes IDÊNTICOS ao da Calculadora */}
+            <header className="text-center mb-8 flex flex-col items-center relative">
+                <h1 className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white uppercase tracking-tight mb-6">
+                    Central de Visitas Técnicas
+                </h1>
 
-                {/* Seletor de Subpáginas Padronizado */}
-                <div className="bg-gray-100 dark:bg-gray-800 p-1.5 rounded-xl border border-gray-200 dark:border-gray-700 inline-flex gap-1 shadow-sm self-start md:self-auto">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-4xl">
                     <button
                         type="button"
                         onClick={() => setSubpaginaAtiva('tabela')}
-                        className={`font-semibold text-sm px-4 py-2 rounded-lg transition-all flex items-center gap-2 cursor-pointer ${
+                        className={`p-4 rounded-xl border-2 font-bold transition-all flex flex-col items-center justify-center gap-2 cursor-pointer ${
                             subpaginaAtiva === 'tabela'
-                                ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm'
-                                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                                ? 'border-highlight bg-highlight/10 text-highlight'
+                                : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:border-gray-300'
                         }`}
                     >
-                        <span>📋</span>
-                        <span>Tabela de Visitas</span>
+                        <span className="text-2xl">📋</span>
+                        <span className="text-base font-black">Tabela de Visitas</span>
+                        <span className="text-xs opacity-75">Paradas & Reordenação</span>
                     </button>
 
                     <button
                         type="button"
                         onClick={() => setSubpaginaAtiva('rotas')}
-                        className={`font-semibold text-sm px-4 py-2 rounded-lg transition-all flex items-center gap-2 cursor-pointer ${
+                        className={`p-4 rounded-xl border-2 font-bold transition-all flex flex-col items-center justify-center gap-2 cursor-pointer ${
                             subpaginaAtiva === 'rotas'
-                                ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm'
-                                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                                ? 'border-highlight bg-highlight/10 text-highlight'
+                                : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:border-gray-300'
                         }`}
                     >
-                        <span>🗺️</span>
-                        <span>Rotas do Dia</span>
+                        <span className="text-2xl">🗺️</span>
+                        <span className="text-base font-black">Rotas do Dia</span>
+                        <span className="text-xs opacity-75">Otimização com Trânsito</span>
                     </button>
 
                     <button
                         type="button"
                         onClick={() => setSubpaginaAtiva('pdf')}
-                        className={`font-semibold text-sm px-4 py-2 rounded-lg transition-all flex items-center gap-2 cursor-pointer ${
+                        className={`p-4 rounded-xl border-2 font-bold transition-all flex flex-col items-center justify-center gap-2 cursor-pointer ${
                             subpaginaAtiva === 'pdf'
-                                ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm'
-                                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                                ? 'border-highlight bg-highlight/10 text-highlight'
+                                : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:border-gray-300'
                         }`}
                     >
-                        <span>📝</span>
-                        <span>Criar PDF</span>
+                        <span className="text-2xl">📝</span>
+                        <span className="text-base font-black">Gerar PDF</span>
+                        <span className="text-xs opacity-75">Termo Oficial (14 Dias)</span>
                     </button>
                 </div>
-            </div>
+            </header>
 
             {/* Conteúdo da Subpágina Ativa */}
-            <div>
+            <main>
                 {subpaginaAtiva === 'tabela' && (
                     <TabelaVisitasView
                         visitas={visitas}
@@ -312,7 +308,7 @@ export default function VisitReceipt() {
                         />
                     </div>
                 )}
-            </div>
+            </main>
         </div>
     );
 }
