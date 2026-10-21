@@ -16,26 +16,41 @@ export const GuardrailPreview: React.FC<GuardrailPreviewProps> = ({ length, heig
     const drawW = svgW - margin.left - margin.right;
     const drawH = svgH - margin.top - margin.bottom;
 
-    const numInnerBars = Math.max(0, totalBars - 2);
-    const gapCm = numInnerBars >= 0 ? ((length - 4 - (numInnerBars * 3)) / (numInnerBars + 1)) : 0;
+    // Sanitização rigorosa para NUNCA exibir NaNcm
+    const safeLength = typeof length === 'number' && !isNaN(length) && length > 0
+        ? length
+        : (parseFloat(String(length)) || 100);
+
+    const parsedH = typeof height === 'number' && !isNaN(height) && height > 0
+        ? height
+        : (parseFloat(String(height)) || 90);
+    const safeHeight = isNaN(parsedH) || parsedH <= 0 ? 90 : parsedH;
+
+    const parsedBars = typeof totalBars === 'number' && !isNaN(totalBars) && totalBars >= 2
+        ? totalBars
+        : (parseInt(String(totalBars)) || 2);
+    const safeTotalBars = Math.max(2, parsedBars);
+
+    const numInnerBars = Math.max(0, safeTotalBars - 2);
+    const gapCm = numInnerBars >= 0 ? Math.max(0, ((safeLength - 4 - (numInnerBars * 3)) / (numInnerBars + 1))) : 0;
     
-    const outerHeight = isFixed ? height + 10 : height;
-    const innerHeight = height - 13;
+    const outerHeight = isFixed ? safeHeight + 10 : safeHeight;
+    const innerHeight = Math.max(0, safeHeight - 13);
     const visualExtraH = isFixed ? 15 : 0;
 
     return (
        <div className="flex flex-col items-center justify-center w-full">
-           <svg viewBox={`0 0 ${svgW} ${svgH + 15 + visualExtraH}`} className="w-full max-w-md font-sans overflow-visible text-gray-800 dark:text-gray-300">
+           <svg viewBox={`0 0 ${svgW} ${svgH + 15 + visualExtraH}`} className="w-full max-w-[320px] sm:max-w-md font-sans overflow-visible text-gray-800 dark:text-gray-300">
                 {/* Title */}
                 {isGate && <text x={svgW/2} y={12} textAnchor="middle" fill="#6b7280" className="font-black text-sm uppercase opacity-50">PORTÃO</text>}
                 
                 {/* Lines - Top Green */}
                 <line x1={margin.left} y1={margin.top - 8} x2={svgW - margin.right} y2={margin.top - 8} stroke="#22c55e" strokeWidth="2" />
-                <text x={svgW/2} y={margin.top - 15} textAnchor="middle" fill="#22c55e" fontSize="11" fontWeight="bold">{length}cm</text>
+                <text x={svgW/2} y={margin.top - 15} textAnchor="middle" fill="#22c55e" fontSize="11" fontWeight="bold">{safeLength}cm</text>
                 
                 {/* Lines - Bottom Orange */}
                 <line x1={margin.left + 5} y1={svgH - margin.bottom + 12} x2={svgW - margin.right - 5} y2={svgH - margin.bottom + 12} stroke="#f97316" strokeWidth="2" />
-                <text x={svgW/2} y={svgH - margin.bottom + 25} textAnchor="middle" fill="#f97316" fontSize="11" fontWeight="bold">{length - 4}cm</text>
+                <text x={svgW/2} y={svgH - margin.bottom + 25} textAnchor="middle" fill="#f97316" fontSize="11" fontWeight="bold">{safeLength - 4}cm</text>
                 
                 {/* Lines - Right Red (Altura) */}
                 <line x1={svgW - margin.right + 12} y1={margin.top} x2={svgW - margin.right + 12} y2={svgH - margin.bottom} stroke="#ef4444" strokeWidth="2" />
@@ -62,7 +77,7 @@ export const GuardrailPreview: React.FC<GuardrailPreviewProps> = ({ length, heig
                     const x = margin.left + 4 + step * (i + 1) - 1.5; 
                     return (
                         <rect key={i} x={x} y={margin.top + 10} width={3} height={drawH - 14} fill="currentColor" />
-                    )
+                    );
                 })}
                 
                 {/* Gap Pink */}
@@ -86,13 +101,13 @@ export const GuardrailPreview: React.FC<GuardrailPreviewProps> = ({ length, heig
            <div className="mt-4 w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded p-3">
                 <p className="text-xs font-bold text-gray-800 dark:text-gray-200 mb-2 border-b pb-1">Lista de Cortes:</p>
                 <ul className="text-[10px] space-y-1.5 text-gray-700 dark:text-gray-300">
-                    <li className="flex items-center gap-2"><span className="w-3 h-3 bg-green-500 rounded-full inline-block flex-shrink-0"></span> 1x Tubo Superior de {length}cm</li>
-                    <li className="flex items-center gap-2"><span className="w-3 h-3 bg-orange-500 rounded-full inline-block flex-shrink-0"></span> 1x Tubo Inferior de {length - 4}cm</li>
+                    <li className="flex items-center gap-2"><span className="w-3 h-3 bg-green-500 rounded-full inline-block flex-shrink-0"></span> 1x Tubo Superior de {safeLength}cm</li>
+                    <li className="flex items-center gap-2"><span className="w-3 h-3 bg-orange-500 rounded-full inline-block flex-shrink-0"></span> 1x Tubo Inferior de {safeLength - 4}cm</li>
                     <li className="flex items-center gap-2"><span className="w-3 h-3 bg-red-500 rounded-full inline-block flex-shrink-0"></span> 2x Tubos Laterais (Pontas) de {outerHeight}cm {isFixed && "(inclui +10cm)"}</li>
                     <li className="flex items-center gap-2"><span className="w-3 h-3 bg-blue-500 rounded-full inline-block flex-shrink-0"></span> {numInnerBars}x Tubos Internos de {innerHeight}cm</li>
                 </ul>
                 <p className="text-[10px] text-pink-500 font-bold mt-2 pt-2 border-t border-pink-100 dark:border-pink-900/30">Afastamento das barras (folga): {gapCm.toFixed(1)}cm</p>
-                <p className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold mt-1">Comprimento Linear Total: {((length + (length - 4) + (2 * outerHeight) + (numInnerBars * innerHeight)) / 100).toFixed(2)}m</p>
+                <p className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold mt-1">Comprimento Linear Total: {((safeLength + (safeLength - 4) + (2 * outerHeight) + (numInnerBars * innerHeight)) / 100).toFixed(2)}m</p>
            </div>
        </div>
     );

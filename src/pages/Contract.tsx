@@ -168,6 +168,7 @@ const ContractInput = ({
           value={displayValue}
           onChange={onChange}
           onBlur={onBlur}
+          onFocus={(e: any) => e.target.select()}
           disabled={disabled}
           placeholder={placeholder}
           maxLength={maxLength}
@@ -2714,17 +2715,25 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                           </span>
                                           <input
                                             type="number"
-                                            value={totalBars}
+                                            value={landing.gateBarsOverride !== undefined ? landing.gateBarsOverride : totalBars}
+                                            onFocus={(e) => e.target.select()}
                                             onChange={(e) => {
-                                              const val = parseInt(
-                                                e.target.value,
-                                              );
-                                              if (!isNaN(val) && val >= 2)
-                                                updateLanding(landing.id, {
-                                                  gateBarsOverride: val,
-                                                });
+                                              const str = e.target.value;
+                                              if (str === '') {
+                                                updateLanding(landing.id, { gateBarsOverride: '' as any });
+                                                return;
+                                              }
+                                              const val = parseInt(str);
+                                              if (!isNaN(val)) {
+                                                updateLanding(landing.id, { gateBarsOverride: val });
+                                              }
                                             }}
-                                            className="w-full text-center font-bold text-lg p-1 bg-white dark:bg-gray-800 rounded border border-gray-300 dark:border-gray-600 outline-none"
+                                            onBlur={() => {
+                                              if (landing.gateBarsOverride === '' as any || landing.gateBarsOverride === undefined || Number(landing.gateBarsOverride) < 2) {
+                                                updateLanding(landing.id, { gateBarsOverride: undefined });
+                                              }
+                                            }}
+                                            className="w-full text-center font-bold text-base sm:text-lg p-1 bg-white dark:bg-gray-800 rounded border border-gray-300 dark:border-gray-600 outline-none"
                                             min={2}
                                           />
                                         </div>
@@ -3090,15 +3099,25 @@ TELEFONE FIXO E WHATSAPP: 19992337714`;
                                     <input
                                       type="number"
                                       min="2"
-                                      value={totalBars}
+                                      value={landing.gateBarsOverride !== undefined ? landing.gateBarsOverride : totalBars}
+                                      onFocus={(e) => e.target.select()}
                                       onChange={(e) => {
-                                        const val = parseInt(e.target.value);
-                                        if (val >= 2)
-                                          updateLanding(landing.id, {
-                                            gateBarsOverride: val,
-                                          });
+                                        const str = e.target.value;
+                                        if (str === '') {
+                                          updateLanding(landing.id, { gateBarsOverride: '' as any });
+                                          return;
+                                        }
+                                        const val = parseInt(str);
+                                        if (!isNaN(val)) {
+                                          updateLanding(landing.id, { gateBarsOverride: val });
+                                        }
                                       }}
-                                      className="w-full text-sm font-bold p-2 text-center text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded border border-gray-300 dark:border-gray-600 outline-none focus:border-highlight"
+                                      onBlur={() => {
+                                        if (landing.gateBarsOverride === '' as any || landing.gateBarsOverride === undefined || Number(landing.gateBarsOverride) < 2) {
+                                          updateLanding(landing.id, { gateBarsOverride: undefined });
+                                        }
+                                      }}
+                                      className="w-full text-base sm:text-sm font-bold p-2 text-center text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded border border-gray-300 dark:border-gray-600 outline-none focus:border-highlight"
                                     />
                                   </div>
                                   <div className="flex-1 p-2 bg-gray-100 dark:bg-gray-700 rounded text-center border border-gray-200 dark:border-gray-600">

@@ -12,6 +12,7 @@ const InputField = ({ label, value, onChange, type = "text", placeholder, icon, 
             <input
                 type={type}
                 value={value === 0 ? '' : value}
+                onFocus={(e: any) => e.target.select()}
                 onChange={onChange}
                 placeholder={placeholder}
                 className={`w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded p-2 text-sm font-bold text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-highlight focus:border-highlight outline-none ${icon ? 'pl-8' : ''} ${addon ? 'pr-8' : ''}`}

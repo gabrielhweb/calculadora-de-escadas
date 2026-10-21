@@ -5,52 +5,87 @@ import { GuardrailPreview } from "./GuardrailPreview";
 import { getGuardrailPrice } from "../utils/landingPricing";
 
 export const GuardrailEditor = ({ landing, updateLanding, InputField, isGate = false, stairWidth = 0 }: any) => {
+    const isActuallyGate = !!(isGate || landing.hasGate);
     const gFormat = landing.guardrailFormat || "normal";
-    const gHeight = landing.guardrailHeight !== undefined ? landing.guardrailHeight : 90;
-    const gPricePerMeter = landing.guardrailPricePerMeter !== undefined ? landing.guardrailPricePerMeter : 50;
+    
+    // Altura sanitizada garantindo número válido e sincronizado para portão e guarda-corpo
+    const rawHeight = isActuallyGate
+        ? (landing.gateHeight !== undefined && landing.gateHeight !== '' ? landing.gateHeight : landing.guardrailHeight)
+        : (landing.guardrailHeight !== undefined && landing.guardrailHeight !== '' ? landing.guardrailHeight : landing.gateHeight);
+    const gHeight = (rawHeight !== undefined && rawHeight !== '' && !isNaN(Number(rawHeight)) && Number(rawHeight) > 0)
+        ? Number(rawHeight)
+        : 90;
 
-    const renderSegment = (length: number, override: number | undefined, updateOverride: (val: number | undefined) => void, label: string, gapOverride: number | undefined, updateGap: (val: number | undefined) => void, priceOverride: number | undefined, updatePrice: (val: number | undefined) => void, isFixed: boolean = false) => {
-        let innerL = length - 4;
+    const rawPrice = isActuallyGate
+        ? (landing.gatePricePerMeter !== undefined ? landing.gatePricePerMeter : landing.guardrailPricePerMeter)
+        : (landing.guardrailPricePerMeter !== undefined ? landing.guardrailPricePerMeter : landing.gatePricePerMeter);
+    const gPricePerMeter = (rawPrice !== undefined && rawPrice !== '' && !isNaN(Number(rawPrice)))
+        ? Number(rawPrice)
+        : 50;
+
+    const renderSegment = (
+        length: number, 
+        override: number | undefined, 
+        updateOverride: (val: number | undefined) => void, 
+        label: string, 
+        gapOverride: number | undefined, 
+        updateGap: (val: number | undefined) => void, 
+        priceOverride: number | undefined, 
+        updatePrice: (val: number | undefined) => void, 
+        isFixed: boolean = false
+    ) => {
+        const safeLen = typeof length === 'number' && !isNaN(length) && length > 0 ? length : (parseFloat(String(length)) || 100);
+        let innerL = safeLen - 4;
         if (innerL < 0) innerL = 0;
         const baseGaps = Math.max(1, Math.round(innerL / 15));
         const baseBars = baseGaps + 1;
         
-        let totalBars = override !== undefined ? override : baseBars;
-        totalBars = Math.max(2, totalBars);
+        const effectiveBars = (typeof override === 'number' && !isNaN(override) && override >= 2) 
+            ? override 
+            : baseBars;
+        const totalBars = Math.max(2, effectiveBars);
         
         let numInterBars = totalBars - 2;
         let numGaps = numInterBars + 1;
         let exactGap = (innerL - (numInterBars * 3)) / numGaps;
         
         let totalVerticalMeters = totalBars * (gHeight / 100);
-        let totalHorizontalMeters = 2 * (length / 100);
+        let totalHorizontalMeters = 2 * (safeLen / 100);
         let gTotalMeters = totalVerticalMeters + totalHorizontalMeters;
         let currentGPrice = Math.round(gTotalMeters * gPricePerMeter);
-        
-        const gOptions = [
-            { bars: baseBars - 1, label: "-1 Barra" },
-            { bars: baseBars, label: "Padrão" },
-            { bars: baseBars + 1, label: "+1 Barra" }
-        ].filter(o => o.bars >= 2);
 
         return (
             <div className="flex flex-col mb-4 p-2 border border-gray-200 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-800">
                 <p className="text-xs font-bold text-gray-500 mb-2">{label}</p>
-                <div className="flex flex-col items-center justify-center p-4 w-full">
-                    <p className="text-[10px] uppercase font-bold text-gray-500 mb-2">Prévia do {isGate ? 'Portão' : 'Guarda-Corpo'}</p>
-                    <GuardrailPreview length={length} height={gHeight} totalBars={totalBars} isGate={isGate} isFixed={isFixed} />
+                <div className="flex flex-col items-center justify-center p-2 sm:p-4 w-full">
+                    <p className="text-[10px] uppercase font-bold text-gray-500 mb-2">Prévia do {isActuallyGate ? 'Portão' : 'Guarda-Corpo'}</p>
+                    <GuardrailPreview length={safeLen} height={gHeight} totalBars={totalBars} isGate={isActuallyGate} isFixed={isFixed} />
+                    
                     <div className="flex gap-2 w-full max-w-[400px] mx-auto mt-6">
                         <div className="flex-1 bg-gray-100 dark:bg-gray-700 p-2 rounded text-center">
                             <span className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Qtd. Tubos</span>
                             <input
                                 type="number"
-                                value={totalBars}
+                                min="2"
+                                value={override !== undefined ? override : totalBars}
+                                onFocus={(e) => e.target.select()}
                                 onChange={(e: any) => {
-                                    const val = parseInt(e.target.value);
-                                    if (isNaN(val) || val < 2) return;
-                                    updateOverride(val);
+                                    const str = e.target.value;
+                                    if (str === '') {
+                                        updateOverride('' as any);
+                                        return;
+                                    }
+                                    const val = parseInt(str);
+                                    if (!isNaN(val)) {
+                                        updateOverride(val);
+                                    }
                                 }}
-                                className="w-full text-center font-bold text-sm bg-transparent outline-none border-b border-gray-300 focus:border-highlight"
+                                onBlur={() => {
+                                    if (override === '' as any || override === undefined || Number(override) < 2) {
+                                        updateOverride(undefined);
+                                    }
+                                }}
+                                className="w-full text-center font-bold text-base sm:text-sm bg-transparent outline-none border-b border-gray-300 focus:border-highlight"
                             />
                         </div>
                         <div className="flex-1 bg-gray-100 dark:bg-gray-700 p-2 rounded text-center">
@@ -59,6 +94,7 @@ export const GuardrailEditor = ({ landing, updateLanding, InputField, isGate = f
                                 <input 
                                     type="number" 
                                     value={gapOverride !== undefined ? gapOverride : parseFloat(exactGap.toFixed(1))} 
+                                    onFocus={(e) => e.target.select()}
                                     onChange={(e: any) => updateGap(e.target.value === '' ? undefined : parseFloat(e.target.value))} 
                                     onBlur={(e: any) => {
                                         const val = parseFloat(e.target.value);
@@ -74,105 +110,190 @@ export const GuardrailEditor = ({ landing, updateLanding, InputField, isGate = f
                                             }
                                         }
                                     }}
-                                    className="w-16 text-center font-bold text-highlight text-sm bg-transparent outline-none border-b border-gray-300 focus:border-highlight" 
+                                    className="w-16 text-center font-bold text-highlight text-base sm:text-sm bg-transparent outline-none border-b border-gray-300 focus:border-highlight" 
                                     step="0.1" 
                                 />
-                                <span className="text-highlight font-bold text-sm ml-1">cm</span>
+                                <span className="text-highlight font-bold text-xs sm:text-sm ml-1">cm</span>
                             </div>
                         </div>
                         <div className="flex-1 bg-gray-100 dark:bg-gray-700 p-2 rounded text-center">
                             <span className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Total (R$)</span>
                             <div className="flex items-center justify-center">
-                                <span className="text-blue-600 font-bold text-sm mr-1">R$</span>
-                                <input type="number" value={priceOverride !== undefined ? priceOverride : currentGPrice} onChange={(e: any) => updatePrice(e.target.value === '' ? undefined : parseFloat(e.target.value))} className="w-16 text-center font-bold text-blue-600 text-sm bg-transparent outline-none border-b border-gray-300 focus:border-highlight" step="1" />
+                                <span className="text-blue-600 font-bold text-xs sm:text-sm mr-1">R$</span>
+                                <input 
+                                    type="number" 
+                                    value={priceOverride !== undefined ? priceOverride : currentGPrice} 
+                                    onFocus={(e) => e.target.select()}
+                                    onChange={(e: any) => updatePrice(e.target.value === '' ? undefined : parseFloat(e.target.value))} 
+                                    className="w-16 text-center font-bold text-blue-600 text-base sm:text-sm bg-transparent outline-none border-b border-gray-300 focus:border-highlight" 
+                                    step="1" 
+                                />
                             </div>
                         </div>
                     </div>
                     <div className="flex justify-center gap-2 mt-3">
-                        <button onClick={() => { updateOverride(undefined); updateGap(undefined); updatePrice(undefined); }} className="text-[10px] text-blue-500 hover:underline">Restaurar Padrão Automático</button>
+                        <button 
+                            type="button"
+                            onClick={() => { updateOverride(undefined); updateGap(undefined); updatePrice(undefined); }} 
+                            className="text-[10px] text-blue-500 hover:underline cursor-pointer"
+                        >
+                            Restaurar Padrão Automático
+                        </button>
                     </div>
                 </div>
             </div>
         );
     };
 
-    const numSides = gFormat === "U" ? 3 : gFormat === "L" ? 2 : 1;
+    const numSides = isActuallyGate ? 1 : (gFormat === "U" ? 3 : gFormat === "L" ? 2 : 1);
+
+    const primaryLength = isActuallyGate
+        ? (landing.gateLength !== undefined && landing.gateLength !== '' ? landing.gateLength : (landing.guardrailLength !== undefined ? landing.guardrailLength : 100))
+        : (landing.guardrailLength !== undefined ? landing.guardrailLength : 100);
+
+    const primaryBarsOverride = isActuallyGate
+        ? (landing.gateBarsOverride !== undefined ? landing.gateBarsOverride : landing.guardrailBarsOverride)
+        : landing.guardrailBarsOverride;
+
+    const primaryGapOverride = isActuallyGate
+        ? (landing.gateGapOverride !== undefined ? landing.gateGapOverride : landing.guardrailGapOverride)
+        : landing.guardrailGapOverride;
+
+    const primaryPriceOverride = isActuallyGate
+        ? (landing.gatePriceOverride !== undefined ? landing.gatePriceOverride : landing.guardrailPriceOverride)
+        : landing.guardrailPriceOverride;
+
+    const updatePrimaryLength = (val: any) => {
+        if (isActuallyGate) {
+            updateLanding(landing.id, { gateLength: val, guardrailLength: val });
+        } else {
+            updateLanding(landing.id, { guardrailLength: val });
+        }
+    };
+
+    const updatePrimaryHeight = (val: any) => {
+        if (isActuallyGate) {
+            updateLanding(landing.id, { gateHeight: val, guardrailHeight: val });
+        } else {
+            updateLanding(landing.id, { guardrailHeight: val });
+        }
+    };
+
+    const updatePrimaryPricePerMeter = (val: any) => {
+        if (isActuallyGate) {
+            updateLanding(landing.id, { gatePricePerMeter: val, guardrailPricePerMeter: val });
+        } else {
+            updateLanding(landing.id, { guardrailPricePerMeter: val });
+        }
+    };
+
+    const updatePrimaryOverride = (val: any) => {
+        if (isActuallyGate) {
+            updateLanding(landing.id, { gateBarsOverride: val, guardrailBarsOverride: val });
+        } else {
+            updateLanding(landing.id, { guardrailBarsOverride: val });
+        }
+    };
+
+    const updatePrimaryGap = (val: any) => {
+        if (isActuallyGate) {
+            updateLanding(landing.id, { gateGapOverride: val, guardrailGapOverride: val });
+        } else {
+            updateLanding(landing.id, { guardrailGapOverride: val });
+        }
+    };
+
+    const updatePrimaryPrice = (val: any) => {
+        if (isActuallyGate) {
+            updateLanding(landing.id, { gatePriceOverride: val, guardrailPriceOverride: val });
+        } else {
+            updateLanding(landing.id, { guardrailPriceOverride: val });
+        }
+    };
 
     return (
         <div className="mt-2 space-y-3">
-            <div className="flex gap-2">
-                <div className="flex-1">
-                    <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Formato:</label>
-                    <select
-                        value={gFormat}
-                        onChange={(e) => {
-                            const newFormat = e.target.value as any;
-                            const auto = getAutoGuardrailLengths(newFormat, landing.guardrailSide || "", landing.width || 0, landing.length || 0, stairWidth);
-                            updateLanding(landing.id, {
-                                guardrailFormat: newFormat,
-                                guardrailLength: auto.guardrailLength,
-                                guardrailLength2: auto.guardrailLength2,
-                                guardrailLength3: auto.guardrailLength3,
-                                guardrailBarsOverride: undefined,
-                                guardrailBarsOverride2: undefined,
-                                guardrailBarsOverride3: undefined, guardrailGapOverride: undefined, guardrailGapOverride2: undefined, guardrailGapOverride3: undefined, guardrailPriceOverride: undefined, guardrailPriceOverride2: undefined, guardrailPriceOverride3: undefined
-                            });
-                        }}
-                        className="w-full text-xs font-bold p-2 text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 rounded border border-gray-300 dark:border-gray-600 outline-none focus:border-highlight"
-                    >
-                        <option value="normal">Normal (Reto)</option>
-                        <option value="L">Em L</option>
-                        <option value="U">Em U</option>
-                        <option value="frente">Apenas Frente</option>
-                        <option value="atras">Apenas Atrás</option>
-                    </select>
+            {!isActuallyGate && (
+                <div className="flex gap-2">
+                    <div className="flex-1">
+                        <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Formato:</label>
+                        <select
+                            value={gFormat}
+                            onChange={(e) => {
+                                const newFormat = e.target.value as any;
+                                const auto = getAutoGuardrailLengths(newFormat, landing.guardrailSide || "", landing.width || 0, landing.length || 0, stairWidth);
+                                updateLanding(landing.id, {
+                                    guardrailFormat: newFormat,
+                                    guardrailLength: auto.guardrailLength,
+                                    guardrailLength2: auto.guardrailLength2,
+                                    guardrailLength3: auto.guardrailLength3,
+                                    guardrailBarsOverride: undefined,
+                                    guardrailBarsOverride2: undefined,
+                                    guardrailBarsOverride3: undefined, 
+                                    guardrailGapOverride: undefined, 
+                                    guardrailGapOverride2: undefined, 
+                                    guardrailGapOverride3: undefined, 
+                                    guardrailPriceOverride: undefined, 
+                                    guardrailPriceOverride2: undefined, 
+                                    guardrailPriceOverride3: undefined
+                                });
+                            }}
+                            className="w-full text-xs font-bold p-2 text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 rounded border border-gray-300 dark:border-gray-600 outline-none focus:border-highlight"
+                        >
+                            <option value="normal">Normal (Reto)</option>
+                            <option value="L">Em L</option>
+                            <option value="U">Em U</option>
+                            <option value="frente">Apenas Frente</option>
+                            <option value="atras">Apenas Atrás</option>
+                        </select>
+                    </div>
+                    <div className="flex-1">
+                        <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Lado/Orientação:</label>
+                        <select
+                            value={landing.guardrailSide || ""}
+                            onChange={(e) => {
+                                const newSide = e.target.value;
+                                const auto = getAutoGuardrailLengths(gFormat, newSide, landing.width || 0, landing.length || 0, stairWidth);
+                                updateLanding(landing.id, { 
+                                    guardrailSide: newSide,
+                                    guardrailLength: auto.guardrailLength,
+                                    guardrailLength2: auto.guardrailLength2,
+                                    guardrailLength3: auto.guardrailLength3
+                                });
+                            }}
+                            className="w-full text-xs font-bold p-2 text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded border border-gray-300 dark:border-gray-600 outline-none focus:border-highlight"
+                        >
+                            <option value="">Selecione...</option>
+                            {gFormat === "normal" && (
+                                <>
+                                    <option value="Direita">Direita</option>
+                                    <option value="Esquerda">Esquerda</option>
+                                </>
+                            )}
+                            {gFormat === "L" && (
+                                <>
+                                    <option value="Frente e Direita">Frente e Direita</option>
+                                    <option value="Frente e Esquerda">Frente e Esquerda</option>
+                                    <option value="Atrás e Direita">Atrás e Direita</option>
+                                    <option value="Atrás e Esquerda">Atrás e Esquerda</option>
+                                </>
+                            )}
+                            {gFormat === "U" && (
+                                <>
+                                    <option value="Esquerda, Frente, Direita">Esquerda, Frente, Direita</option>
+                                    <option value="Esquerda, Atrás, Direita">Esquerda, Atrás, Direita</option>
+                                </>
+                            )}
+                            {(gFormat === "frente" || gFormat === "atras") && (
+                                <option value={gFormat === "frente" ? "Frente" : "Atrás"}>{gFormat === "frente" ? "Frente" : "Atrás"}</option>
+                            )}
+                        </select>
+                    </div>
                 </div>
-                <div className="flex-1">
-                    <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Lado/Orientação:</label>
-                    <select
-                        value={landing.guardrailSide || ""}
-                        onChange={(e) => {
-                            const newSide = e.target.value;
-                            const auto = getAutoGuardrailLengths(gFormat, newSide, landing.width || 0, landing.length || 0, stairWidth);
-                            updateLanding(landing.id, { 
-                                guardrailSide: newSide,
-                                guardrailLength: auto.guardrailLength,
-                                guardrailLength2: auto.guardrailLength2,
-                                guardrailLength3: auto.guardrailLength3
-                            });
-                        }}
-                        className="w-full text-xs font-bold p-2 text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded border border-gray-300 dark:border-gray-600 outline-none focus:border-highlight"
-                    >
-                        <option value="">Selecione...</option>
-                        {gFormat === "normal" && (
-                            <>
-                                <option value="Direita">Direita</option>
-                                <option value="Esquerda">Esquerda</option>
-                            </>
-                        )}
-                        {gFormat === "L" && (
-                            <>
-                                <option value="Frente e Direita">Frente e Direita</option>
-                                <option value="Frente e Esquerda">Frente e Esquerda</option>
-                                <option value="Atrás e Direita">Atrás e Direita</option>
-                                <option value="Atrás e Esquerda">Atrás e Esquerda</option>
-                            </>
-                        )}
-                        {gFormat === "U" && (
-                            <>
-                                <option value="Esquerda, Frente, Direita">Esquerda, Frente, Direita</option>
-                                <option value="Esquerda, Atrás, Direita">Esquerda, Atrás, Direita</option>
-                            </>
-                        )}
-                        {(gFormat === "frente" || gFormat === "atras") && (
-                            <option value={gFormat === "frente" ? "Frente" : "Atrás"}>{gFormat === "frente" ? "Frente" : "Atrás"}</option>
-                        )}
-                    </select>
-                </div>
-            </div>
+            )}
 
             {/* Aviso quando o guarda-corpo está na frente (conexão com a escada) */}
-            {(() => {
+            {!isActuallyGate && (() => {
                 const sLower = (landing.guardrailSide || '').toLowerCase();
                 const hasFrente = sLower.includes('frente') || gFormat === 'frente';
                 if (!hasFrente || stairWidth <= 0) return null;
@@ -187,30 +308,33 @@ export const GuardrailEditor = ({ landing, updateLanding, InputField, isGate = f
             <div className="flex flex-wrap gap-2">
                 <div className="flex-1 min-w-[110px]">
                     <InputField 
-                        label={numSides === 1 ? "Comp." : "Lado 1"} 
-                        value={landing.guardrailLength !== undefined ? landing.guardrailLength.toString() : '0'} 
-                        onChange={(e: any) => updateLanding(landing.id, { guardrailLength: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} 
+                        label={isActuallyGate ? "Comp. Portão" : (numSides === 1 ? "Comp." : "Lado 1")} 
+                        value={primaryLength !== undefined ? primaryLength.toString() : '100'} 
+                        onChange={(e: any) => {
+                            const val = e.target.value === '' ? ('' as any) : (parseFloat(e.target.value) || 0);
+                            updatePrimaryLength(val);
+                        }} 
                         unit="cm" 
                         className="mb-0"
                     />
                 </div>
-                {numSides >= 2 && (
+                {!isActuallyGate && numSides >= 2 && (
                     <div className="flex-1 min-w-[110px]">
                         <InputField 
                             label="Lado 2" 
                             value={landing.guardrailLength2 !== undefined ? landing.guardrailLength2.toString() : '0'} 
-                            onChange={(e: any) => updateLanding(landing.id, { guardrailLength2: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} 
+                            onChange={(e: any) => updateLanding(landing.id, { guardrailLength2: e.target.value === '' ? ('' as any) : (parseFloat(e.target.value) || 0) })} 
                             unit="cm" 
                             className="mb-0"
                         />
                     </div>
                 )}
-                {numSides >= 3 && (
+                {!isActuallyGate && numSides >= 3 && (
                     <div className="flex-1 min-w-[110px]">
                         <InputField 
                             label="Lado 3" 
                             value={landing.guardrailLength3 !== undefined ? landing.guardrailLength3.toString() : '0'} 
-                            onChange={(e: any) => updateLanding(landing.id, { guardrailLength3: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} 
+                            onChange={(e: any) => updateLanding(landing.id, { guardrailLength3: e.target.value === '' ? ('' as any) : (parseFloat(e.target.value) || 0) })} 
                             unit="cm" 
                             className="mb-0"
                         />
@@ -219,8 +343,11 @@ export const GuardrailEditor = ({ landing, updateLanding, InputField, isGate = f
                 <div className="flex-1 min-w-[110px]">
                     <InputField 
                         label="Altura" 
-                        value={landing.guardrailHeight !== undefined ? landing.guardrailHeight.toString() : '90'} 
-                        onChange={(e: any) => updateLanding(landing.id, { guardrailHeight: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} 
+                        value={rawHeight !== undefined ? rawHeight.toString() : '90'} 
+                        onChange={(e: any) => {
+                            const val = e.target.value === '' ? ('' as any) : (parseFloat(e.target.value) || 0);
+                            updatePrimaryHeight(val);
+                        }} 
                         unit="cm" 
                         className="mb-0"
                     />
@@ -228,22 +355,25 @@ export const GuardrailEditor = ({ landing, updateLanding, InputField, isGate = f
                 <div className="flex-1 min-w-[110px]">
                     <InputField 
                         label="R$/Metro" 
-                        value={(landing.guardrailPricePerMeter !== undefined ? landing.guardrailPricePerMeter : 50).toString()} 
-                        onChange={(e: any) => updateLanding(landing.id, { guardrailPricePerMeter: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} 
+                        value={gPricePerMeter.toString()} 
+                        onChange={(e: any) => {
+                            const val = e.target.value === '' ? ('' as any) : (parseFloat(e.target.value) || 0);
+                            updatePrimaryPricePerMeter(val);
+                        }} 
                         unit="R$" 
                         className="mb-0"
                     />
                 </div>
-                  <div className="flex-1 min-w-[110px]">
-                      <InputField 
-                          label="Valor Total"
-                          value={getGuardrailPrice(landing).toString()} 
-                          onChange={() => {}} 
-                          unit="R$" 
-                          className="mb-0 bg-gray-100 dark:bg-gray-800 pointer-events-none"
-                          disabled={true}
-                      />
-                  </div>
+                <div className="flex-1 min-w-[110px]">
+                    <InputField 
+                        label="Valor Total"
+                        value={getGuardrailPrice(landing).toString()} 
+                        onChange={() => {}} 
+                        unit="R$" 
+                        className="mb-0 bg-gray-100 dark:bg-gray-800 pointer-events-none"
+                        disabled={true}
+                    />
+                </div>
             </div>
 
             <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded border border-gray-200 dark:border-gray-700">
@@ -256,7 +386,7 @@ export const GuardrailEditor = ({ landing, updateLanding, InputField, isGate = f
                     />
                     <span className="text-sm font-bold text-gray-800 dark:text-gray-200">Será fixado no patamar (+10cm nas pontas)?</span>
                 </label>
-                {landing.guardrailFixedToLanding && numSides > 1 && (
+                {!isActuallyGate && landing.guardrailFixedToLanding && numSides > 1 && (
                     <div className="flex gap-4 ml-6 mt-2">
                         <span className="text-xs text-gray-500 font-bold self-center mr-1">Quais lados?</span>
                         {[1, 2, 3].slice(0, numSides).map(side => (
@@ -279,9 +409,19 @@ export const GuardrailEditor = ({ landing, updateLanding, InputField, isGate = f
             </div>
 
             <div className="mt-4">
-                {renderSegment(landing.guardrailLength || 0, landing.guardrailBarsOverride, (val) => updateLanding(landing.id, { guardrailBarsOverride: val }), numSides > 1 ? "LADO 1" : "GUARDA-CORPO", landing.guardrailGapOverride, (val) => updateLanding(landing.id, { guardrailGapOverride: val }), landing.guardrailPriceOverride, (val) => updateLanding(landing.id, { guardrailPriceOverride: val }), !!(landing.guardrailFixedToLanding && (numSides === 1 || (landing.guardrailFixedSides || []).includes(1))))}
-                {numSides >= 2 && renderSegment(landing.guardrailLength2 || 0, landing.guardrailBarsOverride2, (val) => updateLanding(landing.id, { guardrailBarsOverride2: val }), "LADO 2", landing.guardrailGapOverride2, (val) => updateLanding(landing.id, { guardrailGapOverride2: val }), landing.guardrailPriceOverride2, (val) => updateLanding(landing.id, { guardrailPriceOverride2: val }), !!(landing.guardrailFixedToLanding && (landing.guardrailFixedSides || []).includes(2)))}
-                {numSides >= 3 && renderSegment(landing.guardrailLength3 || 0, landing.guardrailBarsOverride3, (val) => updateLanding(landing.id, { guardrailBarsOverride3: val }), "LADO 3", landing.guardrailGapOverride3, (val) => updateLanding(landing.id, { guardrailGapOverride3: val }), landing.guardrailPriceOverride3, (val) => updateLanding(landing.id, { guardrailPriceOverride3: val }), !!(landing.guardrailFixedToLanding && (landing.guardrailFixedSides || []).includes(3)))}
+                {renderSegment(
+                    primaryLength, 
+                    primaryBarsOverride, 
+                    updatePrimaryOverride, 
+                    isActuallyGate ? "PORTÃO" : (numSides > 1 ? "LADO 1" : "GUARDA-CORPO"), 
+                    primaryGapOverride, 
+                    updatePrimaryGap, 
+                    primaryPriceOverride, 
+                    updatePrimaryPrice, 
+                    !!(landing.guardrailFixedToLanding && (numSides === 1 || (landing.guardrailFixedSides || []).includes(1)))
+                )}
+                {!isActuallyGate && numSides >= 2 && renderSegment(landing.guardrailLength2 || 0, landing.guardrailBarsOverride2, (val) => updateLanding(landing.id, { guardrailBarsOverride2: val }), "LADO 2", landing.guardrailGapOverride2, (val) => updateLanding(landing.id, { guardrailGapOverride2: val }), landing.guardrailPriceOverride2, (val) => updateLanding(landing.id, { guardrailPriceOverride2: val }), !!(landing.guardrailFixedToLanding && (landing.guardrailFixedSides || []).includes(2)))}
+                {!isActuallyGate && numSides >= 3 && renderSegment(landing.guardrailLength3 || 0, landing.guardrailBarsOverride3, (val) => updateLanding(landing.id, { guardrailBarsOverride3: val }), "LADO 3", landing.guardrailGapOverride3, (val) => updateLanding(landing.id, { guardrailGapOverride3: val }), landing.guardrailPriceOverride3, (val) => updateLanding(landing.id, { guardrailPriceOverride3: val }), !!(landing.guardrailFixedToLanding && (landing.guardrailFixedSides || []).includes(3)))}
             </div>
         </div>
     );

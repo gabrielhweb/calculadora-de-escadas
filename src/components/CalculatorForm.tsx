@@ -70,6 +70,7 @@ export const InputField: React.FC<{
         onChange={onChange}
         disabled={disabled}
         autoComplete="off"
+        onFocus={(e) => e.target.select()}
         className={`flex-1 min-w-0 p-2 sm:p-1.5 px-3 rounded-l-md border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-highlight focus:ring-1 focus:ring-highlight transition font-bold text-base ${disabled ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed' : 'bg-white dark:bg-gray-800 text-black dark:text-white'}`}
         placeholder={placeholder || (isOptional ? "Automático" : label)}
         min="0"
@@ -1228,12 +1229,25 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                                                                 <input
                                                                     type="number"
                                                                     min="2"
-                                                                    value={totalBars}
+                                                                    value={landing.gateBarsOverride !== undefined ? landing.gateBarsOverride : totalBars}
+                                                                    onFocus={(e) => e.target.select()}
                                                                     onChange={e => {
-                                                                        const val = parseInt(e.target.value);
-                                                                        if (val >= 2) updateLanding(landing.id, { gateBarsOverride: val });
+                                                                        const str = e.target.value;
+                                                                        if (str === '') {
+                                                                            updateLanding(landing.id, { gateBarsOverride: '' as any });
+                                                                            return;
+                                                                        }
+                                                                        const val = parseInt(str);
+                                                                        if (!isNaN(val)) {
+                                                                            updateLanding(landing.id, { gateBarsOverride: val });
+                                                                        }
                                                                     }}
-                                                                    className="w-full text-sm font-bold p-2 text-center text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded border border-gray-300 dark:border-gray-600 outline-none focus:border-highlight"
+                                                                    onBlur={() => {
+                                                                        if (landing.gateBarsOverride === '' as any || landing.gateBarsOverride === undefined || Number(landing.gateBarsOverride) < 2) {
+                                                                            updateLanding(landing.id, { gateBarsOverride: undefined });
+                                                                        }
+                                                                    }}
+                                                                    className="w-full text-base sm:text-sm font-bold p-2 text-center text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded border border-gray-300 dark:border-gray-600 outline-none focus:border-highlight"
                                                                 />
                                                             </div>
                                                             <div className="flex-1 p-2 bg-gray-100 dark:bg-gray-700 rounded text-center border border-gray-200 dark:border-gray-600">
@@ -1520,25 +1534,37 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                                                     <label className="text-xs font-black text-gray-800 dark:text-gray-200 mb-1 block">Qtd. Tubos</label>
                                                     <input
                                                         type="number"
-                                                        value={totalBars}
+                                                        min="2"
+                                                        value={landing.gateBarsOverride !== undefined ? landing.gateBarsOverride : totalBars}
+                                                        onFocus={(e: any) => e.target.select()}
                                                         onChange={(e: any) => {
-                                                            const val = parseInt(e.target.value);
-                                                            if (isNaN(val) || val < 2) return;
-                                                            updateLanding(landing.id, { gateBarsOverride: val });
+                                                            const str = e.target.value;
+                                                            if (str === '') {
+                                                                updateLanding(landing.id, { gateBarsOverride: '' as any });
+                                                                return;
+                                                            }
+                                                            const val = parseInt(str);
+                                                            if (!isNaN(val)) {
+                                                                updateLanding(landing.id, { gateBarsOverride: val });
+                                                            }
                                                         }}
                                                         onBlur={(e: any) => {
-                                                            const val = parseFloat(e.target.value);
-                                                            if (!isNaN(val) && val > 0) {
-                                                                const gapsCalc = (innerL + 3) / (val + 3);
-                                                                const impliedBars = Math.round(gapsCalc) + 1;
-                                                                if (impliedBars >= 2 && impliedBars !== totalBars) {
-                                                                    if (window.confirm(`Com esse vão de ${val}cm, a quantidade ideal de tubos seria ${impliedBars} (atualmente está ${totalBars}). Deseja ajustar a quantidade de tubos automaticamente?`)) {
-                                                                        updateLanding(landing.id, { gateBarsOverride: impliedBars });
+                                                            if (landing.gateBarsOverride === '' as any || landing.gateBarsOverride === undefined || Number(landing.gateBarsOverride) < 2) {
+                                                                updateLanding(landing.id, { gateBarsOverride: undefined });
+                                                            } else {
+                                                                const val = parseFloat(e.target.value);
+                                                                if (!isNaN(val) && val > 0) {
+                                                                    const gapsCalc = (innerL + 3) / (val + 3);
+                                                                    const impliedBars = Math.round(gapsCalc) + 1;
+                                                                    if (impliedBars >= 2 && impliedBars !== totalBars) {
+                                                                        if (window.confirm(`Com esse vão de ${val}cm, a quantidade ideal de tubos seria ${impliedBars} (atualmente está ${totalBars}). Deseja ajustar a quantidade de tubos automaticamente?`)) {
+                                                                            updateLanding(landing.id, { gateBarsOverride: impliedBars });
+                                                                        }
                                                                     }
                                                                 }
                                                             }
                                                         }}
-                                                        className="w-full text-center font-bold text-sm bg-transparent outline-none border-b border-gray-300 focus:border-highlight"
+                                                        className="w-full text-center font-bold text-base sm:text-sm bg-transparent outline-none border-b border-gray-300 focus:border-highlight"
                                                     />
                                                 </div>
                                                 <div className="flex-1">

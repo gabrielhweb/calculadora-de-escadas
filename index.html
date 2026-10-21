@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
     <title>Zilinski - Escadas Personalizadas</title>
     <!-- Carrega o Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -30,6 +30,12 @@
     <style>
       body {
         font-family: 'Roboto', sans-serif;
+      }
+      /* Previne zoom automático e indesejado no mobile (iOS e Android) ao focar em inputs */
+      @media screen and (max-width: 768px) {
+        input, select, textarea {
+          font-size: 16px !important;
+        }
       }
       /* Força contraste alto nos inputs para resolver problema de leitura no modo claro */
       html:not(.dark) input, html:not(.dark) select {
