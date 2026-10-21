@@ -10,8 +10,10 @@ export interface Visita {
     telefone: string;
     endereco: string;
     horarioPrevisto: string;
+    motivoVisita?: string;
     temperatura: TemperaturaLead;
     status: StatusVisita;
     latitude: number;
     longitude: number;
+    valorVisita?: number;
 }

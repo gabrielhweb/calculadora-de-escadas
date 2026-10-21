@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DragEndEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import { Visita, ApiUtilizada } from '../components/visitas/types';
@@ -6,63 +6,93 @@ import { FormularioReciboPDF } from '../components/visitas/FormularioReciboPDF';
 import { TabelaVisitasView } from '../components/visitas/TabelaVisitasView';
 import { RotasItinerario } from '../components/visitas/RotasItinerario';
 
-type SubpaginaVisitas = 'pdf' | 'tabela' | 'rotas';
+type SubpaginaVisitas = 'tabela' | 'rotas' | 'pdf';
 
-const VISITAS_PADRAO: Visita[] = [
+const STORAGE_KEY = 'zilinski_visitas_leads_v2';
+
+// Lista inicial de leads e orçamentos de pré-venda (totalmente desvinculada de contratos de fabricação)
+const VISITAS_PROSPECT_PADRAO: Visita[] = [
     {
-        id: 'visita-1',
-        cliente: 'Fábio Chalita',
-        telefone: '(35) 99881-2233',
-        endereco: 'Rua Ypês, 92 - Salto de Baixo, Extrema - MG',
-        horarioPrevisto: '08:30',
+        id: 'lead-1',
+        cliente: 'Dr. Roberto Antunes (Alphaville Residencial 2)',
+        telefone: '(11) 98765-4321',
+        endereco: 'Alameda das Acácias, 310 - Alphaville, Barueri - SP',
+        horarioPrevisto: '09:00',
+        motivoVisita: 'Medição de vão e escada helicoidal metálica',
         temperatura: 'QUENTE',
         status: 'PENDENTE',
-        latitude: -22.8542,
-        longitude: -46.3183,
+        latitude: -23.4984,
+        longitude: -46.8529,
+        valorVisita: 380,
     },
     {
-        id: 'visita-2',
-        cliente: 'Alexandre Bergamo',
-        telefone: '(15) 98112-4455',
-        endereco: 'Jardim Residencial Chácara Ondina, Sorocaba - SP',
-        horarioPrevisto: '11:00',
+        id: 'lead-2',
+        cliente: 'Mariana Silveira (Jardins)',
+        telefone: '(11) 99123-8877',
+        endereco: 'Rua Bela Cintra, 2100 - Cerqueira César, São Paulo - SP',
+        horarioPrevisto: '11:30',
+        motivoVisita: 'Avaliação estrutural para escada viga central',
         temperatura: 'QUENTE',
         status: 'PENDENTE',
-        latitude: -23.5015,
-        longitude: -47.4526,
+        latitude: -23.5604,
+        longitude: -46.6669,
+        valorVisita: 380,
     },
     {
-        id: 'visita-3',
-        cliente: 'Mário dos Reis Filho',
-        telefone: '(11) 97223-9900',
-        endereco: 'Av. Paulista, 1578 - Bela Vista, São Paulo - SP',
+        id: 'lead-3',
+        cliente: 'Eng. Carlos Eduardo (Vila Mariana)',
+        telefone: '(11) 97442-1133',
+        endereco: 'Rua Domingos de Morais, 1850 - Vila Mariana, São Paulo - SP',
         horarioPrevisto: '14:30',
+        motivoVisita: 'Estudo de viabilidade de escada cascata',
         temperatura: 'MORNO',
         status: 'PENDENTE',
-        latitude: -23.5615,
-        longitude: -46.6560,
+        latitude: -23.5898,
+        longitude: -46.6385,
+        valorVisita: 380,
     },
     {
-        id: 'visita-4',
-        cliente: 'Diego Ferreira Santos',
-        telefone: '(11) 96554-1122',
-        endereco: 'Rua das Flores, 450 - Santana, São Paulo - SP',
+        id: 'lead-4',
+        cliente: 'Renata Guimarães (Moema Pássaros)',
+        telefone: '(11) 96331-5522',
+        endereco: 'Av. Rouxinol, 620 - Moema, São Paulo - SP',
         horarioPrevisto: '16:45',
+        motivoVisita: 'Conferência de projeto arquitetônico no local',
         temperatura: 'FRIO',
         status: 'PENDENTE',
-        latitude: -23.5005,
-        longitude: -46.6289,
+        latitude: -23.6053,
+        longitude: -46.6667,
+        valorVisita: 380,
     },
 ];
 
 export default function VisitReceipt() {
     const [subpaginaAtiva, setSubpaginaAtiva] = useState<SubpaginaVisitas>('tabela');
-    const [visitas, setVisitas] = useState<Visita[]>(VISITAS_PADRAO);
+    const [visitas, setVisitas] = useState<Visita[]>(() => {
+        try {
+            const salvo = localStorage.getItem(STORAGE_KEY);
+            if (salvo) {
+                const parsed = JSON.parse(salvo);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    // Garantir que não carregue nomes de contratos antigos salvos no storage
+                    const contemContrato = parsed.some((p: any) =>
+                        p.cliente?.includes('Chalita') || p.cliente?.includes('Bergamo')
+                    );
+                    if (!contemContrato) {
+                        return parsed;
+                    }
+                }
+            }
+        } catch (e) {
+            console.error('Erro ao ler visitas do localStorage:', e);
+        }
+        return VISITAS_PROSPECT_PADRAO;
+    });
+
     const [loading, setLoading] = useState<boolean>(false);
     const [apiUtilizada, setApiUtilizada] = useState<ApiUtilizada>(null);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-    // Dados selecionados para preenchimento automático do formulário do recibo PDF
     const [dadosReciboPreenchido, setDadosReciboPreenchido] = useState<{
         cliente: string;
         endereco: string;
@@ -75,6 +105,15 @@ export default function VisitReceipt() {
         data: '',
     });
 
+    // Salvar sempre que a lista de visitas for modificada
+    useEffect(() => {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(visitas));
+        } catch (e) {
+            console.error('Erro ao salvar visitas no localStorage:', e);
+        }
+    }, [visitas]);
+
     const handleDragEnd = (event: DragEndEvent) => {
         const { active, over } = event;
         if (over && active.id !== over.id) {
@@ -86,7 +125,22 @@ export default function VisitReceipt() {
         }
     };
 
+    const handleAdicionarVisita = (nova: Visita) => {
+        setVisitas((prev) => [...prev, nova]);
+    };
+
+    const handleRemoverVisita = (id: string) => {
+        if (window.confirm('Tem certeza que deseja remover esta visita da lista?')) {
+            setVisitas((prev) => prev.filter((v) => v.id !== id));
+        }
+    };
+
     const handleCalcularMelhorRota = async () => {
+        if (visitas.length === 0) {
+            alert('Adicione pelo menos 1 visita para calcular a rota.');
+            return;
+        }
+
         setLoading(true);
         setErrorMsg(null);
 
@@ -161,87 +215,67 @@ export default function VisitReceipt() {
             data: dataFormatada,
         });
 
-        // Alterna automaticamente para a aba "Criar PDF"
         setSubpaginaAtiva('pdf');
     };
 
     return (
-        <div className="min-h-screen bg-zinc-950 text-zinc-100 p-4 sm:p-8 font-sans selection:bg-zinc-100 selection:text-zinc-950">
-            {/* Navegação por Subpáginas / Abas Brutalistas */}
-            <div className="mb-8 border-b-2 border-zinc-800 pb-4">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div>
-                        <div className="flex items-center gap-2">
-                            <span className="bg-zinc-100 text-zinc-950 font-black text-xs uppercase px-2 py-0.5 tracking-wider">
-                                MÓDULO VISITAS TÉCNICAS
-                            </span>
-                            <span className="text-zinc-400 font-mono text-xs">
-                                3 SUBPÁGINAS ATIVAS
-                            </span>
-                        </div>
-                        <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight mt-1 text-zinc-100">
-                            Gestão de Visitas e Recibos
-                        </h1>
-                    </div>
+        <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
+            {/* Cabeçalho Padronizado da Página */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+                <div>
+                    <h1 className="text-2xl md:text-3xl font-black text-gray-900 dark:text-white tracking-tight">
+                        Gestão de Visitas Técnicas (Pré-Venda)
+                    </h1>
+                    <p className="text-gray-500 dark:text-gray-400 mt-1">
+                        Gerencie visitas de medição e orçamento, otimize rotas com trânsito e emita termos de visita técnica antes do fechamento do contrato.
+                    </p>
+                </div>
 
-                    {/* Botões das 3 Subpáginas */}
-                    <div className="flex border border-zinc-700 bg-zinc-900 p-1 w-full sm:w-auto">
-                        <button
-                            type="button"
-                            onClick={() => setSubpaginaAtiva('pdf')}
-                            className={`flex-1 sm:flex-none font-black text-xs uppercase px-4 py-2.5 transition-colors cursor-pointer flex items-center justify-center gap-2 ${
-                                subpaginaAtiva === 'pdf'
-                                    ? 'bg-zinc-100 text-zinc-950'
-                                    : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800'
-                            }`}
-                        >
-                            <span>📝</span>
-                            <span>Criar PDF</span>
-                        </button>
+                {/* Seletor de Subpáginas Padronizado */}
+                <div className="bg-gray-100 dark:bg-gray-800 p-1.5 rounded-xl border border-gray-200 dark:border-gray-700 inline-flex gap-1 shadow-sm self-start md:self-auto">
+                    <button
+                        type="button"
+                        onClick={() => setSubpaginaAtiva('tabela')}
+                        className={`font-semibold text-sm px-4 py-2 rounded-lg transition-all flex items-center gap-2 cursor-pointer ${
+                            subpaginaAtiva === 'tabela'
+                                ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm'
+                                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                        }`}
+                    >
+                        <span>📋</span>
+                        <span>Tabela de Visitas</span>
+                    </button>
 
-                        <button
-                            type="button"
-                            onClick={() => setSubpaginaAtiva('tabela')}
-                            className={`flex-1 sm:flex-none font-black text-xs uppercase px-4 py-2.5 transition-colors cursor-pointer flex items-center justify-center gap-2 ${
-                                subpaginaAtiva === 'tabela'
-                                    ? 'bg-zinc-100 text-zinc-950'
-                                    : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800'
-                            }`}
-                        >
-                            <span>📋</span>
-                            <span>Tabela</span>
-                        </button>
+                    <button
+                        type="button"
+                        onClick={() => setSubpaginaAtiva('rotas')}
+                        className={`font-semibold text-sm px-4 py-2 rounded-lg transition-all flex items-center gap-2 cursor-pointer ${
+                            subpaginaAtiva === 'rotas'
+                                ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm'
+                                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                        }`}
+                    >
+                        <span>🗺️</span>
+                        <span>Rotas do Dia</span>
+                    </button>
 
-                        <button
-                            type="button"
-                            onClick={() => setSubpaginaAtiva('rotas')}
-                            className={`flex-1 sm:flex-none font-black text-xs uppercase px-4 py-2.5 transition-colors cursor-pointer flex items-center justify-center gap-2 ${
-                                subpaginaAtiva === 'rotas'
-                                    ? 'bg-zinc-100 text-zinc-950'
-                                    : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800'
-                            }`}
-                        >
-                            <span>🗺️</span>
-                            <span>Rotas</span>
-                        </button>
-                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setSubpaginaAtiva('pdf')}
+                        className={`font-semibold text-sm px-4 py-2 rounded-lg transition-all flex items-center gap-2 cursor-pointer ${
+                            subpaginaAtiva === 'pdf'
+                                ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm'
+                                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                        }`}
+                    >
+                        <span>📝</span>
+                        <span>Criar PDF</span>
+                    </button>
                 </div>
             </div>
 
-            {/* Conteúdo Renderizado da Subpágina Ativa */}
+            {/* Conteúdo da Subpágina Ativa */}
             <div>
-                {subpaginaAtiva === 'pdf' && (
-                    <div className="max-w-4xl mx-auto">
-                        <FormularioReciboPDF
-                            key={dadosReciboPreenchido.cliente || 'novo'}
-                            initialClientName={dadosReciboPreenchido.cliente}
-                            initialAddress={dadosReciboPreenchido.endereco}
-                            initialVisitTime={dadosReciboPreenchido.horario}
-                            initialVisitDate={dadosReciboPreenchido.data}
-                        />
-                    </div>
-                )}
-
                 {subpaginaAtiva === 'tabela' && (
                     <TabelaVisitasView
                         visitas={visitas}
@@ -250,6 +284,9 @@ export default function VisitReceipt() {
                         errorMsg={errorMsg}
                         onDragEnd={handleDragEnd}
                         onCalcularRota={handleCalcularMelhorRota}
+                        onAdicionarVisita={handleAdicionarVisita}
+                        onRemoverVisita={handleRemoverVisita}
+                        onSelecionarParaRecibo={handleSelecionarParaRecibo}
                     />
                 )}
 
@@ -262,6 +299,18 @@ export default function VisitReceipt() {
                         onCalcularRota={handleCalcularMelhorRota}
                         onSelecionarParaRecibo={handleSelecionarParaRecibo}
                     />
+                )}
+
+                {subpaginaAtiva === 'pdf' && (
+                    <div className="max-w-4xl mx-auto">
+                        <FormularioReciboPDF
+                            key={dadosReciboPreenchido.cliente || 'novo'}
+                            initialClientName={dadosReciboPreenchido.cliente}
+                            initialAddress={dadosReciboPreenchido.endereco}
+                            initialVisitTime={dadosReciboPreenchido.horario}
+                            initialVisitDate={dadosReciboPreenchido.data}
+                        />
+                    </div>
                 )}
             </div>
         </div>
