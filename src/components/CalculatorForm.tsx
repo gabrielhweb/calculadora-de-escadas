@@ -299,6 +299,8 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
         customTotalLengthOption: customTotalLengthOption,
         optionalItems: optionalItems,
         landings: pricedLandings,
+        hasStairSideBar: hasStairSideBar,
+        stairSideBarPrice: hasStairSideBar ? (parseFloat(stairSideBarPrice) || 0) : 0,
         standaloneGuardrails: pricedLandings.filter(l => l.isAccessoriesOnly).length > 0 ? pricedLandings.filter(l => l.isAccessoriesOnly) : undefined,
       slabThickness: slabThickInCm,
       slabOpening: openingInCm || undefined,
@@ -809,7 +811,17 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                             type="checkbox" 
                             checked={hasStairSideBar} 
                             onChange={(e) => {
-                                setHasStairSideBar(e.target.checked);
+                                const checked = e.target.checked;
+                                setHasStairSideBar(checked);
+                                const priceStr = (checked && (!stairSideBarPrice || stairSideBarPrice === '0')) ? '498' : stairSideBarPrice;
+                                setTimeout(() => {
+                                    const fd = getFormData();
+                                    if (fd) {
+                                        fd.hasStairSideBar = checked;
+                                        fd.stairSideBarPrice = checked ? (parseFloat(priceStr) || 0) : 0;
+                                        onCalculate(fd);
+                                    }
+                                }, 50);
                                 if (e.target.checked && (!stairSideBarPrice || stairSideBarPrice === '0')) {
                                     setStairSideBarPrice('498');
                                 }
@@ -824,7 +836,18 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                         <InputField 
                             label="Valor da Barra Lateral" 
                             value={stairSideBarPrice} 
-                            onChange={(e) => setStairSideBarPrice(e.target.value)} 
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                setStairSideBarPrice(val);
+                                setTimeout(() => {
+                                    const fd = getFormData();
+                                    if (fd) {
+                                        fd.hasStairSideBar = hasStairSideBar;
+                                        fd.stairSideBarPrice = hasStairSideBar ? (parseFloat(val) || 0) : 0;
+                                        onCalculate(fd);
+                                    }
+                                }, 50);
+                            }} 
                             unit="R$" 
                             className="mb-0"
                         />

@@ -212,9 +212,9 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
             doc.text(escadaPrice, pageWidth - pageMargin, currentY, { align: 'right' });
             currentY += 6;
 
-            if (inputData.hasStairSideBar && sideBarPrice > 0) {
+            if (inputData.hasStairSideBar) {
                 doc.text(`- Escada com Barra Lateral:`, pageMargin, currentY);
-                doc.text(formatCurrencyBRL(sideBarPrice), pageWidth - pageMargin, currentY, { align: 'right' });
+                doc.text(sideBarPrice > 0 ? formatCurrencyBRL(sideBarPrice) : 'Incluso', pageWidth - pageMargin, currentY, { align: 'right' });
                 currentY += 6;
             }
         }
