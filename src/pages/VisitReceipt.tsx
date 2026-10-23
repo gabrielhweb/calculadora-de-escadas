@@ -23,7 +23,9 @@ const VISITAS_PROSPECT_PADRAO: Visita[] = [
         status: 'PENDENTE',
         latitude: -23.4984,
         longitude: -46.8529,
-        valorVisita: 380,
+        valorVisita: 200,
+        valorCobrado: 200,
+        quandoCobrar: 'No dia da visita',
     },
     {
         id: 'lead-2',
@@ -36,7 +38,9 @@ const VISITAS_PROSPECT_PADRAO: Visita[] = [
         status: 'PENDENTE',
         latitude: -23.5604,
         longitude: -46.6669,
-        valorVisita: 380,
+        valorVisita: 400,
+        valorCobrado: 400,
+        quandoCobrar: 'Se passar 2 semanas da visita',
     },
     {
         id: 'lead-3',
@@ -49,7 +53,9 @@ const VISITAS_PROSPECT_PADRAO: Visita[] = [
         status: 'PENDENTE',
         latitude: -23.5898,
         longitude: -46.6385,
-        valorVisita: 380,
+        valorVisita: 200,
+        valorCobrado: 200,
+        quandoCobrar: 'No dia da visita',
     },
     {
         id: 'lead-4',
@@ -62,7 +68,9 @@ const VISITAS_PROSPECT_PADRAO: Visita[] = [
         status: 'PENDENTE',
         latitude: -23.6053,
         longitude: -46.6667,
-        valorVisita: 380,
+        valorVisita: 0,
+        valorCobrado: 0,
+        quandoCobrar: 'Isento / Cortesia',
     },
 ];
 
@@ -78,7 +86,11 @@ export default function VisitReceipt() {
                         p.cliente?.includes('Chalita') || p.cliente?.includes('Bergamo')
                     );
                     if (!contemContrato) {
-                        return parsed;
+                        return parsed.map((item: any) => ({
+                            ...item,
+                            valorCobrado: item.valorCobrado !== undefined ? item.valorCobrado : 200,
+                            quandoCobrar: item.quandoCobrar || 'No dia da visita',
+                        }));
                     }
                 }
             }
@@ -97,11 +109,13 @@ export default function VisitReceipt() {
         endereco: string;
         horario: string;
         data: string;
+        valor: string;
     }>({
         cliente: '',
         endereco: '',
         horario: '',
         data: '',
+        valor: '200.00',
     });
 
     // Salvar sempre que a lista de visitas for modificada
@@ -126,6 +140,10 @@ export default function VisitReceipt() {
 
     const handleAdicionarVisita = (nova: Visita) => {
         setVisitas((prev) => [...prev, nova]);
+    };
+
+    const handleAtualizarVisita = (atualizada: Visita) => {
+        setVisitas((prev) => prev.map((v) => (v.id === atualizada.id ? atualizada : v)));
     };
 
     const handleRemoverVisita = (id: string) => {
@@ -207,11 +225,22 @@ export default function VisitReceipt() {
         const hoje = new Date();
         const dataFormatada = `${String(hoje.getDate()).padStart(2, '0')}/${String(hoje.getMonth() + 1).padStart(2, '0')}/${hoje.getFullYear()}`;
 
+        let valString = '200.00';
+        if (v.valorCobrado !== undefined && v.valorCobrado !== null) {
+            if (typeof v.valorCobrado === 'number') {
+                valString = v.valorCobrado.toFixed(2);
+            } else {
+                const num = parseFloat(String(v.valorCobrado).replace(/[^\d.,]/g, '').replace(',', '.'));
+                if (!isNaN(num)) valString = num.toFixed(2);
+            }
+        }
+
         setDadosReciboPreenchido({
             cliente: v.cliente,
             endereco: v.endereco,
             horario: v.horarioPrevisto,
             data: dataFormatada,
+            valor: valString,
         });
 
         setSubpaginaAtiva('pdf');
@@ -281,6 +310,7 @@ export default function VisitReceipt() {
                         onDragEnd={handleDragEnd}
                         onCalcularRota={handleCalcularMelhorRota}
                         onAdicionarVisita={handleAdicionarVisita}
+                        onAtualizarVisita={handleAtualizarVisita}
                         onRemoverVisita={handleRemoverVisita}
                         onSelecionarParaRecibo={handleSelecionarParaRecibo}
                     />
@@ -305,6 +335,7 @@ export default function VisitReceipt() {
                             initialAddress={dadosReciboPreenchido.endereco}
                             initialVisitTime={dadosReciboPreenchido.horario}
                             initialVisitDate={dadosReciboPreenchido.data}
+                            initialVisitValue={dadosReciboPreenchido.valor}
                         />
                     </div>
                 )}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Visita, ApiUtilizada } from './types';
+import { Visita, ApiUtilizada, formatValorCobrado } from './types';
 import { ApiBadge } from './ApiBadge';
 
 interface RotasItinerarioProps {
@@ -155,6 +155,14 @@ export const RotasItinerario: React.FC<RotasItinerarioProps> = ({
                                         <span className="bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-xs font-medium px-2 py-0.5 rounded-full border border-gray-300 dark:border-gray-600">
                                             {visita.status.replace('_', ' ')}
                                         </span>
+                                        <span className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 text-xs font-black px-2.5 py-0.5 rounded-full">
+                                            💰 {formatValorCobrado(visita.valorCobrado)}
+                                        </span>
+                                        {visita.quandoCobrar && (
+                                            <span className="bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 text-xs font-semibold px-2.5 py-0.5 rounded-full">
+                                                📅 {visita.quandoCobrar}
+                                            </span>
+                                        )}
                                     </div>
 
                                     <p className="text-gray-700 dark:text-gray-200 text-sm flex items-center gap-1.5 font-medium">

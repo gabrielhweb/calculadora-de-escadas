@@ -46,6 +46,7 @@ interface FormularioReciboPDFProps {
     initialAddress?: string;
     initialVisitTime?: string;
     initialVisitDate?: string;
+    initialVisitValue?: string;
 }
 
 export const FormularioReciboPDF: React.FC<FormularioReciboPDFProps> = ({
@@ -53,6 +54,7 @@ export const FormularioReciboPDF: React.FC<FormularioReciboPDFProps> = ({
     initialAddress = '',
     initialVisitTime = '',
     initialVisitDate = '',
+    initialVisitValue = '200.00',
 }) => {
     const [receiptNumber, setReceiptNumber] = useState('');
     const [clientName, setClientName] = useState(initialClientName);
@@ -60,7 +62,7 @@ export const FormularioReciboPDF: React.FC<FormularioReciboPDFProps> = ({
     const [address, setAddress] = useState(initialAddress);
     const [visitDate, setVisitDate] = useState(initialVisitDate);
     const [visitTime, setVisitTime] = useState(initialVisitTime);
-    const [visitValue, setVisitValue] = useState('380.00');
+    const [visitValue, setVisitValue] = useState(initialVisitValue);
     const [paymentMethod, setPaymentMethod] = useState('');
     const [otherPaymentMethod, setOtherPaymentMethod] = useState('');
 

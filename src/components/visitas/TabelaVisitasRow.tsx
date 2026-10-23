@@ -1,13 +1,14 @@
 import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Visita, TemperaturaLead, StatusVisita } from './types';
+import { Visita, TemperaturaLead, StatusVisita, formatValorCobrado } from './types';
 
 interface TabelaVisitasRowProps {
     visita: Visita;
     index: number;
     onRemoverVisita?: (id: string) => void;
     onSelecionarParaRecibo?: (v: Visita) => void;
+    onEditarVisita?: (v: Visita) => void;
 }
 
 export const TabelaVisitasRow: React.FC<TabelaVisitasRowProps> = ({
@@ -15,6 +16,7 @@ export const TabelaVisitasRow: React.FC<TabelaVisitasRowProps> = ({
     index,
     onRemoverVisita,
     onSelecionarParaRecibo,
+    onEditarVisita,
 }) => {
     const {
         attributes,
@@ -59,6 +61,11 @@ export const TabelaVisitasRow: React.FC<TabelaVisitasRowProps> = ({
                 return 'bg-gray-500/15 text-gray-600 dark:text-gray-400 border-gray-500/30';
         }
     };
+
+    const isGratis =
+        Number(visita.valorCobrado) === 0 ||
+        String(visita.valorCobrado).toLowerCase().includes('grát') ||
+        String(visita.valorCobrado).toLowerCase().includes('grat');
 
     return (
         <tr
@@ -112,6 +119,24 @@ export const TabelaVisitasRow: React.FC<TabelaVisitasRowProps> = ({
                 {visita.endereco}
             </td>
 
+            <td className="p-3 text-center w-32">
+                <span
+                    className={`inline-block font-black text-xs px-2.5 py-1 rounded-md border ${
+                        isGratis
+                            ? 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600'
+                            : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30'
+                    }`}
+                >
+                    {formatValorCobrado(visita.valorCobrado)}
+                </span>
+            </td>
+
+            <td className="p-3 text-center w-44">
+                <span className="inline-block text-xs font-semibold px-2.5 py-1 rounded-md bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30">
+                    {visita.quandoCobrar || 'No dia da visita'}
+                </span>
+            </td>
+
             <td className="p-3 text-center w-28">
                 <span className={`inline-block font-bold text-xs border rounded-full px-2.5 py-0.5 ${getTemperaturaBadge(visita.temperatura)}`}>
                     {visita.temperatura}
@@ -124,7 +149,7 @@ export const TabelaVisitasRow: React.FC<TabelaVisitasRowProps> = ({
                 </span>
             </td>
 
-            <td className="p-3 text-right w-36">
+            <td className="p-3 text-right w-44">
                 <div className="flex items-center justify-end gap-1.5">
                     {onSelecionarParaRecibo && (
                         <button
@@ -136,12 +161,22 @@ export const TabelaVisitasRow: React.FC<TabelaVisitasRowProps> = ({
                             📝 Recibo
                         </button>
                     )}
+                    {onEditarVisita && (
+                        <button
+                            type="button"
+                            onClick={() => onEditarVisita(visita)}
+                            title="Editar dados da visita"
+                            className="text-gray-500 hover:text-highlight dark:hover:text-highlight p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer text-sm"
+                        >
+                            ✏️
+                        </button>
+                    )}
                     {onRemoverVisita && (
                         <button
                             type="button"
                             onClick={() => onRemoverVisita(visita.id)}
                             title="Remover visita"
-                            className="text-gray-400 hover:text-red-500 dark:hover:text-red-400 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+                            className="text-gray-400 hover:text-red-500 dark:hover:text-red-400 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer text-sm"
                         >
                             🗑️
                         </button>
