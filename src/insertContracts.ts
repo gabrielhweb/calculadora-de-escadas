@@ -6,6 +6,44 @@ export const insertMissingContracts = async () => {
         console.log("Inserindo contratos que faltavam...");
         
         // 1. Everton de Araujo
+        
+        // 3. Maria Helena Jara Guastamacchia
+        const mariaContract = {
+            createdAt: "2026-10-21T11:44:04.000Z",
+            clientName: "Maria Helena Jara Guastamacchia",
+            totalValue: 7251.35,
+            status: "producao",
+            contractData: {
+                userData: {
+                    name: "Maria Helena Jara Guastamacchia",
+                    cpf: "250.587.428-02",
+                    address: "Rua das Gilias, 389 - Vila Bela, São Paulo - SP, 03201-070"
+                },
+                inputData: {
+                    desiredSteps: 13,
+                    totalHeight: 274,
+                    totalLength: 267,
+                    stairWidth: 70,
+                    treadDepth: 20,
+                    treadMaterial: "metal",
+                    dampers: 4,
+                    stairDirection: "standard",
+                    wallFixation: "left",
+                    optionalItems: []
+                },
+                totalPrice: 7633,
+                freightCost: 340,
+                installationCost: 390,
+                isInstallationIncluded: true,
+                discount: 5,
+                discountValue: 381.65,
+                finalPrice: 7251.35,
+                paymentMethod: "pix",
+                pixTiming: "entry",
+                installments: 1
+            }
+        };
+
         const evertonContract = {
             createdAt: new Date().toISOString(),
             clientName: "Everton de Araujo",
@@ -79,6 +117,7 @@ export const insertMissingContracts = async () => {
 
         await addDoc(collection(db, 'contracts'), evertonContract);
         await addDoc(collection(db, 'contracts'), joseContract);
+        await addDoc(collection(db, 'contracts'), mariaContract);
         
         console.log("Contratos do Everton e José inseridos com sucesso!");
     } catch (e) {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, onSnapshot, doc, updateDoc, deleteDoc, setDoc, getDoc, getDocs, addDoc } from 'firebase/firestore';
 import { FABIO_CHALITA_CONTRACT_DATA } from '../data/fabioChalitaContract';
+import { MARIA_HELENA_CONTRACT_DATA } from '../data/mariaHelenaContract';
 import { db } from '../firebase';
 import { ProductionOrder, SavedQuote, SavedContract, BoardStage, CustomCost } from '../types';
 import { formatCurrencyBRL } from '../utils';
@@ -686,6 +687,7 @@ export default function ProductionQueue() {
 
         const unSubQueue = onSnapshot(query(collection(db, 'production_queue')), async (snapshot) => {
             let foundFabioInQueue = false;
+            let foundMariaHelenaInQueue = false;
             loadedQueue = [];
             snapshot.forEach(docSnap => {
                 const data = docSnap.data() as ProductionOrder;
@@ -695,6 +697,11 @@ export default function ProductionQueue() {
                 if (cName.includes('fabio chalita') || cName.includes('chalita')) {
                     foundFabioInQueue = true;
                 }
+
+                if (cName.includes('maria helena') || cName.includes('guastamacchia')) {
+                    foundMariaHelenaInQueue = true;
+                }
+
 
                 loadedQueue.push({
                     id: docSnap.id,
@@ -787,6 +794,84 @@ export default function ProductionQueue() {
                     console.error("Erro ao auto-restaurar Fabio Chalita na fila:", e);
                 }
             }
+
+            if (!foundMariaHelenaInQueue) {
+                try {
+                    const contractsSnap = await getDocs(collection(db, 'contracts'));
+                    let mariaContract = contractsSnap.docs.find(d => {
+                        const name = (d.data().clientName || '').toLowerCase();
+                        return name.includes('maria helena') || name.includes('guastamacchia');
+                    });
+                    let cId = mariaContract?.id;
+                    if (!cId) {
+                        const newMariaContract: any = {
+                            clientName: "Maria Helena Jara Guastamacchia",
+                            totalValue: 7251.35,
+                            baseTotalValue: 7251.35,
+                            interestValue: 0,
+                            downPayment: 3625.68,
+                            balanceDue: 3625.67,
+                            status: 'producao',
+                            deliveryStatus: 'em_producao',
+                            paymentStatus: 'a_receber',
+                            customAddress: "Rua das Gilias, 389 - Vila Bela, São Paulo - SP, 03201-070",
+                            location: "Vila Bela - São Paulo/SP",
+                            totalSteps: "13",
+                            structureSteps: "13",
+                            stepHeight: "19.57",
+                            treadDepth: "20.00",
+                            stairWidth: "70",
+                            wallFixation: "left",
+                            treadMaterial: "metal",
+                            createdAt: "2026-10-21T11:44:04.000Z",
+                            contractData: JSON.stringify(MARIA_HELENA_CONTRACT_DATA),
+                            contractDataString: JSON.stringify(MARIA_HELENA_CONTRACT_DATA),
+                            userId: user?.uid || 'system'
+                        };
+                        const cRef = await addDoc(collection(db, 'contracts'), newMariaContract);
+                        cId = cRef.id;
+                    }
+                    const newOrderId = Date.now().toString() + "_queue_maria_helena";
+                    const newOrder: any = {
+                        id: newOrderId,
+                        contractId: cId,
+                        createdAt: "2026-10-21T11:44:04.000Z",
+                        clientName: "Maria Helena Jara Guastamacchia",
+                        deliveryDate: "",
+                        downPayment: 3625.68,
+                        balanceDue: 3625.67,
+                        value: 7251.35,
+                        baseTotalValue: 7251.35,
+                        interestValue: 0,
+                        status: "in_queue",
+                        boardStage: "corte",
+                        location: "Vila Bela - São Paulo/SP",
+                        profit: 4500,
+                        totalCost: 2751.35,
+                        downPaymentStatus: "paid",
+                        balanceStatus: "pending",
+                        paymentMethod: "pix",
+                        pixTiming: "entry",
+                    };
+                    await setDoc(doc(db, 'production_queue', newOrderId), newOrder);
+                    loadedQueue.push({
+                        id: newOrderId,
+                        title: "Maria Helena Jara Guastamacchia",
+                        subtitle: "Vila Bela - São Paulo/SP",
+                        stage: "corte",
+                        value: 7251.35,
+                        source: 'queue',
+                        profit: 4500,
+                        cost: 2751.35,
+                        customCosts: [],
+                        originalData: newOrder,
+                        createdAt: "2026-10-21T11:44:04.000Z"
+                    });
+                } catch(e) {
+                    console.error("Erro ao auto-restaurar Maria Helena na fila:", e);
+                }
+            }
+
             updateItems();
         }, (err) => handleFirestoreError(err, OperationType.LIST, 'production_queue'));
 

@@ -109,7 +109,10 @@ export const DeliveriesTable: React.FC = () => {
             "felipe pagliarde cerezer": { steps: 7, stepHeight: 24.25, treadDepth: 20, stairWidth: 70, totalHeight: 194, totalLength: 144, wallFixation: "right", treadMaterial: "metal" },
             "felipe pagliarde": { steps: 7, stepHeight: 24.25, treadDepth: 20, stairWidth: 70, totalHeight: 194, totalLength: 144, wallFixation: "right", treadMaterial: "metal" },
             "márcia campos nogueira": { steps: 13, stepHeight: 20.93, treadDepth: 20, stairWidth: 60, totalHeight: 293, totalLength: 267, wallFixation: "left", treadMaterial: "metal" },
-            "marcia campos nogueira": { steps: 13, stepHeight: 20.93, treadDepth: 20, stairWidth: 60, totalHeight: 293, totalLength: 267, wallFixation: "left", treadMaterial: "metal" }
+            "marcia campos nogueira": { steps: 13, stepHeight: 20.93, treadDepth: 20, stairWidth: 60, totalHeight: 293, totalLength: 267, wallFixation: "left", treadMaterial: "metal" },
+            "maria helena jara guastamacchia": { steps: 13, structureSteps: 13, stepHeight: 19.57, treadDepth: 20, stairWidth: 70, totalHeight: 274, totalLength: 267, wallFixation: "left", treadMaterial: "metal", customAddress: "Rua das Gilias, 389 - Vila Bela, São Paulo - SP, 03201-070", location: "Vila Bela - São Paulo/SP" },
+            "maria helena": { steps: 13, structureSteps: 13, stepHeight: 19.57, treadDepth: 20, stairWidth: 70, totalHeight: 274, totalLength: 267, wallFixation: "left", treadMaterial: "metal", customAddress: "Rua das Gilias, 389 - Vila Bela, São Paulo - SP, 03201-070", location: "Vila Bela - São Paulo/SP" },
+
         };
 
         const clientKey = (contractObj?.clientName || '').toLowerCase().trim();

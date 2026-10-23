@@ -200,6 +200,16 @@ export default function InstallationReceipt() {
       },
       'alexandre bergamo': {
         address: 'Jardim Residencial Chácara Ondina, Sorocaba - SP'
+      },
+      'maria helena jara guastamacchia': {
+        cpf: '250.587.428-02',
+        address: 'Rua das Gilias, 389 - Vila Bela, São Paulo - SP, 03201-070',
+        cep: '03201-070'
+      },
+      'maria helena': {
+        cpf: '250.587.428-02',
+        address: 'Rua das Gilias, 389 - Vila Bela, São Paulo - SP, 03201-070',
+        cep: '03201-070'
       }
     };
 

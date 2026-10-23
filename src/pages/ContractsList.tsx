@@ -8,6 +8,7 @@ import { generateGuardrailsOnlyPDF } from '../utils/productionPdfGenerator';
 import { generatePaymentReceiptPDF } from '../utils/paymentReceiptGenerator';
 import { collection, query, where, onSnapshot, doc, updateDoc, deleteDoc, getDocs, addDoc, setDoc } from 'firebase/firestore';
 import { FABIO_CHALITA_CONTRACT_DATA } from '../data/fabioChalitaContract';
+import { MARIA_HELENA_CONTRACT_DATA } from '../data/mariaHelenaContract';
 import { db, auth } from '../firebase';
 import { useAuth } from '../components/AuthProvider';
 
@@ -98,7 +99,8 @@ export const ContractsList: React.FC = () => {
       { clientName: "Ricardo Torres Soares", steps: 13, stepHeightCm: 22.14, treadDepthCm: 20.00, widthCm: 60, totalLength: 337, wallFixation: "left", treadMaterial: "metal", landings: [{width: 70, length: 70}], totalValue: 7894.50 },
       { clientName: "Felipe Pagliarde Cerezer", steps: 7, stepHeightCm: 24.25, treadDepthCm: 20.00, widthCm: 70, totalLength: 144, wallFixation: "right", treadMaterial: "metal", landings: [], totalValue: 3724 },
       { clientName: "Márcia Campos Nogueira", steps: 13, stepHeightCm: 20.93, treadDepthCm: 20.00, widthCm: 60, totalLength: 267, wallFixation: "left", treadMaterial: "metal", landings: [], totalValue: 7039.50 },
-      { clientName: "Mario dos Reis Filho", steps: 11, stepHeightCm: 23.54, treadDepthCm: 20.00, widthCm: 58, totalLength: 225, wallFixation: "right", treadMaterial: "metal", landings: [], totalValue: 5771.25 }
+      { clientName: "Mario dos Reis Filho", steps: 11, stepHeightCm: 23.54, treadDepthCm: 20.00, widthCm: 58, totalLength: 225, wallFixation: "right", treadMaterial: "metal", landings: [], totalValue: 5771.25 },
+      { clientName: "Maria Helena Jara Guastamacchia", steps: 13, structureSteps: 13, stepHeightCm: 19.57, treadDepthCm: 20.00, widthCm: 70, totalLength: 267, wallFixation: "left", treadMaterial: "metal", landings: [], totalValue: 7251.35 }
     ];
 
     const handleFixContractData = async () => {
@@ -358,6 +360,7 @@ export const ContractsList: React.FC = () => {
             const loadedContracts: SavedContract[] = [];
             let foundAlexandre = false;
             let foundFabio = false;
+            let foundMariaHelena = false;
 
             snapshot.forEach((docSnap) => {
                 const docData = docSnap.data();
@@ -422,6 +425,37 @@ export const ContractsList: React.FC = () => {
                         updates.wallFixation = "right";
                         updates.treadMaterial = "wood";
                         updates.woodType = "muiracatiara";
+                        needsUpdate = true;
+                    }
+                    if (needsUpdate) {
+                        updateDoc(doc(db, 'contracts', docSnap.id), updates).catch(() => {});
+                    }
+                }
+
+                if (cName.includes('maria helena') || cName.includes('guastamacchia')) {
+                    foundMariaHelena = true;
+                    let needsUpdate = false;
+                    const updates: any = {};
+                    if (docData.status === 'pendente' || !docData.status) {
+                        updates.status = 'producao';
+                        docData.status = 'producao';
+                        needsUpdate = true;
+                    }
+                    if (!docData.totalValue || Number(docData.totalValue) === 0) {
+                        updates.totalValue = 7251.35;
+                        docData.totalValue = 7251.35;
+                        needsUpdate = true;
+                    }
+                    if (!docData.contractData) {
+                        updates.contractData = JSON.stringify(MARIA_HELENA_CONTRACT_DATA);
+                        updates.contractDataString = JSON.stringify(MARIA_HELENA_CONTRACT_DATA);
+                        updates.totalSteps = "13";
+                        updates.structureSteps = "13";
+                        updates.stepHeight = "19.57";
+                        updates.treadDepth = "20.00";
+                        updates.stairWidth = "70";
+                        updates.wallFixation = "left";
+                        updates.treadMaterial = "metal";
                         needsUpdate = true;
                     }
                     if (needsUpdate) {
@@ -548,6 +582,80 @@ export const ContractsList: React.FC = () => {
                     console.error("Erro ao auto-restaurar Fabio Chalita em contracts:", e);
                 }
             }
+
+            // Se Maria Helena não estiver em contracts, busca na production_queue ou restaura automaticamente
+            if (!foundMariaHelena) {
+                try {
+                    const queueSnap = await getDocs(collection(db, 'production_queue'));
+                    let mariaDoc = queueSnap.docs.find(d => {
+                        const name = (d.data().clientName || '').toLowerCase();
+                        return name.includes('maria helena') || name.includes('guastamacchia');
+                    });
+                    
+                    const newMariaContract: any = {
+                        clientName: "Maria Helena Jara Guastamacchia",
+                        totalValue: 7251.35,
+                        baseTotalValue: 7251.35,
+                        interestValue: 0,
+                        downPayment: 3625.68,
+                        balanceDue: 3625.67,
+                        status: 'producao',
+                        deliveryStatus: 'em_producao',
+                        paymentStatus: 'a_receber',
+                        customAddress: "Rua das Gilias, 389 - Vila Bela, São Paulo - SP, 03201-070",
+                        location: "Vila Bela - São Paulo/SP",
+                        totalSteps: "13",
+                        structureSteps: "13",
+                        stepHeight: "19.57",
+                        treadDepth: "20.00",
+                        stairWidth: "70",
+                        wallFixation: "left",
+                        treadMaterial: "metal",
+                        createdAt: "2026-10-21T11:44:04.000Z",
+                        contractData: JSON.stringify(MARIA_HELENA_CONTRACT_DATA),
+                        contractDataString: JSON.stringify(MARIA_HELENA_CONTRACT_DATA),
+                        userId: user?.uid || 'system'
+                    };
+
+                    const docRef = await addDoc(collection(db, 'contracts'), newMariaContract);
+                    if (mariaDoc) {
+                        await updateDoc(doc(db, 'production_queue', mariaDoc.id), {
+                            contractId: docRef.id,
+                            downPayment: 3625.68,
+                            balanceDue: 3625.67,
+                            value: 7251.35,
+                            baseTotalValue: 7251.35
+                        });
+                    } else {
+                        const newOrder: any = {
+                            id: Date.now().toString() + "_queue_maria_helena",
+                            contractId: docRef.id,
+                            createdAt: "2026-10-21T11:44:04.000Z",
+                            clientName: "Maria Helena Jara Guastamacchia",
+                            deliveryDate: "",
+                            downPayment: 3625.68,
+                            balanceDue: 3625.67,
+                            value: 7251.35,
+                            baseTotalValue: 7251.35,
+                            interestValue: 0,
+                            status: "in_queue",
+                            boardStage: "corte",
+                            location: "Vila Bela - São Paulo/SP",
+                            profit: 4500,
+                            totalCost: 2751.35,
+                            downPaymentStatus: "paid",
+                            balanceStatus: "pending",
+                            paymentMethod: "pix",
+                            pixTiming: "entry",
+                        };
+                        await setDoc(doc(db, 'production_queue', newOrder.id), newOrder);
+                    }
+                    loadedContracts.push({ id: docRef.id, ...newMariaContract } as SavedContract);
+                } catch(e) {
+                    console.error("Erro ao auto-restaurar Maria Helena em contracts:", e);
+                }
+            }
+
 
             // Sort by createdAt descending
             loadedContracts.sort((a, b) => {
