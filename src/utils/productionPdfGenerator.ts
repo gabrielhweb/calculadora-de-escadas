@@ -609,10 +609,13 @@ const drawProposalPiece = (doc: jsPDF, box: { x: number, y: number, w: number, h
     doc.rect(px + drawW - 1.8, py, 1.8, drawH + footH, 'F');
 
     // Inner vertical tubes
+    // A espessura acompanha o espaçamento: em peças longas (ex.: 6m) tubos de 1.5mm fixos
+    // ficavam colados uns nos outros e o desenho virava um bloco preto.
     const step = (drawW - 3.6) / (numInnerBars + 1);
+    const barW = Math.max(0.3, Math.min(1.5, step * 0.4));
     for (let b = 1; b <= numInnerBars; b++) {
-        const bx = px + 1.8 + b * step - 0.75;
-        doc.rect(bx, py + 1.8, 1.5, drawH - 4.0, 'F');
+        const bx = px + 1.8 + b * step - barW / 2;
+        doc.rect(bx, py + 1.8, barW, drawH - 4.0, 'F');
     }
 
     // 6. Gate Hinges & Latch (if isGate)
@@ -837,8 +840,53 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[], startY: num
         let currentY = finalY;
         const availH = 80; // Altura fixa reduzida para avulsos
 
-        // Dividir acessórios em pares para colocar lado a lado
-        for (let i = 0; i < accessories.length; i += 2) {
+        // Cada lado do guarda-corpo (L = 2 lados, U = 3 lados) e cada portão vira um desenho próprio;
+        // antes só o 1º lado aparecia.
+        const accPieces: any[] = [];
+        accessories.forEach((acc: any) => {
+            if (acc.hasGuardrail) {
+                const format = acc.guardrailFormat || 'normal';
+                const numSides = format === 'U' ? 3 : format === 'L' ? 2 : 1;
+                const gH = acc.guardrailHeight || 90;
+                const isFixed = !!acc.guardrailFixedToLanding;
+                const sides = [
+                    { len: acc.guardrailLength, bars: acc.guardrailBarsOverride, gap: acc.guardrailGapOverride },
+                    { len: acc.guardrailLength2, bars: acc.guardrailBarsOverride2, gap: acc.guardrailGapOverride2 },
+                    { len: acc.guardrailLength3, bars: acc.guardrailBarsOverride3, gap: acc.guardrailGapOverride3 },
+                ].slice(0, numSides);
+                sides.forEach((s, idx) => {
+                    accPieces.push({
+                        title: numSides > 1 ? `Guarda-Corpo em ${format} - ${idx + 1}º lado` : 'Guarda-Corpo',
+                        length: s.len || 0,
+                        outerH: isFixed ? gH + 10 : gH,
+                        innerH: gH - 13,
+                        isGate: false,
+                        isFixed,
+                        override: s.bars,
+                        gapOverride: s.gap
+                    });
+                });
+            }
+            if (acc.hasGate) {
+                const isBipartido = acc.gateIsBipartido || acc.isBipartido;
+                const gH = acc.gateHeight || 90;
+                accPieces.push({
+                    title: isBipartido ? 'Portão (Bipartido)' : 'Portão',
+                    length: acc.gateLength || 100,
+                    outerH: gH,
+                    innerH: gH - 13,
+                    isGate: true,
+                    isFixed: false,
+                    override: acc.gateBarsOverride,
+                    gapOverride: acc.gateGapOverride
+                });
+            }
+        });
+
+        // Peças longas ocupam a largura toda da página; as curtas vão em pares lado a lado
+        const fullW = 190;
+        const isLong = (p: any) => (Number(p.length) || 0) >= 250;
+        for (let i = 0; i < accPieces.length; ) {
             if (currentY + availH + 20 > 280) {
                 doc.addPage('a4', 'p');
                 currentY = 20;
@@ -846,37 +894,19 @@ export const drawProposalSummaryPage = (doc: jsPDF, landings: any[], startY: num
                 currentY += 10;
             }
 
-            const acc1 = accessories[i];
-            const acc2 = accessories[i + 1]; // Pode ser undefined
+            const p1 = accPieces[i];
+            const p2 = accPieces[i + 1];
 
-            const drawAcc = (acc: any, box: any) => {
-                const isGate = !!acc.hasGate;
-                const isBipartido = acc.gateIsBipartido || acc.isBipartido;
-                const titleText = isGate ? (isBipartido ? 'Portão (Bipartido)' : 'Portão') : 'Guarda-Corpo';
-                const gL = isGate ? acc.gateLength || 100 : acc.guardrailLength || 0;
-                const gH = isGate ? acc.gateHeight || 90 : acc.guardrailHeight || 90;
-                const isFixed = !isGate && !!acc.guardrailFixedToLanding;
-
-                drawProposalPiece(doc, box, {
-                    title: titleText,
-                    length: gL,
-                    outerH: isFixed ? gH + 10 : gH,
-                    innerH: gH - 13,
-                    isGate: isGate,
-                    isFixed: isFixed,
-                    override: isGate ? acc.gateBarsOverride : acc.guardrailBarsOverride,
-                    gapOverride: isGate ? acc.gateGapOverride : acc.guardrailGapOverride
-                });
-            };
-
-            const fullW = 190;
-            if (acc2) {
-                // Tem dois, desenha lado a lado
-                drawAcc(acc1, { x: 10, y: currentY, w: 95, h: availH });
-                drawAcc(acc2, { x: 105, y: currentY, w: 95, h: availH });
+            if (isLong(p1)) {
+                drawProposalPiece(doc, { x: 10, y: currentY, w: fullW, h: availH }, p1);
+                i += 1;
+            } else if (p2 && !isLong(p2)) {
+                drawProposalPiece(doc, { x: 10, y: currentY, w: 95, h: availH }, p1);
+                drawProposalPiece(doc, { x: 105, y: currentY, w: 95, h: availH }, p2);
+                i += 2;
             } else {
-                // Tem só um, desenha no meio, mas com largura máxima controlada
-                drawAcc(acc1, { x: 10 + fullW / 4, y: currentY, w: fullW / 2, h: availH });
+                drawProposalPiece(doc, { x: 10 + fullW / 4, y: currentY, w: fullW / 2, h: availH }, p1);
+                i += 1;
             }
 
             currentY += availH + 10;

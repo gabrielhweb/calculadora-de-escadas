@@ -111,13 +111,31 @@ export const getRouteInfoFromGemini = async (origin: string, destination: string
   return data;
 };
 
+// Comprimento real (em cm) de um item de guarda-corpo/portão avulso.
+// Conta só os lados que o formato usa: no guarda-corpo reto os campos de lado 2 e 3
+// podem continuar preenchidos pelo preenchimento automático e não devem entrar na soma.
+export const getGuardrailItemLengthCm = (g: any): number => {
+    if (!g) return 0;
+    if (g.hasGuardrail === undefined && g.hasGate === undefined) return Number(g.length) || 0;
+    const format = g.guardrailFormat || 'normal';
+    const numSides = format === 'U' ? 3 : format === 'L' ? 2 : 1;
+    let total = 0;
+    if (g.hasGuardrail) {
+        total += Number(g.guardrailLength) || 0;
+        if (numSides >= 2) total += Number(g.guardrailLength2) || 0;
+        if (numSides >= 3) total += Number(g.guardrailLength3) || 0;
+    }
+    if (g.hasGate) total += Number(g.gateLength) || 0;
+    return total;
+};
+
 export const generateProposalDescription = (inputData: any, opt: any): string => {
     if (inputData.quoteType === 'guardrail') {
         const materialText = inputData.standaloneGuardrails?.[0]?.material === 'glass' ? 'Vidro' : 'Aço/Ferro';
-        const lengthCm = inputData.standaloneGuardrails?.reduce((sum: number, g: any) => sum + (Number(g.length) || 0), 0) || 0;
+        const lengthCm = inputData.standaloneGuardrails?.reduce((sum: number, g: any) => sum + getGuardrailItemLengthCm(g), 0) || 0;
         const lengthM = (lengthCm / 100).toFixed(2).replace('.', ',');
         const qtty = inputData.standaloneGuardrails?.length || 1;
-        return `Orçamento para fornecimento de Guarda-Corpos e/ou Portões sob medida.\n- Quantidade de Peças/Sessões: ${qtty} unidades\n- Comprimento Total Projetado: ${lengthM} metros lineares\n- Material: Estrutura em aço carbono com fechamento em ${materialText}.`;
+        return `Orçamento para fornecimento de Guarda-Corpos e/ou Portões sob medida.\n- Quantidade de Peças/Sessões: ${qtty} unidades\n- Comprimento Total: ${lengthM} m\n- Material: Estrutura em aço carbono com fechamento em ${materialText}.`;
     }
     
     if (inputData.quoteType === 'landing') {

@@ -3,7 +3,7 @@ import React, { useCallback, useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
 import { useNavigate } from 'react-router-dom';
 import { ProposalOption, UserData, CalculatorInput } from '../types';
-import { formatCurrencyBRL, generateProposalDescription } from '../utils';
+import { formatCurrencyBRL, generateProposalDescription, getGuardrailItemLengthCm } from '../utils';
 import { drawProposalSummaryPage } from '../utils/productionPdfGenerator';
 
 interface ProposalDocumentProps {
@@ -199,7 +199,7 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
             let escadaText = `-Valor Escada (${opt.structureSteps} degraus):`;
             if (inputData.quoteType === 'guardrail') {
                 const lengthText = inputData.standaloneGuardrails 
-                    ? (inputData.standaloneGuardrails.reduce((sum, g) => sum + (Number(g.length) || 0), 0) / 100).toFixed(2) + 'm' 
+                    ? (inputData.standaloneGuardrails.reduce((sum, g) => sum + getGuardrailItemLengthCm(g), 0) / 100).toFixed(2).replace('.', ',') + 'm' 
                     : (opt.totalLength / 100).toFixed(2) + 'm';
                 escadaText = `- Guarda-Corpos e Portões (${lengthText}):`;
             } else if (inputData.quoteType === 'landing') {
@@ -242,7 +242,7 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
                          } else if (landing.guardrailFormat === 'U') {
                              desc = `- Guarda-corpo em U, composto por três lados:\n  1º lado: ${landing.guardrailLength || 0}cm de comprimento x ${landing.guardrailHeight || 90}cm de altura;\n  2º lado: ${landing.guardrailLength2 || 0}cm de comprimento x ${landing.guardrailHeight || 90}cm de altura;\n  3º lado: ${landing.guardrailLength3 || 0}cm de comprimento x ${landing.guardrailHeight || 90}cm de altura.`;
                          } else {
-                             desc = `- Guarda-Corpo com ${landing.guardrailHeight || 90}cm de altura`;
+                             desc = `- Guarda-corpo de ${((Number(landing.guardrailLength) || 0) / 100).toFixed(2).replace('.', ',')}m de comprimento x ${landing.guardrailHeight || 90}cm de altura`;
                          }
                     }
                     const price = formatCurrencyBRL(landing.price);

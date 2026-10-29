@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { GuardrailEditor } from '../components/GuardrailEditor';
 import { getAutoGuardrailLengths } from '../components/CalculatorForm';
 import { CalculatorInput } from '../types';
+import { getGuardrailItemLengthCm } from '../utils';
 
 // Global InputField for GuardrailEditor
 const InputField = ({ label, value, onChange, type = "text", placeholder, icon, addon }: any) => (
@@ -123,9 +124,7 @@ export default function GuardrailCalculator({ onCalculate }: GuardrailCalculator
                 calculatedPrice += g.gatePriceOverride !== undefined ? g.gatePriceOverride : Math.round(gateTotalMeters * gatePricePerMeter);
             }
             
-            const guardrailLengthSum = (g.hasGuardrail ? ((g.guardrailLength || 0) + (g.guardrailLength2 || 0) + (g.guardrailLength3 || 0)) : 0);
-            const gateLengthSum = (g.hasGate ? (g.gateLength || 0) : 0);
-            const totalLen = guardrailLengthSum + gateLengthSum;
+            const totalLen = getGuardrailItemLengthCm(g);
             
             // Treat as an "accessories only" landing so standard pdf generator logic processes it as a landing containing guardrails/gates
             return { ...g, price: calculatedPrice, length: totalLen, width: 0, isAccessoriesOnly: true };

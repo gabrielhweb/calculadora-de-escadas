@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { ProposalOption, UserData, CalculatorInput } from '../types';
-import { formatCurrencyBRL, calculateFreightCost, getRouteInfoFromGemini, calculateTotalPrice, getBasePrice, getMultiplier } from '../utils';
+import { formatCurrencyBRL, calculateFreightCost, getRouteInfoFromGemini, calculateTotalPrice, getBasePrice, getMultiplier, getGuardrailItemLengthCm } from '../utils';
 import StaircaseVisualizer from './StaircaseVisualizer';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -1118,7 +1118,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                     {inputData?.quoteType === 'guardrail' && (
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm text-gray-700 dark:text-gray-300 font-medium mb-4 pl-2">
                             <p><strong className="text-gray-900 dark:text-white">Qtd. Sessões:</strong> {inputData?.standaloneGuardrails?.length || 1} un</p>
-                            <p><strong className="text-gray-900 dark:text-white">Comp. Total:</strong> {(inputData?.standaloneGuardrails?.reduce((sum, g) => sum + (Number(g.length) || 0), 0) / 100 || 0).toFixed(2)} m</p>
+                            <p><strong className="text-gray-900 dark:text-white">Comp. Total:</strong> {(inputData?.standaloneGuardrails?.reduce((sum, g) => sum + getGuardrailItemLengthCm(g), 0) / 100 || 0).toFixed(2)} m</p>
                             <p><strong className="text-gray-900 dark:text-white">Material:</strong> {inputData?.standaloneGuardrails?.[0]?.material === 'glass' ? 'Vidro' : 'Aço/Ferro'}</p>
                         </div>
                     )}
