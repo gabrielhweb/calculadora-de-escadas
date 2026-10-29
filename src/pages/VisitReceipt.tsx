@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { DragEndEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
+import { doc, onSnapshot, runTransaction } from 'firebase/firestore';
+import { db, auth } from '../firebase';
+import { useAuth } from '../components/AuthProvider';
 import { Visita, ApiUtilizada } from '../components/visitas/types';
 import { FormularioReciboPDF } from '../components/visitas/FormularioReciboPDF';
 import { TabelaVisitasView } from '../components/visitas/TabelaVisitasView';
@@ -8,97 +11,53 @@ import { RotasItinerario } from '../components/visitas/RotasItinerario';
 
 type SubpaginaVisitas = 'tabela' | 'rotas' | 'pdf';
 
+// Chave antiga: as visitas ficavam salvas só no navegador de quem cadastrou.
+// Agora ela é lida uma única vez para migrar os dados para o Firestore.
 const STORAGE_KEY = 'zilinski_visitas_leads_v2';
 
-// Lista inicial de leads e orçamentos de pré-venda (totalmente desvinculada de contratos de fabricação)
-const VISITAS_PROSPECT_PADRAO: Visita[] = [
-    {
-        id: 'lead-1',
-        cliente: 'Dr. Roberto Antunes (Alphaville Residencial 2)',
-        telefone: '(11) 98765-4321',
-        endereco: 'Alameda das Acácias, 310 - Alphaville, Barueri - SP',
-        horarioPrevisto: '09:00',
-        motivoVisita: 'Medição de vão e escada helicoidal metálica',
-        temperatura: 'QUENTE',
-        status: 'PENDENTE',
-        latitude: -23.4984,
-        longitude: -46.8529,
-        valorVisita: 200,
-        valorCobrado: 200,
-        quandoCobrar: 'No dia da visita',
-    },
-    {
-        id: 'lead-2',
-        cliente: 'Mariana Silveira (Jardins)',
-        telefone: '(11) 99123-8877',
-        endereco: 'Rua Bela Cintra, 2100 - Cerqueira César, São Paulo - SP',
-        horarioPrevisto: '11:30',
-        motivoVisita: 'Avaliação estrutural para escada viga central',
-        temperatura: 'QUENTE',
-        status: 'PENDENTE',
-        latitude: -23.5604,
-        longitude: -46.6669,
-        valorVisita: 400,
-        valorCobrado: 400,
-        quandoCobrar: 'Se passar 2 semanas da visita',
-    },
-    {
-        id: 'lead-3',
-        cliente: 'Eng. Carlos Eduardo (Vila Mariana)',
-        telefone: '(11) 97442-1133',
-        endereco: 'Rua Domingos de Morais, 1850 - Vila Mariana, São Paulo - SP',
-        horarioPrevisto: '14:30',
-        motivoVisita: 'Estudo de viabilidade de escada cascata',
-        temperatura: 'MORNO',
-        status: 'PENDENTE',
-        latitude: -23.5898,
-        longitude: -46.6385,
-        valorVisita: 200,
-        valorCobrado: 200,
-        quandoCobrar: 'No dia da visita',
-    },
-    {
-        id: 'lead-4',
-        cliente: 'Renata Guimarães (Moema Pássaros)',
-        telefone: '(11) 96331-5522',
-        endereco: 'Av. Rouxinol, 620 - Moema, São Paulo - SP',
-        horarioPrevisto: '16:45',
-        motivoVisita: 'Conferência de projeto arquitetônico no local',
-        temperatura: 'FRIO',
-        status: 'PENDENTE',
-        latitude: -23.6053,
-        longitude: -46.6667,
-        valorVisita: 0,
-        valorCobrado: 0,
-        quandoCobrar: 'Isento / Cortesia',
-    },
-];
+// Lista compartilhada por todos os usuários logados (a coleção settings já é liberada nas regras do Firestore)
+const VISITAS_DOC = doc(db, 'settings', 'painel_visitas');
+
+// Leads de exemplo que vinham pré-carregados na versão antiga; não devem ir para o banco
+const LEADS_EXEMPLO: Record<string, string> = {
+    'lead-1': 'Dr. Roberto Antunes (Alphaville Residencial 2)',
+    'lead-2': 'Mariana Silveira (Jardins)',
+    'lead-3': 'Eng. Carlos Eduardo (Vila Mariana)',
+    'lead-4': 'Renata Guimarães (Moema Pássaros)',
+};
+
+const normalizarVisita = (item: any): Visita => ({
+    ...item,
+    valorCobrado: item.valorCobrado !== undefined ? item.valorCobrado : 200,
+    quandoCobrar: item.quandoCobrar || 'No dia da visita',
+});
+
+// Firestore não aceita campos undefined
+const limparParaFirestore = (lista: Visita[]): Visita[] => JSON.parse(JSON.stringify(lista));
+
+const lerVisitasLocais = (): Visita[] => {
+    try {
+        const salvo = localStorage.getItem(STORAGE_KEY);
+        if (!salvo) return [];
+        const parsed = JSON.parse(salvo);
+        if (!Array.isArray(parsed)) return [];
+        const contemContrato = parsed.some((p: any) =>
+            p.cliente?.includes('Chalita') || p.cliente?.includes('Bergamo')
+        );
+        if (contemContrato) return [];
+        return parsed
+            .filter((p: any) => p?.id && LEADS_EXEMPLO[p.id] !== p.cliente)
+            .map(normalizarVisita);
+    } catch (e) {
+        console.error('Erro ao ler visitas do localStorage:', e);
+        return [];
+    }
+};
 
 export default function VisitReceipt() {
+    const { user } = useAuth();
     const [subpaginaAtiva, setSubpaginaAtiva] = useState<SubpaginaVisitas>('tabela');
-    const [visitas, setVisitas] = useState<Visita[]>(() => {
-        try {
-            const salvo = localStorage.getItem(STORAGE_KEY);
-            if (salvo) {
-                const parsed = JSON.parse(salvo);
-                if (Array.isArray(parsed) && parsed.length > 0) {
-                    const contemContrato = parsed.some((p: any) =>
-                        p.cliente?.includes('Chalita') || p.cliente?.includes('Bergamo')
-                    );
-                    if (!contemContrato) {
-                        return parsed.map((item: any) => ({
-                            ...item,
-                            valorCobrado: item.valorCobrado !== undefined ? item.valorCobrado : 200,
-                            quandoCobrar: item.quandoCobrar || 'No dia da visita',
-                        }));
-                    }
-                }
-            }
-        } catch (e) {
-            console.error('Erro ao ler visitas do localStorage:', e);
-        }
-        return VISITAS_PROSPECT_PADRAO;
-    });
+    const [visitas, setVisitas] = useState<Visita[]>([]);
 
     const [loading, setLoading] = useState<boolean>(false);
     const [apiUtilizada, setApiUtilizada] = useState<ApiUtilizada>(null);
@@ -118,37 +77,88 @@ export default function VisitReceipt() {
         valor: '200.00',
     });
 
-    // Salvar sempre que a lista de visitas for modificada
-    useEffect(() => {
+    // Aplica a alteração na tela na hora e grava no banco em uma transação,
+    // para que duas pessoas editando ao mesmo tempo não apaguem a alteração uma da outra.
+    const salvarVisitas = async (transformar: (lista: Visita[]) => Visita[]): Promise<boolean> => {
+        setVisitas((prev) => transformar(prev));
         try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(visitas));
-        } catch (e) {
-            console.error('Erro ao salvar visitas no localStorage:', e);
+            await runTransaction(db, async (tx) => {
+                const snap = await tx.get(VISITAS_DOC);
+                const atuais: Visita[] = snap.exists() ? (snap.data().visitas || []) : [];
+                tx.set(
+                    VISITAS_DOC,
+                    {
+                        visitas: limparParaFirestore(transformar(atuais)),
+                        updatedAt: new Date().toISOString(),
+                        updatedBy: auth.currentUser?.email || null,
+                    },
+                    { merge: true }
+                );
+            });
+            return true;
+        } catch (e: any) {
+            console.error('Erro ao salvar visitas no Firestore:', e);
+            alert(`Erro ao salvar a visita no banco de dados: ${e?.message || e}`);
+            return false;
         }
-    }, [visitas]);
+    };
+
+    // Escuta a lista em tempo real: o que um usuário salva aparece para todos
+    useEffect(() => {
+        if (!user) return;
+        const unsubscribe = onSnapshot(
+            VISITAS_DOC,
+            (snap) => {
+                const remotas: Visita[] = snap.exists() ? (snap.data().visitas || []) : [];
+                setVisitas(remotas.map(normalizarVisita));
+            },
+            (error) => {
+                console.error('Erro ao carregar visitas do Firestore:', error);
+                setErrorMsg(`Não foi possível carregar as visitas do banco de dados: ${error.message}`);
+            }
+        );
+        return () => unsubscribe();
+    }, [user]);
+
+    // Migra uma única vez as visitas que estavam presas no navegador
+    useEffect(() => {
+        if (!user) return;
+        const locais = lerVisitasLocais();
+        if (locais.length === 0) {
+            localStorage.removeItem(STORAGE_KEY);
+            return;
+        }
+        salvarVisitas((lista) => {
+            const ids = new Set(lista.map((v) => v.id));
+            return [...lista, ...locais.filter((v) => !ids.has(v.id))];
+        }).then((ok) => {
+            if (ok) localStorage.removeItem(STORAGE_KEY);
+        });
+    }, [user]);
 
     const handleDragEnd = (event: DragEndEvent) => {
         const { active, over } = event;
         if (over && active.id !== over.id) {
-            setVisitas((items) => {
+            salvarVisitas((items) => {
                 const oldIndex = items.findIndex((i) => i.id === active.id);
                 const newIndex = items.findIndex((i) => i.id === over.id);
+                if (oldIndex === -1 || newIndex === -1) return items;
                 return arrayMove(items, oldIndex, newIndex);
             });
         }
     };
 
     const handleAdicionarVisita = (nova: Visita) => {
-        setVisitas((prev) => [...prev, nova]);
+        salvarVisitas((prev) => [...prev, nova]);
     };
 
     const handleAtualizarVisita = (atualizada: Visita) => {
-        setVisitas((prev) => prev.map((v) => (v.id === atualizada.id ? atualizada : v)));
+        salvarVisitas((prev) => prev.map((v) => (v.id === atualizada.id ? atualizada : v)));
     };
 
     const handleRemoverVisita = (id: string) => {
         if (window.confirm('Tem certeza que deseja remover esta visita da lista?')) {
-            setVisitas((prev) => prev.filter((v) => v.id !== id));
+            salvarVisitas((prev) => prev.filter((v) => v.id !== id));
         }
     };
 
@@ -209,7 +219,13 @@ export default function VisitReceipt() {
             }
 
             if (visitasReordenadas.length === visitas.length) {
-                setVisitas(visitasReordenadas);
+                // Reordena pela rota usando os ids, mantendo no fim qualquer visita que outra pessoa adicionou nesse meio tempo
+                const ordem = new Map(visitasReordenadas.map((v, idx) => [String(v.id), idx]));
+                salvarVisitas((lista) =>
+                    [...lista].sort(
+                        (a, b) => (ordem.get(String(a.id)) ?? Infinity) - (ordem.get(String(b.id)) ?? Infinity)
+                    )
+                );
             }
 
             setApiUtilizada(data.api_utilizada);
