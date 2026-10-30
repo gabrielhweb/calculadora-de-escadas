@@ -1,0 +1,35 @@
+# Atualizações
+
+Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de começar a trabalhar.
+
+# Diário
+
+### 2026-10-30 — [empresa] — Criação do CLAUDE.md e deste diário
+- **O que mudou:** criados `CLAUDE.md` (regras das duas máquinas, estado atual, pendências, estrutura) e `ATUALIZACOES.md`.
+- **Onde:** raiz do repositório.
+- **Pendente:** anotar a URL de produção do site no `CLAUDE.md`.
+
+### 2026-10-30 — [empresa] — Buscador em Meus Contratos
+- **O que mudou:** campo de busca no topo da página que filtra as 3 colunas por nome, CPF, e-mail, cidade ou endereço (ignora acento e maiúscula).
+- **Onde:** `src/pages/ContractsList.tsx` (commit 805a497).
+- **Pendente:** usuário testar no site.
+
+### 2026-10-30 — [empresa] — Contrato saía com 0 degraus
+- **O que mudou:** ao baixar contrato em Meus Contratos, degraus/altura/pisada/largura/comprimento agora são buscados em qualquer nível do JSON (igual à ficha técnica) e os patamares são descontados quando só existe o total. Caso relatado: Andréia (contrato com 0 degraus, ficha com 13).
+- **Onde:** `src/pages/ContractsList.tsx` (`handleDownload`, commit 3ddbceb).
+- **Pendente:** conferir o contrato da Andréia no site (não deu pra abrir o banco sem login).
+
+### 2026-10-30 — [empresa] — Medidas de frete da escada fechada + 3D
+- **O que mudou:** nova conta única `calcFoldedPackage` (degraus e corrimão "em pé" somam na largura pelo cosseno da inclinação e passam da viga pelo seno; pontas 37 cm; corrimão 80 cm sempre que o contrato tem corrimão; peso com dobradiças e corrimão). 3D redesenhado: viga em chapa, degrau com aba e 4 dobradiças, corrimão com 3 tubos e poucos postes.
+- **Onde:** `src/utils/freightDimensions.ts`, `src/utils/technicalPdfGenerator.ts`, `src/components/StaircaseVisualizer.tsx`, `src/pages/Contract.tsx`, `src/pages/ContractsList.tsx` (commit 2623135).
+- **Pendente:** fotos de perto pra deixar o 3D idêntico; peso real do Marco Peruchi pra calibrar o peso.
+
+### 2026-10-30 — [empresa] — Texto da transportadora (cotação de frete)
+- **O que mudou:** texto de cotação no formato da transportadora; botão "🚚 Frete" em Meus Contratos; na Tabela de Entregas a coluna FRETE (MEDIDAS) virou TRANSPORTADORA com texto editável, aviso "⚠️ FALTA INFORMAÇÃO" e botão Copiar (oculto na impressão). Dados do cliente buscados em todas as origens.
+- **Onde:** `src/utils/freightQuoteText.ts`, `src/utils/clientInfo.ts`, `src/pages/DeliveriesTable.tsx`, `src/pages/ContractsList.tsx`, `src/pages/Contract.tsx`, `src/types.ts` (commits 87ad632 a 10abbf8).
+- **Pendente:** "Modalidade de coleta" e "Tomador do frete" estão fixos até o usuário explicar como devem ser.
+
+### 2026-10-30 — [empresa] — Limpeza da pasta antiga
+- **O que mudou:** apagada a pasta aninhada antiga `calculadora-de-escadas`; o `.env` dela foi movido pra raiz do projeto (não versionado).
+- **Onde:** só na máquina da empresa.
+- **Pendente:** a máquina de casa precisa ter o próprio `.env` na raiz.
