@@ -51,6 +51,7 @@ Por isso estas regras valem em toda sessão:
 - [ ] Decidir se restaura o `vite.config.ts` (necessário pra rodar local).
 - [ ] Conferir o visual novo (cores e ícones) nas páginas que pedem login: Meus Contratos, Controle de Contratos e Compras.
 - [ ] Falar "pode subir" quando quiser o visual novo no site.
+- [ ] Quando quiser, retomar a troca do estilo de "quadrados com ponta arredondada" (que o usuário não gosta) — mostrar/descrever o estilo que quer no lugar. Detalhes no Diário.
 
 # 🧱 Estrutura
 

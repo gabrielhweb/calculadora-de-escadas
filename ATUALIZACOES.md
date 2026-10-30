@@ -4,6 +4,13 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-10-30 — [empresa] — ⏳ PARA FAZER DEPOIS: tirar o visual de "quadrados com ponta arredondada"
+- **O que o usuário falou:** as telas ainda parecem as antigas, com os quadrados de ponta arredondada, e ele não gosta nem um pouco desse estilo. Quer mudar isso depois.
+- **Onde está esse estilo hoje:** `rounded` (408 usos), `rounded-lg` (165), `rounded-xl` (59, alguns criados no commit bafb68b), `rounded-md` (52) em `src/pages` e `src/components`. Os cartões/caixas com borda + fundo + canto arredondado (ex.: caixa de Adendo, cartão de Medidas, cartões de opção da Calculadora, colunas de Meus Contratos) são o que mais dá essa cara.
+- **Antes de começar:** perguntar ao usuário que estilo ele quer no lugar (ex.: cantos retos, seções separadas só por linha, sem caixas) e, se der, pedir um print/desenho de referência. Fazer uma tela de exemplo primeiro e só depois espalhar.
+- **Não mexer:** `rounded-full` (bolinhas, fotos, ícones), 3D, PDFs.
+- **Pendente:** tudo — nada foi alterado ainda.
+
 ### 2026-10-30 — [empresa] — Emojis das telas trocados por ícones de linha
 - **O que mudou:** novo componente `Icon` (ícones de linha que acompanham o tamanho e a cor do texto). ~120 emojis em botões, títulos e etiquetas viraram ícones (lixeira, lápis, caminhão, setas de direção, impressora etc.). Ficaram de propósito: emojis dentro de listas de seleção (`<option>` não aceita ícone), mensagens de WhatsApp pro cliente, alertas/confirmações, PDFs, 3D, Recibo de Instalação e impressão de pedido. O placeholder da busca de Meus Contratos perdeu o 🔍.
 - **Onde:** `src/components/Icon.tsx` (novo) e ~20 arquivos em `src/pages` e `src/components`.
