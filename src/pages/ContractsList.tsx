@@ -6,7 +6,7 @@ import { generateContractPDF } from '../utils/contractGenerator';
 import { generateUnifiedTechnicalPDF } from '../utils/technicalPdfGenerator';
 import { generateGuardrailsOnlyPDF } from '../utils/productionPdfGenerator';
 import { generatePaymentReceiptPDF } from '../utils/paymentReceiptGenerator';
-import { parseContractData } from '../utils/freightDimensions';
+import { parseContractData, getProp, extractNum } from '../utils/freightDimensions';
 import { resolveClientInfo, normalizeName } from '../utils/clientInfo';
 import { resolveFreightInfo, buildFreightQuoteText, getInvoiceValue, copyTextToClipboard, MISSING_INFO } from '../utils/freightQuoteText';
 import { collection, query, where, onSnapshot, doc, updateDoc, deleteDoc, getDocs, addDoc, setDoc } from 'firebase/firestore';
@@ -774,12 +774,29 @@ export const ContractsList: React.FC = () => {
             parsedData.userData.name = parsedData.userData.name || contract.clientName || 'CLIENTE NÃO INFORMADO';
             parsedData.finalStairPrice = parsedData.finalStairPrice || contract.totalValue || 0;
 
-            parsedData.inputData.totalHeight = parsedData.inputData.totalHeight || 0;
-            parsedData.selectedOption.totalLength = parsedData.selectedOption.totalLength || 0;
-            parsedData.selectedOption.stairWidth = parsedData.selectedOption.stairWidth || parsedData.width || parsedData.largura || 0;
-            parsedData.selectedOption.stepHeight = parsedData.selectedOption.stepHeight || parsedData.altura || 0;
-            parsedData.selectedOption.treadDepth = parsedData.selectedOption.treadDepth || parsedData.pisante || 0;
-            parsedData.selectedOption.structureSteps = parsedData.selectedOption.structureSteps || parsedData.degraus || 0;
+            // Mesma busca da Ficha Técnica: o dado pode estar em qualquer nível do JSON
+            const deepNum = (...keys: string[]) => {
+                for (const k of keys) {
+                    const n = extractNum(getProp(parsedData, k));
+                    if (n > 0) return n;
+                }
+                return 0;
+            };
+            parsedData.inputData.totalHeight = deepNum('totalHeight', 'alturaTotal');
+            parsedData.selectedOption.totalLength = deepNum('totalLength');
+            parsedData.selectedOption.stairWidth = deepNum('stairWidth', 'widthCm', 'width', 'largura');
+            parsedData.selectedOption.stepHeight = deepNum('stepHeight', 'stepHeightCm', 'altura');
+            parsedData.selectedOption.treadDepth = deepNum('treadDepth', 'treadDepthCm', 'pisante');
+            const quoteType = getProp(parsedData, 'quoteType');
+            const isOnlyStructure = parsedData.inputData.isAdendo || quoteType === 'guardrail' || quoteType === 'landing';
+            let structureSteps = extractNum(parsedData.selectedOption.structureSteps);
+            if (!structureSteps && !isOnlyStructure) {
+                const landings = getProp(parsedData, 'landings');
+                const numLandings = Array.isArray(landings) ? landings.filter((l: any) => !l.isAccessoriesOnly).length : 0;
+                const totalSteps = deepNum('steps', 'desiredSteps', 'totalSteps', 'degraus');
+                structureSteps = deepNum('structureSteps') || Math.max(0, totalSteps - numLandings);
+            }
+            parsedData.selectedOption.structureSteps = structureSteps;
             parsedData.finalLandingsPrice = parsedData.finalLandingsPrice || 0;
             parsedData.freightCost = parsedData.freightCost || 0;
             parsedData.tollCost = parsedData.tollCost || 0;
