@@ -67,6 +67,9 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
   throw new Error(JSON.stringify(errInfo));
 }
 
+const normalizeSearch = (text: any) =>
+    String(text || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+
 export const ContractsList: React.FC = () => {
     const [contracts, setContracts] = useState<SavedContract[]>([]);
     const { user } = useAuth();
@@ -74,6 +77,7 @@ export const ContractsList: React.FC = () => {
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [showAdvanced, setShowAdvanced] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
     const [editingContract, setEditingContract] = useState<SavedContract | null>(null);
     const [receiptModalOpen, setReceiptModalOpen] = useState(false);
     const [selectedContractForReceipt, setSelectedContractForReceipt] = useState<SavedContract | null>(null);
@@ -1001,6 +1005,17 @@ export const ContractsList: React.FC = () => {
             return st === status;
         });
 
+        const search = normalizeSearch(searchTerm);
+        if (search) {
+            columnContracts = columnContracts.filter(c => {
+                const d = parseContractData(c.contractData, c);
+                const u = d?.userData || {};
+                const haystack = normalizeSearch([c.clientName, u.name, u.cpf, u.email, u.city, u.address, u.street].filter(Boolean).join(' '));
+                const digits = search.replace(/D/g, '');
+                return haystack.includes(search) || (digits.length >= 3 && haystack.replace(/D/g, '').includes(digits));
+            });
+        }
+
         if (status === 'producao') {
             if (filterDelivery !== 'todos') {
                 columnContracts = columnContracts.filter(c => (c.deliveryStatus || 'em_producao') === filterDelivery);
@@ -1234,6 +1249,15 @@ export const ContractsList: React.FC = () => {
                         Pipeline de Contratos
                     </h1>
                     <p className="text-gray-500 dark:text-gray-400 mt-1">Acompanhe o status de cada projeto na sua timeline.</p>
+                </div>
+                <div className="relative w-full max-w-xs">
+                    <input
+                        type="search"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        placeholder="🔍 Buscar cliente, CPF ou cidade..."
+                        className="w-full text-sm p-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
                 </div>
                 </header>
 
