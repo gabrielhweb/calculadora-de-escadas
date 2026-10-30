@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getQuoteById, updateQuoteStatus, addAttachmentToQuote, uploadProjectFile } from '../services/storage';
 import { SavedQuote, QuoteStatus, ProjectFile } from '../types';
+import Icon from '../components/Icon';
 import ProposalDocument from '../components/ProposalDocument'; // Reusing for PDF Gen if needed
 
 const ProjectDetails: React.FC = () => {
@@ -110,17 +111,17 @@ const ProjectDetails: React.FC = () => {
                         <div className="flex gap-2">
                             {(quote.status === 'draft' || quote.status === 'negotiation') && role === 'admin' && (
                                 <button onClick={() => handleStatusChange('production')} className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-6 rounded shadow-lg uppercase text-sm animate-pulse">
-                                    🔥 Enviar para Serralheria
+                                    <Icon name="fire" /> Enviar para Serralheria
                                 </button>
                             )}
                             {quote.status === 'production' && (
                                 <button onClick={() => handleStatusChange('installed')} className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded shadow uppercase text-sm">
-                                    ✅ Marcar Pronto
+                                    <Icon name="check" /> Marcar Pronto
                                 </button>
                             )}
                             {role === 'admin' && quote.status === 'installed' && (
                                 <button onClick={() => handleStatusChange('archived')} className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded shadow uppercase text-sm">
-                                    📦 Arquivar (Drive)
+                                    <Icon name="box" /> Arquivar (Drive)
                                 </button>
                             )}
                         </div>
@@ -138,7 +139,7 @@ const ProjectDetails: React.FC = () => {
                         <div className="flex justify-between items-center mb-4">
                             <div>
                                 <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                                    📸 Fotos & Vídeos da Obra
+                                    <Icon name="camera" /> Fotos & Vídeos da Obra
                                 </h2>
                                 <p className="text-xs text-gray-500">Adicione vídeos explicativos para o serralheiro aqui.</p>
                             </div>
@@ -173,7 +174,7 @@ const ProjectDetails: React.FC = () => {
                                         <img src={file.url} alt={file.name} className="w-full h-full object-cover" />
                                     ) : (
                                         <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 p-2 text-center bg-gray-800">
-                                            <span className="text-4xl mb-2">▶️</span>
+                                            <span className="text-4xl mb-2"><Icon name="play" /></span>
                                             <span className="text-xs truncate w-full px-2 font-bold text-white">{file.name}</span>
                                         </div>
                                     )}
@@ -199,7 +200,7 @@ const ProjectDetails: React.FC = () => {
                     {/* DADOS TÉCNICOS RESUMIDOS */}
                     <section className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 shadow-sm">
                         <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4 uppercase border-b border-gray-100 dark:border-gray-700 pb-2">
-                            📏 Ficha Técnica (Serralheria)
+                            <Icon name="ruler" /> Ficha Técnica (Serralheria)
                         </h2>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-sm">
                             <div>
@@ -245,13 +246,13 @@ const ProjectDetails: React.FC = () => {
                              Baixe o PDF com as medidas técnicas para levar para a bancada.
                          </p>
                          <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded text-sm">
-                             📄 Baixar Orçamento/Medidas
+                             <Icon name="file" /> Baixar Orçamento/Medidas
                          </button>
                     </div>
 
                     {role === 'admin' && (
                         <div className="bg-gray-50 dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700">
-                            <h3 className="font-bold text-gray-900 dark:text-white mb-3">💰 Financeiro (Restrito)</h3>
+                            <h3 className="font-bold text-gray-900 dark:text-white mb-3"><Icon name="cash" /> Financeiro (Restrito)</h3>
                             <ul className="space-y-2 text-sm">
                                 <li className="flex justify-between">
                                     <span className="text-gray-500">Valor Frete:</span>

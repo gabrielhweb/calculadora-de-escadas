@@ -15,6 +15,7 @@ import { MARIA_HELENA_CONTRACT_DATA } from '../data/mariaHelenaContract';
 import { db, auth } from '../firebase';
 import { useAuth } from '../components/AuthProvider';
 import PageTitle from '../components/PageTitle';
+import Icon from '../components/Icon';
 
 enum OperationType {
   CREATE = 'create',
@@ -1076,26 +1077,26 @@ export const ContractsList: React.FC = () => {
                                             className="text-gray-400 hover:text-blue-500 transition-colors"
                                             title="Editar"
                                         >
-                                            ✏️
+                                            <Icon name="pencil" />
                                         </button>
                                         <button 
                                             onClick={() => deleteContract(contract.id)}
                                             className="text-gray-400 hover:text-red-500 transition-colors"
                                             title="Excluir"
                                         >
-                                            🗑️
+                                            <Icon name="trash" />
                                         </button>
                                     </div>
                                 </div>
                                 
                                 <div className="flex items-center gap-2 mb-2 flex-wrap">
                                         {contract.paymentStatus === 'recebido' ? (
-                                            <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 border border-green-200 dark:border-green-700">💰 Recebido</span>
+                                            <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 border border-green-200 dark:border-green-700"><Icon name="cash" /> Recebido</span>
                                         ) : (
-                                            <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300 border border-red-200 dark:border-red-700">⏳ A Receber</span>
+                                            <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300 border border-red-200 dark:border-red-700"><Icon name="hourglass" /> A Receber</span>
                                         )}
                                         {contract.deliveryStatus === 'a_entregar' && (
-                                            <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300 border border-orange-200 dark:border-orange-700">🚚 A Entregar</span>
+                                            <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300 border border-orange-200 dark:border-orange-700"><Icon name="truck" /> A Entregar</span>
                                         )}
                                     </div>
                                     <div className="text-sm text-gray-500 dark:text-gray-400 mb-3">
@@ -1151,21 +1152,21 @@ export const ContractsList: React.FC = () => {
                                                 className="flex-1 bg-gray-100 hover:bg-gray-200 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 text-xs py-1.5 rounded font-medium transition-colors"
                                                 title="Baixar PDF do Contrato"
                                             >
-                                                📄 Contrato
+                                                <Icon name="file" /> Contrato
                                             </button>
                                             <button 
                                                 onClick={() => handleDownloadTechnical(contract)}
                                                 className="flex-1 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900 dark:hover:bg-blue-800 text-blue-700 dark:text-blue-200 text-xs py-1.5 rounded font-medium transition-colors"
                                                 title="Baixar Ficha Técnica (Produção + Matéria Prima)"
                                             >
-                                                ⚙️ Ficha Técnica
+                                                <Icon name="gear" /> Ficha Técnica
                                             </button>
                                             <button 
                                                 onClick={() => handleDownloadGuardrail(contract)}
                                                 className="flex-1 bg-amber-100 hover:bg-amber-200 dark:bg-amber-900 dark:hover:bg-amber-800 text-amber-700 dark:text-amber-200 text-xs py-1.5 rounded font-medium transition-colors"
                                                 title="Baixar PDF de Guarda-Corpo e Portão"
                                             >
-                                                🚧 G. Corpo
+                                                <Icon name="barrier" /> G. Corpo
                                             </button>
                                             <button
                                                 onClick={() => {
@@ -1179,14 +1180,14 @@ export const ContractsList: React.FC = () => {
                                                 className="flex-1 bg-green-100 hover:bg-green-200 dark:bg-green-900 dark:hover:bg-green-800 text-green-700 dark:text-green-200 text-xs py-1.5 rounded font-medium transition-colors"
                                                 title="Gerar Recibo de Pagamento"
                                             >
-                                                💰 Recibo
+                                                <Icon name="cash" /> Recibo
                                             </button>
                                             <button
                                                 onClick={() => handleCopyFreightQuote(contract)}
                                                 className="flex-1 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900 dark:hover:bg-blue-800 text-blue-700 dark:text-blue-200 text-xs py-1.5 rounded font-medium transition-colors"
                                                 title="Copiar texto de cotação para a transportadora"
                                             >
-                                                🚚 Frete
+                                                <Icon name="truck" /> Frete
                                             </button>
                                         </>
 
@@ -1195,7 +1196,7 @@ export const ContractsList: React.FC = () => {
                                             onClick={() => moveContract(contract.id, 'producao')}
                                             className="flex-1 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs py-1.5 rounded font-medium transition-colors"
                                         >
-                                            Produção ➡️
+                                            Produção <Icon name="right" />
                                         </button>
                                     )}
                                     {status === 'producao' && (
@@ -1205,13 +1206,13 @@ export const ContractsList: React.FC = () => {
                                                 className="px-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 text-xs py-1.5 rounded font-medium transition-colors"
                                                 title="Voltar"
                                             >
-                                                ⬅️
+                                                <Icon name="left" />
                                             </button>
                                             <button 
                                                 onClick={() => moveContract(contract.id, 'entregue')}
                                                 className="flex-1 bg-green-100 hover:bg-green-200 text-green-700 text-xs py-1.5 rounded font-medium transition-colors"
                                             >
-                                                Entregue ✅
+                                                Entregue <Icon name="check" />
                                             </button>
                                         </>
                                     )}
@@ -1220,7 +1221,7 @@ export const ContractsList: React.FC = () => {
                                             onClick={() => moveContract(contract.id, 'producao')}
                                             className="flex-1 bg-gray-100 hover:bg-gray-200 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 text-xs py-1.5 rounded font-medium transition-colors"
                                         >
-                                            ⬅️ Voltar
+                                            <Icon name="left" /> Voltar
                                         </button>
                                     )}
                                 </div>
@@ -1256,7 +1257,7 @@ export const ContractsList: React.FC = () => {
                         type="search"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        placeholder="🔍 Buscar cliente, CPF ou cidade..."
+                        placeholder="Buscar cliente, CPF ou cidade..."
                         className="w-full text-sm p-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                 </div>
@@ -1416,7 +1417,7 @@ export const ContractsList: React.FC = () => {
                                 onClick={() => setShowAdvanced(!showAdvanced)}
                                 className="text-sm text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
                             >
-                                {showAdvanced ? '🔽 Ocultar Edição Avançada' : '▶️ Mostrar Edição Avançada (Corrigir PDFs)'}
+                                {showAdvanced ? <><Icon name="chevronDown" /> Ocultar Edição Avançada</> : <><Icon name="play" /> Mostrar Edição Avançada (Corrigir PDFs)</>}
                             </button>
                             
                             {showAdvanced && (
@@ -1468,7 +1469,7 @@ export const ContractsList: React.FC = () => {
                                     }}
                                     className="px-4 py-2 bg-amber-100 hover:bg-amber-200 text-amber-700 dark:bg-amber-900/30 dark:hover:bg-amber-900/50 dark:text-amber-300 rounded-lg font-medium transition-colors flex items-center gap-2 text-sm"
                                 >
-                                    <span>📝</span> Editar no Formulário
+                                    <span><Icon name="pencil" /></span> Editar no Formulário
                                 </button>
                             ) : (
                                 <div></div>

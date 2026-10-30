@@ -3,6 +3,7 @@ import { GuardrailEditor } from '../components/GuardrailEditor';
 import { getAutoGuardrailLengths } from '../components/CalculatorForm';
 import { CalculatorInput } from '../types';
 import { getGuardrailItemLengthCm } from '../utils';
+import Icon from './Icon';
 
 // Global InputField for GuardrailEditor
 const InputField = ({ label, value, onChange, type = "text", placeholder, icon, addon }: any) => (
@@ -165,14 +166,14 @@ export default function GuardrailCalculator({ onCalculate }: GuardrailCalculator
                             + Portão
                         </button>
                         <button onClick={handleCalculate} className="bg-highlight hover:bg-yellow-600 text-white px-4 py-2 rounded-lg font-bold shadow transition-colors text-sm flex items-center justify-center gap-2">
-                            🧮 Calcular Valores
+                            <Icon name="calc" /> Calcular Valores
                         </button>
                     </div>
                 </div>
 
                 {guardrails.length === 0 ? (
                     <div className="bg-white dark:bg-gray-800 rounded-xl p-8 border border-gray-200 dark:border-gray-700 text-center shadow-sm">
-                        <span className="text-4xl mb-4 block">🚧</span>
+                        <span className="text-4xl mb-4 block"><Icon name="barrier" /></span>
                         <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-2">Nenhum item adicionado</h3>
                         <p className="text-gray-500 dark:text-gray-400 text-sm max-w-md mx-auto mb-6">
                             Clique nos botões acima para simular um guarda-corpo ou portão de forma rápida.

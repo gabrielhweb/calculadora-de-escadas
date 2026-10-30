@@ -1,6 +1,7 @@
 import React from 'react';
 import { Visita, ApiUtilizada, formatValorCobrado } from './types';
 import { ApiBadge } from './ApiBadge';
+import Icon from '../Icon';
 
 interface RotasItinerarioProps {
     visitas: Visita[];
@@ -45,7 +46,7 @@ export const RotasItinerario: React.FC<RotasItinerarioProps> = ({
                 <div>
                     <div className="flex items-center gap-3">
                         <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight flex items-center gap-2">
-                            <span>🗺️</span>
+                            <span><Icon name="map" /></span>
                             <span>Itinerário e Rotas do Dia</span>
                         </h2>
                         <span className="bg-highlight/15 text-highlight border border-highlight/40 text-xs font-black px-2.5 py-1 rounded-full">
@@ -95,7 +96,7 @@ export const RotasItinerario: React.FC<RotasItinerarioProps> = ({
                             className="bg-white dark:bg-gray-700 text-gray-800 dark:text-white border border-gray-300 dark:border-gray-600 font-bold py-2.5 px-4 rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors text-sm flex items-center gap-2 cursor-pointer"
                             title="Abrir rota completa de todas as paradas no Google Maps"
                         >
-                            <span>🗺️ Rota Completa no Maps</span>
+                            <span><Icon name="map" /> Rota Completa no Maps</span>
                         </button>
                     )}
                 </div>
@@ -139,7 +140,7 @@ export const RotasItinerario: React.FC<RotasItinerarioProps> = ({
                                             {visita.cliente}
                                         </h3>
                                         <span className="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-xs font-bold px-2.5 py-0.5 rounded-full border border-gray-300 dark:border-gray-600">
-                                            ⏰ {visita.horarioPrevisto}
+                                            <Icon name="clock" /> {visita.horarioPrevisto}
                                         </span>
                                         <span
                                             className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${
@@ -156,27 +157,27 @@ export const RotasItinerario: React.FC<RotasItinerarioProps> = ({
                                             {visita.status.replace('_', ' ')}
                                         </span>
                                         <span className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 text-xs font-black px-2.5 py-0.5 rounded-full">
-                                            💰 {formatValorCobrado(visita.valorCobrado)}
+                                            <Icon name="cash" /> {formatValorCobrado(visita.valorCobrado)}
                                         </span>
                                         {visita.quandoCobrar && (
                                             <span className="bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 text-xs font-semibold px-2.5 py-0.5 rounded-full">
-                                                📅 {visita.quandoCobrar}
+                                                <Icon name="calendar" /> {visita.quandoCobrar}
                                             </span>
                                         )}
                                     </div>
 
                                     <p className="text-gray-700 dark:text-gray-200 text-sm flex items-center gap-1.5 font-medium">
-                                        📍 <span>{visita.endereco}</span>
+                                        <Icon name="pin" /> <span>{visita.endereco}</span>
                                     </p>
 
                                     <div className="text-xs text-gray-500 dark:text-gray-400 font-mono flex items-center gap-4 pt-0.5">
-                                        <span>📞 {visita.telefone}</span>
+                                        <span><Icon name="phone" /> {visita.telefone}</span>
                                         {visita.motivoVisita && (
                                             <span className="text-highlight font-sans font-bold">
                                                 • {visita.motivoVisita}
                                             </span>
                                         )}
-                                        <span>🌐 {visita.latitude.toFixed(4)}, {visita.longitude.toFixed(4)}</span>
+                                        <span><Icon name="globe" /> {visita.latitude.toFixed(4)}, {visita.longitude.toFixed(4)}</span>
                                     </div>
                                 </div>
                             </div>
@@ -188,14 +189,14 @@ export const RotasItinerario: React.FC<RotasItinerarioProps> = ({
                                     onClick={() => abrirGoogleMaps(visita)}
                                     className="flex-1 md:flex-none bg-white dark:bg-gray-800 hover:border-highlight text-gray-800 dark:text-gray-200 font-bold text-xs py-2 px-3 rounded-lg border border-gray-300 dark:border-gray-600 transition-colors cursor-pointer"
                                 >
-                                    🗺️ Maps
+                                    <Icon name="map" /> Maps
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => abrirWaze(visita)}
                                     className="flex-1 md:flex-none bg-white dark:bg-gray-800 hover:border-highlight text-gray-800 dark:text-gray-200 font-bold text-xs py-2 px-3 rounded-lg border border-gray-300 dark:border-gray-600 transition-colors cursor-pointer"
                                 >
-                                    🚙 Waze
+                                    <Icon name="car" /> Waze
                                 </button>
                                 <button
                                     type="button"
@@ -203,7 +204,7 @@ export const RotasItinerario: React.FC<RotasItinerarioProps> = ({
                                     className="flex-1 md:flex-none bg-highlight hover:bg-amber-600 text-gray-950 font-black text-xs py-2 px-4 rounded-lg transition-colors shadow-sm cursor-pointer flex items-center justify-center gap-1.5"
                                     title="Preencher formulário e gerar recibo deste cliente"
                                 >
-                                    📝 Gerar Recibo
+                                    <Icon name="pencil" /> Gerar Recibo
                                 </button>
                             </div>
                         </div>

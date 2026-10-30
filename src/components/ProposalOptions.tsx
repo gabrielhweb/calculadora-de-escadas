@@ -6,6 +6,7 @@ import StaircaseVisualizer from './StaircaseVisualizer';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useCarriers } from '../hooks/useCarriers';
+import Icon from './Icon';
 
 interface ProposalOptionsProps {
   options: ProposalOption[];
@@ -286,7 +287,7 @@ const UserDataForm: React.FC<{ onSubmit: (data: UserData, includeDrawings: boole
 
          <div className="border-t border-gray-100 dark:border-gray-700 pt-4 mt-4">
             <h4 className="text-md font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                📍 Endereço da Obra 
+                <Icon name="pin" /> Endereço da Obra 
                 <span className="text-xs font-normal text-gray-500 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded ml-2">(Opcional para Orçamento)</span>
             </h4>
             
@@ -932,7 +933,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                           onClick={captureCurrentStepAndNext}
                           className="bg-green-600 text-white font-bold py-3 px-8 rounded shadow hover:bg-green-700 flex items-center gap-2 text-lg"
                       >
-                          <span>📸</span>
+                          <span><Icon name="camera" /></span>
                           {currentExportIndex < exportQueue.length - 1 ? 'Capturar e Próximo' : (exportMode === 'attach' ? 'Finalizar e Gerar Orçamento' : 'Capturar e Gerar PDF')}
                       </button>
                   </div>
@@ -960,7 +961,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                 disabled={countSelectedExports() === 0}
                 className={`text-sm font-bold px-4 py-2 rounded shadow transition-all flex items-center gap-2 ${countSelectedExports() > 0 ? 'bg-amber-600 text-white hover:bg-amber-700' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
               >
-                  {`📥 Baixar Desenhos Selecionados (${countSelectedExports()})`}
+                  <Icon name="download" /> Baixar Desenhos Selecionados ({countSelectedExports()})
               </button>
           </div>
       </div>
@@ -997,7 +998,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                                 onClick={() => { setSelectedVisualizerOption(originalOption); setVisualizerForcedState(undefined); }}
                                 className="text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 px-2 py-1 rounded mt-1 flex items-center gap-1 shadow-sm transition-all"
                             >
-                                👁️ Abrir Visualizador 3D
+                                <Icon name="eye" /> Abrir Visualizador 3D
                             </button>
                         </div>
                         <span className="text-2xl font-black text-green-700 dark:text-green-400">
@@ -1373,23 +1374,23 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                         
                         {freightMode === 'fixed' || freightMode === 'transportadora' ? (
                              <ul className="space-y-1 text-blue-800 dark:text-blue-200">
-                                <li>📦 Tipo: <strong>{freightMode === 'transportadora' ? 'Transportadora' : 'Valor Definido Manualmente'}</strong></li>
-                                <li className="font-bold border-t border-blue-300 dark:border-blue-700 pt-2 mt-2 text-base text-blue-900 dark:text-blue-100">🚚 Total a Cobrar: {formatCurrencyBRL(freightCost)}</li>
+                                <li><Icon name="box" /> Tipo: <strong>{freightMode === 'transportadora' ? 'Transportadora' : 'Valor Definido Manualmente'}</strong></li>
+                                <li className="font-bold border-t border-blue-300 dark:border-blue-700 pt-2 mt-2 text-base text-blue-900 dark:text-blue-100"><Icon name="truck" /> Total a Cobrar: {formatCurrencyBRL(freightCost)}</li>
                              </ul>
                         ) : (
                              <ul className="space-y-1 text-blue-800 dark:text-blue-200">
-                                <li>📍 Distância Ida: <strong>{(freightMode === 'auto' ? distance : parseFloat(manualDistance)).toFixed(2)} km</strong></li>
-                                <li>🔄 Distância Total (Ida x 2): <strong>{((freightMode === 'auto' ? distance : parseFloat(manualDistance)) * 2).toFixed(2)} km</strong></li>
-                                <li>⛽ Custo Combustível: <strong>{formatCurrencyBRL(calculateFreightCost((freightMode === 'auto' ? distance : parseFloat(manualDistance)), parseFloat(fuelPrice), parseFloat(consumption)))}</strong> <span className="text-xs opacity-75">({((freightMode === 'auto' ? distance : parseFloat(manualDistance))*2).toFixed(1)}km / {consumption}km/l * R${fuelPrice})</span></li>
-                                <li>🚧 Pedágios (Ida e Volta): <strong>{formatCurrencyBRL(freightMode === 'auto' ? (autoTollCost * 2) : (parseFloat(manualTollCost) || 0) * 2)}</strong></li>
-                                <li className="font-bold border-t border-blue-300 dark:border-blue-700 pt-2 mt-2 text-base text-blue-900 dark:text-blue-100">🚚 Total Logística: {formatCurrencyBRL(freightCost + tollCost)}</li>
+                                <li><Icon name="pin" /> Distância Ida: <strong>{(freightMode === 'auto' ? distance : parseFloat(manualDistance)).toFixed(2)} km</strong></li>
+                                <li><Icon name="refresh" /> Distância Total (Ida x 2): <strong>{((freightMode === 'auto' ? distance : parseFloat(manualDistance)) * 2).toFixed(2)} km</strong></li>
+                                <li><Icon name="fuel" /> Custo Combustível: <strong>{formatCurrencyBRL(calculateFreightCost((freightMode === 'auto' ? distance : parseFloat(manualDistance)), parseFloat(fuelPrice), parseFloat(consumption)))}</strong> <span className="text-xs opacity-75">({((freightMode === 'auto' ? distance : parseFloat(manualDistance))*2).toFixed(1)}km / {consumption}km/l * R${fuelPrice})</span></li>
+                                <li><Icon name="barrier" /> Pedágios (Ida e Volta): <strong>{formatCurrencyBRL(freightMode === 'auto' ? (autoTollCost * 2) : (parseFloat(manualTollCost) || 0) * 2)}</strong></li>
+                                <li className="font-bold border-t border-blue-300 dark:border-blue-700 pt-2 mt-2 text-base text-blue-900 dark:text-blue-100"><Icon name="truck" /> Total Logística: {formatCurrencyBRL(freightCost + tollCost)}</li>
                             </ul>
                         )}
                 </div>
             </div>
         ) : (
             <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border border-red-200 dark:border-red-700 flex items-start gap-3">
-                <span className="text-2xl">🚨</span>
+                <span className="text-2xl"><Icon name="warning" /></span>
                 <div>
                     <h4 className="font-bold text-red-800 dark:text-red-300 uppercase">Frete Não Incluso</h4>
                     <p className="text-sm text-red-700 dark:text-red-200 mt-1">

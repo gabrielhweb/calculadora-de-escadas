@@ -39,6 +39,7 @@ import {
 } from "firebase/firestore";
 import { useAuth } from "../components/AuthProvider";
 import PageTitle from '../components/PageTitle';
+import Icon from '../components/Icon';
 
 enum OperationType {
   CREATE = "create",
@@ -1985,7 +1986,7 @@ const Contract = () => {
                       ? "Detalhes do Patamar"
                       : "Detalhes da Escada"
                   }
-                  icon={<span>🪜</span>}
+                  icon={<span><Icon name="stair" /></span>}
                 />
                 {/* Medidas da Escada */}
                 {computedQuoteType !== "guardrail" && computedQuoteType !== "landing" && (
@@ -2415,7 +2416,7 @@ const Contract = () => {
                                 }
                                 className={`flex-1 py-1 rounded text-xs font-bold transition flex items-center justify-center gap-1 ${landing.direction === "left" ? "bg-blue-600 text-white shadow" : "bg-white dark:bg-gray-600 border dark:border-gray-500 text-gray-600 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500"}`}
                               >
-                                ↩ Esq
+                                <Icon name="turnLeft" /> Esq
                               </button>
                               <button
                                 type="button"
@@ -2437,7 +2438,7 @@ const Contract = () => {
                                 }
                                 className={`flex-1 py-1 rounded text-xs font-bold transition flex items-center justify-center gap-1 ${landing.direction === "right" ? "bg-blue-600 text-white shadow" : "bg-white dark:bg-gray-600 border dark:border-gray-500 text-gray-600 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500"}`}
                               >
-                                Dir ↪
+                                Dir <Icon name="turnRight" />
                               </button>
                             </div>
                           </div>
@@ -2884,7 +2885,7 @@ const Contract = () => {
                             x
                           </button>
                           <span className="text-xs font-bold text-gray-500 absolute top-1 left-2 flex items-center gap-1 bg-white dark:bg-gray-800 px-1 rounded shadow-sm">
-                            🛠️ G.C. Avulso #{index + 1}
+                            <Icon name="wrench" /> G.C. Avulso #{index + 1}
                           </span>
                           <div className="mt-6">
                             <GuardrailEditor
@@ -2999,7 +3000,7 @@ const Contract = () => {
                             x
                           </button>
                           <span className="text-xs font-bold text-gray-500 absolute top-1 left-2 flex items-center gap-1 bg-white dark:bg-gray-800 px-1 rounded shadow-sm">
-                            🚪 Portão Avulso #{index + 1}
+                            <Icon name="door" /> Portão Avulso #{index + 1}
                           </span>
 
                           <div className="mt-6 space-y-3">
@@ -3182,7 +3183,7 @@ const Contract = () => {
                             x
                           </button>
                           <span className="text-xs font-bold text-gray-500 absolute top-1 left-2 flex items-center gap-1 bg-white dark:bg-gray-800 px-1 rounded shadow-sm">
-                            🚪 Portão Avulso #{index + 1}
+                            <Icon name="door" /> Portão Avulso #{index + 1}
                           </span>
 
                           <div className="mt-6 space-y-3">
@@ -3907,7 +3908,7 @@ const Contract = () => {
                     {/* ÁREA DE DESTAQUE PARA O RESTANTE */}
                     <div className="mt-4 bg-orange-50 dark:bg-orange-900/20 border-2 border-orange-200 dark:border-orange-700 p-4 rounded-lg animate-fade-in">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-xl">✍️</span>
+                        <span className="text-xl"><Icon name="pencil" /></span>
                         <label className="text-sm font-black text-orange-900 dark:text-orange-200 uppercase">
                           Como será pago o restante? (Texto do Contrato)
                         </label>
@@ -4187,13 +4188,13 @@ const Contract = () => {
                   onClick={handleGenerateProductionSheet}
                   className="flex-1 bg-amber-600 text-white font-black py-3 rounded-lg shadow-lg hover:bg-amber-700 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2"
                 >
-                  <span>⚙️</span> Gerar Ficha de Produção
+                  <span><Icon name="gear" /></span> Gerar Ficha de Produção
                 </button>
                 <button
                   onClick={() => setShowWeightCalculator(true)}
                   className="flex-1 bg-amber-600 text-white font-black py-3 rounded-lg shadow-lg hover:bg-amber-700 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2"
                 >
-                  <span>⚖️</span> Calcular Peso (KG)
+                  <span><Icon name="scale" /></span> Calcular Peso (KG)
                 </button>
               </div>
               <div className="flex gap-4 mt-4">
@@ -4201,7 +4202,7 @@ const Contract = () => {
                   onClick={handleGenerateGuardrailPDF}
                   className="flex-1 bg-amber-600 text-white font-black py-3 rounded-lg shadow-lg hover:bg-amber-700 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2"
                 >
-                  <span>🚧</span> Imprimir Guarda-Corpo / Portão
+                  <span><Icon name="barrier" /></span> Imprimir Guarda-Corpo / Portão
                 </button>
               </div>
             </div>
@@ -4213,7 +4214,7 @@ const Contract = () => {
                   disabled={isSavingContract}
                   className={`flex-1 ${isSavingContract ? "bg-gray-400 cursor-not-allowed" : "bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"} text-gray-800 dark:text-white font-black py-4 rounded-lg shadow-lg transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2`}
                 >
-                  <span>💾</span>{" "}
+                  <span><Icon name="save" /></span>{" "}
                   {isSavingContract
                     ? "Salvando..."
                     : location.state?.isEditing
@@ -4224,7 +4225,7 @@ const Contract = () => {
                   onClick={handleCopyCotacaoFrete}
                   className="flex-1 bg-amber-600 text-white font-black py-4 rounded-lg shadow-lg hover:bg-amber-700 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2"
                 >
-                  <span>📋</span> Cotação de Frete
+                  <span><Icon name="clipboard" /></span> Cotação de Frete
                 </button>
               </div>
 
@@ -4233,13 +4234,13 @@ const Contract = () => {
                   onClick={handleGeneratePDF}
                   className="flex-1 bg-highlight text-white font-black py-4 rounded-lg shadow-lg hover:bg-yellow-600 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2"
                 >
-                  <span>📄</span> Gerar Contrato PDF
+                  <span><Icon name="file" /></span> Gerar Contrato PDF
                 </button>
                 <button
                   onClick={handleGenerateAceiteObra}
                   className="flex-1 bg-amber-600 text-white font-black py-4 rounded-lg shadow-lg hover:bg-amber-700 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2"
                 >
-                  <span>🏗️</span> Gerar Aceite de Obra
+                  <span><Icon name="barrier" /></span> Gerar Aceite de Obra
                 </button>
               </div>
             </div>
@@ -4289,7 +4290,7 @@ const Contract = () => {
         <div className="max-w-4xl mx-auto">
           <SectionTitle
             title="5. Textos Customizáveis do Contrato"
-            icon={<span>✏️</span>}
+            icon={<span><Icon name="pencil" /></span>}
           />
           <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
             Altere os textos padrão que aparecerão no PDF do contrato.
@@ -4344,7 +4345,7 @@ const Contract = () => {
         <div className="max-w-4xl mx-auto">
           <SectionTitle
             title="6. Cláusulas Adicionais (IA)"
-            icon={<span>🤖</span>}
+            icon={<span><Icon name="robot" /></span>}
           />
           <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
             Adicione ou refine condições específicas usando Inteligência
@@ -4408,7 +4409,7 @@ const Contract = () => {
                     }
                     className="text-xs bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300 px-3 py-1 rounded font-bold hover:bg-amber-200 dark:hover:bg-amber-800 flex items-center gap-1"
                   >
-                    ✨ Refinar com IA
+                    <Icon name="sparkle" /> Refinar com IA
                   </button>
                 </div>
 

@@ -4,6 +4,11 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-10-30 — [empresa] — Emojis das telas trocados por ícones de linha
+- **O que mudou:** novo componente `Icon` (ícones de linha que acompanham o tamanho e a cor do texto). ~120 emojis em botões, títulos e etiquetas viraram ícones (lixeira, lápis, caminhão, setas de direção, impressora etc.). Ficaram de propósito: emojis dentro de listas de seleção (`<option>` não aceita ícone), mensagens de WhatsApp pro cliente, alertas/confirmações, PDFs, 3D, Recibo de Instalação e impressão de pedido. O placeholder da busca de Meus Contratos perdeu o 🔍.
+- **Onde:** `src/components/Icon.tsx` (novo) e ~20 arquivos em `src/pages` e `src/components`.
+- **Pendente:** conferir as telas que pedem login. Não subiu pra produção.
+
 ### 2026-10-30 — [empresa] — Cores padronizadas dentro das páginas
 - **O que mudou:** botões de ação sólidos (azul, roxo, rosa, laranja, índigo, verde-água) viraram dourado (`bg-amber-600`); caixas e destaques roxos/rosa viraram dourado claro e os índigo viraram azul claro (guarda-corpo e portão continuam com cores diferentes entre si). Cartões brancos ficaram com canto mais arredondado e sombra leve. Verde (confirmar/pago) e vermelho (apagar/alerta) e as cores de status das colunas continuam iguais. 112 trocas em 16 arquivos, só classes de cor/borda/sombra — nenhuma função mudou.
 - **Onde:** `CalculatorForm`, `ProposalOptions`, `Contract`, `ContractsList`, `ProductionQueuePage`, `DeliveriesTable`, `WeightCalculator(Page)`, `Carriers`, `CustomPaymentReceipt`, `SavedQuotes`, `GuardrailCalculator`, `ProductCatalog` e telas de visitas. Fora do padrão de propósito: 3D (`StaircaseVisualizer`), desenhos de guarda-corpo, Recibo de Instalação, impressão de pedido, proposta/orçamento técnico.

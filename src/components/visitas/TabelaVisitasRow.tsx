@@ -2,6 +2,7 @@ import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Visita, TemperaturaLead, StatusVisita, formatValorCobrado } from './types';
+import Icon from '../Icon';
 
 interface TabelaVisitasRowProps {
     visita: Visita;
@@ -106,7 +107,7 @@ export const TabelaVisitasRow: React.FC<TabelaVisitasRowProps> = ({
                     <span>{visita.cliente}</span>
                 </div>
                 <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2 mt-0.5">
-                    <span>📞 {visita.telefone}</span>
+                    <span><Icon name="phone" /> {visita.telefone}</span>
                     {visita.motivoVisita && (
                         <span className="text-highlight font-semibold">
                             • {visita.motivoVisita}
@@ -158,7 +159,7 @@ export const TabelaVisitasRow: React.FC<TabelaVisitasRowProps> = ({
                             title="Gerar recibo com dados deste cliente"
                             className="bg-highlight/15 hover:bg-highlight/30 text-amber-800 dark:text-highlight p-1.5 px-2.5 rounded-lg text-xs font-black border border-highlight/40 transition-colors cursor-pointer"
                         >
-                            📝 Recibo
+                            <Icon name="pencil" /> Recibo
                         </button>
                     )}
                     {onEditarVisita && (
@@ -168,7 +169,7 @@ export const TabelaVisitasRow: React.FC<TabelaVisitasRowProps> = ({
                             title="Editar dados da visita"
                             className="text-gray-500 hover:text-highlight dark:hover:text-highlight p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer text-sm"
                         >
-                            ✏️
+                            <Icon name="pencil" />
                         </button>
                     )}
                     {onRemoverVisita && (
@@ -178,7 +179,7 @@ export const TabelaVisitasRow: React.FC<TabelaVisitasRowProps> = ({
                             title="Remover visita"
                             className="text-gray-400 hover:text-red-500 dark:hover:text-red-400 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer text-sm"
                         >
-                            🗑️
+                            <Icon name="trash" />
                         </button>
                     )}
                 </div>

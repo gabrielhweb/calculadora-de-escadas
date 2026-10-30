@@ -3,6 +3,7 @@ import { LandingInfo } from "../types";
 import { getAutoGuardrailLengths } from "./CalculatorForm";
 import { GuardrailPreview } from "./GuardrailPreview";
 import { getGuardrailPrice } from "../utils/landingPricing";
+import Icon from './Icon';
 
 export const GuardrailEditor = ({ landing, updateLanding, InputField, isGate = false, stairWidth = 0 }: any) => {
     const isActuallyGate = !!(isGate || landing.hasGate);
@@ -300,7 +301,7 @@ export const GuardrailEditor = ({ landing, updateLanding, InputField, isGate = f
                 const frontW = Math.max(0, (landing.width || 0) - (stairWidth + 10));
                 return (
                     <div className="mb-2 p-2 bg-orange-50 dark:bg-orange-900/30 border border-orange-200 dark:border-orange-700 rounded text-xs text-orange-800 dark:text-orange-300">
-                        <span className="font-bold">⚠️ Frente detectada:</span> Comp. da frente = Patamar ({landing.width || 0}cm) − Escada ({stairWidth}cm) − 10 = <strong>{frontW}cm</strong>
+                        <span className="font-bold"><Icon name="warning" /> Frente detectada:</span> Comp. da frente = Patamar ({landing.width || 0}cm) − Escada ({stairWidth}cm) − 10 = <strong>{frontW}cm</strong>
                     </div>
                 );
             })()}

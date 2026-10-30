@@ -3,6 +3,7 @@ import { patamarBase64 } from '../utils/patamarBase64';
 
 // Imagens de degraus que já temos no sistema
 import { lisaEsquerdaBase64, vazadaEsquerdaBase64 } from '../utils/cleanImages';
+import Icon from './Icon';
 
 interface WeightCalculatorProps {
   totalSteps: number;
@@ -90,7 +91,7 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
           <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200 mb-8 flex flex-col md:flex-row gap-6 items-center justify-between">
             <div>
               <h3 className="font-bold text-lg flex items-center gap-2 text-slate-700">
-                <span className="text-xl">📏</span>
+                <span className="text-xl"><Icon name="ruler" /></span>
                 Espessura da Chapa (Aço Carbono)
               </h3>
               <p className="text-sm text-slate-500 mt-1">Altere a espessura para recalcular o peso instantaneamente.</p>
@@ -148,7 +149,7 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
                   </>
                 ) : (
                   <div className="text-center text-slate-400 flex flex-col items-center">
-                    <span className="text-6xl opacity-30 mb-2">🔲</span>
+                    <span className="text-6xl opacity-30 mb-2"><Icon name="square" /></span>
                     <p>Nenhum patamar</p>
                     <p className="text-2xl font-black text-slate-300 mt-2">0.0 <span className="text-lg font-normal">kg</span></p>
                   </div>
@@ -162,7 +163,7 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
                 <h3 className="font-bold text-lg text-amber-800 text-center uppercase">Vigas Laterais (Par)</h3>
               </div>
               <div className="p-6 flex-1 flex flex-col items-center justify-center">
-                <span className="text-7xl mb-6 drop-shadow-sm">📉</span>
+                <span className="text-7xl mb-6 drop-shadow-sm"><Icon name="chartDown" /></span>
                 <div className="text-center w-full">
                   <p className="text-sm text-slate-500 mb-1">Corte Zigue-Zague ({stringerLengthM.toFixed(2)}m linear)</p>
                   <p className="text-3xl font-black text-amber-600">{stringerWeightKg.toFixed(1)} <span className="text-lg font-normal">kg</span></p>
@@ -179,7 +180,7 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
           <div className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-xl shadow-lg p-8 flex flex-col md:flex-row items-center justify-between text-white">
             <div className="flex items-center gap-4 mb-4 md:mb-0">
               <div className="bg-white bg-opacity-20 p-4 rounded-full">
-                <span className="text-4xl">⚖️</span>
+                <span className="text-4xl"><Icon name="scale" /></span>
               </div>
               <div>
                 <h2 className="text-xl text-slate-300 uppercase tracking-widest font-semibold">Peso Total Estimado</h2>
@@ -198,7 +199,7 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
           </div>
           
           <div className="mt-4 flex items-start gap-2 text-slate-500 text-sm">
-            <span className="text-lg">ℹ️</span>
+            <span className="text-lg"><Icon name="info" /></span>
             <p>Nota: O cálculo acima é uma estimativa matemática baseada no volume das chapas de aço. Corrimão, parafusos, solda, tinta e suportes extras não estão inclusos. Pode haver variação de acordo com sobras de corte e projeto final.</p>
           </div>
 
@@ -213,7 +214,7 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
         {/* Header */}
         <div className="bg-primary text-white p-6 flex justify-between items-center shrink-0 shadow-md z-10">
           <div className="flex items-center gap-3">
-            <span className="text-3xl">⚖️</span>
+            <span className="text-3xl"><Icon name="scale" /></span>
             <div>
               <h2 className="text-2xl font-bold uppercase tracking-wider">Calculadora de Peso Estrutural</h2>
               <p className="text-primary-content text-sm opacity-80 mt-1">Análise de chapa e peso de materiais da escada atual</p>
@@ -221,7 +222,7 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
           </div>
           <button onClick={onClose} className="btn btn-ghost text-white hover:bg-white/20 px-6 font-bold flex gap-2">
             <span>VOLTAR AO CONTRATO</span>
-            <span className="text-xl">✖</span>
+            <span className="text-xl"><Icon name="x" /></span>
           </button>
         </div>
 
@@ -232,7 +233,7 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
           <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200 mb-8 flex flex-col md:flex-row gap-6 items-center justify-between">
             <div>
               <h3 className="font-bold text-lg flex items-center gap-2 text-slate-700">
-                <span className="text-xl">📏</span>
+                <span className="text-xl"><Icon name="ruler" /></span>
                 Espessura da Chapa (Aço Carbono)
               </h3>
               <p className="text-sm text-slate-500 mt-1">Altere a espessura para recalcular o peso instantaneamente.</p>
@@ -290,7 +291,7 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
                   </>
                 ) : (
                   <div className="text-center text-slate-400 flex flex-col items-center">
-                    <span className="text-6xl opacity-30 mb-2">🔲</span>
+                    <span className="text-6xl opacity-30 mb-2"><Icon name="square" /></span>
                     <p>Nenhum patamar</p>
                     <p className="text-2xl font-black text-slate-300 mt-2">0.0 <span className="text-lg font-normal">kg</span></p>
                   </div>
@@ -304,7 +305,7 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
                 <h3 className="font-bold text-lg text-amber-800 text-center uppercase">Vigas Laterais (Par)</h3>
               </div>
               <div className="p-6 flex-1 flex flex-col items-center justify-center">
-                <span className="text-7xl mb-6 drop-shadow-sm">📉</span>
+                <span className="text-7xl mb-6 drop-shadow-sm"><Icon name="chartDown" /></span>
                 <div className="text-center w-full">
                   <p className="text-sm text-slate-500 mb-1">Corte Zigue-Zague ({stringerLengthM.toFixed(2)}m linear)</p>
                   <p className="text-3xl font-black text-amber-600">{stringerWeightKg.toFixed(1)} <span className="text-lg font-normal">kg</span></p>
@@ -321,7 +322,7 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
           <div className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-xl shadow-lg p-8 flex flex-col md:flex-row items-center justify-between text-white">
             <div className="flex items-center gap-4 mb-4 md:mb-0">
               <div className="bg-white bg-opacity-20 p-4 rounded-full">
-                <span className="text-4xl">⚖️</span>
+                <span className="text-4xl"><Icon name="scale" /></span>
               </div>
               <div>
                 <h2 className="text-xl text-slate-300 uppercase tracking-widest font-semibold">Peso Total Estimado</h2>
@@ -340,7 +341,7 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
           </div>
           
           <div className="mt-4 flex items-start gap-2 text-slate-500 text-sm">
-            <span className="text-lg">ℹ️</span>
+            <span className="text-lg"><Icon name="info" /></span>
             <p>Nota: O cálculo acima é uma estimativa matemática baseada no volume das chapas de aço. Corrimão, parafusos, solda, tinta e suportes extras não estão inclusos. Pode haver variação de acordo com sobras de corte e projeto final.</p>
           </div>
 

@@ -49,7 +49,8 @@ Por isso estas regras valem em toda sessão:
 - [ ] Explicar como devem ser "Modalidade de coleta" e "Tomador do frete" no texto da transportadora (hoje fixos).
 - [ ] Informar a URL de produção do site pra anotar aqui.
 - [ ] Decidir se restaura o `vite.config.ts` (necessário pra rodar local).
-- [ ] Conferir as cores novas por dentro das páginas (principalmente as que pedem login) e dizer se quer trocar os emojis dos botões por ícones de linha.
+- [ ] Conferir o visual novo (cores e ícones) nas páginas que pedem login: Meus Contratos, Controle de Contratos e Compras.
+- [ ] Falar "pode subir" quando quiser o visual novo no site.
 
 # 🧱 Estrutura
 

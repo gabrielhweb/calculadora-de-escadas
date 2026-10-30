@@ -4,6 +4,7 @@ import { GuardrailEditor } from './GuardrailEditor';
 import { GuardrailPreview } from './GuardrailPreview';
 import { computeLandingPrice } from '../utils/landingPricing';
 import InfoTip from './InfoTip';
+import Icon from './Icon';
 
 interface CalculatorFormProps { mode?: 'stair' | 'landing';
   onCalculate: (data: CalculatorInput) => void;
@@ -524,7 +525,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
         {/* VISUALIZAÇÃO AVANÇADA */}
         <div className="pt-4 border-t border-gray-100 dark:border-gray-700 bg-blue-50 dark:bg-blue-900/20 -mx-6 px-6 pb-4 mb-4">
              <h3 className="text-sm font-black text-blue-900 dark:text-blue-100 uppercase flex items-center gap-2 mb-3 mt-4">
-                <span className="bg-amber-600 text-white w-6 h-6 flex items-center justify-center rounded-full text-xs">👁</span>
+                <span className="bg-amber-600 text-white w-6 h-6 flex items-center justify-center rounded-full text-xs"><Icon name="eye" /></span>
                 Configuração & Ambiente
              </h3>
 
@@ -539,7 +540,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                              title="A escada sobe da esquerda para a direita."
                              className={`flex-1 py-2 text-xs font-bold rounded border ${stairDirection === 'standard' ? 'bg-amber-600 text-white border-amber-700' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-200'}`}
                          >
-                             Subir p/ Direita ↗️
+                             Subir p/ Direita <Icon name="upRight" />
                          </button>
                          <button 
                              type="button"
@@ -547,7 +548,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                              title="A escada sobe da direita para a esquerda."
                              className={`flex-1 py-2 text-xs font-bold rounded border ${stairDirection === 'mirrored' ? 'bg-amber-600 text-white border-amber-700' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-200'}`}
                          >
-                             Subir p/ Esquerda ↖️
+                             Subir p/ Esquerda <Icon name="upLeft" />
                          </button>
                      </div>
 
@@ -681,7 +682,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                                     </>
                                 ) : (
                                     <div className="w-full p-2 bg-gray-200 dark:bg-gray-600 rounded border border-gray-300 dark:border-gray-500 text-xs text-gray-500 dark:text-gray-300 italic flex items-center gap-2">
-                                        <span className="text-lg">🔒</span> 
+                                        <span className="text-lg"><Icon name="lock" /></span> 
                                         <span className="font-bold">Fixa no final da escada</span>
                                     </div>
                                 )}
@@ -886,7 +887,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                             </button>
 
                               <span className="text-xs font-bold text-gray-500 absolute top-1 left-2 flex items-center gap-1 bg-white dark:bg-gray-800 px-1 rounded shadow-sm">
-                                  {landing.isAccessoriesOnly ? (landing.hasGate ? '🚪 Portão Avulso' : '🛠️ G.C. Avulso') : '🟧 Patamar'} #{index + 1}
+                                  {landing.isAccessoriesOnly ? (landing.hasGate ? <><Icon name="door" /> Portão Avulso</> : <><Icon name="wrench" /> G.C. Avulso</>) : <><Icon name="square" /> Patamar</>} #{index + 1}
                               </span>
                             
                                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
@@ -987,21 +988,21 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                                             onClick={() => updateLanding(landing.id, { direction: 'left' })}
                                             className={`flex-1 py-1 rounded text-xs font-bold transition flex items-center justify-center gap-1 ${landing.direction === 'left' ? 'bg-amber-600 text-white shadow' : 'bg-white dark:bg-gray-600 border dark:border-gray-500 text-gray-600 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500'}`}
                                         >
-                                            ⬅️ Esq
+                                            <Icon name="left" /> Esq
                                         </button>
                                         <button 
                                             type="button"
                                             onClick={() => updateLanding(landing.id, { direction: 'straight' })}
                                             className={`flex-1 py-1 rounded text-xs font-bold transition flex items-center justify-center gap-1 ${(!landing.direction || landing.direction === 'straight') ? 'bg-amber-600 text-white shadow' : 'bg-white dark:bg-gray-600 border dark:border-gray-500 text-gray-600 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500'}`}
                                         >
-                                            ⬆️ Reto
+                                            <Icon name="up" /> Reto
                                         </button>
                                         <button 
                                             type="button"
                                             onClick={() => updateLanding(landing.id, { direction: 'right' })}
                                             className={`flex-1 py-1 rounded text-xs font-bold transition flex items-center justify-center gap-1 ${landing.direction === 'right' ? 'bg-amber-600 text-white shadow' : 'bg-white dark:bg-gray-600 border dark:border-gray-500 text-gray-600 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500'}`}
                                         >
-                                            Dir ➡️
+                                            Dir <Icon name="right" />
                                         </button>
                                     </div>
                                 </div>
@@ -1409,7 +1410,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                                     x
                                 </button>
                                 <span className="text-xs font-bold text-gray-500 absolute top-1 left-2 flex items-center gap-1 bg-white dark:bg-gray-800 px-1 rounded shadow-sm">
-                                    🛠️ G.C. Avulso #{index + 1}
+                                    <Icon name="wrench" /> G.C. Avulso #{index + 1}
                                 </span>
                                 <div className="mt-6">
                                     <GuardrailEditor landing={landing} updateLanding={updateLanding} InputField={InputField} stairWidth={convertToCm(stairWidth, widthUnit)} />
@@ -1476,7 +1477,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                                     x
                                 </button>
                                 <span className="text-xs font-bold text-gray-500 absolute top-1 left-2 flex items-center gap-1 bg-white dark:bg-gray-800 px-1 rounded shadow-sm">
-                                    🚪 Portão Avulso #{index + 1}
+                                    <Icon name="door" /> Portão Avulso #{index + 1}
                                 </span>
                                 
                                 <div className="mt-6 space-y-3">

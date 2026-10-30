@@ -5,6 +5,7 @@ import { db } from '../../firebase';
 import { Product } from './ProductCatalog';
 import { useNavigate } from 'react-router-dom';
 import PageTitle from '../../components/PageTitle';
+import Icon from '../../components/Icon';
 
 interface CartItem extends Product {
     quantity: number;
@@ -178,7 +179,7 @@ export default function NewOrder() {
                     <div className="flex-1 overflow-y-auto pr-2">
                         {cart.length === 0 ? (
                             <div className="flex flex-col items-center justify-center h-full text-gray-400">
-                                <span className="text-4xl mb-2">🛒</span>
+                                <span className="text-4xl mb-2"><Icon name="cart" /></span>
                                 <p>O carrinho está vazio</p>
                             </div>
                         ) : (

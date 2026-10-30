@@ -16,6 +16,7 @@ import {
 import { Visita, ApiUtilizada, TemperaturaLead, StatusVisita } from './types';
 import { TabelaVisitasHeader } from './TabelaVisitasHeader';
 import { TabelaVisitasRow } from './TabelaVisitasRow';
+import Icon from '../Icon';
 
 interface TabelaVisitasViewProps {
     visitas: Visita[];
@@ -252,7 +253,7 @@ export const TabelaVisitasView: React.FC<TabelaVisitasViewProps> = ({
                                         <tr>
                                             <td colSpan={10} className="p-10 text-center text-gray-400 dark:text-gray-500">
                                                 <div className="flex flex-col items-center justify-center gap-2">
-                                                    <span className="text-3xl">📍</span>
+                                                    <span className="text-3xl"><Icon name="pin" /></span>
                                                     <p className="font-bold text-gray-700 dark:text-gray-300">
                                                         Nenhuma visita cadastrada para hoje.
                                                     </p>
@@ -283,7 +284,7 @@ export const TabelaVisitasView: React.FC<TabelaVisitasViewProps> = ({
 
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs text-gray-500 dark:text-gray-400 pt-4 px-1">
                 <span>
-                    💡 Dica: Clique e arraste o ícone <strong>☰</strong> para reordenar as visitas antes de calcular a rota com trânsito.
+                    <Icon name="bulb" /> Dica: Clique e arraste o ícone <strong><Icon name="menu" /></strong> para reordenar as visitas antes de calcular a rota com trânsito.
                 </span>
                 <span className="mt-1 sm:mt-0 font-medium">
                     Visitas de pré-venda (orçamentos & medições de obra)
@@ -296,7 +297,7 @@ export const TabelaVisitasView: React.FC<TabelaVisitasViewProps> = ({
                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl border-2 border-gray-300 dark:border-gray-600 max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between pb-3 border-b-2 border-highlight mb-4">
                             <h3 className="text-xl font-black text-gray-900 dark:text-white flex items-center gap-2">
-                                <span>{visitaEmEdicao ? '✏️' : '📍'}</span>{' '}
+                                <span>{visitaEmEdicao ? <Icon name="pencil" /> : <Icon name="pin" />}</span>{' '}
                                 {visitaEmEdicao ? 'Editar Visita Técnica' : 'Cadastrar Visita Técnica (Lead)'}
                             </h3>
                             <button

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { WeightCalculator } from '../components/WeightCalculator';
 import { GuardrailEditor } from '../components/GuardrailEditor';
+import Icon from '../components/Icon';
 
 // Global InputField for GuardrailEditor
 const InputField = ({ label, value, onChange, type = "text", placeholder, icon, addon }: any) => (
@@ -59,7 +60,7 @@ export default function WeightCalculatorPage() {
       <div className="max-w-5xl mx-auto">
         <div className="bg-white rounded-xl shadow p-6 mb-6">
           <div className="flex items-center gap-3 mb-6">
-            <span className="text-3xl">⚖️</span>
+            <span className="text-3xl"><Icon name="scale" /></span>
             <div>
               <h2 className="text-2xl font-bold uppercase tracking-wider text-slate-800">Cálculo Rápido de Peso</h2>
               <p className="text-slate-500 text-sm">Insira as medidas para calcular o peso da chapa e custo de material</p>

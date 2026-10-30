@@ -11,6 +11,7 @@ import { parseContractData, getProp, extractNum, isNoStairContract } from '../ut
 import { resolveFreightInfo, buildFreightQuoteText, getInvoiceValue, copyTextToClipboard, MISSING_INFO } from '../utils/freightQuoteText';
 import { resolveClientInfo, normalizeName } from '../utils/clientInfo';
 import PageTitle from '../components/PageTitle';
+import Icon from '../components/Icon';
 
 export const DeliveriesTable: React.FC = () => {
     const [contracts, setContracts] = useState<SavedContract[]>([]);
@@ -815,20 +816,20 @@ export const DeliveriesTable: React.FC = () => {
                         onClick={handleAddManualContract}
                         className="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-lg font-bold shadow-md flex items-center gap-2 transition-colors"
                     >
-                        ➕ Novo Cliente
+                        <Icon name="plus" /> Novo Cliente
                     </button>
                     <button 
                         onClick={() => setShowValues(!showValues)}
                         className={`px-4 py-2.5 rounded-lg font-bold shadow-md flex items-center gap-2 transition-colors ${showValues ? 'bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/50 dark:text-blue-300' : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300'}`}
                         title="Mostrar ou ocultar valores financeiros na tela e na impressão"
                     >
-                        {showValues ? '👁️ Valores Visíveis' : '🙈 Valores Ocultos'}
+                        {showValues ? <><Icon name="eye" /> Valores Visíveis</> : <><Icon name="eyeOff" /> Valores Ocultos</>}
                     </button>
                     <button 
                         onClick={handlePrint}
                         className="bg-amber-600 hover:bg-amber-700 text-white px-5 py-2.5 rounded-lg font-bold shadow-md flex items-center gap-2 transition-colors"
                     >
-                        🖨️ Imprimir
+                        <Icon name="printer" /> Imprimir
                     </button>
                 </div>
             </div>
@@ -956,9 +957,9 @@ export const DeliveriesTable: React.FC = () => {
                                                 <div className={`px-2 mt-1 mb-1 print:mb-0.5 flex flex-col gap-0.5 ${!showValues ? 'hidden print:hidden' : ''}`}>
                                                     <div>
                                                         {contract.paymentStatus === 'recebido' ? (
-                                                            <span className="text-xs font-bold text-green-600 dark:text-green-400 print:text-[11px] print:text-gray-800">💰 Recebido</span>
+                                                            <span className="text-xs font-bold text-green-600 dark:text-green-400 print:text-[11px] print:text-gray-800"><Icon name="cash" /> Recebido</span>
                                                         ) : (
-                                                            <span className="text-xs font-bold text-red-500 dark:text-red-400 print:text-[11px] print:text-gray-600">⏳ A Receber</span>
+                                                            <span className="text-xs font-bold text-red-500 dark:text-red-400 print:text-[11px] print:text-gray-600"><Icon name="hourglass" /> A Receber</span>
                                                         )}
                                                     </div>
                                                     <div className="text-xs font-bold text-gray-700 dark:text-gray-300 print:text-[11px] print:text-gray-700 mt-1">
@@ -1015,7 +1016,7 @@ export const DeliveriesTable: React.FC = () => {
                                                                 className="text-red-500 hover:bg-red-50 p-1 rounded transition-colors flex-shrink-0"
                                                                 title="Remover data"
                                                             >
-                                                                🗑️
+                                                                <Icon name="trash" />
                                                             </button>
                                                         )}
                                                     </div>
@@ -1057,7 +1058,7 @@ export const DeliveriesTable: React.FC = () => {
                                                         className="print-hidden mt-1 w-full text-xs font-bold py-1 rounded bg-amber-600 hover:bg-amber-700 text-white"
                                                         title="Copiar texto da transportadora"
                                                     >
-                                                        📋 Copiar
+                                                        <Icon name="clipboard" /> Copiar
                                                     </button>
                                                 </div>
                                             </td>
@@ -1118,7 +1119,7 @@ export const DeliveriesTable: React.FC = () => {
                                                     className="w-full bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-bold py-1.5 px-2 rounded text-xs transition-colors shadow-sm"
                                                     title="Excluir contrato duplicado ou cancelado"
                                                 >
-                                                    Excluir 🗑️
+                                                    Excluir <Icon name="trash" />
                                                 </button>
                                                 <label className="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-2 rounded text-xs transition-colors shadow-sm cursor-pointer text-center block" title="Anexar Imagem">
                                                     Anexar Imagem

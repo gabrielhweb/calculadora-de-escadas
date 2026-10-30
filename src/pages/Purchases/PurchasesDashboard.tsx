@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import PageTitle from '../../components/PageTitle';
+import Icon from '../../components/Icon';
 
 export default function PurchasesDashboard() {
     const { user } = useAuth();
@@ -73,7 +74,7 @@ export default function PurchasesDashboard() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     <Link to="/compras/catalogo" className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 flex flex-col items-center justify-center text-center hover:shadow-md transition-shadow group">
                         <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                            <span className="text-2xl">📋</span>
+                            <span className="text-2xl"><Icon name="clipboard" /></span>
                         </div>
                         <h2 className="text-lg font-bold text-gray-800 dark:text-white">Produtos</h2>
                         <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">
@@ -83,7 +84,7 @@ export default function PurchasesDashboard() {
 
                     <Link to="/compras/fornecedores" className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 flex flex-col items-center justify-center text-center hover:shadow-md transition-shadow group">
                         <div className="w-16 h-16 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                            <span className="text-2xl">🏭</span>
+                            <span className="text-2xl"><Icon name="factory" /></span>
                         </div>
                         <h2 className="text-lg font-bold text-gray-800 dark:text-white">Fornecedores</h2>
                         <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">
@@ -93,7 +94,7 @@ export default function PurchasesDashboard() {
 
                     <Link to="/compras/novo-pedido" className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 flex flex-col items-center justify-center text-center hover:shadow-md transition-shadow group">
                         <div className="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                            <span className="text-2xl">🛒</span>
+                            <span className="text-2xl"><Icon name="cart" /></span>
                         </div>
                         <h2 className="text-lg font-bold text-gray-800 dark:text-white">Novo Pedido</h2>
                         <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">
@@ -103,7 +104,7 @@ export default function PurchasesDashboard() {
 
                     <Link to="/compras/historico" className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 flex flex-col items-center justify-center text-center hover:shadow-md transition-shadow group">
                         <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                            <span className="text-2xl">🧾</span>
+                            <span className="text-2xl"><Icon name="file" /></span>
                         </div>
                         <h2 className="text-lg font-bold text-gray-800 dark:text-white">Histórico de Pedidos</h2>
                         <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">

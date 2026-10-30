@@ -3,6 +3,7 @@ import { useAuth } from '../../components/AuthProvider';
 import { collection, getDocs, orderBy, query } from 'firebase/firestore';
 import { db } from '../../firebase';
 import PageTitle from '../../components/PageTitle';
+import Icon from '../../components/Icon';
 
 interface OrderItem {
     id: string;
@@ -106,7 +107,7 @@ export default function OrderHistory() {
                                             onClick={() => window.open(`/compras/imprimir/${order.id}`, '_blank')}
                                             className="text-gray-600 hover:text-gray-800 font-medium text-sm mr-4"
                                         >
-                                            🖨️ Imprimir
+                                            <Icon name="printer" /> Imprimir
                                         </button>
                                         <button 
                                             onClick={() => setExpandedOrderId(expandedOrderId === order.id ? null : order.id)}
@@ -135,7 +136,7 @@ export default function OrderHistory() {
                                                         </p>
                                                         {item.supplierName && (
                                                             <p className="text-[10px] text-blue-600 dark:text-blue-400 font-medium mt-1">
-                                                                🏭 {item.supplierName}
+                                                                <Icon name="factory" /> {item.supplierName}
                                                             </p>
                                                         )}
                                                     </div>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import jsPDF from 'jspdf';
 import { formatCurrencyBRL } from '../../utils';
+import Icon from '../Icon';
 
 interface InputFieldProps {
     label: string;
@@ -275,7 +276,7 @@ export const FormularioReciboPDF: React.FC<FormularioReciboPDFProps> = ({
             <div className="flex justify-between items-center mb-6 border-b-2 border-highlight pb-4">
                 <div>
                     <h2 className="text-2xl font-black text-gray-900 dark:text-white flex items-center gap-2">
-                        <span>📝</span> Gerar Recibo de Visita Técnica
+                        <span><Icon name="pencil" /></span> Gerar Recibo de Visita Técnica
                     </h2>
                     <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm mt-1">
                         Preencha os dados abaixo para gerar o PDF oficial de visita técnica com termo de abatimento em 14 dias.

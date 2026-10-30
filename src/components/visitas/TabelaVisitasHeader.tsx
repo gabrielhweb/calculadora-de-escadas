@@ -1,6 +1,7 @@
 import React from 'react';
 import { ApiUtilizada } from './types';
 import { ApiBadge } from './ApiBadge';
+import Icon from '../Icon';
 
 interface TabelaVisitasHeaderProps {
     totalVisitas: number;
@@ -25,7 +26,7 @@ export const TabelaVisitasHeader: React.FC<TabelaVisitasHeaderProps> = ({
                 <div>
                     <div className="flex items-center gap-3">
                         <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight flex items-center gap-2">
-                            <span>📋</span>
+                            <span><Icon name="clipboard" /></span>
                             <span>Tabela de Visitas do Dia</span>
                         </h2>
                         <span className="bg-highlight/15 text-highlight border border-highlight/40 text-xs font-black px-2.5 py-1 rounded-full">
@@ -33,7 +34,7 @@ export const TabelaVisitasHeader: React.FC<TabelaVisitasHeaderProps> = ({
                         </span>
                     </div>
                     <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm mt-1">
-                        Arraste as paradas pelo ícone <strong>☰</strong> para reordenar ou use a otimização de trânsito em tempo real.
+                        Arraste as paradas pelo ícone <strong><Icon name="menu" /></strong> para reordenar ou use a otimização de trânsito em tempo real.
                     </p>
                 </div>
 

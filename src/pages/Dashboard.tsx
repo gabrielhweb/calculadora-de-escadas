@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getQuotes } from '../services/storage';
 import { SavedQuote, QuoteStatus, LocalUser } from '../types';
+import Icon from '../components/Icon';
 
 const Dashboard: React.FC = () => {
     const [quotes, setQuotes] = useState<SavedQuote[]>([]);
@@ -147,7 +148,7 @@ const Dashboard: React.FC = () => {
 
             <div className="flex justify-between items-center text-xs text-gray-500 border-t border-gray-100 dark:border-gray-700 pt-3">
                 <div className="flex gap-2">
-                    <span title="Fotos/Vídeos">📎 {quote.attachments?.length || 0}</span>
+                    <span title="Fotos/Vídeos"><Icon name="clip" /> {quote.attachments?.length || 0}</span>
                 </div>
                 <span className="font-bold bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
                     {(quote.inputData.totalHeight/100).toFixed(2)}m
@@ -176,13 +177,13 @@ const Dashboard: React.FC = () => {
                                 onClick={() => setActiveTab('kanban')}
                                 className={`px-4 py-1 rounded font-bold text-sm transition ${activeTab === 'kanban' ? 'bg-white dark:bg-gray-600 shadow' : 'text-gray-500 dark:text-gray-300'}`}
                             >
-                                🏗️ Obras
+                                <Icon name="barrier" /> Obras
                             </button>
                             <button 
                                 onClick={() => setActiveTab('users')}
                                 className={`px-4 py-1 rounded font-bold text-sm transition ${activeTab === 'users' ? 'bg-white dark:bg-gray-600 shadow' : 'text-gray-500 dark:text-gray-300'}`}
                             >
-                                👥 Equipe
+                                <Icon name="users" /> Equipe
                             </button>
                         </div>
                      )}
@@ -210,7 +211,7 @@ const Dashboard: React.FC = () => {
                     {/* COLUNA 2: PRODUÇÃO (Foco do Serralheiro) */}
                     <div className="min-w-[300px]">
                         <div className="flex items-center justify-between mb-4 bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-lg border-l-4 border-yellow-500">
-                            <h3 className="font-bold text-yellow-800 dark:text-yellow-500 uppercase text-sm">🔥 Em Produção (Serralheria)</h3>
+                            <h3 className="font-bold text-yellow-800 dark:text-yellow-500 uppercase text-sm"><Icon name="fire" /> Em Produção (Serralheria)</h3>
                             <span className="bg-white dark:bg-gray-700 text-yellow-600 dark:text-yellow-400 px-2 rounded-full text-xs font-bold">{productionQuotes.length}</span>
                         </div>
                         <div className="space-y-3">
@@ -222,7 +223,7 @@ const Dashboard: React.FC = () => {
                     {/* COLUNA 3: FINALIZADOS */}
                     <div className="min-w-[300px]">
                         <div className="flex items-center justify-between mb-4 bg-green-50 dark:bg-green-900/20 p-3 rounded-lg border-l-4 border-green-500">
-                            <h3 className="font-bold text-green-800 dark:text-green-500 uppercase text-sm">✅ Prontos / Instalados</h3>
+                            <h3 className="font-bold text-green-800 dark:text-green-500 uppercase text-sm"><Icon name="check" /> Prontos / Instalados</h3>
                             <span className="bg-white dark:bg-gray-700 text-green-600 dark:text-green-400 px-2 rounded-full text-xs font-bold">{doneQuotes.length}</span>
                         </div>
                         <div className="space-y-3">

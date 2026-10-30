@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabaseClient';
 import { LocalUser } from '../types';
+import Icon from '../components/Icon';
 
 const Login: React.FC = () => {
     const [email, setEmail] = useState('');
@@ -86,7 +87,7 @@ const Login: React.FC = () => {
             <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-8 border border-gray-200 dark:border-gray-700">
                 <div className="text-center mb-8">
                     <div className="w-20 h-20 bg-highlight/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <span className="text-4xl">🔐</span>
+                        <span className="text-4xl"><Icon name="lock" /></span>
                     </div>
                     <h1 className="text-3xl font-black text-gray-900 dark:text-white uppercase tracking-tighter">Zilinski</h1>
                     <p className="text-sm text-highlight font-bold tracking-[0.3em] uppercase">Sistema de Gestão</p>
