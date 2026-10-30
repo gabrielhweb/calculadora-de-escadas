@@ -9,6 +9,7 @@ import { OrbitControls, Html, Line } from '@react-three/drei';
 import * as THREE from 'three';
 import { GuardrailPreview } from './GuardrailPreview';
 import { LandingPreview } from './LandingPreview';
+import { calcFoldedPackage } from '../utils/freightDimensions';
 
 interface StaircaseVisualizerProps {
   option: ProposalOption;
@@ -60,80 +61,92 @@ const StairModel: React.FC<{
   handrailHeightM: number;
   supportThicknessM: number;
   handrailThicknessM: number;
-}> = ({ isOpen, totalHeightM, totalLengthM, stairWidth, treadDepth, stepsCount, materialProp, hasCorrimao, handrailHeightM, supportThicknessM, handrailThicknessM }) => {
+  stringerBandM: number;
+}> = ({ isOpen, totalHeightM, totalLengthM, stairWidth, treadDepth, stepsCount, materialProp, hasCorrimao, handrailHeightM, supportThicknessM, handrailThicknessM, stringerBandM }) => {
   const barLength = Math.sqrt(totalHeightM ** 2 + totalLengthM ** 2);
   // Angle to tilt a Z-aligned box so it points to (0, -totalHeightM, totalLengthM)
-  const slopeAngle = Math.atan2(totalHeightM, totalLengthM); 
+  const slopeAngle = Math.atan2(totalHeightM, totalLengthM);
 
-  // Lateral parallelogram folding: 
+  // Lateral parallelogram folding:
   // 0 = open (horizontal steps). Math.PI / 2 = closed (folded 90 deg against wall)
   const { phi } = useSpring({
     phi: isOpen ? 0 : Math.PI / 2,
     config: { mass: 2, tension: 150, friction: 30 }
   });
 
-  const stepColor = materialProp === 'madeira' ? '#8b5a2b' : '#4b5563';
-  const metallicColor = '#2f3136'; 
+  const stepColor = materialProp === 'madeira' ? '#8b5a2b' : '#3f4247';
+  const metallicColor = '#2f3136';
+  const hingeColor = '#6b7280';
 
-  // The fixed wall stringer is at the left boundary.
-  const wallX = -stairWidth / 2 + 0.02; // Center of 4cm box
-  
+  // Viga da parede: chapa de aço (corte a laser) encostada na parede
+  const plateThicknessM = 0.008;
+  const wallX = -stairWidth / 2 + plateThicknessM / 2;
+
   // The distance between hinges is the width of the steps
-  const stairW = stairWidth - 0.04;
-  
+  const stairW = stairWidth - plateThicknessM * 2;
+
   // Outer stringer translates as phi changes, squeezing perfectly toward the wall!
   const outerStringerX = phi.to(p => wallX + stairW * Math.cos(p));
   const outerStringerY = phi.to(p => stairW * Math.sin(p));
 
+  // Corrimão igual ao real: 3 tubos paralelos e poucos postes (~1 a cada metro de viga)
+  const railHeights = [handrailHeightM, handrailHeightM * 0.66, handrailHeightM * 0.33];
+  const postsCount = Math.max(2, Math.round(barLength / 1.0) + 1);
+
+  // Cada degrau: chapa do piso + aba dobrada na frente
+  const lipHeightM = 0.05;
+  const treadThicknessM = materialProp === 'madeira' ? 0.03 : 0.006;
+
   return (
     // Base coordinate system: pivot at top landing.
     <group position={[0, totalHeightM, 0]}>
-      
-      {/* INNER STRINGER (Fixed rigidly to the wall at X = wallX) */}
+
+      {/* VIGA DA PAREDE (chapa larga, fixa na parede) */}
       <group position={[wallX, -totalHeightM / 2, totalLengthM / 2]}>
-        <mesh rotation-x={slopeAngle}>
-          <boxGeometry args={[0.04, 0.08, barLength]} />
-          <meshStandardMaterial color={metallicColor} metalness={0.7} roughness={0.3} />
+        <mesh rotation-x={slopeAngle} position={[0, -stringerBandM / 2 * Math.cos(slopeAngle), -stringerBandM / 2 * Math.sin(slopeAngle)]}>
+          <boxGeometry args={[plateThicknessM, stringerBandM, barLength]} />
+          <meshStandardMaterial color={metallicColor} metalness={0.7} roughness={0.35} />
         </mesh>
 
         {/* Chapas de Fixação na Parede (Apoios superior e inferior) */}
-        <mesh position={[-0.025, totalHeightM / 2, -totalLengthM / 2]}>
+        <mesh position={[-0.01, totalHeightM / 2, -totalLengthM / 2]}>
           <boxGeometry args={[0.01, 0.30, 0.20]} />
           <meshStandardMaterial color={metallicColor} metalness={0.7} roughness={0.3} />
         </mesh>
-        <mesh position={[-0.025, -totalHeightM / 2, totalLengthM / 2]}>
+        <mesh position={[-0.01, -totalHeightM / 2, totalLengthM / 2]}>
           <boxGeometry args={[0.01, 0.30, 0.20]} />
           <meshStandardMaterial color={metallicColor} metalness={0.7} roughness={0.3} />
         </mesh>
       </group>
 
-      {/* OUTER STRINGER (Translates laterally and upwards) */}
-      <animated.group 
+      {/* VIGA DE FORA (barra chata que sobe junto com o corrimão quando fecha) */}
+      <animated.group
         position-x={outerStringerX}
         position-y={outerStringerY}
         position-z={0}
       >
         <group position={[0, -totalHeightM / 2, totalLengthM / 2]}>
           <mesh rotation-x={slopeAngle}>
-            <boxGeometry args={[0.04, 0.08, barLength]} />
+            <boxGeometry args={[plateThicknessM, 0.05, barLength]} />
             <meshStandardMaterial color={metallicColor} metalness={0.7} roughness={0.3} />
           </mesh>
         </group>
 
-        {/* Handrail Main Tube and Supports */}
         {hasCorrimao && (
           <group>
-             {/* Main Tube */}
-             <group position={[0, -totalHeightM / 2 + handrailHeightM, totalLengthM / 2]}>
-               <mesh rotation-x={slopeAngle}>
-                 <boxGeometry args={[handrailThicknessM, handrailThicknessM, barLength]} />
-                 <meshStandardMaterial color={metallicColor} metalness={0.8} roughness={0.2} />
-               </mesh>
-             </group>
-             
-             {/* Vertical Supports (Torres/Hastes) */}
-             {Array.from({ length: stepsCount }).map((_, i) => {
-               const fraction = (i + 0.5) / stepsCount;
+             {/* 3 tubos do corrimão */}
+             {railHeights.map((h, r) => (
+               <group key={`rail-${r}`} position={[0, -totalHeightM / 2 + h, totalLengthM / 2]}>
+                 <mesh rotation-x={slopeAngle}>
+                   <boxGeometry args={[handrailThicknessM, handrailThicknessM, barLength]} />
+                   <meshStandardMaterial color={metallicColor} metalness={0.8} roughness={0.2} />
+                 </mesh>
+               </group>
+             ))}
+
+             {/* Postes verticais */}
+             {Array.from({ length: postsCount }).map((_, i) => {
+               const fraction = i / (postsCount - 1);
                const hingeY = -totalHeightM * fraction;
                const hingeZ = totalLengthM * fraction;
                return (
@@ -147,11 +160,8 @@ const StairModel: React.FC<{
         )}
       </animated.group>
 
-      {/* STEPS - They pivot at the Wall Stringer! */}
+      {/* DEGRAUS - giram nas dobradiças da viga da parede */}
       {Array.from({ length: stepsCount }).map((_, i) => {
-        // Find position of the hinge for this step on the wall stringer
-        // Y goes from 0 down to -totalHeightM
-        // Z goes from 0 to totalLengthM
         const fraction = (i + 0.5) / stepsCount;
         const hingeY = -totalHeightM * fraction;
         const hingeZ = totalLengthM * fraction;
@@ -160,15 +170,27 @@ const StairModel: React.FC<{
           <group key={i} position={[wallX, hingeY, hingeZ]}>
             {/* The step rotates around Z so it flips up to lay flat against the wall! */}
             <animated.group rotation-z={phi as any}>
-              {/* Offset step center to match the hinge width */}
+              {/* Piso do degrau */}
               <mesh position={[stairW / 2, 0, 0]}>
-                <boxGeometry args={[stairW, 0.03, treadDepth]} />
-                <meshStandardMaterial 
-                  color={stepColor} 
+                <boxGeometry args={[stairW, treadThicknessM, treadDepth]} />
+                <meshStandardMaterial
+                  color={stepColor}
                   metalness={materialProp === 'metal' ? 0.5 : 0.1}
                   roughness={materialProp === 'metal' ? 0.4 : 0.8}
                 />
               </mesh>
+              {/* Aba dobrada na frente do degrau */}
+              <mesh position={[stairW / 2, -lipHeightM / 2, treadDepth / 2]}>
+                <boxGeometry args={[stairW, lipHeightM, 0.006]} />
+                <meshStandardMaterial color={metallicColor} metalness={0.6} roughness={0.4} />
+              </mesh>
+              {/* 4 dobradiças: 2 na viga da parede e 2 na viga de fora */}
+              {[0, stairW].map(x => [-treadDepth / 3, treadDepth / 3].map(z => (
+                <mesh key={`h-${x}-${z}`} position={[x, 0, z]} rotation-x={Math.PI / 2}>
+                  <cylinderGeometry args={[0.01, 0.01, 0.06, 8]} />
+                  <meshStandardMaterial color={hingeColor} metalness={0.9} roughness={0.3} />
+                </mesh>
+              )))}
             </animated.group>
           </group>
         );
@@ -211,42 +233,13 @@ const Interactive3DStair: React.FC<{
                         0; // Frontal wall doesn't translate X
   const wallPositionZ = wallFixation === 'frontal' ? 0 : 0; // Frontal would be back of stairs
 
-  // HUD and Dimension logic for Closed Package State
-  const maxHandrailHeightM = hasCorrimao ? handrailHeightM : 0; 
-  const espessuraEstruturaM = 0.08; // Espessura fixa exigida de 8cm (0.08m)
-  const pontasM = 0.20; // As pontas da escada que somam 20cm
-  
-  // A Largura do Pacote agora é a seta azul (Corrimão + Altura da Viga exata)
+  // Dimensões da escada fechada (prancha): mesma conta da Tabela de Entregas e da Ficha Técnica
   const treadDepthCm = treadDepth * 100;
-  const stepHeightCm = (totalHeightM / stepsCount) * 100;
-  const stepHypotenuseCm = Math.sqrt(Math.pow(treadDepthCm, 2) + Math.pow(stepHeightCm, 2));
-  const blueLineCm = (treadDepthCm * stepHeightCm) / stepHypotenuseCm;
-  const stringerWidthM = (blueLineCm + 16.5) / 100;
-
-  // Matemática solicitada pelo usuário para Largura do Pacote de Frete
-  const handrailCm = maxHandrailHeightM > 0 ? 80 : 0;
-  const pacoteLarguraM = ((treadDepthCm + 1) + handrailCm + 16.5) / 100;
-  const pacoteAlturaM = 0.08;
-
-  const comprimentoMaximoM = totalLengthM;
-  
-  // O Segredo do Paralelogramo Achatado: 
-  // Quando a escada articulada fecha, o corrimão deita sobre a viga. 
-  // O comprimento final é o tamanho da Viga + a altura do poste do corrimão que deitou + as pontas de metal (0.20m).
-  const tamanhoViga = Math.sqrt(Math.pow(comprimentoMaximoM, 2) + Math.pow(totalHeightM, 2));
-  const diagonalExata = tamanhoViga + maxHandrailHeightM + pontasM;
-
-  // Calculo de Peso (Chapa 3mm)
-  const widthCm = stairWidth * 100;
-  
-  const stepAreaM2 = ((treadDepthCm + 6) / 100) * (widthCm / 100);
-  const stepsWeightKg = stepAreaM2 * 0.003 * 7850 * stepsCount;
-  
-  const redLineCm = stepHypotenuseCm * stepsCount;
-  const stringerAreaM2 = (redLineCm / 100) * (stringerWidthM) * 2;
-  const stringerWeightKg = stringerAreaM2 * 0.003 * 7850;
-  
-  const pesoTotalEstimado = stepsWeightKg + stringerWeightKg;
+  const stepHeightCm = option.stepHeight > 0 ? option.stepHeight : (totalHeightM / stepsCount) * 100;
+  const handrailCm = hasCorrimao ? handrailHeightM * 100 : 0;
+  const pacote = calcFoldedPackage({ numSteps: stepsCount, treadDepthCm, stepHeightCm, widthCm: stairWidth * 100, handrailCm });
+  const stepHypotenuseCm = Math.sqrt(treadDepthCm ** 2 + stepHeightCm ** 2);
+  const stringerBandM = ((treadDepthCm * stepHeightCm) / stepHypotenuseCm + 16.5) / 100;
 
   return (
     <div className="relative w-full h-full bg-slate-200">
@@ -275,6 +268,7 @@ const Interactive3DStair: React.FC<{
                   handrailHeightM={handrailHeightM}
                   supportThicknessM={supportThicknessM}
                   handrailThicknessM={handrailThicknessM}
+                  stringerBandM={stringerBandM}
                 />
               </group>
 
@@ -323,7 +317,7 @@ const Interactive3DStair: React.FC<{
                 {/* Largura do Pacote na Vertical (Amarelo) */}
                 <Line points={[[wallPositionX + 0.1, totalHeightM/2, totalLengthM/2], [wallPositionX + 0.1, totalHeightM/2 + stairWidth, totalLengthM/2]]} color="#fbbf24" lineWidth={5} />
                 {/* Diagonal do Pacote Achatado */}
-                <Line points={[[wallPositionX + 0.1, totalHeightM + maxHandrailHeightM, 0], [wallPositionX + 0.1, 0, totalLengthM]]} color="#60a5fa" lineWidth={5} dashed={true} dashSize={0.2} gapSize={0.1} />
+                <Line points={[[wallPositionX + 0.1, totalHeightM + stairWidth + handrailCm / 100, 0], [wallPositionX + 0.1, 0, totalLengthM]]} color="#60a5fa" lineWidth={5} dashed={true} dashSize={0.2} gapSize={0.1} />
               </group>
             )}
           </group>
@@ -366,25 +360,25 @@ const Interactive3DStair: React.FC<{
           <div className="font-mono text-sm flex flex-col gap-2">
             <div className="flex justify-between items-center border-b border-slate-700/50 pb-1">
                 <span className="text-slate-400 tracking-wider text-xs" style={{ color: '#60a5fa' }}>COMPRIMENTO</span> 
-                <span className="font-bold text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded">{diagonalExata.toFixed(2)}m</span>
+                <span className="font-bold text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded">{pacote.comprimentoM.toFixed(2)}m</span>
             </div>
             <div className="flex justify-between items-center border-b border-slate-700/50 pb-1">
                 <span className="text-slate-400 tracking-wider text-xs" style={{ color: '#fbbf24' }}>LARGURA</span> 
-                <span className="font-bold text-yellow-400 bg-yellow-400/10 px-2 py-0.5 rounded">{pacoteLarguraM.toFixed(2)}m</span>
+                <span className="font-bold text-yellow-400 bg-yellow-400/10 px-2 py-0.5 rounded">{pacote.larguraM.toFixed(2)}m</span>
             </div>
             <div className="flex justify-between items-center border-b border-slate-700/50 pb-1">
                 <span className="text-slate-400 tracking-wider text-xs" style={{ color: '#10b981' }}>ALTURA</span> 
-                <span className="font-bold text-green-400 bg-green-400/10 px-2 py-0.5 rounded">{pacoteAlturaM.toFixed(2)}m</span>
+                <span className="font-bold text-green-400 bg-green-400/10 px-2 py-0.5 rounded">{pacote.alturaM.toFixed(2)}m</span>
             </div>
             <div className="flex justify-between items-center pt-1">
                 <span className="text-slate-400 tracking-wider text-xs" style={{ color: '#a78bfa' }}>PESO EST (ESCADA)</span> 
-                <span className="font-bold text-purple-400 bg-purple-400/10 px-2 py-0.5 rounded text-lg">{pesoTotalEstimado.toFixed(1)}kg</span>
+                <span className="font-bold text-purple-400 bg-purple-400/10 px-2 py-0.5 rounded text-lg">{pacote.weightKg.toFixed(1)}kg</span>
             </div>
             
             <div className="mt-1 text-[10px] text-slate-400 font-mono text-center bg-slate-800/50 p-2 rounded leading-relaxed">
-                Escada Fechada (Viga + Corrimão + Pontas):
+                Escada fechada (prancha): viga {pacote.vigaM.toFixed(2)}m, inclinação {pacote.inclinacaoGraus.toFixed(1)}°
                 <br />
-                {tamanhoViga.toFixed(2)} + {maxHandrailHeightM.toFixed(2)} + {pontasM.toFixed(2)} = {diagonalExata.toFixed(2)}m
+                Degraus + corrimão em pé somam na largura e passam da ponta da viga
             </div>
           </div>
         </div>

@@ -1,5 +1,61 @@
 // Cálculo das medidas/peso do volume de frete, compartilhado entre
-// Tabela de Entregas, Lista de Contratos e página de Contrato.
+// Tabela de Entregas, Lista de Contratos, página de Contrato, Ficha Técnica e desenho 3D.
+
+const STEEL_DENSITY = 7850;
+const CHAPA_M = 0.003;
+// Calibrado com escadas reais fechadas (Carlos Reginaldo 5,34 x 1,38m / 140kg e Marco Peruchi 7,44 x 1,30m)
+const PONTAS_M = 0.37;
+const FAIXA_VIGA_EXTRA_CM = 17.5;
+const DOBRADICAS_POR_DEGRAU = 4;
+const PESO_DOBRADICA_KG = 0.25;
+const TUBOS_CORRIMAO = 3;
+const PESO_TUBO_CORRIMAO_KG_M = 1.0;
+
+/** Altura do corrimão em cm (0 = sem corrimão). Sem informação, assume o padrão de 80cm. */
+export const resolveHandrailCm = (hasCorrimao?: any, handrailHeight?: any, optionalItems?: any[]) => {
+    if (Array.isArray(optionalItems) && optionalItems.some((i: any) => i?.id === 'corrimao_aco')) {
+        return extractNum(handrailHeight) || 80;
+    }
+    if (hasCorrimao === false || hasCorrimao === 'false') return 0;
+    return extractNum(handrailHeight) || 80;
+};
+
+/**
+ * Escada articulada fechada em formato de prancha.
+ * Fechada, os degraus e os postes do corrimão continuam "em pé" (na posição de uso),
+ * então ficam inclinados em relação à viga: uma parte deles soma na largura
+ * da prancha (cosseno da inclinação) e outra parte passa da ponta da viga (seno).
+ */
+export const calcFoldedPackage = (p: { numSteps: number; treadDepthCm: number; stepHeightCm: number; widthCm: number; handrailCm: number }) => {
+    const { numSteps, treadDepthCm, stepHeightCm, widthCm, handrailCm } = p;
+    const stepHypotenuseCm = Math.sqrt(treadDepthCm ** 2 + stepHeightCm ** 2);
+    const cosAng = treadDepthCm / stepHypotenuseCm;
+    const senAng = stepHeightCm / stepHypotenuseCm;
+    const faixaVigaCm = (treadDepthCm * stepHeightCm) / stepHypotenuseCm; // linha azul da viga
+    const emPeCm = widthCm + handrailCm; // degrau + poste do corrimão
+
+    const vigaM = (stepHypotenuseCm * numSteps) / 100;
+    const comprimentoM = vigaM + (emPeCm * senAng) / 100 + PONTAS_M;
+    const larguraM = (faixaVigaCm + FAIXA_VIGA_EXTRA_CM + emPeCm * cosAng) / 100;
+    const alturaM = 0.08;
+
+    const stepsWeightKg = ((treadDepthCm + 6) / 100) * (widthCm / 100) * CHAPA_M * numSteps * STEEL_DENSITY;
+    const stringerWeightKg = vigaM * ((faixaVigaCm + 16.5) / 100) * 2 * CHAPA_M * STEEL_DENSITY;
+    const hingesWeightKg = numSteps * DOBRADICAS_POR_DEGRAU * PESO_DOBRADICA_KG;
+    const handrailWeightKg = handrailCm > 0 ? TUBOS_CORRIMAO * vigaM * PESO_TUBO_CORRIMAO_KG_M : 0;
+    const weightKg = stepsWeightKg + stringerWeightKg + hingesWeightKg + handrailWeightKg;
+
+    return { comprimentoM, larguraM, alturaM, vigaM, weightKg, stepsWeightKg, stringerWeightKg, hingesWeightKg, handrailWeightKg, inclinacaoGraus: Math.atan(stepHeightCm / treadDepthCm) * 180 / Math.PI };
+};
+
+export const calcLandingsWeightKg = (landings?: any[]) => {
+    let areaM2 = 0;
+    (landings || []).forEach((l: any) => {
+        if (l.isAccessoriesOnly || (Number(l.length) || 0) <= 0 || (Number(l.width) || 0) <= 0) return;
+        areaM2 += (((Number(l.length) || 0) + 20) * ((Number(l.width) || 0) + 20)) / 10000;
+    });
+    return areaM2 * (3.34 / 1000) * STEEL_DENSITY;
+};
 
 export const parseContractData = (dataStr: any, contractObj?: any) => {
     let parsed: any = null;
@@ -198,20 +254,8 @@ export const getFreightDimensions = (parsedData: any, contractObj?: any, measure
         widthCm = 60;
     }
 
-    const thicknessM = 3.0 / 1000;
-    const STEEL_DENSITY = 7850;
-
-    let landingsAreaM2 = 0;
     const landings = getProp(parsedData, 'landings') || getProp(parsedData, 'patamares');
-    if (landings && landings.length > 0) {
-        landings.forEach((l: any) => {
-            if (l.isAccessoriesOnly || (Number(l.length) || 0) <= 0 || (Number(l.width) || 0) <= 0) return;
-            const lLen = (Number(l.length) || 0) + 20;
-            const lWid = (Number(l.width) || 0) + 20;
-            landingsAreaM2 += (lLen * lWid) / 10000;
-        });
-    }
-    const landingsWeight = landingsAreaM2 * (3.34 / 1000) * STEEL_DENSITY;
+    const landingsWeight = calcLandingsWeightKg(landings);
 
     if (noStair || !numSteps || !treadDepthCm || !stepHeightCm) {
         if (landingsWeight > 0 && landings && landings.length > 0) {
@@ -234,33 +278,12 @@ export const getFreightDimensions = (parsedData: any, contractObj?: any, measure
     }
 
     const optionalItems = getProp(parsedData, 'optionalItems');
-    const maxHandrailHeightM = (optionalItems && optionalItems.some((i: any) => i.id === 'corrimao_aco')) ? 0.8 : 0;
-    const pontasM = 0.20;
-    
-    const stepHypotenuseCm = Math.sqrt(Math.pow(treadDepthCm, 2) + Math.pow(stepHeightCm, 2));
-    const blueLineCm = (treadDepthCm * stepHeightCm) / stepHypotenuseCm;
-    const stringerWidthM = (blueLineCm + 16.5) / 100;
-    
-    const handrailCm = maxHandrailHeightM > 0 ? 80 : 0;
-    const pacoteLarguraM = ((treadDepthCm + 1) + handrailCm + 16.5) / 100;
-    const pacoteAlturaM = 0.08;
-
-    const comprimentoMaximoM = (treadDepthCm * numSteps) / 100;
-    const totalHeightM = (stepHeightCm * numSteps) / 100;
-    const tamanhoViga = Math.sqrt(Math.pow(comprimentoMaximoM, 2) + Math.pow(totalHeightM, 2));
-    const diagonalExata = tamanhoViga + maxHandrailHeightM + pontasM;
-
-    // Weight
-    const stepAreaM2 = ((treadDepthCm + 6) / 100) * (widthCm / 100);
-    const stepsWeight = stepAreaM2 * thicknessM * numSteps * STEEL_DENSITY;
-    const redLineCm = stepHypotenuseCm * numSteps;
-    const stringerAreaM2 = (redLineCm / 100) * (stringerWidthM) * 2;
-    const stringerWeight = stringerAreaM2 * thicknessM * STEEL_DENSITY;
-    
-    const escadaWeight = stepsWeight + stringerWeight;
+    const handrailCm = resolveHandrailCm(getProp(parsedData, 'hasCorrimao'), getProp(parsedData, 'handrailHeight'), optionalItems);
+    const pkg = calcFoldedPackage({ numSteps, treadDepthCm, stepHeightCm, widthCm, handrailCm });
+    const escadaWeight = pkg.weightKg;
     const totalWeightKg = escadaWeight + landingsWeight;
 
-    let freightText = `COMPRIMENTO: ${diagonalExata.toFixed(2)}m\nLARGURA: ${pacoteLarguraM.toFixed(2)}m\nALTURA: ${pacoteAlturaM.toFixed(2)}m\nPESO (ESCADA): ${escadaWeight.toFixed(1)}kg`;
+    let freightText = `COMPRIMENTO: ${pkg.comprimentoM.toFixed(2)}m\nLARGURA: ${pkg.larguraM.toFixed(2)}m\nALTURA: ${pkg.alturaM.toFixed(2)}m\nPESO (ESCADA): ${escadaWeight.toFixed(1)}kg`;
     if (landingsWeight > 0) {
         freightText += `\nPESO (PATAMAR): ${landingsWeight.toFixed(1)}kg`;
     }

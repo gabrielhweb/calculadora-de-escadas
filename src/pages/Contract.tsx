@@ -1630,6 +1630,8 @@ const Contract = () => {
         optionalItems,
         landings,
         quoteType,
+        hasCorrimao: originalInputData?.hasCorrimao,
+        handrailHeight: originalInputData?.handrailHeight,
       },
       finalStairPrice: parseFloat(stairPrice) || 0,
       finalLandingsPrice: parseFloat(landingsPrice) || 0,

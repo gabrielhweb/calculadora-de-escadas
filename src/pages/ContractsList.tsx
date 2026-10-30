@@ -846,6 +846,8 @@ export const ContractsList: React.FC = () => {
                 address: parsedData?.userData?.address || '',
                 zip: parsedData?.userData?.zip || '',
                 optionalItems: getProp('optionalItems') || [],
+                hasCorrimao: getProp('hasCorrimao'),
+                handrailHeight: getProp('handrailHeight'),
                 quoteType: getProp('quoteType') || 'stair'
             };
 
