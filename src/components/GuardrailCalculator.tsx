@@ -158,10 +158,10 @@ export default function GuardrailCalculator({ onCalculate }: GuardrailCalculator
                         </p>
                     </div>
                     <div className="flex flex-col md:flex-row gap-2">
-                        <button onClick={handleAddGuardrail} className="bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded-lg font-bold shadow transition-colors text-sm">
+                        <button onClick={handleAddGuardrail} className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg font-bold shadow transition-colors text-sm">
                             + Guarda-Corpo
                         </button>
-                        <button onClick={handleAddGate} className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-bold shadow transition-colors text-sm">
+                        <button onClick={handleAddGate} className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg font-bold shadow transition-colors text-sm">
                             + Portão
                         </button>
                         <button onClick={handleCalculate} className="bg-highlight hover:bg-yellow-600 text-white px-4 py-2 rounded-lg font-bold shadow transition-colors text-sm flex items-center justify-center gap-2">

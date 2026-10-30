@@ -49,7 +49,7 @@ Por isso estas regras valem em toda sessão:
 - [ ] Explicar como devem ser "Modalidade de coleta" e "Tomador do frete" no texto da transportadora (hoje fixos).
 - [ ] Informar a URL de produção do site pra anotar aqui.
 - [ ] Decidir se restaura o `vite.config.ts` (necessário pra rodar local).
-- [ ] Olhar os títulos novos das páginas e dizer se quer o conteúdo de dentro (cartões/botões) também no estilo novo.
+- [ ] Conferir as cores novas por dentro das páginas (principalmente as que pedem login) e dizer se quer trocar os emojis dos botões por ícones de linha.
 
 # 🧱 Estrutura
 

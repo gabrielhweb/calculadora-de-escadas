@@ -2242,7 +2242,7 @@ const Contract = () => {
                 <button
                   type="button"
                   onClick={handleAddTopLanding}
-                  className="text-xs bg-orange-600 text-white px-2 py-1 rounded font-bold hover:bg-orange-700 transition"
+                  className="text-xs bg-amber-600 text-white px-2 py-1 rounded font-bold hover:bg-amber-700 transition"
                   title="Patamar no Topo (Acesso Lateral)"
                 >
                   + Chegada
@@ -2833,10 +2833,10 @@ const Contract = () => {
             )}
 
             {/* --- SEÇÃO GUARDA-CORPO AVULSO --- */}
-            <div className="mt-6 bg-pink-50 dark:bg-pink-900/10 p-4 rounded border border-pink-200 dark:border-pink-800">
+            <div className="mt-6 bg-amber-50 dark:bg-amber-900/10 p-4 rounded border border-amber-200 dark:border-amber-800">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-black text-gray-900 dark:text-gray-100 uppercase flex items-center gap-2">
-                  <span className="bg-pink-600 text-white w-6 h-6 flex items-center justify-center rounded-full text-xs">
+                  <span className="bg-amber-600 text-white w-6 h-6 flex items-center justify-center rounded-full text-xs">
                     G
                   </span>
                   Guarda-Corpo Avulso (
@@ -2851,7 +2851,7 @@ const Contract = () => {
                   <button
                     type="button"
                     onClick={handleAddGuardrail}
-                    className="text-xs bg-pink-600 text-white px-2 py-1 rounded font-bold hover:bg-pink-700 transition"
+                    className="text-xs bg-amber-600 text-white px-2 py-1 rounded font-bold hover:bg-amber-700 transition"
                     title="Guarda-Corpo Avulso"
                   >
                     + G. Corpo
@@ -2874,7 +2874,7 @@ const Contract = () => {
                       return (
                         <div
                           key={landing.id}
-                          className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-pink-200 dark:border-pink-800 shadow-sm relative"
+                          className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-amber-200 dark:border-amber-800 shadow-sm relative"
                         >
                           <button
                             onClick={() => handleRemoveLanding(landing.id)}
@@ -2902,10 +2902,10 @@ const Contract = () => {
             </div>
 
             {/* --- SEÇÃO PORTÃO AVULSO --- */}
-            <div className="mt-4 bg-indigo-50 dark:bg-indigo-900/10 p-4 rounded border border-indigo-200 dark:border-indigo-800">
+            <div className="mt-4 bg-blue-50 dark:bg-blue-900/10 p-4 rounded border border-blue-200 dark:border-blue-800">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-black text-gray-900 dark:text-gray-100 uppercase flex items-center gap-2">
-                  <span className="bg-indigo-600 text-white w-6 h-6 flex items-center justify-center rounded-full text-xs">
+                  <span className="bg-amber-600 text-white w-6 h-6 flex items-center justify-center rounded-full text-xs">
                     P
                   </span>
                   Portão Avulso (
@@ -2920,7 +2920,7 @@ const Contract = () => {
                   <button
                     type="button"
                     onClick={handleAddGate}
-                    className="text-xs bg-indigo-600 text-white px-2 py-1 rounded font-bold hover:bg-indigo-700 transition"
+                    className="text-xs bg-amber-600 text-white px-2 py-1 rounded font-bold hover:bg-amber-700 transition"
                     title="Portão Avulso"
                   >
                     + Portão
@@ -2989,7 +2989,7 @@ const Contract = () => {
                       return (
                         <div
                           key={landing.id}
-                          className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-indigo-200 dark:border-indigo-800 shadow-sm relative"
+                          className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-blue-200 dark:border-blue-800 shadow-sm relative"
                         >
                           <button
                             onClick={() => handleRemoveLanding(landing.id)}
@@ -3172,7 +3172,7 @@ const Contract = () => {
                       return (
                         <div
                           key={landing.id}
-                          className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-indigo-200 dark:border-indigo-800 shadow-sm relative"
+                          className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-blue-200 dark:border-blue-800 shadow-sm relative"
                         >
                           <button
                             onClick={() => handleRemoveLanding(landing.id)}
@@ -4185,13 +4185,13 @@ const Contract = () => {
               <div className="flex gap-4">
                 <button
                   onClick={handleGenerateProductionSheet}
-                  className="flex-1 bg-purple-600 text-white font-black py-3 rounded-lg shadow-lg hover:bg-purple-700 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2"
+                  className="flex-1 bg-amber-600 text-white font-black py-3 rounded-lg shadow-lg hover:bg-amber-700 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2"
                 >
                   <span>⚙️</span> Gerar Ficha de Produção
                 </button>
                 <button
                   onClick={() => setShowWeightCalculator(true)}
-                  className="flex-1 bg-teal-600 text-white font-black py-3 rounded-lg shadow-lg hover:bg-teal-700 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2"
+                  className="flex-1 bg-amber-600 text-white font-black py-3 rounded-lg shadow-lg hover:bg-amber-700 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2"
                 >
                   <span>⚖️</span> Calcular Peso (KG)
                 </button>
@@ -4199,7 +4199,7 @@ const Contract = () => {
               <div className="flex gap-4 mt-4">
                 <button
                   onClick={handleGenerateGuardrailPDF}
-                  className="flex-1 bg-pink-600 text-white font-black py-3 rounded-lg shadow-lg hover:bg-pink-700 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2"
+                  className="flex-1 bg-amber-600 text-white font-black py-3 rounded-lg shadow-lg hover:bg-amber-700 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2"
                 >
                   <span>🚧</span> Imprimir Guarda-Corpo / Portão
                 </button>
@@ -4222,7 +4222,7 @@ const Contract = () => {
                 </button>
                 <button
                   onClick={handleCopyCotacaoFrete}
-                  className="flex-1 bg-indigo-600 text-white font-black py-4 rounded-lg shadow-lg hover:bg-indigo-700 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2"
+                  className="flex-1 bg-amber-600 text-white font-black py-4 rounded-lg shadow-lg hover:bg-amber-700 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2"
                 >
                   <span>📋</span> Cotação de Frete
                 </button>
@@ -4237,7 +4237,7 @@ const Contract = () => {
                 </button>
                 <button
                   onClick={handleGenerateAceiteObra}
-                  className="flex-1 bg-blue-600 text-white font-black py-4 rounded-lg shadow-lg hover:bg-blue-700 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2"
+                  className="flex-1 bg-amber-600 text-white font-black py-4 rounded-lg shadow-lg hover:bg-amber-700 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2"
                 >
                   <span>🏗️</span> Gerar Aceite de Obra
                 </button>
@@ -4406,7 +4406,7 @@ const Contract = () => {
                     onClick={() =>
                       setRefiningIndex(refiningIndex === idx ? null : idx)
                     }
-                    className="text-xs bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 px-3 py-1 rounded font-bold hover:bg-purple-200 dark:hover:bg-purple-800 flex items-center gap-1"
+                    className="text-xs bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300 px-3 py-1 rounded font-bold hover:bg-amber-200 dark:hover:bg-amber-800 flex items-center gap-1"
                   >
                     ✨ Refinar com IA
                   </button>
@@ -4421,8 +4421,8 @@ const Contract = () => {
 
                 {/* CHATZINHO DE REFINAMENTO */}
                 {refiningIndex === idx && (
-                  <div className="mt-3 bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg border border-purple-100 dark:border-purple-800 animate-fade-in">
-                    <p className="text-xs font-bold text-purple-800 dark:text-purple-300 mb-2">
+                  <div className="mt-3 bg-amber-50 dark:bg-amber-900/20 p-3 rounded-lg border border-amber-100 dark:border-amber-800 animate-fade-in">
+                    <p className="text-xs font-bold text-amber-800 dark:text-amber-300 mb-2">
                       O que você deseja alterar nesta cláusula?
                     </p>
                     <div className="flex gap-2">
@@ -4432,7 +4432,7 @@ const Contract = () => {
                           value={refinementPrompt}
                           onChange={(e) => setRefinementPrompt(e.target.value)}
                           placeholder="Ex: Deixe mais formal, adicione multa..."
-                          className="w-full bg-white dark:bg-gray-700 text-black dark:text-white p-2 pr-8 text-sm border border-purple-200 dark:border-purple-800 rounded focus:outline-none focus:border-purple-400"
+                          className="w-full bg-white dark:bg-gray-700 text-black dark:text-white p-2 pr-8 text-sm border border-amber-200 dark:border-amber-800 rounded focus:outline-none focus:border-amber-400"
                           onKeyDown={(e) =>
                             e.key === "Enter" && handleRefineClause(idx)
                           }
@@ -4460,7 +4460,7 @@ const Contract = () => {
                       <button
                         onClick={() => handleRefineClause(idx)}
                         disabled={isRefining}
-                        className="bg-purple-600 text-white px-3 py-1 rounded text-xs font-bold hover:bg-purple-700 disabled:opacity-50"
+                        className="bg-amber-600 text-white px-3 py-1 rounded text-xs font-bold hover:bg-amber-700 disabled:opacity-50"
                       >
                         {isRefining ? "..." : "Enviar"}
                       </button>

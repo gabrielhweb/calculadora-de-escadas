@@ -217,7 +217,7 @@ const UserDataForm: React.FC<{ onSubmit: (data: UserData, includeDrawings: boole
   };
   
   return (
-    <div className="mt-8 p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
+    <div className="mt-8 p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm">
        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 border-b-2 border-gray-100 dark:border-gray-700 pb-2 flex items-center gap-2">
          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-highlight" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
@@ -889,7 +889,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
       return (
           <div className="fixed inset-0 z-[100] bg-black bg-opacity-90 flex flex-col items-center justify-center p-4">
               <div className="bg-white dark:bg-gray-800 w-full max-w-5xl h-[80vh] rounded-lg overflow-hidden flex flex-col shadow-2xl">
-                  <div className="bg-blue-600 text-white p-4 flex justify-between items-center">
+                  <div className="bg-amber-600 text-white p-4 flex justify-between items-center">
                       <div>
                           <h3 className="text-lg font-bold">
                               {exportMode === 'attach' ? 'Gerando Desenhos para Orçamento' : 'Assistente de Exportação'} 
@@ -950,7 +950,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 relative">
+    <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 relative">
       <div className="flex justify-between items-center mb-6 border-b-2 border-highlight pb-4">
           <h2 className="text-2xl font-black text-gray-900 dark:text-white">Opções Calculadas</h2>
           
@@ -958,7 +958,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
               <button 
                 onClick={startBatchExport}
                 disabled={countSelectedExports() === 0}
-                className={`text-sm font-bold px-4 py-2 rounded shadow transition-all flex items-center gap-2 ${countSelectedExports() > 0 ? 'bg-purple-600 text-white hover:bg-purple-700' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
+                className={`text-sm font-bold px-4 py-2 rounded shadow transition-all flex items-center gap-2 ${countSelectedExports() > 0 ? 'bg-amber-600 text-white hover:bg-amber-700' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
               >
                   {`📥 Baixar Desenhos Selecionados (${countSelectedExports()})`}
               </button>
@@ -995,7 +995,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                             </h3>
                             <button 
                                 onClick={() => { setSelectedVisualizerOption(originalOption); setVisualizerForcedState(undefined); }}
-                                className="text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded mt-1 flex items-center gap-1 shadow-sm transition-all"
+                                className="text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 px-2 py-1 rounded mt-1 flex items-center gap-1 shadow-sm transition-all"
                             >
                                 👁️ Abrir Visualizador 3D
                             </button>
@@ -1020,7 +1020,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                     )}
                     
                     <div className="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-600 mb-4">
-                        <span className="text-xs font-bold text-purple-700 dark:text-purple-400 uppercase block mb-2">Selecione para o PDF:</span>
+                        <span className="text-xs font-bold text-amber-700 dark:text-amber-400 uppercase block mb-2">Selecione para o PDF:</span>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div className="flex flex-col gap-1 border-r border-gray-100 dark:border-gray-700 pr-2">
                                 <span className="text-xs font-bold text-gray-400">Original</span>
@@ -1030,7 +1030,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                                             type="checkbox" 
                                             checked={currentSelection.original2D} 
                                             onChange={() => toggleExportSelection(activeOption.optionNumber, 'original2D')}
-                                            className="w-3 h-3 accent-purple-600"
+                                            className="w-3 h-3 accent-amber-600"
                                         />
                                         <span className="text-xs font-medium text-gray-700 dark:text-gray-300">2D</span>
                                     </label>
@@ -1039,7 +1039,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                                             type="checkbox" 
                                             checked={currentSelection.original3D} 
                                             onChange={() => toggleExportSelection(activeOption.optionNumber, 'original3D')}
-                                            className="w-3 h-3 accent-purple-600"
+                                            className="w-3 h-3 accent-amber-600"
                                         />
                                         <span className="text-xs font-medium text-gray-700 dark:text-gray-300">3D</span>
                                     </label>
@@ -1056,7 +1056,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                                                     type="checkbox" 
                                                     checked={currentSelection.fixOpening2D} 
                                                     onChange={() => toggleExportSelection(activeOption.optionNumber, 'fixOpening2D')}
-                                                    className="w-3 h-3 accent-purple-600"
+                                                    className="w-3 h-3 accent-amber-600"
                                                 />
                                                 <span className="text-xs font-medium text-gray-700 dark:text-gray-300">2D</span>
                                             </label>
@@ -1065,7 +1065,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                                                     type="checkbox" 
                                                     checked={currentSelection.fixOpening3D} 
                                                     onChange={() => toggleExportSelection(activeOption.optionNumber, 'fixOpening3D')}
-                                                    className="w-3 h-3 accent-purple-600"
+                                                    className="w-3 h-3 accent-amber-600"
                                                 />
                                                 <span className="text-xs font-medium text-gray-700 dark:text-gray-300">3D</span>
                                             </label>
@@ -1079,7 +1079,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                                                     type="checkbox" 
                                                     checked={currentSelection.fixStair2D} 
                                                     onChange={() => toggleExportSelection(activeOption.optionNumber, 'fixStair2D')}
-                                                    className="w-3 h-3 accent-purple-600"
+                                                    className="w-3 h-3 accent-amber-600"
                                                 />
                                                 <span className="text-xs font-medium text-gray-700 dark:text-gray-300">2D</span>
                                             </label>
@@ -1088,7 +1088,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                                                     type="checkbox" 
                                                     checked={currentSelection.fixStair3D} 
                                                     onChange={() => toggleExportSelection(activeOption.optionNumber, 'fixStair3D')}
-                                                    className="w-3 h-3 accent-purple-600"
+                                                    className="w-3 h-3 accent-amber-600"
                                                 />
                                                 <span className="text-xs font-medium text-gray-700 dark:text-gray-300">3D</span>
                                             </label>
@@ -1316,7 +1316,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 italic">CEP da obra do cliente.</p>
                     </div>
                     </div>
-                    <button onClick={handleAutomaticDistance} disabled={isLoading} className="mt-4 w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-md hover:bg-blue-700 transition disabled:bg-gray-300 disabled:cursor-not-allowed shadow-sm">
+                    <button onClick={handleAutomaticDistance} disabled={isLoading} className="mt-4 w-full bg-amber-600 text-white font-bold py-3 px-4 rounded-md hover:bg-amber-700 transition disabled:bg-gray-300 disabled:cursor-not-allowed shadow-sm">
                     {isLoading ? 'Calculando com IA...' : 'Calcular Rota com Google Maps'}
                     </button>
                     {error && <p className="text-red-600 mt-2 text-sm font-bold bg-red-50 dark:bg-red-900/30 p-2 rounded">{error}</p>}

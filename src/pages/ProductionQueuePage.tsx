@@ -1387,7 +1387,7 @@ export default function ProductionQueue() {
                                                                     {item.title}
                                                                 </div>
                                                                 {item.source === 'queue' && (
-                                                                    <div className="text-[11px] font-bold mt-0.5 px-2 text-indigo-500 dark:text-indigo-400">
+                                                                    <div className="text-[11px] font-bold mt-0.5 px-2 text-blue-500 dark:text-blue-400">
                                                                         {percentPaid >= 100 ? "100% PAGO" + paymentMethodText : percentPaid > 0 ? `${percentPaid.toFixed(0)}% PAGO` + paymentMethodText : (paymentMethodText ? `0% PAGO` + paymentMethodText : 'AGUARDANDO PGTO')}
                                                                     </div>
                                                                 )}
@@ -1460,10 +1460,10 @@ export default function ProductionQueue() {
                                                             <td className="px-4 py-3">
                                                                 <div 
                                                                     onClick={(e) => { e.stopPropagation(); openPaidModal(item, percentPaid); }}
-                                                                    className={`w-full h-6 bg-gray-200 dark:bg-gray-700 rounded overflow-hidden relative flex items-center justify-center ${item.source === 'queue' ? 'cursor-pointer hover:ring-2 hover:ring-pink-400' : ''}`}
+                                                                    className={`w-full h-6 bg-gray-200 dark:bg-gray-700 rounded overflow-hidden relative flex items-center justify-center ${item.source === 'queue' ? 'cursor-pointer hover:ring-2 hover:ring-amber-400' : ''}`}
                                                                     title={item.source === 'queue' ? 'Clique para editar o valor pago manualmente' : ''}
                                                                 >
-                                                                    <div className={`absolute top-0 left-0 h-full transition-all ${percentPaid >= 100 ? 'bg-green-500' : 'bg-pink-500'}`} style={{ width: `${Math.min(100, Math.max(0, percentPaid))}%`}}></div>
+                                                                    <div className={`absolute top-0 left-0 h-full transition-all ${percentPaid >= 100 ? 'bg-green-500' : 'bg-amber-500'}`} style={{ width: `${Math.min(100, Math.max(0, percentPaid))}%`}}></div>
                                                                     <span className="relative z-10 text-[10px] font-bold text-white drop-shadow-md">
                                                                         {percentPaid >= 100 ? "100% PAGO" + paymentMethodText : percentPaid > 0 ? `${percentPaid.toFixed(0)}% PAGO` + paymentMethodText : (paymentMethodText ? `0% PAGO` + paymentMethodText : '')}
                                                                     </span>
@@ -1506,13 +1506,13 @@ export default function ProductionQueue() {
                                                         {isExpanded && (item.source === 'queue' || item.source === 'contract') && (
                                                             <tr>
                                                                 <td colSpan={9} className="p-0 border-b border-gray-200 dark:border-gray-700">
-                                                                    <div className="bg-indigo-50/50 dark:bg-indigo-900/10 p-6 shadow-inner border-y border-indigo-100 dark:border-indigo-800/50 flex flex-col gap-6">
+                                                                    <div className="bg-blue-50/50 dark:bg-blue-900/10 p-6 shadow-inner border-y border-blue-100 dark:border-blue-800/50 flex flex-col gap-6">
                                                                         
                                                                         {/* Top: Resumo do Projeto */}
                                                                         {item.originalData?.parsedContractData?.landings && (
-                                                                            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-indigo-100 dark:border-indigo-800/50">
+                                                                            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-blue-100 dark:border-blue-800/50">
                                                                                 <h4 className="font-bold text-gray-900 dark:text-white mb-3 text-sm flex items-center gap-2">
-                                                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-indigo-500" viewBox="0 0 20 20" fill="currentColor">
+                                                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
                                                                                         <path fillRule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V5zm11 1H6v8l4-2 4 2V6z" clipRule="evenodd" />
                                                                                     </svg>
                                                                                     Resumo de Produção (Tubos)
@@ -1615,13 +1615,13 @@ export default function ProductionQueue() {
                                                                                                             <span className="block text-gray-500 dark:text-gray-400 font-semibold mb-0.5">Base Total</span>
                                                                                                             <span className="font-bold text-blue-700 dark:text-blue-300">{totalLinear} cm</span>
                                                                                                         </div>
-                                                                                                        <div className="bg-purple-50 dark:bg-purple-900/20 p-2 rounded text-[11px]">
+                                                                                                        <div className="bg-amber-50 dark:bg-amber-900/20 p-2 rounded text-[11px]">
                                                                                                             <span className="block text-gray-500 dark:text-gray-400 font-semibold mb-0.5">Linear Total</span>
-                                                                                                            <span className="font-bold text-purple-700 dark:text-purple-300">{totalGuardrailLinear} cm</span>
+                                                                                                            <span className="font-bold text-amber-700 dark:text-amber-300">{totalGuardrailLinear} cm</span>
                                                                                                         </div>
-                                                                                                        <div className="bg-indigo-50 dark:bg-indigo-900/20 p-2 rounded text-[11px]">
+                                                                                                        <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded text-[11px]">
                                                                                                             <span className="block text-gray-500 dark:text-gray-400 font-semibold mb-0.5">Tubos (Estrutura)</span>
-                                                                                                            <span className="font-bold text-indigo-700 dark:text-indigo-300">{finalTubes} un</span>
+                                                                                                            <span className="font-bold text-blue-700 dark:text-blue-300">{finalTubes} un</span>
                                                                                                         </div>
                                                                                                         <div className="bg-emerald-50 dark:bg-emerald-900/20 p-2 rounded text-[11px]">
                                                                                                             <span className="block text-gray-500 dark:text-gray-400 font-semibold mb-0.5">Custo Estimado</span>
@@ -1699,7 +1699,7 @@ export default function ProductionQueue() {
                                                                             {/* Left: Costs List */}
                                                                             <div className="flex-1">
                                                                                 <h4 className="font-bold text-gray-900 dark:text-white mb-4 text-sm flex items-center gap-2">
-                                                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-indigo-500" viewBox="0 0 20 20" fill="currentColor">
+                                                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
                                                                                       <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
                                                                                       <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd" />
                                                                                     </svg>
@@ -1745,20 +1745,20 @@ export default function ProductionQueue() {
                                                                                                     <>
                                                                                                         {fCost > 0 && (
                                                                                                             <tr className="hover:bg-gray-50 dark:hover:bg-gray-750">
-                                                                                                                <td className="px-4 py-2 text-gray-600 dark:text-gray-400 border-l-4 border-indigo-500 pl-3">Custo de Deslocamento (Distância IA)</td>
-                                                                                                                <td className="px-4 py-2 text-right text-indigo-600 dark:text-indigo-400 font-medium whitespace-nowrap">
+                                                                                                                <td className="px-4 py-2 text-gray-600 dark:text-gray-400 border-l-4 border-blue-500 pl-3">Custo de Deslocamento (Distância IA)</td>
+                                                                                                                <td className="px-4 py-2 text-right text-blue-600 dark:text-blue-400 font-medium whitespace-nowrap">
                                                                                                                     {formatCurrencyBRL(fCost)}
-                                                                                                                    {item.value ? <span className="text-sm text-indigo-400 ml-2 font-bold">({((fCost / item.value) * 100).toFixed(1)}%)</span> : null}
+                                                                                                                    {item.value ? <span className="text-sm text-blue-400 ml-2 font-bold">({((fCost / item.value) * 100).toFixed(1)}%)</span> : null}
                                                                                                                 </td>
                                                                                                                 <td></td>
                                                                                                             </tr>
                                                                                                         )}
                                                                                                         {tCost > 0 && (
                                                                                                             <tr className="hover:bg-gray-50 dark:hover:bg-gray-750">
-                                                                                                                <td className="px-4 py-2 text-gray-600 dark:text-gray-400 border-l-4 border-indigo-500 pl-3">Custo de Pedágios (IA)</td>
-                                                                                                                <td className="px-4 py-2 text-right text-indigo-600 dark:text-indigo-400 font-medium whitespace-nowrap">
+                                                                                                                <td className="px-4 py-2 text-gray-600 dark:text-gray-400 border-l-4 border-blue-500 pl-3">Custo de Pedágios (IA)</td>
+                                                                                                                <td className="px-4 py-2 text-right text-blue-600 dark:text-blue-400 font-medium whitespace-nowrap">
                                                                                                                     {formatCurrencyBRL(tCost)}
-                                                                                                                    {item.value ? <span className="text-sm text-indigo-400 ml-2 font-bold">({((tCost / item.value) * 100).toFixed(1)}%)</span> : null}
+                                                                                                                    {item.value ? <span className="text-sm text-blue-400 ml-2 font-bold">({((tCost / item.value) * 100).toFixed(1)}%)</span> : null}
                                                                                                                 </td>
                                                                                                                 <td></td>
                                                                                                             </tr>
@@ -1834,7 +1834,7 @@ export default function ProductionQueue() {
                                                                             {/* Right: Quick Actions (Custos Extras) */}
                                                                             <div className="flex-1 flex flex-col border-l border-gray-200 dark:border-gray-700 pl-6">
                                                                                 <h4 className="font-bold text-gray-900 dark:text-white mb-4 text-sm flex items-center gap-2">
-                                                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-indigo-500" viewBox="0 0 20 20" fill="currentColor">
+                                                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
                                                                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
                                                                                     </svg>
                                                                                     Custos Extras e Material
@@ -1863,7 +1863,7 @@ export default function ProductionQueue() {
                                                                                             </a>
                                                                                         ))}
                                                                                     </div>
-                                                                                    <label className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-bold transition-colors text-sm whitespace-nowrap cursor-pointer text-center">
+                                                                                    <label className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded font-bold transition-colors text-sm whitespace-nowrap cursor-pointer text-center">
                                                                                         Anexar Foto
                                                                                         <input type="file" className="hidden" accept="image/*,video/*" onChange={async (e) => {
                                                                                             const file = e.target.files?.[0];
@@ -1928,7 +1928,7 @@ export default function ProductionQueue() {
                                         setPaidModalValue('');
                                     }
                                 }}
-                                className="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-3 py-2 text-gray-900 dark:text-white outline-none focus:border-pink-500"
+                                className="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-3 py-2 text-gray-900 dark:text-white outline-none focus:border-amber-500"
                             />
                         </div>
 
@@ -1948,15 +1948,15 @@ export default function ProductionQueue() {
                                         setPaidModalPercent('');
                                     }
                                 }}
-                                className="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-3 py-2 text-gray-900 dark:text-white outline-none focus:border-pink-500"
+                                className="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-3 py-2 text-gray-900 dark:text-white outline-none focus:border-amber-500"
                             />
                         </div>
 
                         <div className="flex gap-2 mt-4">
                             <button onClick={() => setPaidModalOpen(false)} className="flex-1 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 py-2 rounded font-bold hover:bg-gray-300 dark:hover:bg-gray-600">Cancelar</button>
-                            <button onClick={() => savePaidModal(parseFloat(paidModalValue) || 0)} className="flex-1 bg-pink-500 text-white py-2 rounded font-bold hover:bg-pink-600">Salvar</button>
+                            <button onClick={() => savePaidModal(parseFloat(paidModalValue) || 0)} className="flex-1 bg-amber-600 text-white py-2 rounded font-bold hover:bg-amber-700">Salvar</button>
                         </div>
-                        <button onClick={() => savePaidModal(null)} className="mt-2 text-sm text-gray-400 hover:text-pink-500 underline text-center">Voltar para cálculo automático</button>
+                        <button onClick={() => savePaidModal(null)} className="mt-2 text-sm text-gray-400 hover:text-amber-500 underline text-center">Voltar para cálculo automático</button>
                     </div>
                 </div>
             )}

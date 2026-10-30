@@ -1162,7 +1162,7 @@ export const ContractsList: React.FC = () => {
                                             </button>
                                             <button 
                                                 onClick={() => handleDownloadGuardrail(contract)}
-                                                className="flex-1 bg-pink-100 hover:bg-pink-200 dark:bg-pink-900 dark:hover:bg-pink-800 text-pink-700 dark:text-pink-200 text-xs py-1.5 rounded font-medium transition-colors"
+                                                className="flex-1 bg-amber-100 hover:bg-amber-200 dark:bg-amber-900 dark:hover:bg-amber-800 text-amber-700 dark:text-amber-200 text-xs py-1.5 rounded font-medium transition-colors"
                                                 title="Baixar PDF de Guarda-Corpo e Portão"
                                             >
                                                 🚧 G. Corpo
@@ -1183,7 +1183,7 @@ export const ContractsList: React.FC = () => {
                                             </button>
                                             <button
                                                 onClick={() => handleCopyFreightQuote(contract)}
-                                                className="flex-1 bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-900 dark:hover:bg-indigo-800 text-indigo-700 dark:text-indigo-200 text-xs py-1.5 rounded font-medium transition-colors"
+                                                className="flex-1 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900 dark:hover:bg-blue-800 text-blue-700 dark:text-blue-200 text-xs py-1.5 rounded font-medium transition-colors"
                                                 title="Copiar texto de cotação para a transportadora"
                                             >
                                                 🚚 Frete
@@ -1466,7 +1466,7 @@ export const ContractsList: React.FC = () => {
                                             } 
                                         });
                                     }}
-                                    className="px-4 py-2 bg-purple-100 hover:bg-purple-200 text-purple-700 dark:bg-purple-900/30 dark:hover:bg-purple-900/50 dark:text-purple-300 rounded-lg font-medium transition-colors flex items-center gap-2 text-sm"
+                                    className="px-4 py-2 bg-amber-100 hover:bg-amber-200 text-amber-700 dark:bg-amber-900/30 dark:hover:bg-amber-900/50 dark:text-amber-300 rounded-lg font-medium transition-colors flex items-center gap-2 text-sm"
                                 >
                                     <span>📝</span> Editar no Formulário
                                 </button>
@@ -1483,7 +1483,7 @@ export const ContractsList: React.FC = () => {
                                 </button>
                                 <button 
                                     onClick={handleSaveModal}
-                                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                                    className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium transition-colors"
                                 >
                                     Salvar
                                 </button>

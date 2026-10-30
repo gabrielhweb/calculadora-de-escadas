@@ -101,7 +101,7 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
                 <button
                   key={opt.value}
                   onClick={() => setSelectedThickness(opt.value)}
-                  className={`px-4 py-2 rounded-lg font-semibold transition-all shadow-sm border-2 text-sm ${selectedThickness === opt.value ? 'bg-indigo-600 text-white border-indigo-700 shadow-indigo-200' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:border-slate-300'}`}
+                  className={`px-4 py-2 rounded-lg font-semibold transition-all shadow-sm border-2 text-sm ${selectedThickness === opt.value ? 'bg-amber-600 text-white border-amber-700 shadow-indigo-200' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:border-slate-300'}`}
                 >
                   {opt.label}
                 </button>
@@ -243,7 +243,7 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
                 <button
                   key={opt.value}
                   onClick={() => setSelectedThickness(opt.value)}
-                  className={`px-4 py-2 rounded-lg font-semibold transition-all shadow-sm border-2 text-sm ${selectedThickness === opt.value ? 'bg-indigo-600 text-white border-indigo-700 shadow-indigo-200' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:border-slate-300'}`}
+                  className={`px-4 py-2 rounded-lg font-semibold transition-all shadow-sm border-2 text-sm ${selectedThickness === opt.value ? 'bg-amber-600 text-white border-amber-700 shadow-indigo-200' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:border-slate-300'}`}
                 >
                   {opt.label}
                 </button>

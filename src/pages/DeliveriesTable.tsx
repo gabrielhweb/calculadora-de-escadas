@@ -819,14 +819,14 @@ export const DeliveriesTable: React.FC = () => {
                     </button>
                     <button 
                         onClick={() => setShowValues(!showValues)}
-                        className={`px-4 py-2.5 rounded-lg font-bold shadow-md flex items-center gap-2 transition-colors ${showValues ? 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-900/50 dark:text-indigo-300' : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300'}`}
+                        className={`px-4 py-2.5 rounded-lg font-bold shadow-md flex items-center gap-2 transition-colors ${showValues ? 'bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/50 dark:text-blue-300' : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300'}`}
                         title="Mostrar ou ocultar valores financeiros na tela e na impressão"
                     >
                         {showValues ? '👁️ Valores Visíveis' : '🙈 Valores Ocultos'}
                     </button>
                     <button 
                         onClick={handlePrint}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-bold shadow-md flex items-center gap-2 transition-colors"
+                        className="bg-amber-600 hover:bg-amber-700 text-white px-5 py-2.5 rounded-lg font-bold shadow-md flex items-center gap-2 transition-colors"
                     >
                         🖨️ Imprimir
                     </button>
@@ -965,7 +965,7 @@ export const DeliveriesTable: React.FC = () => {
                                                         TOTAL: {totalValueFormatted}
                                                     </div>
                                                     {remainingValueFormatted && (
-                                                        <div className="text-xs font-bold text-indigo-600 dark:text-indigo-400 print:text-[11px] print:text-gray-700">
+                                                        <div className="text-xs font-bold text-blue-600 dark:text-blue-400 print:text-[11px] print:text-gray-700">
                                                             A RECEBER: {remainingValueFormatted} ({remainingMethodText})
                                                         </div>
                                                     )}
@@ -1036,7 +1036,7 @@ export const DeliveriesTable: React.FC = () => {
                                                     )}
                                                     <div
                                                         key={quoteText}
-                                                        className="editable-cell whitespace-pre-line text-xs p-1 rounded bg-indigo-50 dark:bg-indigo-950/40 print:bg-white print:p-0"
+                                                        className="editable-cell whitespace-pre-line text-xs p-1 rounded bg-blue-50 dark:bg-blue-950/40 print:bg-white print:p-0"
                                                         contentEditable
                                                         suppressContentEditableWarning
                                                         onBlur={(e) => {
@@ -1054,7 +1054,7 @@ export const DeliveriesTable: React.FC = () => {
                                                     </div>
                                                     <button
                                                         onClick={() => copyTextToClipboard(quoteText, 'Texto da transportadora copiado!')}
-                                                        className="print-hidden mt-1 w-full text-xs font-bold py-1 rounded bg-indigo-600 hover:bg-indigo-700 text-white"
+                                                        className="print-hidden mt-1 w-full text-xs font-bold py-1 rounded bg-amber-600 hover:bg-amber-700 text-white"
                                                         title="Copiar texto da transportadora"
                                                     >
                                                         📋 Copiar
@@ -1120,7 +1120,7 @@ export const DeliveriesTable: React.FC = () => {
                                                 >
                                                     Excluir 🗑️
                                                 </button>
-                                                <label className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-2 rounded text-xs transition-colors shadow-sm cursor-pointer text-center block" title="Anexar Imagem">
+                                                <label className="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-2 rounded text-xs transition-colors shadow-sm cursor-pointer text-center block" title="Anexar Imagem">
                                                     Anexar Imagem
                                                     <input type="file" className="hidden" accept="image/*,video/*" onChange={async (e) => {
                                                         const file = e.target.files?.[0];

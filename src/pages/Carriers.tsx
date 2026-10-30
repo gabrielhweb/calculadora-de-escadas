@@ -167,7 +167,7 @@ export default function Carriers() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {carriers.map(carrier => (
-                <div key={carrier.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-shadow">
+                <div key={carrier.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-shadow">
                   <div className="p-5 border-b border-gray-100 dark:border-gray-700">
                     <h3 className="text-xl font-bold text-gray-800 dark:text-white truncate" title={carrier.name}>{carrier.name}</h3>
                     <p className="text-sm font-medium text-highlight mt-1">{carrier.baseLocation ? `Base: ${carrier.baseLocation}` : 'Base: Não informada'}</p>
@@ -314,7 +314,7 @@ export default function Carriers() {
                         type="button"
                         key={uf}
                         onClick={() => toggleState(uf)}
-                        className={`w-12 h-10 rounded text-sm font-bold transition-colors ${isSelected ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'}`}
+                        className={`w-12 h-10 rounded text-sm font-bold transition-colors ${isSelected ? 'bg-amber-600 text-white shadow-md' : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'}`}
                       >
                         {uf}
                       </button>

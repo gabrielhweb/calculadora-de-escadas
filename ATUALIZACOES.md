@@ -4,6 +4,11 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-10-30 — [empresa] — Cores padronizadas dentro das páginas
+- **O que mudou:** botões de ação sólidos (azul, roxo, rosa, laranja, índigo, verde-água) viraram dourado (`bg-amber-600`); caixas e destaques roxos/rosa viraram dourado claro e os índigo viraram azul claro (guarda-corpo e portão continuam com cores diferentes entre si). Cartões brancos ficaram com canto mais arredondado e sombra leve. Verde (confirmar/pago) e vermelho (apagar/alerta) e as cores de status das colunas continuam iguais. 112 trocas em 16 arquivos, só classes de cor/borda/sombra — nenhuma função mudou.
+- **Onde:** `CalculatorForm`, `ProposalOptions`, `Contract`, `ContractsList`, `ProductionQueuePage`, `DeliveriesTable`, `WeightCalculator(Page)`, `Carriers`, `CustomPaymentReceipt`, `SavedQuotes`, `GuardrailCalculator`, `ProductCatalog` e telas de visitas. Fora do padrão de propósito: 3D (`StaircaseVisualizer`), desenhos de guarda-corpo, Recibo de Instalação, impressão de pedido, proposta/orçamento técnico.
+- **Pendente:** emojis dentro dos botões ainda existem (~150 linhas); usuário decidir se troca por ícones de linha. Não subiu pra produção.
+
 ### 2026-10-30 — [empresa] — Título padrão com ⓘ em todas as páginas
 - **O que mudou:** novo componente `PageTitle` (título em caixa alta + ⓘ com explicação da página) aplicado em Gerar Contrato, Meus Contratos, Controle de Contratos, Recibo Pagamento, Visitas, Orçamentos Salvos, Fretes, Tabela de Entregas e nas 5 telas de Compras. Emojis dos títulos saíram. Abas da Central de Visitas no mesmo estilo das abas da Calculadora (ícone de linha + linha dourada + ⓘ). Nenhuma função mudou.
 - **Onde:** `src/components/PageTitle.tsx` (novo), `src/pages/*.tsx`, `src/pages/Purchases/*.tsx`.

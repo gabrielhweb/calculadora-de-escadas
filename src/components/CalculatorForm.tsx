@@ -357,7 +357,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
           </div>
       </div>
       
-      <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 lg:sticky lg:top-6">
+      <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 lg:sticky lg:top-6">
       <h2 className="text-2xl font-black mb-6 text-gray-900 dark:text-white flex items-center border-b-2 border-highlight pb-4">
         <CalculatorIcon /> 
         Medidas
@@ -471,7 +471,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                     <button
                         type="button"
                         onClick={() => setTreadMaterial('wood')}
-                        className={`py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === 'wood' ? 'bg-orange-700 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
+                        className={`py-2 px-3 rounded font-bold text-sm transition ${treadMaterial === 'wood' ? 'bg-amber-600 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
                     >
                         Madeira
                     </button>
@@ -498,21 +498,21 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                             <button
                                 type="button"
                                 onClick={() => setWoodType('ambas')}
-                                className={`py-2 px-3 rounded font-bold text-xs transition ${woodType === 'ambas' || !woodType ? 'bg-orange-600 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
+                                className={`py-2 px-3 rounded font-bold text-xs transition ${woodType === 'ambas' || !woodType ? 'bg-amber-600 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
                             >
                                 Garapeira ou Muiracatiara
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setWoodType('garapeira')}
-                                className={`py-2 px-3 rounded font-bold text-xs transition ${woodType === 'garapeira' ? 'bg-orange-600 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
+                                className={`py-2 px-3 rounded font-bold text-xs transition ${woodType === 'garapeira' ? 'bg-amber-600 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
                             >
                                 Garapeira
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setWoodType('muiracatiara')}
-                                className={`py-2 px-3 rounded font-bold text-xs transition ${woodType === 'muiracatiara' ? 'bg-orange-600 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
+                                className={`py-2 px-3 rounded font-bold text-xs transition ${woodType === 'muiracatiara' ? 'bg-amber-600 text-white shadow' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
                             >
                                 Muiracatiara
                             </button>
@@ -524,7 +524,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
         {/* VISUALIZAÇÃO AVANÇADA */}
         <div className="pt-4 border-t border-gray-100 dark:border-gray-700 bg-blue-50 dark:bg-blue-900/20 -mx-6 px-6 pb-4 mb-4">
              <h3 className="text-sm font-black text-blue-900 dark:text-blue-100 uppercase flex items-center gap-2 mb-3 mt-4">
-                <span className="bg-blue-600 text-white w-6 h-6 flex items-center justify-center rounded-full text-xs">👁</span>
+                <span className="bg-amber-600 text-white w-6 h-6 flex items-center justify-center rounded-full text-xs">👁</span>
                 Configuração & Ambiente
              </h3>
 
@@ -537,7 +537,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                              type="button"
                              onClick={() => setStairDirection('standard')}
                              title="A escada sobe da esquerda para a direita."
-                             className={`flex-1 py-2 text-xs font-bold rounded border ${stairDirection === 'standard' ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-200'}`}
+                             className={`flex-1 py-2 text-xs font-bold rounded border ${stairDirection === 'standard' ? 'bg-amber-600 text-white border-amber-700' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-200'}`}
                          >
                              Subir p/ Direita ↗️
                          </button>
@@ -545,7 +545,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                              type="button"
                              onClick={() => setStairDirection('mirrored')}
                              title="A escada sobe da direita para a esquerda."
-                             className={`flex-1 py-2 text-xs font-bold rounded border ${stairDirection === 'mirrored' ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-200'}`}
+                             className={`flex-1 py-2 text-xs font-bold rounded border ${stairDirection === 'mirrored' ? 'bg-amber-600 text-white border-amber-700' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-200'}`}
                          >
                              Subir p/ Esquerda ↖️
                          </button>
@@ -557,7 +557,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                              type="button"
                              onClick={() => setWallFixation('left')}
                              title="A estrutura será fixada lateralmente na parede à esquerda."
-                             className={`flex-1 py-2 text-xs font-bold rounded border ${wallFixation === 'left' ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-200'}`}
+                             className={`flex-1 py-2 text-xs font-bold rounded border ${wallFixation === 'left' ? 'bg-amber-600 text-white border-amber-700' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-200'}`}
                          >
                              Parede à Esquerda
                          </button>
@@ -565,7 +565,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                              type="button"
                              onClick={() => setWallFixation('right')}
                              title="A estrutura será fixada lateralmente na parede à direita."
-                             className={`flex-1 py-2 text-xs font-bold rounded border ${wallFixation === 'right' ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-200'}`}
+                             className={`flex-1 py-2 text-xs font-bold rounded border ${wallFixation === 'right' ? 'bg-amber-600 text-white border-amber-700' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-200'}`}
                          >
                              Parede à Direita
                          </button>
@@ -573,7 +573,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                              type="button"
                              onClick={() => setWallFixation('frontal')}
                              title="A estrutura ficará chapada (apoiada) de frente para a parede."
-                             className={`flex-1 py-2 text-xs font-bold rounded border ${wallFixation === 'frontal' ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-200'}`}
+                             className={`flex-1 py-2 text-xs font-bold rounded border ${wallFixation === 'frontal' ? 'bg-amber-600 text-white border-amber-700' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-200'}`}
                          >
                              Fixação Frontal
                          </button>
@@ -859,7 +859,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                     <TooltipIcon text="Plataformas de descanso ou curva. Cada patamar substitui 1 degrau na contagem total de peças." />
                 </h3>
                                   <div className="flex gap-2">
-                      <button type="button" onClick={handleAddTopLanding} className="text-xs bg-orange-600 text-white px-2 py-1 rounded font-bold hover:bg-orange-700 transition" title="Patamar no Topo (Acesso Lateral)">
+                      <button type="button" onClick={handleAddTopLanding} className="text-xs bg-amber-600 text-white px-2 py-1 rounded font-bold hover:bg-amber-700 transition" title="Patamar no Topo (Acesso Lateral)">
                           + Chegada
                       </button>
                       <button type="button" onClick={handleAddLanding} className="text-xs bg-gray-800 dark:bg-gray-700 text-white px-3 py-1 rounded font-bold hover:bg-black dark:hover:bg-gray-600 transition">
@@ -985,21 +985,21 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                                         <button 
                                             type="button"
                                             onClick={() => updateLanding(landing.id, { direction: 'left' })}
-                                            className={`flex-1 py-1 rounded text-xs font-bold transition flex items-center justify-center gap-1 ${landing.direction === 'left' ? 'bg-blue-600 text-white shadow' : 'bg-white dark:bg-gray-600 border dark:border-gray-500 text-gray-600 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500'}`}
+                                            className={`flex-1 py-1 rounded text-xs font-bold transition flex items-center justify-center gap-1 ${landing.direction === 'left' ? 'bg-amber-600 text-white shadow' : 'bg-white dark:bg-gray-600 border dark:border-gray-500 text-gray-600 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500'}`}
                                         >
                                             ⬅️ Esq
                                         </button>
                                         <button 
                                             type="button"
                                             onClick={() => updateLanding(landing.id, { direction: 'straight' })}
-                                            className={`flex-1 py-1 rounded text-xs font-bold transition flex items-center justify-center gap-1 ${(!landing.direction || landing.direction === 'straight') ? 'bg-blue-600 text-white shadow' : 'bg-white dark:bg-gray-600 border dark:border-gray-500 text-gray-600 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500'}`}
+                                            className={`flex-1 py-1 rounded text-xs font-bold transition flex items-center justify-center gap-1 ${(!landing.direction || landing.direction === 'straight') ? 'bg-amber-600 text-white shadow' : 'bg-white dark:bg-gray-600 border dark:border-gray-500 text-gray-600 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500'}`}
                                         >
                                             ⬆️ Reto
                                         </button>
                                         <button 
                                             type="button"
                                             onClick={() => updateLanding(landing.id, { direction: 'right' })}
-                                            className={`flex-1 py-1 rounded text-xs font-bold transition flex items-center justify-center gap-1 ${landing.direction === 'right' ? 'bg-blue-600 text-white shadow' : 'bg-white dark:bg-gray-600 border dark:border-gray-500 text-gray-600 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500'}`}
+                                            className={`flex-1 py-1 rounded text-xs font-bold transition flex items-center justify-center gap-1 ${landing.direction === 'right' ? 'bg-amber-600 text-white shadow' : 'bg-white dark:bg-gray-600 border dark:border-gray-500 text-gray-600 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500'}`}
                                         >
                                             Dir ➡️
                                         </button>
@@ -1380,14 +1380,14 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
 
         
         {/* --- SEÇÃO GUARDA-CORPO AVULSO --- */}
-        <div className="pt-4 border-t border-gray-100 dark:border-gray-700 bg-pink-50 dark:bg-pink-900/10 -mx-6 px-6 pb-4">
+        <div className="pt-4 border-t border-gray-100 dark:border-gray-700 bg-amber-50 dark:bg-amber-900/10 -mx-6 px-6 pb-4">
             <div className="flex items-center justify-between mb-4 mt-4">
                 <h3 className="text-sm font-black text-gray-900 dark:text-gray-100 uppercase flex items-center gap-2">
-                    <span className="bg-pink-600 text-white w-6 h-6 flex items-center justify-center rounded-full text-xs">G</span>
+                    <span className="bg-amber-600 text-white w-6 h-6 flex items-center justify-center rounded-full text-xs">G</span>
                     Guarda-Corpo Avulso ({landings.filter(l => l.isAccessoriesOnly && l.hasGuardrail).length})
                 </h3>
                 <div className="flex gap-2">
-                    <button type="button" onClick={handleAddGuardrail} className="text-xs bg-pink-600 text-white px-2 py-1 rounded font-bold hover:bg-pink-700 transition" title="Guarda-Corpo Avulso">
+                    <button type="button" onClick={handleAddGuardrail} className="text-xs bg-amber-600 text-white px-2 py-1 rounded font-bold hover:bg-amber-700 transition" title="Guarda-Corpo Avulso">
                         + G. Corpo
                     </button>
                 </div>
@@ -1400,7 +1400,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                     {landings.filter(l => l.isAccessoriesOnly && l.hasGuardrail).map((landing, idx) => {
                         const index = landings.indexOf(landing);
                         return (
-                            <div key={landing.id} className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-pink-200 dark:border-pink-800 shadow-sm relative">
+                            <div key={landing.id} className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-amber-200 dark:border-amber-800 shadow-sm relative">
                                 <button 
                                     onClick={() => handleRemoveLanding(landing.id)}
                                     type="button"
@@ -1422,14 +1422,14 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
         </div>
 
         {/* --- SEÇÃO PORTÃO AVULSO --- */}
-        <div className="pt-4 border-t border-gray-100 dark:border-gray-700 bg-indigo-50 dark:bg-indigo-900/10 -mx-6 px-6 pb-4">
+        <div className="pt-4 border-t border-gray-100 dark:border-gray-700 bg-blue-50 dark:bg-blue-900/10 -mx-6 px-6 pb-4">
             <div className="flex items-center justify-between mb-4 mt-4">
                 <h3 className="text-sm font-black text-gray-900 dark:text-gray-100 uppercase flex items-center gap-2">
-                    <span className="bg-indigo-600 text-white w-6 h-6 flex items-center justify-center rounded-full text-xs">P</span>
+                    <span className="bg-amber-600 text-white w-6 h-6 flex items-center justify-center rounded-full text-xs">P</span>
                     Portão Avulso ({landings.filter(l => l.isAccessoriesOnly && l.hasGate).length})
                 </h3>
                 <div className="flex gap-2">
-                    <button type="button" onClick={handleAddGate} className="text-xs bg-indigo-600 text-white px-2 py-1 rounded font-bold hover:bg-indigo-700 transition" title="Portão Avulso">
+                    <button type="button" onClick={handleAddGate} className="text-xs bg-amber-600 text-white px-2 py-1 rounded font-bold hover:bg-amber-700 transition" title="Portão Avulso">
                         + Portão
                     </button>
                 </div>
@@ -1467,7 +1467,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                         const availableGateSides = gateSidesOptions;
 
                         return (
-                            <div key={landing.id} className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-indigo-200 dark:border-indigo-800 shadow-sm relative">
+                            <div key={landing.id} className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-blue-200 dark:border-blue-800 shadow-sm relative">
                                 <button 
                                     onClick={() => handleRemoveLanding(landing.id)}
                                     type="button"

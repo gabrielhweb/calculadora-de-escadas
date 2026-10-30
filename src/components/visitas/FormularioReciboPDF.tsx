@@ -271,7 +271,7 @@ export const FormularioReciboPDF: React.FC<FormularioReciboPDFProps> = ({
     };
 
     return (
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="flex justify-between items-center mb-6 border-b-2 border-highlight pb-4">
                 <div>
                     <h2 className="text-2xl font-black text-gray-900 dark:text-white flex items-center gap-2">

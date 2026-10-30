@@ -145,7 +145,7 @@ const SavedQuotes: React.FC = () => {
                         <div 
                             key={quote.id} 
                             onClick={() => handleRestore(quote)}
-                            className="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-5 cursor-pointer hover:border-highlight transition-all group relative"
+                            className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 cursor-pointer hover:border-highlight transition-all group relative"
                         >
                             <button 
                                 onClick={(e) => handleDelete(quote.id, e)}

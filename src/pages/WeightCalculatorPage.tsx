@@ -73,7 +73,7 @@ export default function WeightCalculatorPage() {
                 type="number" 
                 value={totalSteps} 
                 onChange={(e) => setTotalSteps(e.target.value === '' ? ('' as any) : Number(e.target.value))}
-                className="w-full border border-slate-300 rounded-lg p-3 text-lg text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all" 
+                className="w-full border border-slate-300 rounded-lg p-3 text-lg text-slate-800 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all" 
               />
             </div>
             <div>
@@ -82,7 +82,7 @@ export default function WeightCalculatorPage() {
                 type="number" 
                 value={treadDepthCm} 
                 onChange={(e) => setTreadDepthCm(e.target.value === '' ? ('' as any) : Number(e.target.value))}
-                className="w-full border border-slate-300 rounded-lg p-3 text-lg text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all" 
+                className="w-full border border-slate-300 rounded-lg p-3 text-lg text-slate-800 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all" 
               />
             </div>
             <div>
@@ -91,7 +91,7 @@ export default function WeightCalculatorPage() {
                 type="number" 
                 value={stepHeightCm} 
                 onChange={(e) => setStepHeightCm(e.target.value === '' ? ('' as any) : Number(e.target.value))}
-                className="w-full border border-slate-300 rounded-lg p-3 text-lg text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all" 
+                className="w-full border border-slate-300 rounded-lg p-3 text-lg text-slate-800 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all" 
               />
             </div>
             <div>
@@ -100,7 +100,7 @@ export default function WeightCalculatorPage() {
                 type="number" 
                 value={widthCm} 
                 onChange={(e) => setWidthCm(e.target.value === '' ? ('' as any) : Number(e.target.value))}
-                className="w-full border border-slate-300 rounded-lg p-3 text-lg text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all" 
+                className="w-full border border-slate-300 rounded-lg p-3 text-lg text-slate-800 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all" 
               />
             </div>
           </div>
@@ -110,7 +110,7 @@ export default function WeightCalculatorPage() {
           {/* SESSÃO DE PATAMARES */}
           <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-black text-gray-800 uppercase flex items-center gap-2">
-                  <span className="bg-indigo-600 text-white w-6 h-6 flex items-center justify-center rounded-full text-xs">P</span>
+                  <span className="bg-amber-600 text-white w-6 h-6 flex items-center justify-center rounded-full text-xs">P</span>
                   Patamares ({landings.length})
               </h3>
               <button type="button" onClick={handleAddLanding} className="text-xs bg-gray-800 text-white px-3 py-1.5 rounded font-bold hover:bg-black transition">
@@ -122,7 +122,7 @@ export default function WeightCalculatorPage() {
               <p className="text-sm text-slate-500 italic mb-2">Nenhum patamar adicionado.</p>
           ) : (
               <div className="space-y-3">
-                  <p className="text-xs text-indigo-600 font-bold mb-2">* O cálculo de peso do patamar usa a fórmula: (Comprimento + 10) × (Largura + 10).</p>
+                  <p className="text-xs text-blue-600 font-bold mb-2">* O cálculo de peso do patamar usa a fórmula: (Comprimento + 10) × (Largura + 10).</p>
                   {landings.map((landing, index) => (
                       <div key={landing.id} className="bg-slate-50 p-4 rounded-lg border border-slate-200 shadow-sm relative">
                           <button 
@@ -141,7 +141,7 @@ export default function WeightCalculatorPage() {
                                       type="number"
                                       value={landing.length || ''}
                                       onChange={e => updateLanding(landing.id, { length: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })}
-                                      className="w-full p-2 rounded border border-slate-300 focus:outline-none focus:border-indigo-500"
+                                      className="w-full p-2 rounded border border-slate-300 focus:outline-none focus:border-blue-500"
                                   />
                               </div>
                               <div>
@@ -150,7 +150,7 @@ export default function WeightCalculatorPage() {
                                       type="number"
                                       value={landing.width || ''}
                                       onChange={e => updateLanding(landing.id, { width: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })}
-                                      className="w-full p-2 rounded border border-slate-300 focus:outline-none focus:border-indigo-500"
+                                      className="w-full p-2 rounded border border-slate-300 focus:outline-none focus:border-blue-500"
                                   />
                               </div>
                               <div>
@@ -158,7 +158,7 @@ export default function WeightCalculatorPage() {
                                   <select 
                                       value={landing.type || 'fixed'} 
                                       onChange={e => updateLanding(landing.id, { type: e.target.value })}
-                                      className="w-full p-2 rounded border border-slate-300 focus:outline-none focus:border-indigo-500"
+                                      className="w-full p-2 rounded border border-slate-300 focus:outline-none focus:border-blue-500"
                                   >
                                       <option value="fixed">Fixo</option>
                                       <option value="articulated">Articulado</option>
@@ -170,7 +170,7 @@ export default function WeightCalculatorPage() {
                                   <select
                                       value={landing.frenchBrackets || 0}
                                       onChange={e => updateLanding(landing.id, { frenchBrackets: parseInt(e.target.value) })}
-                                      className="w-full p-2 rounded border border-slate-300 focus:outline-none focus:border-indigo-500"
+                                      className="w-full p-2 rounded border border-slate-300 focus:outline-none focus:border-blue-500"
                                   >
                                       <option value={0}>0</option>
                                       <option value={1}>1</option>
