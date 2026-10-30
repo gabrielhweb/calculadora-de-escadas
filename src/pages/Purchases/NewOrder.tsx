@@ -4,6 +4,7 @@ import { collection, getDocs, addDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { Product } from './ProductCatalog';
 import { useNavigate } from 'react-router-dom';
+import PageTitle from '../../components/PageTitle';
 
 interface CartItem extends Product {
     quantity: number;
@@ -117,7 +118,9 @@ export default function NewOrder() {
                 <button onClick={() => window.history.back()} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
                     ← Voltar
                 </button>
-                <h1 className="text-2xl font-bold text-gray-800 dark:text-white">🛒 Novo Pedido de Compra</h1>
+                <PageTitle info="Monta um pedido de material escolhendo produtos do catálogo e o fornecedor.">
+                  Novo Pedido de Compra
+                </PageTitle>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

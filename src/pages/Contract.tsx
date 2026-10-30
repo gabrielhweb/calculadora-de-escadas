@@ -38,6 +38,7 @@ import {
   getDoc,
 } from "firebase/firestore";
 import { useAuth } from "../components/AuthProvider";
+import PageTitle from '../components/PageTitle';
 
 enum OperationType {
   CREATE = "create",
@@ -1827,11 +1828,11 @@ const Contract = () => {
   return (
     <div className="max-w-5xl mx-auto p-4 sm:p-6 md:p-12">
       <header className="mb-10 text-center">
-        <h1 className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white mb-2">
+        <PageTitle className="mb-2" info="Monta o contrato a partir de um orçamento, com dados do cliente, pagamento e prazo. No final gera o PDF.">
           {location.state?.isEditing
             ? "Editar Contrato"
             : "Emissão de Contrato"}
-        </h1>
+        </PageTitle>
         <p className="text-gray-500 dark:text-gray-400">
           {location.state?.isEditing
             ? "Atualize os dados e salve as alterações."

@@ -3,6 +3,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getQuotes, deleteQuote } from '../services/storage';
 import { SavedQuote } from '../types';
+import PageTitle from '../components/PageTitle';
 
 const SavedQuotes: React.FC = () => {
     const [quotes, setQuotes] = useState<SavedQuote[]>([]);
@@ -98,7 +99,9 @@ const SavedQuotes: React.FC = () => {
         <div className="max-w-7xl mx-auto p-6">
             <header className="mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
                 <div>
-                    <h1 className="text-3xl font-black text-gray-900 dark:text-white uppercase">Orçamentos Salvos</h1>
+                    <PageTitle info="Orçamentos salvos na calculadora. Ficam na nuvem e aparecem em todos os computadores.">
+                      Orçamentos Salvos
+                    </PageTitle>
                     <div className="flex items-center gap-2 mt-1">
                         <p className="text-gray-500 dark:text-gray-400 text-sm">
                             {loading ? "Carregando..." : `${quotes.length} orçamentos encontrados.`}

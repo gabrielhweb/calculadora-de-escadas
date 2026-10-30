@@ -14,6 +14,7 @@ import { FABIO_CHALITA_CONTRACT_DATA } from '../data/fabioChalitaContract';
 import { MARIA_HELENA_CONTRACT_DATA } from '../data/mariaHelenaContract';
 import { db, auth } from '../firebase';
 import { useAuth } from '../components/AuthProvider';
+import PageTitle from '../components/PageTitle';
 
 enum OperationType {
   CREATE = 'create',
@@ -1245,9 +1246,9 @@ export const ContractsList: React.FC = () => {
         <div className="max-w-7xl mx-auto p-4 sm:p-6 h-[calc(100vh-80px)] flex flex-col">
             <header className="mb-6 flex justify-between items-end">
                 <div>
-                    <h1 className="text-2xl md:text-3xl font-black text-gray-900 dark:text-white tracking-tight">
-                        Pipeline de Contratos
-                    </h1>
+                    <PageTitle info="Todos os contratos em colunas por situação. Dá pra buscar, baixar contrato e ficha técnica e copiar o texto do frete.">
+                      Pipeline de Contratos
+                    </PageTitle>
                     <p className="text-gray-500 dark:text-gray-400 mt-1">Acompanhe o status de cada projeto na sua timeline.</p>
                 </div>
                 <div className="relative w-full max-w-xs">

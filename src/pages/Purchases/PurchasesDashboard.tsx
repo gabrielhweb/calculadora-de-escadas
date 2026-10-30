@@ -3,6 +3,7 @@ import { useAuth } from '../../components/AuthProvider';
 import { Link } from 'react-router-dom';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
+import PageTitle from '../../components/PageTitle';
 
 export default function PurchasesDashboard() {
     const { user } = useAuth();
@@ -65,9 +66,9 @@ export default function PurchasesDashboard() {
     return (
         <div className="max-w-7xl mx-auto p-4 sm:p-6 pb-24 space-y-12">
             <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white mb-6">
-                    📦 Compras e Pedidos de Material
-                </h1>
+                <PageTitle className="mb-6" info="Pedidos de compra de material, catálogo de produtos, fornecedores e histórico de pedidos.">
+                  Compras e Pedidos de Material
+                </PageTitle>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     <Link to="/compras/catalogo" className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 flex flex-col items-center justify-center text-center hover:shadow-md transition-shadow group">

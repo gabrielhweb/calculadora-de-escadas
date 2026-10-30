@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../components/AuthProvider';
 import { collection, getDocs, orderBy, query } from 'firebase/firestore';
 import { db } from '../../firebase';
+import PageTitle from '../../components/PageTitle';
 
 interface OrderItem {
     id: string;
@@ -67,7 +68,9 @@ export default function OrderHistory() {
                 <button onClick={() => window.history.back()} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
                     ← Voltar
                 </button>
-                <h1 className="text-2xl font-bold text-gray-800 dark:text-white">🕒 Histórico de Pedidos</h1>
+                <PageTitle info="Pedidos de compra já feitos. Dá pra abrir e imprimir de novo.">
+                  Histórico de Pedidos
+                </PageTitle>
             </div>
 
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">

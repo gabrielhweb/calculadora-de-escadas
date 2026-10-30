@@ -10,6 +10,7 @@ import { format as formatTZ } from 'date-fns-tz';
 import { parseContractData, getProp, extractNum, isNoStairContract } from '../utils/freightDimensions';
 import { resolveFreightInfo, buildFreightQuoteText, getInvoiceValue, copyTextToClipboard, MISSING_INFO } from '../utils/freightQuoteText';
 import { resolveClientInfo, normalizeName } from '../utils/clientInfo';
+import PageTitle from '../components/PageTitle';
 
 export const DeliveriesTable: React.FC = () => {
     const [contracts, setContracts] = useState<SavedContract[]>([]);
@@ -804,7 +805,9 @@ export const DeliveriesTable: React.FC = () => {
 
             <div className="flex justify-between items-center mb-6 print-hidden">
                 <div>
-                    <h1 className="text-2xl font-black text-gray-900 dark:text-white">Tabela de Entregas</h1>
+                    <PageTitle info="Entregas programadas, com medidas da escada fechada e texto pronto pra cotar com a transportadora.">
+                      Tabela de Entregas
+                    </PageTitle>
                     <p className="text-gray-500 dark:text-gray-400">Clique nas observações ou nas datas para alterar. O sistema salvará automaticamente.</p>
                 </div>
                 <div className="flex gap-2">

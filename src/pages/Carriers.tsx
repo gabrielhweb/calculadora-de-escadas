@@ -4,6 +4,7 @@ import { db, auth } from '../firebase';
 import { useAuth } from '../components/AuthProvider';
 import { Carrier, StatePrice } from '../types';
 import { useCarriers } from '../hooks/useCarriers';
+import PageTitle from '../components/PageTitle';
 
 // Array com os estados (UFs)
 const ufs = [
@@ -129,9 +130,9 @@ export default function Carriers() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <h1 className="text-3xl font-black text-gray-800 dark:text-white uppercase tracking-tight">
-          🚚 Gestão de Fretes
-        </h1>
+        <PageTitle info="Cadastro das transportadoras e cotações de frete usadas nas entregas.">
+          Gestão de Fretes
+        </PageTitle>
         {activeTab === 'carriers' && (
           <button 
             onClick={openAddModal}

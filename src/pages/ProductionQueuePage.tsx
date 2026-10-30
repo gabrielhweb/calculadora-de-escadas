@@ -9,6 +9,7 @@ import { useAuth } from '../components/AuthProvider';
 import { Link } from 'react-router-dom';
 import ExtraCostsModal from '../components/ExtraCostsModal';
 import { normalizeStr } from '../utils/fixDatabase';
+import PageTitle from '../components/PageTitle';
 
 enum OperationType {
   LIST = 'list',
@@ -1245,9 +1246,9 @@ export default function ProductionQueue() {
         <div className="max-w-[1400px] mx-auto p-4 sm:p-6 pb-20">
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                    Controle de Contratos
-                </h1>
+                <PageTitle info="Acompanha em que etapa cada contrato está, da produção até a entrega. Use o filtro pra ver só uma etapa.">
+                  Controle de Contratos
+                </PageTitle>
                 
                 <div className="flex gap-2 flex-wrap">
                     <select 

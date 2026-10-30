@@ -8,6 +8,14 @@ import { Visita, ApiUtilizada } from '../components/visitas/types';
 import { FormularioReciboPDF } from '../components/visitas/FormularioReciboPDF';
 import { TabelaVisitasView } from '../components/visitas/TabelaVisitasView';
 import { RotasItinerario } from '../components/visitas/RotasItinerario';
+import PageTitle from '../components/PageTitle';
+import InfoTip from '../components/InfoTip';
+
+const VISIT_TABS: { id: SubpaginaVisitas; label: string; sub: string; info: string; icon: string }[] = [
+    { id: 'tabela', label: 'Tabela de Visitas', sub: 'Paradas e reordenação', info: 'Lista das visitas do dia. Arraste pra mudar a ordem das paradas.', icon: 'M9 5h10M9 12h10M9 19h10M5 5h.01M5 12h.01M5 19h.01' },
+    { id: 'rotas', label: 'Rotas do Dia', sub: 'Otimização com trânsito', info: 'Monta a melhor rota do dia levando em conta o trânsito.', icon: 'M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2zM9 4v14M15 6v14' },
+    { id: 'pdf', label: 'Gerar PDF', sub: 'Termo oficial (14 dias)', info: 'Gera o recibo/termo da visita técnica em PDF.', icon: 'M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8l-5-5zM14 3v5h5M9 13h6M9 17h4' },
+];
 
 type SubpaginaVisitas = 'tabela' | 'rotas' | 'pdf';
 
@@ -264,54 +272,31 @@ export default function VisitReceipt() {
 
     return (
         <div className="p-4 sm:p-8 max-w-7xl mx-auto">
-            {/* Header com os Botões/Tabs Grandes IDÊNTICOS ao da Calculadora */}
-            <header className="text-center mb-8 flex flex-col items-center relative">
-                <h1 className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white uppercase tracking-tight mb-6">
-                    Central de Visitas Técnicas
-                </h1>
+            <header className="mb-8">
+                <PageTitle className="mb-5" info="Organiza as visitas técnicas do dia: lista de paradas, rota com trânsito e recibo da visita em PDF.">
+                  Central de Visitas Técnicas
+                </PageTitle>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-4xl">
-                    <button
-                        type="button"
-                        onClick={() => setSubpaginaAtiva('tabela')}
-                        className={`p-4 rounded-xl border-2 font-bold transition-all flex flex-col items-center justify-center gap-2 cursor-pointer ${
-                            subpaginaAtiva === 'tabela'
-                                ? 'border-highlight bg-highlight/10 text-highlight'
-                                : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:border-gray-300'
-                        }`}
-                    >
-                        <span className="text-2xl">📋</span>
-                        <span className="text-base font-black">Tabela de Visitas</span>
-                        <span className="text-xs opacity-75">Paradas & Reordenação</span>
-                    </button>
-
-                    <button
-                        type="button"
-                        onClick={() => setSubpaginaAtiva('rotas')}
-                        className={`p-4 rounded-xl border-2 font-bold transition-all flex flex-col items-center justify-center gap-2 cursor-pointer ${
-                            subpaginaAtiva === 'rotas'
-                                ? 'border-highlight bg-highlight/10 text-highlight'
-                                : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:border-gray-300'
-                        }`}
-                    >
-                        <span className="text-2xl">🗺️</span>
-                        <span className="text-base font-black">Rotas do Dia</span>
-                        <span className="text-xs opacity-75">Otimização com Trânsito</span>
-                    </button>
-
-                    <button
-                        type="button"
-                        onClick={() => setSubpaginaAtiva('pdf')}
-                        className={`p-4 rounded-xl border-2 font-bold transition-all flex flex-col items-center justify-center gap-2 cursor-pointer ${
-                            subpaginaAtiva === 'pdf'
-                                ? 'border-highlight bg-highlight/10 text-highlight'
-                                : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:border-gray-300'
-                        }`}
-                    >
-                        <span className="text-2xl">📝</span>
-                        <span className="text-base font-black">Gerar PDF</span>
-                        <span className="text-xs opacity-75">Termo Oficial (14 Dias)</span>
-                    </button>
+                <div className="grid grid-cols-3 border-b border-gray-200 dark:border-gray-700">
+                    {VISIT_TABS.map((tab) => {
+                        const active = subpaginaAtiva === tab.id;
+                        return (
+                            <div key={tab.id} className="relative">
+                                <button
+                                    type="button"
+                                    onClick={() => setSubpaginaAtiva(tab.id)}
+                                    className={`w-full px-2 pt-4 pb-3 -mb-px border-b-[3px] flex flex-col items-center justify-center gap-1.5 text-sm transition-colors cursor-pointer ${active ? 'border-highlight text-gray-900 dark:text-white font-bold' : 'border-transparent text-gray-500 dark:text-gray-400 font-semibold hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800/60'}`}
+                                >
+                                    <svg viewBox="0 0 24 24" className={`w-8 h-8 ${active ? 'text-highlight' : 'text-gray-400 dark:text-gray-500'}`} fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+                                        <path d={tab.icon} />
+                                    </svg>
+                                    {tab.label}
+                                    <span className="hidden sm:block text-xs font-normal text-gray-400 dark:text-gray-500">{tab.sub}</span>
+                                </button>
+                                <InfoTip text={tab.info} className="absolute top-2 right-2" />
+                            </div>
+                        );
+                    })}
                 </div>
             </header>
 

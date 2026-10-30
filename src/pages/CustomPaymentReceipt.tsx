@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { generateCustomReceiptPDF, CustomReceiptData } from '../utils/customReceiptGenerator';
 // @ts-ignore
 import extenso from 'extenso';
+import PageTitle from '../components/PageTitle';
 
 const InputField = ({ label, value, onChange, placeholder, type = 'text', helperText, readOnly, disabled }: any) => (
   <div>
@@ -91,7 +92,9 @@ export default function CustomPaymentReceipt() {
     <div className="max-w-4xl mx-auto pb-12">
       <div className="mb-6 flex justify-between items-center bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
         <div>
-          <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Gerador de Recibos</h1>
+          <PageTitle info="Gera recibo de pagamento (entrada, parcela ou quitação) em PDF pra entregar ao cliente.">
+            Gerador de Recibos
+          </PageTitle>
           <p className="text-gray-500 dark:text-gray-400 mt-1">Crie recibos de pagamento avulsos ou de quitação</p>
         </div>
         <button

@@ -3,6 +3,7 @@ import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase
 import { db } from '../../firebase';
 
 import { Supplier } from './SupplierCatalog';
+import PageTitle from '../../components/PageTitle';
 
 export interface Product {
     id: string;
@@ -263,7 +264,9 @@ export default function ProductCatalog() {
                     <button onClick={() => window.history.back()} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
                         ← Voltar
                     </button>
-                    <h1 className="text-2xl font-bold text-gray-800 dark:text-white">📋 Catálogo de Produtos (v2)</h1>
+                    <PageTitle info="Lista de produtos e materiais usados nos pedidos de compra.">
+                      Catálogo de Produtos (v2)
+                    </PageTitle>
                 </div>
                 
                 <div className="flex flex-col sm:flex-row gap-2">

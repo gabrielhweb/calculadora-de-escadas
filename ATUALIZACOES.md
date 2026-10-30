@@ -4,6 +4,11 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-10-30 — [empresa] — Título padrão com ⓘ em todas as páginas
+- **O que mudou:** novo componente `PageTitle` (título em caixa alta + ⓘ com explicação da página) aplicado em Gerar Contrato, Meus Contratos, Controle de Contratos, Recibo Pagamento, Visitas, Orçamentos Salvos, Fretes, Tabela de Entregas e nas 5 telas de Compras. Emojis dos títulos saíram. Abas da Central de Visitas no mesmo estilo das abas da Calculadora (ícone de linha + linha dourada + ⓘ). Nenhuma função mudou.
+- **Onde:** `src/components/PageTitle.tsx` (novo), `src/pages/*.tsx`, `src/pages/Purchases/*.tsx`.
+- **Pendente:** Recibo Instalação ficou com a faixa azul própria (não mexi). Conteúdo interno das páginas (cartões, botões coloridos) ainda no estilo antigo. Não subiu pra produção.
+
 ### 2026-10-30 — [empresa] — Visual novo: menu lateral, abas da Calculadora e informativos
 - **O que mudou:** menu de cima virou menu lateral (grupos Contratos / Financeiro / Operações, ícones de linha, ⓘ com explicação em cada item; no celular abre pelo botão ☰). Abas da Central de Calculadoras com ícones de linha dourados e linha embaixo da aba ativa, cada uma com ⓘ. Caixa de Adendo de roxo pra dourado. Os ⓘ dos campos do formulário agora usam o mesmo componente `InfoTip` (funciona com toque no celular). Botão de tema ficou só no rodapé do menu. Corrigidos acentos quebrados ("Port�o") na tela de guarda-corpo e nos textos de contrato/aceite de obra de guarda-corpo avulso. Nenhuma função, rota ou cálculo mudou; o link morto "Custos" do menu do celular saiu (a rota não existe).
 - **Onde:** `src/components/Layout.tsx`, `src/components/InfoTip.tsx` (novo), `src/pages/Calculator.tsx`, `src/components/CalculatorForm.tsx`, `src/components/GuardrailCalculator.tsx`, `src/utils/contractGenerator.ts`, `src/utils/aceiteObraGenerator.ts`.

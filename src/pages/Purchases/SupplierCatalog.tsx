@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase';
+import PageTitle from '../../components/PageTitle';
 
 export interface Supplier {
     id: string;
@@ -124,7 +125,9 @@ export default function SupplierCatalog() {
                     <button onClick={() => window.history.back()} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
                         ← Voltar
                     </button>
-                    <h1 className="text-2xl font-bold text-gray-800 dark:text-white">🏢 Fornecedores</h1>
+                    <PageTitle info="Cadastro dos fornecedores de material.">
+                      Fornecedores
+                    </PageTitle>
                 </div>
             </div>
 
