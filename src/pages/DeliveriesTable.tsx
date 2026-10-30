@@ -1012,10 +1012,10 @@ export const DeliveriesTable: React.FC = () => {
                                                 >
                                                     {freightInfo}
                                                 </div>
-                                                <div className="mt-2 print-hidden">
+                                                <div className="mt-2">
                                                     <div className="flex items-center justify-between mb-1">
-                                                        <span className="text-[11px] font-black uppercase text-indigo-700 dark:text-indigo-300">🚚 Transportadora</span>
-                                                        <div className="flex gap-1">
+                                                        <span className="text-[11px] font-black uppercase text-indigo-700 dark:text-indigo-300 print:text-black">🚚 Transportadora</span>
+                                                        <div className="flex gap-1 print-hidden">
                                                             {contract.freightQuoteText && (
                                                                 <button
                                                                     onClick={() => handleUpdateContract(contract.id, 'freightQuoteText', '')}
@@ -1029,7 +1029,7 @@ export const DeliveriesTable: React.FC = () => {
                                                     </div>
                                                     <div
                                                         key={quoteText}
-                                                        className="editable-cell whitespace-pre-line text-xs p-1 rounded bg-indigo-50 dark:bg-indigo-950/40"
+                                                        className="editable-cell whitespace-pre-line text-xs p-1 rounded bg-indigo-50 dark:bg-indigo-950/40 print:bg-white print:p-0"
                                                         contentEditable
                                                         suppressContentEditableWarning
                                                         onBlur={(e) => {
