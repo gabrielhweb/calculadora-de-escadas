@@ -6,6 +6,8 @@ import { generateContractPDF } from '../utils/contractGenerator';
 import { generateUnifiedTechnicalPDF } from '../utils/technicalPdfGenerator';
 import { generateGuardrailsOnlyPDF } from '../utils/productionPdfGenerator';
 import { generatePaymentReceiptPDF } from '../utils/paymentReceiptGenerator';
+import { parseContractData } from '../utils/freightDimensions';
+import { resolveFreightInfo, buildFreightQuoteText, getInvoiceValue, copyTextToClipboard, MISSING_INFO } from '../utils/freightQuoteText';
 import { collection, query, where, onSnapshot, doc, updateDoc, deleteDoc, getDocs, addDoc, setDoc } from 'firebase/firestore';
 import { FABIO_CHALITA_CONTRACT_DATA } from '../data/fabioChalitaContract';
 import { MARIA_HELENA_CONTRACT_DATA } from '../data/mariaHelenaContract';
@@ -873,6 +875,18 @@ export const ContractsList: React.FC = () => {
         }
     };
 
+    const handleCopyFreightQuote = (contract: SavedContract) => {
+        // Usa o mesmo texto da Tabela de Entregas (inclusive se foi editado lá)
+        let text = contract.freightQuoteText?.trim() ? contract.freightQuoteText : '';
+        if (!text) {
+            const data = parseContractData(contract.contractData, contract);
+            const freightInfo = resolveFreightInfo(contract, data);
+            text = buildFreightQuoteText({ userData: data?.userData, invoiceValue: getInvoiceValue(data, contract), freightInfo });
+        }
+        const warning = text.includes(MISSING_INFO) ? '\n\nAtenção: tem informação faltando no texto (marcada com "FALTA INFORMAÇÃO").' : '';
+        copyTextToClipboard(text, `Texto da transportadora copiado!${warning}`);
+    };
+
     const handleDownloadGuardrail = (contract: SavedContract) => {
         if (!contract.contractData) {
             alert("Contrato sem medidas!");
@@ -1113,6 +1127,13 @@ export const ContractsList: React.FC = () => {
                                                 title="Gerar Recibo de Pagamento"
                                             >
                                                 💰 Recibo
+                                            </button>
+                                            <button
+                                                onClick={() => handleCopyFreightQuote(contract)}
+                                                className="flex-1 bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-900 dark:hover:bg-indigo-800 text-indigo-700 dark:text-indigo-200 text-xs py-1.5 rounded font-medium transition-colors"
+                                                title="Copiar texto de cotação para a transportadora"
+                                            >
+                                                🚚 Frete
                                             </button>
                                         </>
 

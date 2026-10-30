@@ -3,6 +3,12 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { GoogleGenAI } from "@google/genai";
 import { generateContractPDF } from "../utils/contractGenerator";
 import { generateAceiteObraPDF } from "../utils/aceiteObraGenerator";
+import { getFreightDimensions } from "../utils/freightDimensions";
+import {
+  buildFreightQuoteText,
+  copyTextToClipboard,
+  MISSING_INFO,
+} from "../utils/freightQuoteText";
 import { LandingInfo, OptionalItem } from "../types";
 import { GuardrailEditor } from "../components/GuardrailEditor";
 import { GuardrailPreview } from "../components/GuardrailPreview";
@@ -1573,16 +1579,6 @@ const Contract = () => {
   };
 
   const handleCopyCotacaoFrete = async () => {
-    if (!clientName || !zip || !clientDoc || !state) {
-      alert(
-        "Por favor, preencha o Nome, CEP com Estado e CPF/CNPJ do cliente antes de gerar a cotação.",
-      );
-      return;
-    }
-
-    const cleanZip = zip.replace(/\D/g, "");
-    const cleanDoc = clientDoc.replace(/\D/g, "");
-
     // VALOR DA NOTA = Total - Descontos - Frete
     const valorTotalSemFrete = Math.max(
       0,
@@ -1611,40 +1607,47 @@ const Contract = () => {
       console.error("Erro ao buscar transportadoras:", err);
     }
 
-    const text = `${transportadorasText}Olá, tudo bem?
+    // Mesmo cálculo de medidas/peso da coluna FRETE (MEDIDAS) da Tabela de Entregas
+    const totalStepsNum = parseFloat(totalSteps) || 0;
+    const numLandings = landings.filter((l) => !l.isAccessoriesOnly).length;
+    const quoteType =
+      contractFormatOverride !== "auto"
+        ? contractFormatOverride
+        : originalInputData?.quoteType || "stair";
+    const freightInfo = getFreightDimensions({
+      quoteType,
+      selectedOption: {
+        steps: totalStepsNum,
+        structureSteps: totalStepsNum - numLandings,
+        stepHeight: parseFloat(stepHeight) || 0,
+        totalLength: parseFloat(totalLength) || 0,
+        stairWidth: parseFloat(width) || 0,
+        treadDepth: parseFloat(treadDepth) || 0,
+        landings,
+      },
+      inputData: {
+        totalHeight: parseFloat(totalHeight) || 0,
+        optionalItems,
+        landings,
+        quoteType,
+      },
+      finalStairPrice: parseFloat(stairPrice) || 0,
+      finalLandingsPrice: parseFloat(landingsPrice) || 0,
+    });
 
-Poderia fazer esta cotação levando na base de Campinas
+    const quoteText = buildFreightQuoteText({
+      userData: { name: clientName, cpf: clientDoc, street, number, neighborhood, city, state, zip },
+      invoiceValue: valorTotalSemFrete,
+      freightInfo,
+    });
 
-DADOS PARA COTAÇÃO:
-
-CNPJ REMETENTE: 28.869.537/0001-01
-CEP REMETENTE: 13104096
-CEP DESTINO: ${cleanZip}
-CPF/CNPJ: ${cleanDoc}
-NOME: ${clientName}
-VALOR DA NOTA: R$ ${valorTotalSemFrete.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-QUANTIDADE DE VOLUME: 2
-Volumes 1
-Medidas
-PESO
-Volumes 2
-Medidas
-PESO
-MERCADORIA: escada
-TELEFONE FIXO E WHATSAPP: 19992337714`;
-
-    try {
-      await navigator.clipboard.writeText(text);
-      alert(
-        "Cotação estruturada copiada para a área de transferência com sucesso!",
-      );
-    } catch (err) {
-      console.error("Erro ao copiar o texto: ", err);
-      prompt(
-        "Seu navegador bloqueou a cópia automática. Copie o texto abaixo:",
-        text,
-      );
-    }
+    const warning = quoteText.includes(MISSING_INFO)
+      ? '\n\nAtenção: tem informação faltando no texto (marcada com "FALTA INFORMAÇÃO").'
+      : "";
+    await copyTextToClipboard(
+      `${transportadorasText}${quoteText}`,
+      `Cotação de frete copiada para a área de transferência!${warning}`,
+    );
   };
 
   const handleGenerateProductionSheet = () => {

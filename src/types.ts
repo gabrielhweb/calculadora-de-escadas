@@ -168,6 +168,7 @@ export interface SavedContract {
   deliveryDate?: string;
   deliveryNotes?: string;
   hingesQty?: string;
+  freightQuoteText?: string; // Texto da cotação para transportadora (editado na Tabela de Entregas)
   measurementsNotes?: string;
   measurementsNotesAdicionais?: string;
   customAddress?: string;
