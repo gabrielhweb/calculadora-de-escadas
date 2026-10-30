@@ -1016,13 +1016,6 @@ export const DeliveriesTable: React.FC = () => {
                                                     <div className="flex items-center justify-between mb-1">
                                                         <span className="text-[11px] font-black uppercase text-indigo-700 dark:text-indigo-300">🚚 Transportadora</span>
                                                         <div className="flex gap-1">
-                                                            <button
-                                                                onClick={() => copyTextToClipboard(quoteText, 'Texto da transportadora copiado!')}
-                                                                className="text-xs px-1.5 py-0.5 rounded bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-900 dark:hover:bg-indigo-800"
-                                                                title="Copiar texto da transportadora"
-                                                            >
-                                                                📋
-                                                            </button>
                                                             {contract.freightQuoteText && (
                                                                 <button
                                                                     onClick={() => handleUpdateContract(contract.id, 'freightQuoteText', '')}
@@ -1052,6 +1045,13 @@ export const DeliveriesTable: React.FC = () => {
                                                             </React.Fragment>
                                                         ))}
                                                     </div>
+                                                    <button
+                                                        onClick={() => copyTextToClipboard(quoteText, 'Texto da transportadora copiado!')}
+                                                        className="print-hidden mt-1 w-full text-xs font-bold py-1 rounded bg-indigo-600 hover:bg-indigo-700 text-white"
+                                                        title="Copiar texto da transportadora"
+                                                    >
+                                                        📋 Copiar
+                                                    </button>
                                                 </div>
                                             </td>
                                             <td className="p-2 align-top text-sm text-red-600 dark:text-red-400 print:text-red-600 font-semibold print:!text-red-600 print:font-bold">
