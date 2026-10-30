@@ -3,6 +3,7 @@ import { db } from '../firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import { SavedContract } from '../types';
 import { formatCurrencyBRL } from '../utils';
+import { KNOWN_CLIENTS_EXTRA } from '../utils/clientInfo';
 import {
   InstallationTermData,
   InstallationTermOrientations,
@@ -154,64 +155,7 @@ export default function InstallationReceipt() {
     );
 
     // Base de dados de clientes conhecidos históricos/retroativos para fallback perfeito
-    const KNOWN_EXTRA: Record<string, { cpf?: string; address?: string; cep?: string }> = {
-      'fabio chalita m a samra': {
-        cpf: '029.208.028-01',
-        address: 'Rua Ypês, 92 - Salto de Baixo, Extrema - MG, 37647-364',
-        cep: '37647-364'
-      },
-      'fabio chalita': {
-        cpf: '029.208.028-01',
-        address: 'Rua Ypês, 92 - Salto de Baixo, Extrema - MG, 37647-364',
-        cep: '37647-364'
-      },
-      'everton de araujo': {
-        cpf: '313.386.728-86',
-        address: 'Rua Vasco da Gama, 63 - Cipava, Osasco - SP, 06065-420',
-        cep: '06065-420'
-      },
-      'everton': {
-        cpf: '313.386.728-86',
-        address: 'Rua Vasco da Gama, 63 - Cipava, Osasco - SP, 06065-420',
-        cep: '06065-420'
-      },
-      'jose guilherme severini': {
-        cpf: '443.023.396-91',
-        address: 'Rua Tangará, 20 - Condomínio Campo da Cachoeira, Poços de Caldas - MG, 37704-900',
-        cep: '37704-900'
-      },
-      'severini': {
-        cpf: '443.023.396-91',
-        address: 'Rua Tangará, 20 - Condomínio Campo da Cachoeira, Poços de Caldas - MG, 37704-900',
-        cep: '37704-900'
-      },
-      'marcia campos nogueira': {
-        cpf: '955.892.797-04',
-        address: 'Rua Joaquim Ferreira, 191 - Casa 02 - Jardim Sulacap, Rio de Janeiro - RJ, 21741-290',
-        cep: '21741-290'
-      },
-      'marcia campos': {
-        cpf: '955.892.797-04',
-        address: 'Rua Joaquim Ferreira, 191 - Casa 02 - Jardim Sulacap, Rio de Janeiro - RJ, 21741-290',
-        cep: '21741-290'
-      },
-      'alexandre bergamo de oliveira': {
-        address: 'Jardim Residencial Chácara Ondina, Sorocaba - SP'
-      },
-      'alexandre bergamo': {
-        address: 'Jardim Residencial Chácara Ondina, Sorocaba - SP'
-      },
-      'maria helena jara guastamacchia': {
-        cpf: '250.587.428-02',
-        address: 'Rua das Gilias, 389 - Vila Bela, São Paulo - SP, 03201-070',
-        cep: '03201-070'
-      },
-      'maria helena': {
-        cpf: '250.587.428-02',
-        address: 'Rua das Gilias, 389 - Vila Bela, São Paulo - SP, 03201-070',
-        cep: '03201-070'
-      }
-    };
+    const KNOWN_EXTRA = KNOWN_CLIENTS_EXTRA;
 
     const knownData = KNOWN_EXTRA[clientNorm] || Object.entries(KNOWN_EXTRA).find(([k]) => clientNorm.includes(k) || k.includes(clientNorm))?.[1];
 

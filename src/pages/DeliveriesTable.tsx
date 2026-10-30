@@ -9,13 +9,25 @@ import { ptBR } from 'date-fns/locale';
 import { format as formatTZ } from 'date-fns-tz';
 import { parseContractData, getProp, extractNum, isNoStairContract } from '../utils/freightDimensions';
 import { resolveFreightInfo, buildFreightQuoteText, getInvoiceValue, copyTextToClipboard, MISSING_INFO } from '../utils/freightQuoteText';
+import { resolveClientInfo, normalizeName } from '../utils/clientInfo';
 
 export const DeliveriesTable: React.FC = () => {
     const [contracts, setContracts] = useState<SavedContract[]>([]);
     const { user } = useAuth();
     const [loading, setLoading] = useState(true);
     const [queueItems, setQueueItems] = useState<any[]>([]);
+    const [savedQuotes, setSavedQuotes] = useState<any[]>([]);
     const [showValues, setShowValues] = useState(true);
+
+    // Orçamentos salvos: usados para achar CPF/CEP/endereço de contratos antigos
+    useEffect(() => {
+        if (!user) return;
+        return onSnapshot(collection(db, 'saved_quotes'), (snap) => {
+            const arr: any[] = [];
+            snap.forEach(d => arr.push({ id: d.id, ...d.data() }));
+            setSavedQuotes(arr);
+        });
+    }, [user]);
 
     useEffect(() => {
         if (!user) {
@@ -828,7 +840,7 @@ export const DeliveriesTable: React.FC = () => {
                                 <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[12%]">CLIENTE</th>
                                 <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[15%]">LOCALIZAÇÃO</th>
                                 <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[10%]">DATA ENTREGA</th>
-                                <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[12%]">FRETE (MEDIDAS)</th>
+                                <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[12%]">TRANSPORTADORA</th>
                                 <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[13%]">ATENÇÃO</th>
                                 <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[15%]">FAB. ESCADA</th>
                                 <th className="p-4 font-bold text-gray-900 dark:text-gray-200 text-sm w-[15%]">FAB. ADICIONAIS</th>
@@ -885,9 +897,16 @@ export const DeliveriesTable: React.FC = () => {
                                     const freightInfo = resolveFreightInfo(contract, data, measurements);
 
                                     // 4. Texto para transportadora (editado à mão ou gerado com os dados do contrato)
+                                    const clientNorm = normalizeName(contract.clientName || data?.userData?.name);
+                                    const clientQueueItem = queueItems.find(q => q.contractId === contract.id || (clientNorm && normalizeName(q.clientName) === clientNorm));
+                                    const clientQuoteItem = savedQuotes.find(q => clientNorm && normalizeName(q.clientName) === clientNorm);
                                     const quoteText = (contract.freightQuoteText && contract.freightQuoteText.trim() !== '')
                                         ? contract.freightQuoteText
-                                        : buildFreightQuoteText({ userData: data?.userData, invoiceValue: getInvoiceValue(data, contract), freightInfo });
+                                        : buildFreightQuoteText({
+                                            userData: resolveClientInfo({ contract, parsedData: data, queueItem: clientQueueItem, quoteItem: clientQuoteItem }),
+                                            invoiceValue: getInvoiceValue(data, contract, clientQueueItem),
+                                            freightInfo,
+                                        });
                                       const dateColor = getDateColorClass(contract.deliveryDate);
                                     
                                     const queueItem = queueItems.find(q => q.contractId === contract.id);
@@ -1000,33 +1019,18 @@ export const DeliveriesTable: React.FC = () => {
                                                 </div>
                                             </td>
                                             <td className="p-2 align-top text-sm">
-                                                <div 
-                                                    className="editable-cell whitespace-pre-line font-mono text-xs font-bold p-1 rounded bg-slate-100 dark:bg-slate-800 print:bg-white"
-                                                    contentEditable
-                                                    suppressContentEditableWarning
-                                                    onBlur={(e) => {
-                                                        if (e.target.innerText !== freightInfo) {
-                                                            handleUpdateContract(contract.id, 'hingesQty', e.target.innerText);
-                                                        }
-                                                    }}
-                                                >
-                                                    {freightInfo}
-                                                </div>
-                                                <div className="mt-2">
-                                                    <div className="flex items-center justify-between mb-1">
-                                                        <span className="text-[11px] font-black uppercase text-indigo-700 dark:text-indigo-300 print:text-black">🚚 Transportadora</span>
-                                                        <div className="flex gap-1 print-hidden">
-                                                            {contract.freightQuoteText && (
-                                                                <button
-                                                                    onClick={() => handleUpdateContract(contract.id, 'freightQuoteText', '')}
-                                                                    className="text-xs px-1.5 py-0.5 rounded bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600"
-                                                                    title="Descartar edições e gerar de novo com os dados do contrato"
-                                                                >
-                                                                    ↺
-                                                                </button>
-                                                            )}
+                                                <div>
+                                                    {contract.freightQuoteText && (
+                                                        <div className="flex justify-end mb-1 print-hidden">
+                                                            <button
+                                                                onClick={() => handleUpdateContract(contract.id, 'freightQuoteText', '')}
+                                                                className="text-xs px-1.5 py-0.5 rounded bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600"
+                                                                title="Descartar edições e gerar de novo com os dados do contrato"
+                                                            >
+                                                                ↺ Refazer
+                                                            </button>
                                                         </div>
-                                                    </div>
+                                                    )}
                                                     <div
                                                         key={quoteText}
                                                         className="editable-cell whitespace-pre-line text-xs p-1 rounded bg-indigo-50 dark:bg-indigo-950/40 print:bg-white print:p-0"

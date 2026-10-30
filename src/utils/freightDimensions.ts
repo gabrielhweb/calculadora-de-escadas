@@ -117,9 +117,11 @@ export const isNoStairContract = (data: any, contractObj?: any): boolean => {
     if (getProp(data, 'isIndependent') === true || contractObj?.isIndependent === true) return true;
     
     // 3. Preços explícitos (escada zerada mas com adicionais ou valor total)
-    const finalStairPrice = extractNum(getProp(data, 'finalStairPrice') ?? getProp(data, 'stairPrice') ?? contractObj?.stairPrice);
+    // Só vale quando o preço da escada foi salvo de fato (contratos antigos não têm esse campo)
+    const rawStairPrice = getProp(data, 'finalStairPrice') ?? getProp(data, 'stairPrice') ?? contractObj?.stairPrice;
+    const finalStairPrice = extractNum(rawStairPrice);
     const finalLandingsPrice = extractNum(getProp(data, 'finalLandingsPrice') ?? getProp(data, 'landingsPrice') ?? contractObj?.landingsPrice);
-    if (finalStairPrice === 0 && (finalLandingsPrice > 0 || (contractObj?.totalValue || 0) > 0)) return true;
+    if (rawStairPrice !== undefined && finalStairPrice === 0 && (finalLandingsPrice > 0 || (contractObj?.totalValue || 0) > 0)) return true;
 
     // 4. Degraus zerados
     const structureSteps = getProp(data, 'structureSteps');
@@ -219,6 +221,8 @@ export const getFreightDimensions = (parsedData: any, contractObj?: any, measure
             return `COMPRIMENTO: ${(maxL || 1).toFixed(2)}m\nLARGURA: ${(maxW || 1).toFixed(2)}m\nALTURA: 0.15m\nPESO (PATAMAR): ${landingsWeight.toFixed(1)}kg\nPESO TOTAL: ${landingsWeight.toFixed(1)}kg`;
         }
         if (noStair) return '-';
+        // Sem nenhuma medida cadastrada: não inventa medidas
+        if (!numSteps && !treadDepthCm && !stepHeightCm) return '-';
 
         // Fallback para escadas com dados resumidos no contrato
         const fallbackSteps = numSteps || 14;

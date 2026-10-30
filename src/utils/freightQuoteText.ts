@@ -79,12 +79,13 @@ export const resolveFreightInfo = (contract: any, data: any, measurements?: stri
 };
 
 // Valor da nota = valor de venda (já com desconto) menos o frete
-export const getInvoiceValue = (data: any, contract?: any) => {
+export const getInvoiceValue = (data: any, contract?: any, queueItem?: any) => {
     const base = extractNum(
         getProp(data, 'baseTotalValue')
         ?? getProp(data, 'baseSaleValue')
         ?? contract?.baseTotalValue
         ?? contract?.totalValue
+        ?? queueItem?.value
     );
     const freight = extractNum(getProp(data, 'freightCost'));
     return Math.max(0, base - freight);

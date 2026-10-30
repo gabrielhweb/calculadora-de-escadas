@@ -7,6 +7,7 @@ import { generateUnifiedTechnicalPDF } from '../utils/technicalPdfGenerator';
 import { generateGuardrailsOnlyPDF } from '../utils/productionPdfGenerator';
 import { generatePaymentReceiptPDF } from '../utils/paymentReceiptGenerator';
 import { parseContractData } from '../utils/freightDimensions';
+import { resolveClientInfo, normalizeName } from '../utils/clientInfo';
 import { resolveFreightInfo, buildFreightQuoteText, getInvoiceValue, copyTextToClipboard, MISSING_INFO } from '../utils/freightQuoteText';
 import { collection, query, where, onSnapshot, doc, updateDoc, deleteDoc, getDocs, addDoc, setDoc } from 'firebase/firestore';
 import { FABIO_CHALITA_CONTRACT_DATA } from '../data/fabioChalitaContract';
@@ -875,13 +876,30 @@ export const ContractsList: React.FC = () => {
         }
     };
 
-    const handleCopyFreightQuote = (contract: SavedContract) => {
+    const handleCopyFreightQuote = async (contract: SavedContract) => {
         // Usa o mesmo texto da Tabela de Entregas (inclusive se foi editado lá)
         let text = contract.freightQuoteText?.trim() ? contract.freightQuoteText : '';
         if (!text) {
             const data = parseContractData(contract.contractData, contract);
+            const clientNorm = normalizeName(contract.clientName || data?.userData?.name);
+            let queueItem: any;
+            let quoteItem: any;
+            try {
+                const [queueSnap, quotesSnap] = await Promise.all([
+                    getDocs(collection(db, 'production_queue')),
+                    getDocs(collection(db, 'saved_quotes')),
+                ]);
+                queueItem = queueSnap.docs.map(d => d.data()).find(q => q.contractId === contract.id || (clientNorm && normalizeName(q.clientName) === clientNorm));
+                quoteItem = quotesSnap.docs.map(d => d.data()).find(q => clientNorm && normalizeName(q.clientName) === clientNorm);
+            } catch (err) {
+                console.error('Erro ao buscar dados extras do cliente:', err);
+            }
             const freightInfo = resolveFreightInfo(contract, data);
-            text = buildFreightQuoteText({ userData: data?.userData, invoiceValue: getInvoiceValue(data, contract), freightInfo });
+            text = buildFreightQuoteText({
+                userData: resolveClientInfo({ contract, parsedData: data, queueItem, quoteItem }),
+                invoiceValue: getInvoiceValue(data, contract, queueItem),
+                freightInfo,
+            });
         }
         const warning = text.includes(MISSING_INFO) ? '\n\nAtenção: tem informação faltando no texto (marcada com "FALTA INFORMAÇÃO").' : '';
         copyTextToClipboard(text, `Texto da transportadora copiado!${warning}`);
