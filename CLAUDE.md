@@ -49,6 +49,7 @@ Por isso estas regras valem em toda sessão:
 - [ ] Explicar como devem ser "Modalidade de coleta" e "Tomador do frete" no texto da transportadora (hoje fixos).
 - [ ] Informar a URL de produção do site pra anotar aqui.
 - [ ] Decidir se restaura o `vite.config.ts` (necessário pra rodar local).
+- [ ] Olhar o visual novo (menu lateral + Calculadora) e dizer se aprova pra seguir nas outras páginas.
 
 # 🧱 Estrutura
 

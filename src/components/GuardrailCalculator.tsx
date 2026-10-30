@@ -151,10 +151,10 @@ export default function GuardrailCalculator({ onCalculate }: GuardrailCalculator
                 <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
                         <h2 className="text-2xl font-black text-gray-800 dark:text-white flex items-center gap-2">
-                            ?? Somente Guarda-Corpo & Port�o
+                            Somente Guarda-Corpo & Portão
                         </h2>
                         <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
-                            Adicione guarda-corpos e port�ezinhos avulsos para or�ar.
+                            Adicione guarda-corpos e portõezinhos avulsos para orçar.
                         </p>
                     </div>
                     <div className="flex flex-col md:flex-row gap-2">
@@ -162,7 +162,7 @@ export default function GuardrailCalculator({ onCalculate }: GuardrailCalculator
                             + Guarda-Corpo
                         </button>
                         <button onClick={handleAddGate} className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-bold shadow transition-colors text-sm">
-                            + Port�o
+                            + Portão
                         </button>
                         <button onClick={handleCalculate} className="bg-highlight hover:bg-yellow-600 text-white px-4 py-2 rounded-lg font-bold shadow transition-colors text-sm flex items-center justify-center gap-2">
                             🧮 Calcular Valores
@@ -175,7 +175,7 @@ export default function GuardrailCalculator({ onCalculate }: GuardrailCalculator
                         <span className="text-4xl mb-4 block">🚧</span>
                         <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-2">Nenhum item adicionado</h3>
                         <p className="text-gray-500 dark:text-gray-400 text-sm max-w-md mx-auto mb-6">
-                            Clique nos bot�es acima para simular um guarda-corpo ou port�o de forma r�pida.
+                            Clique nos botões acima para simular um guarda-corpo ou portão de forma rápida.
                         </p>
                     </div>
                 ) : (

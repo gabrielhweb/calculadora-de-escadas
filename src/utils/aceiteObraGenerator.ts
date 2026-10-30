@@ -56,7 +56,7 @@ export const generateAceiteObraPDF = (data: ContractData) => {
   
   let descricaoEscada = '';
   if (data.inputData?.quoteType === 'guardrail') {
-      descricaoEscada = 'guarda-corpos e/ou port�es met�licos avulsos';
+      descricaoEscada = 'guarda-corpos e/ou portões metálicos avulsos';
   } else if (data.inputData?.isAdendo) {
       descricaoEscada = `estrutura complementar (adendo de projeto)`;
   } else if (data.selectedOption) {

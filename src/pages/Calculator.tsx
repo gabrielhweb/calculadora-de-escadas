@@ -9,6 +9,14 @@ import { ProposalDocument } from '../components/ProposalDocument';
 import { CalculatorInput, ProposalOption, UserData, SavedQuote } from '../types';
 import { calculateTotalPrice } from '../utils';
 import { saveQuote } from '../services/storage';
+import InfoTip from '../components/InfoTip';
+
+const CALC_TABS: { id: 'stair' | 'landing' | 'guardrail' | 'weight'; label: string; info: string; icon: string }[] = [
+  { id: 'stair', label: 'Escada Completa', info: 'Escada inteira: degraus, vigas e corrimão. Pode ter patamar no meio. Gera as opções de preço e a proposta.', icon: 'M4 35h7v-6h7v-6h7v-6h7v-6h4M7 29L33 5M11 23v-6M18 17v-6M25 11V5' },
+  { id: 'landing', label: 'Somente Patamar', info: 'Só o patamar, sem a escada. Use quando o cliente precisa apenas da plataforma.', icon: 'M5 18l15-7 15 7-15 7zM5 18v5l15 7 15-7v-5M20 25v5' },
+  { id: 'guardrail', label: 'Guarda-corpo/Portão', info: 'Guarda-corpo ou portão vendido separado, calculado por medida.', icon: 'M4 9h32M4 33h32M6 9v24M34 9v24M12 12v18M17 12v18M23 12v18M28 12v18' },
+  { id: 'weight', label: 'Cálculo de Peso', info: 'Calcula o peso do aço da escada, útil pro frete e pra compra de material.', icon: 'M20 5v5M12 14h16l4 20H8zM15 26l5-5 5 5M20 10a1.5 1.5 0 100 3 1.5 1.5 0 000-3z' },
+];
 
 function Calculator() {
   const [inputData, setInputData] = useState<CalculatorInput | null>(null);
@@ -228,26 +236,27 @@ function Calculator() {
 
   return (
     <div className="p-4 sm:p-8 max-w-7xl mx-auto">
-      <header className="text-center mb-8 flex flex-col items-center relative">
-        <h1 className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white uppercase tracking-tight mb-6">Central de Calculadoras</h1>
-        
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-4xl">
-            <button onClick={() => {setActiveTab('stair'); setInputData(null); setOptions([]);}} className={`p-4 rounded-xl border-2 font-bold transition-all flex flex-col items-center justify-center gap-2 ${activeTab === 'stair' ? 'border-highlight bg-highlight/10 text-highlight' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:border-gray-300'}`}>
-                <span className="text-2xl">🪜</span>
-                  Escada Completa
-            </button>
-            <button onClick={() => {setActiveTab('landing'); setInputData(null); setOptions([]);}} className={`p-4 rounded-xl border-2 font-bold transition-all flex flex-col items-center justify-center gap-2 ${activeTab === 'landing' ? 'border-highlight bg-highlight/10 text-highlight' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:border-gray-300'}`}>
-                <span className="text-2xl">🔲</span>
-                  Somente Patamar
-            </button>
-            <button onClick={() => {setActiveTab('guardrail'); setInputData(null); setOptions([]);}} className={`p-4 rounded-xl border-2 font-bold transition-all flex flex-col items-center justify-center gap-2 ${activeTab === 'guardrail' ? 'border-highlight bg-highlight/10 text-highlight' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:border-gray-300'}`}>
-                <span className="text-2xl">🚧</span>
-                  Guarda-corpo/Portão
-            </button>
-            <button onClick={() => {setActiveTab('weight'); setInputData(null); setOptions([]);}} className={`p-4 rounded-xl border-2 font-bold transition-all flex flex-col items-center justify-center gap-2 ${activeTab === 'weight' ? 'border-highlight bg-highlight/10 text-highlight' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:border-gray-300'}`}>
-                <span className="text-2xl">⚖️</span>
-                  Cálculo de Peso
-            </button>
+      <header className="mb-8">
+        <h1 className="text-2xl md:text-3xl font-black text-gray-900 dark:text-white uppercase tracking-tight mb-5">Central de Calculadoras</h1>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 border-b border-gray-200 dark:border-gray-700">
+            {CALC_TABS.map((tab) => {
+                const active = activeTab === tab.id;
+                return (
+                    <div key={tab.id} className="relative">
+                        <button
+                            onClick={() => {setActiveTab(tab.id); setInputData(null); setOptions([]);}}
+                            className={`w-full px-2 pt-4 pb-3 -mb-px border-b-[3px] flex flex-col items-center justify-center gap-2 text-sm transition-colors ${active ? 'border-highlight text-gray-900 dark:text-white font-bold' : 'border-transparent text-gray-500 dark:text-gray-400 font-semibold hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800/60'}`}
+                        >
+                            <svg viewBox="0 0 40 40" className={`w-10 h-10 ${active ? 'text-highlight' : 'text-gray-400 dark:text-gray-500'}`} fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+                                <path d={tab.icon} />
+                            </svg>
+                            {tab.label}
+                        </button>
+                        <InfoTip text={tab.info} className="absolute top-2 right-2" />
+                    </div>
+                );
+            })}
         </div>
       </header>
       <main className="grid grid-cols-1 lg:grid-cols-2 gap-8">

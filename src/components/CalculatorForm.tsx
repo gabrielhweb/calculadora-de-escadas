@@ -3,6 +3,7 @@ import { CalculatorInput, OptionalItem, LandingInfo, ReferenceDoor } from '../ty
 import { GuardrailEditor } from './GuardrailEditor';
 import { GuardrailPreview } from './GuardrailPreview';
 import { computeLandingPrice } from '../utils/landingPricing';
+import InfoTip from './InfoTip';
 
 interface CalculatorFormProps { mode?: 'stair' | 'landing';
   onCalculate: (data: CalculatorInput) => void;
@@ -14,17 +15,7 @@ const CalculatorIcon = () => (
   </svg>
 );
 
-const TooltipIcon: React.FC<{ text: string }> = ({ text }) => (
-    <div className="group relative flex items-center justify-center cursor-help ml-1">
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-purple-500 hover:text-purple-700 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 bg-purple-900 text-white text-xs font-medium p-3 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 text-center leading-relaxed border border-purple-700">
-            {text}
-            <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-6 border-transparent border-t-purple-900"></div>
-        </div>
-    </div>
-);
+const TooltipIcon: React.FC<{ text: string }> = ({ text }) => <InfoTip text={text} className="ml-1" />;
 
 export const getAutoGuardrailLengths = (format: string, sideStr: string, width: number, length: number, stairWidth: number = 0) => {
     let l1 = length || 0;
@@ -353,20 +344,20 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
   return (
 <>
       {/* ADENDO TOGGLE NO TOPO */}
-      <div className="mb-4 bg-purple-50 dark:bg-purple-900/20 p-4 rounded-xl border border-purple-200 dark:border-purple-800 flex items-center gap-3">
-          <input 
-              type="checkbox" 
+      <div className="mb-4 bg-amber-50 dark:bg-amber-900/20 p-4 rounded-xl border border-amber-200 dark:border-amber-800 flex items-center gap-3">
+          <input
+              type="checkbox"
               checked={isAdendo}
               onChange={(e) => setIsAdendo(e.target.checked)}
-              className="w-5 h-5 text-purple-600 rounded border-purple-300 focus:ring-purple-500 cursor-pointer"
+              className="w-5 h-5 accent-amber-600 rounded border-amber-300 focus:ring-amber-500 cursor-pointer"
           />
           <div>
-              <span className="block font-bold text-purple-900 dark:text-purple-300">Orçamento de Adendo / Itens Avulsos</span>
-              <span className="text-xs text-purple-700 dark:text-purple-400">Marque se o cliente está comprando APENAS guarda-corpo ou portão separadamente. O preço da escada ficará R$0,00 e o PDF se chamará ADENDO.</span>
+              <span className="block font-bold text-amber-900 dark:text-amber-300">Orçamento de Adendo / Itens Avulsos</span>
+              <span className="text-xs text-amber-800 dark:text-amber-400">Marque se o cliente está comprando APENAS guarda-corpo ou portão separadamente. O preço da escada ficará R$0,00 e o PDF se chamará ADENDO.</span>
           </div>
       </div>
       
-      <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 lg:sticky lg:top-24">
+      <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 lg:sticky lg:top-6">
       <h2 className="text-2xl font-black mb-6 text-gray-900 dark:text-white flex items-center border-b-2 border-highlight pb-4">
         <CalculatorIcon /> 
         Medidas

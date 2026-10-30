@@ -197,7 +197,7 @@ export const generateContractPDF = (data: ContractData) => {
   let objText = '';
   let stepsText = '';
   if (data.inputData.quoteType === 'guardrail') {
-      objText = 'Guarda-corpos e/ou Port�es met�licos fabricados em a�o carbono, sob medida.';
+      objText = 'Guarda-corpos e/ou Portões metálicos fabricados em aço carbono, sob medida.';
       stepsText = '';
   } else if (data.inputData.isAdendo) {
       objText = `Estrutura metálica complementar (Adendo de Projeto) fabricada em aço carbono com corte à laser, conforme itens descritos abaixo.`;

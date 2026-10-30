@@ -2,6 +2,52 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from './AuthProvider';
+import InfoTip from './InfoTip';
+
+type MenuItem = { to: string; label: string; icon: string; info: string };
+
+const MENU: { title?: string; items: MenuItem[] }[] = [
+  { items: [
+    { to: '/', label: 'Calculadoras', icon: 'calc', info: 'Calcula escada completa, patamar, guarda-corpo/portão e peso, e monta as opções de preço pro orçamento.' },
+  ] },
+  { title: 'Contratos', items: [
+    { to: '/contrato', label: 'Gerar Contrato', icon: 'filePlus', info: 'Monta o contrato a partir de um orçamento, com os dados do cliente, pagamento e prazo.' },
+    { to: '/contratos', label: 'Meus Contratos', icon: 'files', info: 'Lista todos os contratos. Dá pra buscar, baixar contrato e ficha técnica e copiar o texto do frete.' },
+    { to: '/fila', label: 'Controle de Contratos', icon: 'list', info: 'Acompanha em que etapa cada contrato está, da produção até a entrega.' },
+  ] },
+  { title: 'Financeiro', items: [
+    { to: '/recibo-pagamento', label: 'Recibo Pagamento', icon: 'cash', info: 'Gera recibo de pagamento (entrada, parcela ou quitação) em PDF.' },
+    { to: '/recibo-visita', label: 'Recibo Visita', icon: 'pin', info: 'Gera recibo da visita técnica de medição.' },
+    { to: '/recibo-instalacao', label: 'Recibo Instalação', icon: 'tool', info: 'Gera recibo do serviço de instalação.' },
+    { to: '/salvos', label: 'Orçamentos Salvos', icon: 'bookmark', info: 'Orçamentos salvos na calculadora. Aparecem em todos os computadores.' },
+  ] },
+  { title: 'Operações', items: [
+    { to: '/compras', label: 'Compras & Config.', icon: 'cart', info: 'Pedidos de compra de material, catálogo de produtos e fornecedores.' },
+    { to: '/transportadoras', label: 'Fretes', icon: 'truck', info: 'Cadastro das transportadoras usadas nas entregas.' },
+    { to: '/tabela-entregas', label: 'Tabela de Entregas', icon: 'table', info: 'Entregas programadas, com medidas da escada e texto pronto pra cotar com a transportadora.' },
+  ] },
+];
+
+const ICON_PATHS: Record<string, string> = {
+  calc: 'M7 3h10a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2zM8 7h8M8 12h.01M12 12h.01M16 12h.01M8 16h.01M12 16h.01M16 16h.01',
+  filePlus: 'M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8l-5-5zM14 3v5h5M12 11v6M9 14h6',
+  files: 'M15 3H9a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7l-4-4zM15 3v4h4M5 7v12a2 2 0 002 2h8',
+  list: 'M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2',
+  cash: 'M3 7h18v10H3zM12 9.5a2.5 2.5 0 100 5 2.5 2.5 0 000-5zM6 10v4M18 10v4',
+  pin: 'M12 21s-7-6-7-11a7 7 0 0114 0c0 5-7 11-7 11zM12 7.5a2.5 2.5 0 100 5 2.5 2.5 0 000-5z',
+  tool: 'M14.7 6.3a4 4 0 00-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 005.4-5.4l-2.5 2.5-2.4-.6-.6-2.4 2.5-2.5z',
+  bookmark: 'M6 3h12v18l-6-4-6 4z',
+  cart: 'M3 4h2l2.4 11h10.2L20 7H6.2M9 20a1 1 0 100-2 1 1 0 000 2zM17 20a1 1 0 100-2 1 1 0 000 2z',
+  truck: 'M3 6h11v10H3zM14 9h4l3 3v4h-7M7 18.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM17 18.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z',
+  table: 'M4 5h16v14H4zM4 10h16M4 15h16M10 5v14',
+};
+
+const MenuIcon: React.FC<{ name: string; active: boolean }> = ({ name, active }) => (
+  <svg viewBox="0 0 24 24" className={`w-5 h-5 shrink-0 ${active ? 'text-highlight' : 'text-gray-400 dark:text-gray-500'}`} fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+    <path d={ICON_PATHS[name]} />
+  </svg>
+);
+
 
 const Layout: React.FC = () => {
   const location = useLocation();
@@ -45,270 +91,137 @@ const Layout: React.FC = () => {
   // OPÇÃO 2: Salve sua imagem como 'logo.png' e coloque na pasta 'public' do projeto.
   // =================================================================================
 
+  const linkClass = (path: string) =>
+    `${isActive(path)
+      ? 'bg-amber-50 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 font-bold'
+      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/60 hover:text-gray-900 dark:hover:text-white'} flex-1 min-w-0 flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors`;
+
+  const renderItem = (item: MenuItem) => (
+    <div key={item.to} className="flex items-center gap-1 pr-1">
+      <Link to={item.to} onClick={() => setIsMobileMenuOpen(false)} className={linkClass(item.to)}>
+        <MenuIcon name={item.icon} active={isActive(item.to)} />
+        <span className="truncate">{item.label}</span>
+      </Link>
+      <InfoTip text={item.info} />
+    </div>
+  );
+
   return (
-    <div className="min-h-screen flex flex-col bg-primary dark:bg-gray-900 text-gray-800 dark:text-gray-100 font-sans transition-colors duration-200">
-      <nav className="bg-secondary dark:bg-gray-800 shadow-md sticky top-0 z-50 border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-[1800px] w-full mx-auto px-2 sm:px-4 lg:px-8">
-          <div className="flex justify-between min-h-[6rem] py-2 items-center flex-wrap gap-4">
-            <div className="flex-shrink-0 flex items-center">
-              <Link to="/" className="flex items-center gap-4 group">
-                
-                <div className="w-16 h-16 flex items-center justify-center transition-transform group-hover:scale-105">
-                    <img 
-                      src={SITE_LOGO_CUSTOM || "/logo.png"} 
-                      alt="Zilinski" 
-                      className="w-full h-full object-contain"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                        e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                      }}
-                    />
-                    
-                    <svg viewBox="0 0 100 100" className="w-full h-full text-black dark:text-white hidden" fill="currentColor">
-                       <path d="M50 20 C 55 15, 65 10, 75 15 C 80 18, 85 25, 80 35 C 90 30, 95 35, 90 45 C 95 45, 95 55, 85 60 C 80 62, 75 60, 70 55 L 75 80 L 55 75 L 50 90 L 45 75 L 25 80 L 30 55 C 25 60, 20 62, 15 60 C 5 55, 5 45, 10 45 C 5 35, 10 30, 20 35 C 15 25, 20 18, 25 15 C 35 10, 45 15, 50 20 Z" />
-                       <text x="20" y="95" fontFamily="Arial" fontWeight="900" fontSize="14" fill="currentColor">Z</text>
-                       <text x="70" y="95" fontFamily="Arial" fontWeight="900" fontSize="14" fill="currentColor">D</text>
-                    </svg>
-                </div>
-                <div className="flex flex-col">
-                    <span className="font-black text-3xl tracking-tighter text-gray-900 dark:text-white leading-none">Zilinski</span>
-                    <span className="text-xs text-highlight tracking-[0.3em] uppercase font-bold mt-1">Escadas</span>
-                </div>
-              </Link>
-            </div>
-            <div className="flex items-center space-x-4 md:space-x-8">
-              <div className="hidden md:flex flex-wrap items-center justify-end gap-x-2 xl:gap-x-6 gap-y-2 h-full">
-                <Link 
-                  to="/" 
-                  className={`${isActive('/') ? 'text-highlight font-bold border-b-4 border-highlight' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'} px-2 pt-1 text-sm uppercase tracking-wide transition-all duration-200 h-full flex items-center font-bold`}
-                >Calculadoras</Link>
-                
-                
-                <Link 
-                  to="/contrato" 
-                  className={`${isActive('/contrato') ? 'text-highlight font-bold border-b-4 border-highlight' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'} px-2 pt-1 text-sm uppercase tracking-wide transition-all duration-200 h-full flex items-center font-bold`}
-                >
-                  Gerar Contrato
-                </Link>
-                <Link 
-                  to="/contratos" 
-                  className={`${isActive('/contratos') ? 'text-highlight font-bold border-b-4 border-highlight' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'} px-2 pt-1 text-sm uppercase tracking-wide transition-all duration-200 h-full flex items-center font-bold`}
-                >
-                  Meus Contratos
-                </Link>
-                <Link 
-                  to="/fila" 
-                  className={`${isActive('/fila') ? 'text-highlight font-bold border-b-4 border-highlight' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'} px-2 pt-1 text-sm uppercase tracking-wide transition-all duration-200 h-full flex items-center font-bold`}
-                >
-                  Controle de Contratos
-                </Link>
-                <Link 
-                  to="/compras" 
-                  className={`${isActive('/compras') ? 'text-highlight font-bold border-b-4 border-highlight' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'} px-2 pt-1 text-sm uppercase tracking-wide transition-all duration-200 h-full flex items-center font-bold`}
-                >
-                  📦 Compras & Config.
-                </Link>
-                <Link 
-                  to="/transportadoras" 
-                  className={`${isActive('/transportadoras') ? 'text-highlight font-bold border-b-4 border-highlight' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'} px-2 pt-1 text-sm uppercase tracking-wide transition-all duration-200 h-full flex items-center font-bold`}
-                >
-                  🚚 Fretes
-                </Link>
-                <Link 
-                  to="/tabela-entregas" 
-                  className={`${isActive('/tabela-entregas') ? 'text-highlight font-bold border-b-4 border-highlight' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'} px-2 pt-1 text-sm uppercase tracking-wide transition-all duration-200 h-full flex items-center font-bold`}
-                >
-                  🚚 Tabela de Entregas
-                </Link>
-                <Link 
-                  to="/recibo-pagamento" 
-                  className={`${isActive('/recibo-pagamento') ? 'text-highlight font-bold border-b-4 border-highlight' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'} px-2 pt-1 text-sm uppercase tracking-wide transition-all duration-200 h-full flex items-center font-bold`}
-                >
-                  Recibo Pagamento
-                </Link>
-                <Link 
-                  to="/recibo-visita" 
-                  className={`${isActive('/recibo-visita') ? 'text-highlight font-bold border-b-4 border-highlight' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'} px-2 pt-1 text-sm uppercase tracking-wide transition-all duration-200 h-full flex items-center font-bold`}
-                >
-                  Recibo Visita
-                </Link>
-                <Link 
-                  to="/recibo-instalacao" 
-                  className={`${isActive('/recibo-instalacao') ? 'text-highlight font-bold border-b-4 border-highlight' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'} px-2 pt-1 text-sm uppercase tracking-wide transition-all duration-200 h-full flex items-center font-bold`}
-                >
-                  Recibo Instalação
-                </Link>
-                <Link 
-                  to="/salvos" 
-                  className={`${isActive('/salvos') ? 'text-highlight font-bold border-b-4 border-highlight' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'} px-2 pt-1 text-sm uppercase tracking-wide transition-all duration-200 h-full flex items-center font-bold`}
-                >
-                  Orçamentos Salvos
-                </Link>
-              </div>
+    <div className="min-h-screen lg:flex bg-primary dark:bg-gray-900 text-gray-800 dark:text-gray-100 font-sans transition-colors duration-200">
+      {/* Barra de cima (só celular) */}
+      <header className="lg:hidden print:hidden sticky top-0 z-40 flex items-center justify-between h-14 px-3 bg-secondary dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <button
+          className="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+          onClick={() => setIsMobileMenuOpen(true)}
+          aria-label="Abrir menu"
+        >
+          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
+        </button>
+        <Link to="/" className="flex items-center gap-2">
+          <img src={SITE_LOGO_CUSTOM || "/logo.png"} alt="Zilinski" className="w-8 h-8 object-contain rounded" />
+          <span className="font-black text-lg tracking-tight text-gray-900 dark:text-white">Zilinski</span>
+        </Link>
+        {user?.photoURL ? <img src={user.photoURL} alt="Usuário" className="w-8 h-8 rounded-full border border-gray-300" /> : <span className="w-8" />}
+      </header>
 
-              {/* User Login/Logout */}
-              <div className="flex items-center gap-3 ml-4">
-                {user ? (
-                  <div className="flex items-center gap-2">
-                    <img src={user.photoURL || ''} alt="User" className="w-8 h-8 rounded-full border border-gray-300" />
-                    <button onClick={logout} className="text-xs font-bold text-gray-500 hover:text-red-500 transition-colors">
-                      Sair
-                    </button>
-                  </div>
-                ) : (
-                  <button onClick={login} className="bg-highlight text-white text-xs font-bold px-3 py-1.5 rounded hover:bg-yellow-600 transition-colors">
-                    Fazer Login
-                  </button>
-                )}
-              </div>
+      {/* Fundo escuro do menu no celular */}
+      {isMobileMenuOpen && (
+        <div className="lg:hidden print:hidden fixed inset-0 z-40 bg-black/40" onClick={() => setIsMobileMenuOpen(false)} />
+      )}
 
-              {/* Theme Toggle Button */}
-              <button 
-                onClick={toggleTheme}
-                className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-yellow-400 transition-colors focus:outline-none focus:ring-2 focus:ring-highlight"
-                title={isDark ? "Mudar para modo claro" : "Mudar para modo escuro"}
-              >
-                {isDark ? (
-                  /* Sun Icon */
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                  </svg>
-                ) : (
-                  /* Moon Icon */
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                  </svg>
-                )}
-              </button>
-              {/* Mobile Menu Button */}
-              <button 
-                className="md:hidden p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              >
-                <span className="sr-only">Open main menu</span>
-                {isMobileMenuOpen ? (
-                  <svg className="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                ) : (
-                  <svg className="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-                  </svg>
-                )}
-              </button>
+      {/* Menu lateral */}
+      <aside
+        className={`print:hidden fixed inset-y-0 left-0 z-50 w-64 flex flex-col bg-secondary dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-transform duration-200 lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}
+      >
+        <div className="flex items-center justify-between px-4 py-4 border-b border-gray-100 dark:border-gray-700">
+          <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 group">
+            <div className="w-12 h-12 flex items-center justify-center transition-transform group-hover:scale-105">
+              <img
+                src={SITE_LOGO_CUSTOM || "/logo.png"}
+                alt="Zilinski"
+                className="w-full h-full object-contain rounded"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                }}
+              />
+              <svg viewBox="0 0 100 100" className="w-full h-full text-black dark:text-white hidden" fill="currentColor">
+                <path d="M50 20 C 55 15, 65 10, 75 15 C 80 18, 85 25, 80 35 C 90 30, 95 35, 90 45 C 95 45, 95 55, 85 60 C 80 62, 75 60, 70 55 L 75 80 L 55 75 L 50 90 L 45 75 L 25 80 L 30 55 C 25 60, 20 62, 15 60 C 5 55, 5 45, 10 45 C 5 35, 10 30, 20 35 C 15 25, 20 18, 25 15 C 35 10, 45 15, 50 20 Z" />
+              </svg>
             </div>
-          </div>
+            <div className="flex flex-col">
+              <span className="font-black text-2xl tracking-tighter text-gray-900 dark:text-white leading-none">Zilinski</span>
+              <span className="text-[10px] text-highlight tracking-[0.3em] uppercase font-bold mt-1">Escadas</span>
+            </div>
+          </Link>
+          <button
+            className="lg:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700"
+            onClick={() => setIsMobileMenuOpen(false)}
+            aria-label="Fechar menu"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
         </div>
 
-        {/* Mobile Menu Dropdown */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden bg-secondary dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
-            <div className="px-2 pt-2 pb-3 space-y-1">
-              <Link 
-                to="/" 
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={`${isActive('/') ? 'bg-gray-200 dark:bg-gray-700 text-highlight font-bold' : 'text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'} block px-3 py-2 rounded-md text-base font-medium`}
-              >Calculadoras</Link>
-              
-              
-              <Link 
-                to="/contrato" 
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={`${isActive('/contrato') ? 'bg-gray-200 dark:bg-gray-700 text-highlight font-bold' : 'text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'} block px-3 py-2 rounded-md text-base font-medium`}
-              >
-                Gerar Contrato
-              </Link>
-              <Link 
-                to="/contratos" 
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={`${isActive('/contratos') ? 'bg-gray-200 dark:bg-gray-700 text-highlight font-bold' : 'text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'} block px-3 py-2 rounded-md text-base font-medium`}
-              >
-                Meus Contratos
-              </Link>
-              <Link 
-                to="/fila" 
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={`${isActive('/fila') ? 'bg-gray-200 dark:bg-gray-700 text-highlight font-bold' : 'text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'} block px-3 py-2 rounded-md text-base font-medium`}
-              >
-                Fila de Produção
-              </Link>
-              <Link 
-                to="/compras" 
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={`${isActive('/compras') ? 'bg-gray-200 dark:bg-gray-700 text-highlight font-bold' : 'text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'} block px-3 py-2 rounded-md text-base font-medium`}
-              >
-                📦 Compras
-              </Link>
-              <Link 
-                to="/transportadoras" 
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={`${isActive('/transportadoras') ? 'bg-gray-200 dark:bg-gray-700 text-highlight font-bold' : 'text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'} block px-3 py-2 rounded-md text-base font-medium`}
-              >
-                🚚 Fretes
-              </Link>
-              <Link 
-                to="/tabela-entregas" 
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={`${isActive('/tabela-entregas') ? 'bg-gray-200 dark:bg-gray-700 text-highlight font-bold' : 'text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'} block px-3 py-2 rounded-md text-base font-medium`}
-              >
-                🚚 Tabela de Entregas
-              </Link>
-              <Link 
-                to="/recibo-pagamento" 
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={`${isActive('/recibo-pagamento') ? 'bg-gray-200 dark:bg-gray-700 text-highlight font-bold' : 'text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'} block px-3 py-2 rounded-md text-base font-medium`}
-              >
-                Recibo Pagamento
-              </Link>
-              <Link 
-                to="/recibo-visita" 
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={`${isActive('/recibo-visita') ? 'bg-gray-200 dark:bg-gray-700 text-highlight font-bold' : 'text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'} block px-3 py-2 rounded-md text-base font-medium`}
-              >
-                Recibo Visita
-              </Link>
-              <Link 
-                to="/recibo-instalacao" 
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={`${isActive('/recibo-instalacao') ? 'bg-gray-200 dark:bg-gray-700 text-highlight font-bold' : 'text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'} block px-3 py-2 rounded-md text-base font-medium`}
-              >
-                Recibo Instalação
-              </Link>
-              <Link 
-                to="/salvos" 
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={`${isActive('/salvos') ? 'bg-gray-200 dark:bg-gray-700 text-highlight font-bold' : 'text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'} block px-3 py-2 rounded-md text-base font-medium`}
-              >
-                Orçamentos Salvos
-              </Link>
-              <Link 
-                to="/custos" 
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={`${isActive('/custos') ? 'bg-gray-200 dark:bg-gray-700 text-highlight font-bold' : 'text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'} block px-3 py-2 rounded-md text-base font-medium`}
-              >
-                💰 Custos
-              </Link>
+        <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-1">
+          {MENU.map((group) => (
+            <div key={group.title || 'inicio'} className={group.title ? 'pt-3' : ''}>
+              {group.title && (
+                <div className="px-3 pb-1 text-[11px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">{group.title}</div>
+              )}
+              <div className="space-y-0.5">{group.items.map(renderItem)}</div>
             </div>
-          </div>
-        )}
-      </nav>
+          ))}
+        </nav>
 
-      <main className="flex-grow">
-        <Outlet />
-      </main>
+        <div className="flex items-center justify-between gap-2 px-3 py-3 border-t border-gray-200 dark:border-gray-700">
+          {user ? (
+            <div className="flex items-center gap-2 min-w-0">
+              <img src={user.photoURL || ''} alt="Usuário" className="w-8 h-8 rounded-full border border-gray-300 shrink-0" />
+              <button onClick={logout} className="text-sm font-bold text-gray-500 hover:text-red-500 transition-colors">
+                Sair
+              </button>
+            </div>
+          ) : (
+            <button onClick={login} className="bg-highlight text-white text-xs font-bold px-3 py-1.5 rounded hover:bg-yellow-600 transition-colors">
+              Fazer Login
+            </button>
+          )}
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-yellow-400 transition-colors focus:outline-none focus:ring-2 focus:ring-highlight"
+            title={isDark ? "Mudar para modo claro" : "Mudar para modo escuro"}
+          >
+            {isDark ? (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              </svg>
+            )}
+          </button>
+        </div>
+      </aside>
 
-      <footer className="bg-white dark:bg-gray-800 text-center py-8 border-t border-gray-200 dark:border-gray-700 mt-auto">
-        <div className="max-w-7xl mx-auto px-4">
-            <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">Zilinski Escadas</h3>
-            <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">Av. Maria Luiza Americano 1954, São Paulo – SP</p>
+      <div className="flex-1 min-w-0 flex flex-col min-h-screen">
+        <main className="flex-grow">
+          <Outlet />
+        </main>
+
+        <footer className="bg-white dark:bg-gray-800 text-center py-6 border-t border-gray-200 dark:border-gray-700 mt-auto">
+          <div className="max-w-7xl mx-auto px-4">
+            <h3 className="text-lg font-bold mb-1 text-gray-900 dark:text-white">Zilinski Escadas</h3>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mb-2">Av. Maria Luiza Americano 1954, São Paulo – SP</p>
             <p className="text-gray-400 dark:text-gray-500 text-xs">
-            &copy; {new Date().getFullYear()} Zilinski Escadas. Todos os direitos reservados.
+              &copy; {new Date().getFullYear()} Zilinski Escadas. Todos os direitos reservados.
             </p>
-        </div>
-      </footer>
+          </div>
+        </footer>
+      </div>
     </div>
   );
 };
 
 export default Layout;
-
