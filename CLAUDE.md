@@ -25,9 +25,10 @@ Por isso estas regras valem em toda sessão:
 |---|---|
 | Repositório | github.com/gabrielhweb/calculadora-de-escadas (branch `main`) |
 | Pasta local (empresa) | `C:\Users\sosob\Desktop\Zilinski\calculadora escada` |
+| Pasta local (casa) | `C:\Users\Micro\Projetos\calculadora-escadas` |
 | Hospedagem do site | Vercel (`vercel.json` com rewrite SPA; funções em `api/`) — URL de produção: ⚠️ não anotada ainda |
 | Banco principal | Firebase Firestore, projeto `gen-lang-client-0064759207` (config em `firebase-applet-config.json`, regras em `firestore.rules`) |
-| Coleções principais | `contracts`, `production_queue`, `saved_quotes`, `transportadoras` |
+| Coleções principais | `contracts`, `production_queue`, `saved_quotes`, `transportadoras`; visitas em `settings/painel_visitas` |
 | Login | Google (Firebase Auth, popup). Não funciona em `localhost` (domínio não autorizado) |
 | Banco secundário | Supabase (`src/services/supabaseClient.ts`) e Postgres via `server.js` (`DATABASE_URL`) |
 | IA | Gemini (`api/gemini.ts`, `API_KEY`) |
@@ -42,6 +43,9 @@ Por isso estas regras valem em toda sessão:
 
 # ⏳ Pendências do usuário
 
+- [ ] Revogar no GitHub o token `ghp_...` antigo que estava na URL do remote (máquina de casa).
+- [ ] Testar o Painel de Visitas com dois logins: visita cadastrada num tem que aparecer no outro.
+- [ ] Revisar a conta do preço dos tubos do guarda-corpo (deixado pra depois).
 - [ ] Mandar fotos/vídeos de perto da escada (viga, degrau, dobradiça, pé do poste do corrimão, chapas de fixação) ou logar no Instagram no navegador do app, pra deixar o 3D idêntico.
 - [ ] Informar o peso real da escada do Marco Peruchi pra conferir o peso calculado (deu 205 kg).
 - [ ] Conferir no site: contrato da Andréia baixado em Meus Contratos agora sai com os degraus certos.

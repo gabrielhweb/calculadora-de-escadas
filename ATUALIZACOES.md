@@ -4,6 +4,21 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-10-29 — [casa] — Guarda-corpo: comprimento certo no orçamento e desenho do PDF
+- **O que mudou:** guarda-corpo reto somava os campos ocultos de lado 2 e 3 (6 m saía como 8 m); nova função `getGuardrailItemLengthCm` conta só os lados do formato. No PDF do cliente: "Guarda-corpo de 6,00m de comprimento x 90cm de altura" e "Comprimento Total: X m" (saiu "metros lineares"). Desenho da proposta: espessura dos tubos proporcional (peças longas viravam bloco preto), peças ≥ 2,50 m usam a largura toda e guarda-corpo em L/U desenha todos os lados.
+- **Onde:** `src/utils.ts`, `src/utils/productionPdfGenerator.ts`, `GuardrailCalculator`, `ProposalOptions`, `ProposalDocument` (commit 2169146). Já foi pro `main`.
+- **Pendente:** revisar a conta do preço dos tubos do guarda-corpo (usuário pediu pra deixar pra depois).
+
+### 2026-10-29 — [casa] — Painel de Visitas salvando no Firestore
+- **O que mudou:** as visitas ficavam só no `localStorage` do navegador (nada ia pro banco e cada pessoa via só a sua lista). Agora ficam no documento `settings/painel_visitas` (campo `visitas`), com `onSnapshot` em tempo real e gravação por transação. Visitas antigas do navegador são migradas uma vez ao abrir o painel.
+- **Onde:** `src/pages/VisitReceipt.tsx` (commit 246410a). Já foi pro `main`.
+- **Pendente:** usuário testar com dois logins diferentes. Quem não está em `admins` não vê a lista (mesma regra dos contratos).
+
+### 2026-10-29 — [casa] — Limpeza de scripts antigos e token do remote
+- **O que mudou:** removidos ~160 arquivos soltos da raiz (`patch*.cjs`, `fix*.cjs`, `check*`, `dump*`, logs) e os submódulos vazios de backup; `desktop.ini` no `.gitignore`. A URL do `origin` tinha um token do GitHub e foi trocada pela URL sem token.
+- **Onde:** raiz do repositório (commit 0003683).
+- **Pendente:** usuário revogar o token antigo no GitHub. `scripts/setup_postgres.cjs` (só na máquina de casa, não versionado) tem a senha do Neon escrita no código.
+
 ### 2026-10-30 — [empresa] — ⏳ PARA FAZER DEPOIS: tirar o visual de "quadrados com ponta arredondada"
 - **O que o usuário falou:** as telas ainda parecem as antigas, com os quadrados de ponta arredondada, e ele não gosta nem um pouco desse estilo. Quer mudar isso depois.
 - **Onde está esse estilo hoje:** `rounded` (408 usos), `rounded-lg` (165), `rounded-xl` (59, alguns criados no commit bafb68b), `rounded-md` (52) em `src/pages` e `src/components`. Os cartões/caixas com borda + fundo + canto arredondado (ex.: caixa de Adendo, cartão de Medidas, cartões de opção da Calculadora, colunas de Meus Contratos) são o que mais dá essa cara.
