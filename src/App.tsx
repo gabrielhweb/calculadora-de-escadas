@@ -23,11 +23,9 @@ import { AuthProvider } from './components/AuthProvider';
 import { useEffect } from 'react';
 import { getDocFromServer, doc } from 'firebase/firestore';
 import { db } from './firebase';
-import { removeDuplicates } from './removeDuplicates';
 
 function App() {
   useEffect(() => {
-    removeDuplicates();
     async function testConnection() {
       try {
         await getDocFromServer(doc(db, 'test', 'connection'));
