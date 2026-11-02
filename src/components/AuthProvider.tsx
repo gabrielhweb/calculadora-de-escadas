@@ -2,12 +2,9 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User } from 'firebase/auth';
 import { auth, onAuthStateChanged, signInWithPopup, googleProvider, signOut } from '../firebase';
 
-// Lista de e-mails autorizados
-export const AUTHORIZED_EMAILS = [
-  'zilinskidistribuidora@gmail.com',
-  'somarcilioz@gmail.com',
-  'gaguisilva15@gmail.com'
-];
+// Lista de e-mails autorizados: fica em api/_auth.ts, a mesma que as funções da Vercel conferem
+import { AUTHORIZED_EMAILS } from '../../api/_auth';
+export { AUTHORIZED_EMAILS };
 
 interface AuthContextType {
   user: User | null;

@@ -1,3 +1,4 @@
+import { auth } from './firebase';
 
 
 
@@ -89,10 +90,12 @@ export const getRouteInfoFromGemini = async (origin: string, destination: string
       console.warn("Localização ignorada", e); 
   }
 
+  const token = await auth.currentUser?.getIdToken();
   const response = await fetch('/api/gemini', {
       method: 'POST',
       headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({
           origin,

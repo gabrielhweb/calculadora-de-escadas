@@ -1,4 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
+import { requireAuthorizedUser } from './_auth.js';
 
 const extractNumbers = (text: string) => {
     let d = 0, t = 0;
@@ -28,6 +29,8 @@ export default async function handler(req: any, res: any) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
+
+    if (!(await requireAuthorizedUser(req, res))) return;
 
     const { origin, destination, latitude, longitude } = req.body;
 

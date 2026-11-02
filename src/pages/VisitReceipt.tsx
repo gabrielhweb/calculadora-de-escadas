@@ -188,23 +188,15 @@ export default function VisitReceipt() {
                 })),
             };
 
-            let response = await fetch('/api/calcular-rota-diaria', {
+            const token = await auth.currentUser?.getIdToken();
+            const response = await fetch('/api/calcular-rota-diaria', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify(payload),
             });
-
-            if (response.status === 404) {
-                response = await fetch('/calcular-rota-diaria', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(payload),
-                });
-            }
 
             if (!response.ok) {
                 const errData = await response.json().catch(() => ({}));

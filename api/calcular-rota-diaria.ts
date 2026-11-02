@@ -1,4 +1,5 @@
 import pg from 'pg';
+import { requireAuthorizedUser } from './_auth.js';
 
 const { Pool } = pg;
 
@@ -18,12 +19,19 @@ export default async function handler(req: any, res: any) {
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
 
+    if (!(await requireAuthorizedUser(req, res))) return;
+
     const { visitas } = req.body;
 
     if (!visitas || !Array.isArray(visitas) || visitas.length === 0) {
         return res.status(400).json({
             error: 'O payload deve conter um array "visitas" não vazio com id, latitude e longitude.'
         });
+    }
+
+    // A Google Routes aceita no máximo 25 paradas intermediárias
+    if (visitas.length > 27) {
+        return res.status(400).json({ error: 'Máximo de 27 visitas por rota.' });
     }
 
     if (visitas.length === 1) {
@@ -48,6 +56,8 @@ export default async function handler(req: any, res: any) {
 
     let usoGoogle = 0;
     let usoMapbox = 0;
+    // Só usa as APIs pagas quando conseguiu ler a cota; sem cota cai direto no OSRM (gratuito)
+    let cotaLida = false;
     let client: any = null;
 
     const dbPool = getPool();
@@ -74,6 +84,7 @@ export default async function handler(req: any, res: any) {
             if (cotaQuery.rows.length > 0) {
                 usoGoogle = cotaQuery.rows[0].uso_google;
                 usoMapbox = cotaQuery.rows[0].uso_mapbox;
+                cotaLida = true;
             }
         } catch (dbErr) {
             console.warn('[ROTA] Aviso ao ler cotas do PostgreSQL:', dbErr);
@@ -85,7 +96,7 @@ export default async function handler(req: any, res: any) {
 
     try {
         // PRIORIDADE 1: Google Maps Routes API
-        if (usoGoogle < 39500 && googleKey) {
+        if (cotaLida && usoGoogle < 39500 && googleKey) {
             try {
                 const origin = {
                     location: {
@@ -165,7 +176,7 @@ export default async function handler(req: any, res: any) {
         }
 
         // PRIORIDADE 2: Mapbox Optimization API
-        if (usoMapbox < 99500 && mapboxToken) {
+        if (cotaLida && usoMapbox < 99500 && mapboxToken) {
             try {
                 const coordinatesString = visitas.map(v => `${v.longitude},${v.latitude}`).join(';');
                 const mapboxUrl = `https://api.mapbox.com/optimized-trips/v1/mapbox/driving-traffic/${coordinatesString}?source=first&destination=last&roundtrip=false&access_token=${mapboxToken}`;
