@@ -28,7 +28,7 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         <div style={{ padding: "20px", background: "white", color: "red", whiteSpace: "pre-wrap", fontFamily: "monospace", zIndex: 99999, position: "relative" }}>
-          <h1>Something went wrong.</h1>
+          <h1>Algo deu errado. Recarregue a página e, se continuar, mande um print deste erro.</h1>
           <p>{this.state.errorStr}</p>
         </div>
       );
