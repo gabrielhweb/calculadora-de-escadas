@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, onSnapshot, doc, updateDoc, deleteDoc, setDoc, getDoc, getDocs, addDoc } from 'firebase/firestore';
-import { FABIO_CHALITA_CONTRACT_DATA } from '../data/fabioChalitaContract';
-import { MARIA_HELENA_CONTRACT_DATA } from '../data/mariaHelenaContract';
 import { db } from '../firebase';
 import { ProductionOrder, SavedQuote, SavedContract, BoardStage, CustomCost } from '../types';
 import { formatCurrencyBRL } from '../utils';
@@ -367,64 +365,6 @@ export default function ProductionQueue() {
                     val = calculatedBase;
                 }
 
-                // Proteção para Alexandre Bergamo e contratos retroativos conhecidos
-                if (normalizeStr(item.title).includes('alexandre bergamo')) {
-                    if (val <= 230 || val === 0) {
-                        val = 7215.25;
-                    }
-                    if (!pcd.steps || pcd.steps === 0) {
-                        pcd.steps = 13;
-                        pcd.stepHeight = 24.43;
-                        pcd.treadDepth = 16;
-                        pcd.stairWidth = 52;
-                        pcd.totalHeight = 342;
-                        pcd.totalLength = 215;
-                        pcd.wallFixation = 'frontal';
-                        pcd.treadMaterial = 'metal';
-                    }
-                    // Se o documento na fila de produção estiver com valor de apenas frete (228.80), corrige no Firestore
-                    if (item.source === 'queue') {
-                        const rawDown = Number(item.originalData?.downPayment || 0);
-                        const rawBal = Number(item.originalData?.balanceDue || 0);
-                        if (rawDown + rawBal <= 230) {
-                            updateDoc(doc(db, 'production_queue', item.id), {
-                                downPayment: 3607.63,
-                                balanceDue: 3607.62
-                            }).catch(() => {});
-                        }
-                    }
-                }
-                // Proteção para Fabio Chalita
-                if (normalizeStr(item.title).includes('fabio chalita') || normalizeStr(item.title).includes('chalita')) {
-                    if (val <= 230 || val === 0) {
-                        val = 7463.25;
-                    }
-                    if (!pcd.steps || pcd.steps === 0) {
-                        pcd.steps = 12;
-                        pcd.structureSteps = 11;
-                        pcd.stepHeight = 23.77;
-                        pcd.treadDepth = 12.64;
-                        pcd.stairWidth = 60;
-                        pcd.totalHeight = 309;
-                        pcd.totalLength = 190;
-                        pcd.wallFixation = 'right';
-                        pcd.treadMaterial = 'wood';
-                        pcd.woodType = 'muiracatiara';
-                    }
-                    if (item.source === 'queue') {
-                        const rawDown = Number(item.originalData?.downPayment || 0);
-                        const rawBal = Number(item.originalData?.balanceDue || 0);
-                        if (rawDown + rawBal <= 230) {
-                            updateDoc(doc(db, 'production_queue', item.id), {
-                                downPayment: 3731.63,
-                                balanceDue: 3731.62,
-                                value: 7463.25,
-                                baseTotalValue: 7463.25
-                            }).catch(() => {});
-                        }
-                    }
-                }
-
                 item.value = val;
                 
                 const getProp = (parsed: any, key: string) => {
@@ -687,23 +627,11 @@ export default function ProductionQueue() {
         }, (err) => handleFirestoreError(err, OperationType.LIST, 'contracts'));
 
         const unSubQueue = onSnapshot(query(collection(db, 'production_queue')), async (snapshot) => {
-            let foundFabioInQueue = false;
-            let foundMariaHelenaInQueue = false;
             loadedQueue = [];
             snapshot.forEach(docSnap => {
                 const data = docSnap.data() as ProductionOrder;
                 let stage = data.boardStage || 'corte';
                 if (data.status === 'completed') stage = 'concluido';
-                const cName = (data.clientName || '').toLowerCase();
-                if (cName.includes('fabio chalita') || cName.includes('chalita')) {
-                    foundFabioInQueue = true;
-                }
-
-                if (cName.includes('maria helena') || cName.includes('guastamacchia')) {
-                    foundMariaHelenaInQueue = true;
-                }
-
-
                 loadedQueue.push({
                     id: docSnap.id,
                     title: data.clientName,
@@ -718,161 +646,6 @@ export default function ProductionQueue() {
                     createdAt: data.createdAt
                 });
             });
-            if (!foundFabioInQueue) {
-                try {
-                    const contractsSnap = await getDocs(collection(db, 'contracts'));
-                    let fabioContract = contractsSnap.docs.find(d => {
-                        const name = (d.data().clientName || '').toLowerCase();
-                        return name.includes('fabio chalita') || name.includes('chalita');
-                    });
-                    let cId = fabioContract?.id;
-                    if (!cId) {
-                        const newFabioContract: any = {
-                            clientName: "Fabio Chalita M A Samra",
-                            totalValue: 7463.25,
-                            baseTotalValue: 7463.25,
-                            interestValue: 0,
-                            downPayment: 3731.63,
-                            balanceDue: 3731.62,
-                            status: 'producao',
-                            deliveryStatus: 'em_producao',
-                            paymentStatus: 'a_receber',
-                            customAddress: "Rua Ypês, 92 - Salto de Baixo, Extrema - MG, 37647-364",
-                            location: "Salto de Baixo - Extrema/MG",
-                            totalSteps: "12",
-                            structureSteps: "11",
-                            stepHeight: "23.77",
-                            treadDepth: "12.64",
-                            stairWidth: "60",
-                            wallFixation: "right",
-                            treadMaterial: "wood",
-                            woodType: "muiracatiara",
-                            createdAt: "2026-10-16T12:32:19.000Z",
-                            contractData: JSON.stringify(FABIO_CHALITA_CONTRACT_DATA),
-                            contractDataString: JSON.stringify(FABIO_CHALITA_CONTRACT_DATA),
-                            userId: user?.uid || 'system'
-                        };
-                        const cRef = await addDoc(collection(db, 'contracts'), newFabioContract);
-                        cId = cRef.id;
-                    }
-                    const newOrderId = Date.now().toString() + "_queue_fabio";
-                    const newOrder: any = {
-                        id: newOrderId,
-                        contractId: cId,
-                        createdAt: "2026-10-16T12:32:19.000Z",
-                        clientName: "Fabio Chalita M A Samra",
-                        deliveryDate: "",
-                        downPayment: 3731.63,
-                        balanceDue: 3731.62,
-                        value: 7463.25,
-                        baseTotalValue: 7463.25,
-                        interestValue: 0,
-                        status: "in_queue",
-                        boardStage: "corte",
-                        location: "Salto de Baixo - Extrema/MG",
-                        profit: 4800,
-                        totalCost: 2663.25,
-                        downPaymentStatus: "paid",
-                        balanceStatus: "pending",
-                        paymentMethod: "pix",
-                        pixTiming: "entry",
-                    };
-                    await setDoc(doc(db, 'production_queue', newOrderId), newOrder);
-                    loadedQueue.push({
-                        id: newOrderId,
-                        title: "Fabio Chalita M A Samra",
-                        subtitle: "Salto de Baixo - Extrema/MG",
-                        stage: "corte",
-                        value: 7463.25,
-                        source: "queue",
-                        profit: 4800,
-                        cost: 2663.25,
-                        customCosts: [],
-                        originalData: newOrder,
-                        createdAt: "2026-10-16T12:32:19.000Z"
-                    });
-                } catch(e) {
-                    console.error("Erro ao auto-restaurar Fabio Chalita na fila:", e);
-                }
-            }
-
-            if (!foundMariaHelenaInQueue) {
-                try {
-                    const contractsSnap = await getDocs(collection(db, 'contracts'));
-                    let mariaContract = contractsSnap.docs.find(d => {
-                        const name = (d.data().clientName || '').toLowerCase();
-                        return name.includes('maria helena') || name.includes('guastamacchia');
-                    });
-                    let cId = mariaContract?.id;
-                    if (!cId) {
-                        const newMariaContract: any = {
-                            clientName: "Maria Helena Jara Guastamacchia",
-                            totalValue: 7251.35,
-                            baseTotalValue: 7251.35,
-                            interestValue: 0,
-                            downPayment: 3625.68,
-                            balanceDue: 3625.67,
-                            status: 'producao',
-                            deliveryStatus: 'em_producao',
-                            paymentStatus: 'a_receber',
-                            customAddress: "Rua das Gilias, 389 - Vila Bela, São Paulo - SP, 03201-070",
-                            location: "Vila Bela - São Paulo/SP",
-                            totalSteps: "13",
-                            structureSteps: "13",
-                            stepHeight: "19.57",
-                            treadDepth: "20.00",
-                            stairWidth: "70",
-                            wallFixation: "left",
-                            treadMaterial: "metal",
-                            createdAt: "2026-10-21T11:44:04.000Z",
-                            contractData: JSON.stringify(MARIA_HELENA_CONTRACT_DATA),
-                            contractDataString: JSON.stringify(MARIA_HELENA_CONTRACT_DATA),
-                            userId: user?.uid || 'system'
-                        };
-                        const cRef = await addDoc(collection(db, 'contracts'), newMariaContract);
-                        cId = cRef.id;
-                    }
-                    const newOrderId = Date.now().toString() + "_queue_maria_helena";
-                    const newOrder: any = {
-                        id: newOrderId,
-                        contractId: cId,
-                        createdAt: "2026-10-21T11:44:04.000Z",
-                        clientName: "Maria Helena Jara Guastamacchia",
-                        deliveryDate: "",
-                        downPayment: 3625.68,
-                        balanceDue: 3625.67,
-                        value: 7251.35,
-                        baseTotalValue: 7251.35,
-                        interestValue: 0,
-                        status: "in_queue",
-                        boardStage: "corte",
-                        location: "Vila Bela - São Paulo/SP",
-                        profit: 4500,
-                        totalCost: 2751.35,
-                        downPaymentStatus: "paid",
-                        balanceStatus: "pending",
-                        paymentMethod: "pix",
-                        pixTiming: "entry",
-                    };
-                    await setDoc(doc(db, 'production_queue', newOrderId), newOrder);
-                    loadedQueue.push({
-                        id: newOrderId,
-                        title: "Maria Helena Jara Guastamacchia",
-                        subtitle: "Vila Bela - São Paulo/SP",
-                        stage: "corte",
-                        value: 7251.35,
-                        source: 'queue',
-                        profit: 4500,
-                        cost: 2751.35,
-                        customCosts: [],
-                        originalData: newOrder,
-                        createdAt: "2026-10-21T11:44:04.000Z"
-                    });
-                } catch(e) {
-                    console.error("Erro ao auto-restaurar Maria Helena na fila:", e);
-                }
-            }
-
             updateItems();
         }, (err) => handleFirestoreError(err, OperationType.LIST, 'production_queue'));
 
