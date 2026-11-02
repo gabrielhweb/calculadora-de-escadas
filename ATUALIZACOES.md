@@ -4,6 +4,11 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-02 — [casa] — Cartão "Opção" da Calculadora não encavala mais em tela menor
+- **O que mudou:** com o menu lateral novo, em telas de ~1024 px o cartão de opção ficava estreito e as medidas se sobrepunham ("Alt/DegrPisanteLargura"); o botão "Baixar Desenhos" quebrava em 4 linhas. A grade de medidas agora segue a largura do cartão (`grid-cols-[repeat(auto-fit,minmax(7rem,1fr))]`) em vez da largura da tela, e os cabeçalhos quebram linha com `flex-wrap`. Conferido no navegador em 1024 px e 1366 px. Só classes CSS, nenhuma função mudou.
+- **Onde:** `src/components/ProposalOptions.tsx`.
+- **Pendente:** nada. Obs.: pra ver local criei uma config do Vite temporária fora do repo (o `vite.config.ts` continua apagado). No modo claro o título "CENTRAL DE CALCULADORAS" fica branco em fundo cinza (já era assim antes do visual novo).
+
 ### 2026-10-29 — [casa] — Guarda-corpo: comprimento certo no orçamento e desenho do PDF
 - **O que mudou:** guarda-corpo reto somava os campos ocultos de lado 2 e 3 (6 m saía como 8 m); nova função `getGuardrailItemLengthCm` conta só os lados do formato. No PDF do cliente: "Guarda-corpo de 6,00m de comprimento x 90cm de altura" e "Comprimento Total: X m" (saiu "metros lineares"). Desenho da proposta: espessura dos tubos proporcional (peças longas viravam bloco preto), peças ≥ 2,50 m usam a largura toda e guarda-corpo em L/U desenha todos os lados.
 - **Onde:** `src/utils.ts`, `src/utils/productionPdfGenerator.ts`, `GuardrailCalculator`, `ProposalOptions`, `ProposalDocument` (commit 2169146). Já foi pro `main`.

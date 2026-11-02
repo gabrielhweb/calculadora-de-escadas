@@ -952,14 +952,14 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
 
   return (
     <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 relative">
-      <div className="flex justify-between items-center mb-6 border-b-2 border-highlight pb-4">
+      <div className="flex flex-wrap justify-between items-center gap-3 mb-6 border-b-2 border-highlight pb-4">
           <h2 className="text-2xl font-black text-gray-900 dark:text-white">Opções Calculadas</h2>
           
           <div className="flex gap-2">
               <button 
                 onClick={startBatchExport}
                 disabled={countSelectedExports() === 0}
-                className={`text-sm font-bold px-4 py-2 rounded shadow transition-all flex items-center gap-2 ${countSelectedExports() > 0 ? 'bg-amber-600 text-white hover:bg-amber-700' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
+                className={`text-sm font-bold px-4 py-2 rounded shadow transition-all flex items-center gap-2 whitespace-nowrap ${countSelectedExports() > 0 ? 'bg-amber-600 text-white hover:bg-amber-700' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
               >
                   <Icon name="download" /> Baixar Desenhos Selecionados ({countSelectedExports()})
               </button>
@@ -988,7 +988,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                     key={activeOption.optionNumber}
                     className={`p-5 rounded-lg border-2 shadow-sm transition-colors relative bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600 hover:border-highlight`}
                 >
-                    <div className="flex justify-between items-start mb-3 border-b border-gray-200 dark:border-gray-600 pb-2">
+                    <div className="flex flex-wrap justify-between items-start gap-2 mb-3 border-b border-gray-200 dark:border-gray-600 pb-2">
                         <div>
                             <h3 className="text-lg font-black text-gray-900 dark:text-white uppercase flex items-center gap-2">
                                 Opção {activeOption.optionNumber}
@@ -996,7 +996,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                             </h3>
                             <button 
                                 onClick={() => { setSelectedVisualizerOption(originalOption); setVisualizerForcedState(undefined); }}
-                                className="text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 px-2 py-1 rounded mt-1 flex items-center gap-1 shadow-sm transition-all"
+                                className="text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 px-2 py-1 rounded mt-1 flex items-center gap-1 whitespace-nowrap shadow-sm transition-all"
                             >
                                 <Icon name="eye" /> Abrir Visualizador 3D
                             </button>
@@ -1101,7 +1101,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                     </div>
                     
                     {(!inputData?.quoteType || inputData.quoteType === 'stair') && (
-                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 text-sm text-gray-700 dark:text-gray-300 font-medium mb-4 pl-2">
+                        <div className="grid grid-cols-[repeat(auto-fit,minmax(7rem,1fr))] gap-x-4 gap-y-2 text-sm text-gray-700 dark:text-gray-300 font-medium mb-4 pl-2">
                             <p><strong className="text-gray-900 dark:text-white">Total Peças:</strong> {activeOption.steps} un</p>
                             <p><strong className="text-gray-900 dark:text-white">Alt/Degrau:</strong> {activeOption.stepHeight.toFixed(2)} cm</p>
                             <p><strong className="text-gray-900 dark:text-white">Pisante:</strong> {activeOption.treadDepth.toFixed(2)} cm</p>
@@ -1110,14 +1110,14 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                         </div>
                     )}
                     {inputData?.quoteType === 'landing' && (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm text-gray-700 dark:text-gray-300 font-medium mb-4 pl-2">
+                        <div className="grid grid-cols-[repeat(auto-fit,minmax(7rem,1fr))] gap-x-4 gap-y-2 text-sm text-gray-700 dark:text-gray-300 font-medium mb-4 pl-2">
                             <p><strong className="text-gray-900 dark:text-white">Qtd. Patamares:</strong> {inputData?.landings?.length || 1} un</p>
                             <p><strong className="text-gray-900 dark:text-white">Material:</strong> {inputData?.treadMaterial === 'wood' ? inputData.woodType || 'Madeira' : 'Aço/Ferro'}</p>
                             <p><strong className="text-gray-900 dark:text-white">Área Total Estimada:</strong> {((inputData?.landings?.reduce((sum, l) => sum + (Number(l.width || 0) * Number(l.length || 0)), 0) || 0) / 10000).toFixed(2)} m²</p>
                         </div>
                     )}
                     {inputData?.quoteType === 'guardrail' && (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm text-gray-700 dark:text-gray-300 font-medium mb-4 pl-2">
+                        <div className="grid grid-cols-[repeat(auto-fit,minmax(7rem,1fr))] gap-x-4 gap-y-2 text-sm text-gray-700 dark:text-gray-300 font-medium mb-4 pl-2">
                             <p><strong className="text-gray-900 dark:text-white">Qtd. Sessões:</strong> {inputData?.standaloneGuardrails?.length || 1} un</p>
                             <p><strong className="text-gray-900 dark:text-white">Comp. Total:</strong> {(inputData?.standaloneGuardrails?.reduce((sum, g) => sum + getGuardrailItemLengthCm(g), 0) / 100 || 0).toFixed(2)} m</p>
                             <p><strong className="text-gray-900 dark:text-white">Material:</strong> {inputData?.standaloneGuardrails?.[0]?.material === 'glass' ? 'Vidro' : 'Aço/Ferro'}</p>
