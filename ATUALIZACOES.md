@@ -4,6 +4,17 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-02 — [casa] — Correções 1 a 5 da análise (ANALISE.md)
+- **O que mudou:**
+  1. Saiu o `removeDuplicates()` que rodava ao abrir o site e **apagava** contratos com "Everton"/"Severini" no nome (commit c531384).
+  2. Saíram os remendos que forçavam status/valores e **recriavam** os contratos e cartões da fila de Chalita, Maria Helena e Bergamo; `src/data/` (dados fixos desses clientes) foi apagado (49b4d75). Agora esses contratos se comportam como qualquer outro: dá pra apagar e mudar status.
+  3. Funções da Vercel exigem login com e-mail autorizado: novo `api/_auth.ts` (valida o token **e** confere a lista), usado por `/api/email`, `/api/gemini` e `/api/calcular-rota-diaria`. O site manda o token. A rota aceita no máximo 27 visitas e só usa Google/Mapbox quando conseguiu ler a cota no Postgres (sem banco → OSRM grátis). A lista de e-mails agora fica só em `api/_auth.ts` (o `AuthProvider` importa de lá). (ccf76a9)
+  4. `firebase-admin` removido (não era usado) e `npm audit fix`: 20 → 6 alertas (32bd364).
+  5. Apagados 14 arquivos sem uso (Login antigo com admin/admin, Dashboard, Home, ProjectDetails, TabelaVisitasDia, scripts de correção de banco etc.) e o `ErrorBoundary` passou a envolver o app (aa96160).
+- **Onde:** `src/App.tsx`, `src/pages/ContractsList.tsx`, `src/pages/ProductionQueuePage.tsx`, `api/*`, `src/components/AuthProvider.tsx`, `src/utils.ts`, `src/pages/VisitReceipt.tsx`, `src/index.tsx`, `package.json`.
+- **Conferido:** `tsc` sem erro, build ok, Calculadora/Contratos/Fila/Visitas abrem sem erro no console (local, sem login). A checagem de login das funções foi testada com token ausente e falso (401).
+- **Pendente:** (a) depois de subir, testar logado: frete por IA na Calculadora, "Calcular melhor rota" e envio de e-mail na Fila — as funções usam `import './_auth.js'` e não deu pra testar o deploy da Vercel daqui; (b) se a `DATABASE_URL` não estiver configurada na Vercel, a rota passa a usar sempre o OSRM; (c) 6 alertas do npm só saem com versão major (`firebase` por causa do `@grpc/grpc-js`, que só roda no Node, e `react-router` 6→7); (d) conferir no banco que os contratos de Chalita, Maria Helena e Bergamo estão com status/valores certos (o código não corrige mais sozinho). O `TechnicalBudget` **é usado** (o ANALISE.md estava errado nisso) e ficou.
+
 ### 2026-11-02 — [casa] — Spec Kit e Taskmaster instalados no projeto
 - **O que mudou:** `specify init --here --integration claude` criou `.specify/` (templates, scripts, `memory/constitution.md`) e 10 skills `speckit-*` em `.claude/skills/`. `task-master init` criou `.taskmaster/` (config, templates de PRD), `.mcp.json` (servidor MCP do Taskmaster, chaves só placeholder), `.env.example`, acrescentou um bloco no fim do `CLAUDE.md` (import de `.taskmaster/CLAUDE.md`) e linhas no fim do `.gitignore` (logs, node_modules, .vscode, .idea etc.). Modelos do Taskmaster (main/research/fallback) = `sonnet` via `claude-code`, sem API key paga.
 - **Onde:** raiz do repositório. **Ainda não commitado** — usuário pediu pra não commitar.

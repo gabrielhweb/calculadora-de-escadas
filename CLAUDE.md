@@ -29,7 +29,8 @@ Por isso estas regras valem em toda sessão:
 | Hospedagem do site | Vercel (`vercel.json` com rewrite SPA; funções em `api/`) — URL de produção: ⚠️ não anotada ainda |
 | Banco principal | Firebase Firestore, projeto `gen-lang-client-0064759207` (config em `firebase-applet-config.json`, regras em `firestore.rules`) |
 | Coleções principais | `contracts`, `production_queue`, `saved_quotes`, `transportadoras`; visitas em `settings/painel_visitas` |
-| Login | Google (Firebase Auth, popup). Não funciona em `localhost` (domínio não autorizado) |
+| Login | Google (Firebase Auth, popup). Não funciona em `localhost` (domínio não autorizado). Lista de e-mails autorizados em `api/_auth.ts` (usada pelo site e pelas funções da Vercel); o Firestore também exige o uid na coleção `admins` |
+| Funções da Vercel | `api/email`, `api/gemini`, `api/calcular-rota-diaria` exigem `Authorization: Bearer <token do Firebase>` de e-mail autorizado (`requireAuthorizedUser` em `api/_auth.ts`) |
 | Banco secundário | Supabase (`src/services/supabaseClient.ts`) e Postgres via `server.js` (`DATABASE_URL`) |
 | IA | Gemini (`api/gemini.ts`, `API_KEY`) |
 | Segredos | `.env` na raiz (não versionado). Variáveis usadas: `API_KEY`, `DATABASE_URL`, `SUPABASE_URL`, `SUPABASE_KEY`, `EMAILJS_*`, `GOOGLE_MAPS_API_KEY`, `MAPBOX_ACCESS_TOKEN`, `VITE_FIREBASE_API_KEY` |
@@ -43,6 +44,8 @@ Por isso estas regras valem em toda sessão:
 
 # ⏳ Pendências do usuário
 
+- [ ] Depois de subir pro site: testar logado o frete por IA, o "Calcular melhor rota" e o envio de e-mail da Fila (funções da Vercel agora exigem login).
+- [ ] Conferir no site os contratos de Chalita, Maria Helena e Bergamo (status e valores), que não são mais corrigidos automaticamente pelo código.
 - [ ] Revogar no GitHub o token `ghp_...` antigo que estava na URL do remote (máquina de casa).
 - [ ] Testar o Painel de Visitas com dois logins: visita cadastrada num tem que aparecer no outro.
 - [ ] Revisar a conta do preço dos tubos do guarda-corpo (deixado pra depois).
@@ -75,7 +78,6 @@ src/
   utils/             Geradores de PDF (contrato, ficha técnica, produção, recibos),
                      frete (freightDimensions, freightQuoteText), clientInfo
   services/          Supabase
-  data/              Dados fixos de contratos antigos
 ```
 
 ## Task Master AI Instructions
