@@ -4,6 +4,11 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-02 — [casa] — Spec Kit e Taskmaster instalados no projeto
+- **O que mudou:** `specify init --here --integration claude` criou `.specify/` (templates, scripts, `memory/constitution.md`) e 10 skills `speckit-*` em `.claude/skills/`. `task-master init` criou `.taskmaster/` (config, templates de PRD), `.mcp.json` (servidor MCP do Taskmaster, chaves só placeholder), `.env.example`, acrescentou um bloco no fim do `CLAUDE.md` (import de `.taskmaster/CLAUDE.md`) e linhas no fim do `.gitignore` (logs, node_modules, .vscode, .idea etc.). Modelos do Taskmaster (main/research/fallback) = `sonnet` via `claude-code`, sem API key paga.
+- **Onde:** raiz do repositório. **Ainda não commitado** — usuário pediu pra não commitar.
+- **Pendente:** usuário revisar e decidir o commit. A constituição do Spec Kit (`.specify/memory/constitution.md`) ainda é o modelo vazio.
+
 ### 2026-11-02 — [casa] — Cartão "Opção" da Calculadora não encavala mais em tela menor
 - **O que mudou:** com o menu lateral novo, em telas de ~1024 px o cartão de opção ficava estreito e as medidas se sobrepunham ("Alt/DegrPisanteLargura"); o botão "Baixar Desenhos" quebrava em 4 linhas. A grade de medidas agora segue a largura do cartão (`grid-cols-[repeat(auto-fit,minmax(7rem,1fr))]`) em vez da largura da tela, e os cabeçalhos quebram linha com `flex-wrap`. Conferido no navegador em 1024 px e 1366 px. Só classes CSS, nenhuma função mudou.
 - **Onde:** `src/components/ProposalOptions.tsx`.
