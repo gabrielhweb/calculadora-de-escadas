@@ -28,7 +28,7 @@ Por isso estas regras valem em toda sessão:
 | Pasta local (casa) | `C:\Users\Micro\Projetos\calculadora-escadas` |
 | Hospedagem do site | Vercel (`vercel.json` com rewrite SPA; funções em `api/`) — URL de produção: ⚠️ não anotada ainda |
 | Banco principal | Firebase Firestore, projeto `gen-lang-client-0064759207` (config em `firebase-applet-config.json`, regras em `firestore.rules`) |
-| Coleções principais | `contracts`, `production_queue`, `saved_quotes`, `transportadoras`; visitas em `settings/painel_visitas` |
+| Coleções principais | `contracts`, `production_queue`, `saved_quotes`, `transportadoras`; visitas em `contracts/painel_visitas` (`isVisitPanel: true`; as regras publicadas não liberam `settings`) |
 | Login | Google (Firebase Auth, popup). Não funciona em `localhost` (domínio não autorizado). Lista de e-mails autorizados em `api/_auth.ts` (usada pelo site e pelas funções da Vercel); o Firestore também exige o uid na coleção `admins` |
 | Funções da Vercel | `api/email`, `api/gemini`, `api/calcular-rota-diaria` exigem `Authorization: Bearer <token do Firebase>` de e-mail autorizado (`requireAuthorizedUser` em `api/_auth.ts`) |
 | Banco secundário | Supabase (`src/services/supabaseClient.ts`) e Postgres via `server.js` (`DATABASE_URL`) |
@@ -44,7 +44,7 @@ Por isso estas regras valem em toda sessão:
 
 # ⏳ Pendências do usuário
 
-- [ ] **Publicar no Firebase a regra da coleção `settings`** (Firestore → Regras): sem ela o Painel de Visitas dá "Missing or insufficient permissions". Bloco: `match /settings/{settingId} { allow read, write: if isAllowedUser(); }`.
+- [ ] (Opcional) Publicar no Firebase a regra da coleção `settings` (Firestore → Regras): o Painel de Visitas já não depende dela, mas as "Configurações de custo" de Compras gravam lá. Bloco: `match /settings/{settingId} { allow read, write: if isAllowedUser(); }`.
 - [ ] Depois de subir pro site: testar logado o frete por IA, o "Calcular melhor rota" e o envio de e-mail da Fila (funções da Vercel agora exigem login).
 - [ ] Conferir no site os contratos de Chalita, Maria Helena e Bergamo (status e valores), que não são mais corrigidos automaticamente pelo código.
 - [ ] Revogar no GitHub o token `ghp_...` antigo que estava na URL do remote (máquina de casa).

@@ -23,8 +23,9 @@ type SubpaginaVisitas = 'tabela' | 'rotas' | 'pdf';
 // Agora ela é lida uma única vez para migrar os dados para o Firestore.
 const STORAGE_KEY = 'zilinski_visitas_leads_v2';
 
-// Lista compartilhada por todos os usuários logados (a coleção settings já é liberada nas regras do Firestore)
-const VISITAS_DOC = doc(db, 'settings', 'painel_visitas');
+// Lista compartilhada por todos os usuários logados. Fica em `contracts` (como os produtos de Compras)
+// porque as regras publicadas no Firestore não liberam `settings`; `isVisitPanel` faz as listas de contratos ignorarem.
+const VISITAS_DOC = doc(db, 'contracts', 'painel_visitas');
 
 // Leads de exemplo que vinham pré-carregados na versão antiga; não devem ir para o banco
 const LEADS_EXEMPLO: Record<string, string> = {
@@ -99,6 +100,7 @@ export default function VisitReceipt() {
                         visitas: limparParaFirestore(transformar(atuais)),
                         updatedAt: new Date().toISOString(),
                         updatedBy: auth.currentUser?.email || null,
+                        isVisitPanel: true,
                     },
                     { merge: true }
                 );

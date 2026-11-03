@@ -64,6 +64,7 @@ export default function InstallationReceipt() {
         const list: SavedContract[] = [];
         if (contractsSnap.status === 'fulfilled') {
           contractsSnap.value.forEach(d => {
+            if (d.data().isVisitPanel) return;
             list.push({ id: d.id, ...d.data() } as SavedContract);
           });
         }

@@ -4,6 +4,11 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-03 — [casa] — Painel de Visitas: salva em `contracts/painel_visitas` (erro de permissão)
+- **O que mudou:** o painel dava "Missing or insufficient permissions" porque as regras **publicadas** no Firestore não liberam a coleção `settings` (o `firestore.rules` do repositório libera, mas não é o que está no ar). Em vez de mexer nas regras, as visitas passaram pro documento `contracts/painel_visitas` com `isVisitPanel: true` (mesmo jeito que Compras guarda produtos em `contracts`). Meus Contratos e o Termo de Instalação ignoram esse documento; Tabela de Entregas e Fila já filtram por status. As visitas que ficaram no navegador sobem sozinhas ao abrir o painel.
+- **Onde:** `src/pages/VisitReceipt.tsx`, `src/pages/ContractsList.tsx`, `src/pages/InstallationReceipt.tsx`.
+- **Pendente:** testar no site logado (precisa subir). Se um dia publicarem a regra de `settings`, dá pra voltar pra lá. A tela de Compras também grava em `settings/production_costs` e deve ter o mesmo erro.
+
 ### 2026-11-03 — [casa] — Tabela de Entregas: texto da transportadora só quando é envio por transportadora
 - **O que mudou:** a coluna TRANSPORTADORA mostra o texto (e o botão Copiar) só quando o contrato tem `freightMode = 'transportadora'` (mesma regra do PDF do contrato) ou quando o texto já foi editado à mão. Nos outros casos (ex.: instalação feita pelo pai do usuário) aparece só "-". Pedido por áudio.
 - **Onde:** `src/pages/DeliveriesTable.tsx`.

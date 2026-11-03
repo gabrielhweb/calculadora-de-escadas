@@ -369,7 +369,7 @@ export const ContractsList: React.FC = () => {
             snapshot.forEach((docSnap) => {
                 const docData = docSnap.data();
                 // Ignorar documentos que são produtos ou outras entidades
-                if (docData.isProduct || docData.isPurchaseOrder) return;
+                if (docData.isProduct || docData.isPurchaseOrder || docData.isVisitPanel) return;
 
                 loadedContracts.push({ id: docSnap.id, ...docData } as SavedContract);
             });
