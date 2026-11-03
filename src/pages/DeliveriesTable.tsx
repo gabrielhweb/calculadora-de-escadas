@@ -911,6 +911,10 @@ export const DeliveriesTable: React.FC = () => {
                                             invoiceValue: getInvoiceValue(data, contract, clientQueueItem),
                                             freightInfo,
                                         });
+                                    // Texto da transportadora só quando o envio é por transportadora (mesma regra do PDF do contrato)
+                                    // ou quando alguém já editou o texto à mão nesse contrato
+                                    const isTransportadora = String(data?.inputData?.logistics?.freightMode || data?.inputData?.freightMode || data?.logistics?.freightMode || data?.freightMode || '').toLowerCase().trim() === 'transportadora';
+                                    const showFreightQuote = isTransportadora || !!(contract.freightQuoteText && contract.freightQuoteText.trim() !== '');
                                       const dateColor = getDateColorClass(contract.deliveryDate);
                                     
                                     const queueItem = queueItems.find(q => q.contractId === contract.id);
@@ -1023,6 +1027,7 @@ export const DeliveriesTable: React.FC = () => {
                                                 </div>
                                             </td>
                                             <td className="p-2 align-top text-sm">
+                                                {!showFreightQuote ? <span className="text-gray-500">-</span> : (
                                                 <div>
                                                     {contract.freightQuoteText && (
                                                         <div className="flex justify-end mb-1 print-hidden">
@@ -1061,6 +1066,7 @@ export const DeliveriesTable: React.FC = () => {
                                                         <Icon name="clipboard" /> Copiar
                                                     </button>
                                                 </div>
+                                                )}
                                             </td>
                                             <td className="p-2 align-top text-sm text-red-600 dark:text-red-400 print:text-red-600 font-semibold print:!text-red-600 print:font-bold">
                                                 <div 

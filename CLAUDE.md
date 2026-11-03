@@ -44,6 +44,7 @@ Por isso estas regras valem em toda sessão:
 
 # ⏳ Pendências do usuário
 
+- [ ] **Publicar no Firebase a regra da coleção `settings`** (Firestore → Regras): sem ela o Painel de Visitas dá "Missing or insufficient permissions". Bloco: `match /settings/{settingId} { allow read, write: if isAllowedUser(); }`.
 - [ ] Depois de subir pro site: testar logado o frete por IA, o "Calcular melhor rota" e o envio de e-mail da Fila (funções da Vercel agora exigem login).
 - [ ] Conferir no site os contratos de Chalita, Maria Helena e Bergamo (status e valores), que não são mais corrigidos automaticamente pelo código.
 - [ ] Revogar no GitHub o token `ghp_...` antigo que estava na URL do remote (máquina de casa).

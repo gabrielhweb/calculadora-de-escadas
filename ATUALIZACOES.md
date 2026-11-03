@@ -4,6 +4,11 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-03 — [casa] — Tabela de Entregas: texto da transportadora só quando é envio por transportadora
+- **O que mudou:** a coluna TRANSPORTADORA mostra o texto (e o botão Copiar) só quando o contrato tem `freightMode = 'transportadora'` (mesma regra do PDF do contrato) ou quando o texto já foi editado à mão. Nos outros casos (ex.: instalação feita pelo pai do usuário) aparece só "-". Pedido por áudio.
+- **Onde:** `src/pages/DeliveriesTable.tsx`.
+- **Pendente:** contratos antigos sem `freightMode` salvo e que eram por transportadora vão aparecer com "-"; nesses casos ainda não há botão pra forçar o texto aparecer. Erro "Missing or insufficient permissions" no Painel de Visitas: as regras **publicadas** no Firestore não liberam a coleção `settings` (o `firestore.rules` do repositório libera) — usuário precisa publicar a regra no console do Firebase.
+
 ### 2026-11-02 — [casa] — Correções 1 a 5 da análise (ANALISE.md)
 - **O que mudou:**
   1. Saiu o `removeDuplicates()` que rodava ao abrir o site e **apagava** contratos com "Everton"/"Severini" no nome (commit c531384).
