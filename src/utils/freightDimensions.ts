@@ -57,6 +57,44 @@ export const calcLandingsWeightKg = (landings?: any[]) => {
     return areaM2 * (3.34 / 1000) * STEEL_DENSITY;
 };
 
+// Preço do aço usado nas outras estimativas (Tabela de Entregas, Fila, Calculadora de Peso)
+export const STEEL_PRICE_PER_KG = 13.80;
+
+const TREAD_MATERIAL_LABEL: Record<string, string> = {
+    metal: 'Metal',
+    chapa_xadrez: 'Chapa xadrez',
+    chapa_vazada: 'Chapa vazada',
+};
+const WOOD_LABEL: Record<string, string> = {
+    garapeira: 'Madeira garapeira',
+    muiracatiara: 'Madeira muiracatiara',
+    ambas: 'Madeira garapeira ou muiracatiara',
+};
+
+/**
+ * Estimativa preliminar (fase de orçamento) de peso, material e custo de matéria-prima.
+ * Só para os ecrãs de desenho 2D/3D: NÃO usar em nenhum gerador de PDF.
+ * Custo = aço (escada + patamares) x preço do kg; a madeira dos pisantes não entra no custo.
+ */
+export const estimatePreliminaryMaterials = (p: {
+    steps: number; stepHeightCm: number; treadDepthCm: number; widthCm: number;
+    hasCorrimao?: boolean; handrailHeight?: number; treadMaterial?: string; woodType?: string; landings?: any[];
+}) => {
+    const handrailCm = resolveHandrailCm(p.hasCorrimao, p.handrailHeight);
+    const pacote = calcFoldedPackage({ numSteps: p.steps, treadDepthCm: p.treadDepthCm, stepHeightCm: p.stepHeightCm, widthCm: p.widthCm, handrailCm });
+    const landingsKg = calcLandingsWeightKg(p.landings);
+    const steelKg = (pacote.weightKg || 0) + landingsKg;
+    const tread = p.treadMaterial === 'wood' || !p.treadMaterial
+        ? (WOOD_LABEL[p.woodType || ''] || 'Madeira')
+        : (TREAD_MATERIAL_LABEL[p.treadMaterial] || p.treadMaterial);
+    return {
+        weightKg: steelKg,
+        landingsKg,
+        material: `Aço carbono chapa 3mm (vigas, degraus${handrailCm > 0 ? ', corrimão' : ''}${landingsKg > 0 ? ', patamares' : ''}) + pisante: ${tread}`,
+        rawMaterialCost: steelKg * STEEL_PRICE_PER_KG,
+    };
+};
+
 export const parseContractData = (dataStr: any, contractObj?: any) => {
     let parsed: any = null;
     try {

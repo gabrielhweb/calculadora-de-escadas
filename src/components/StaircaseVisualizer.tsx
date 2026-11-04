@@ -9,7 +9,7 @@ import { OrbitControls, Html, Line } from '@react-three/drei';
 import * as THREE from 'three';
 import { GuardrailPreview } from './GuardrailPreview';
 import { LandingPreview } from './LandingPreview';
-import { calcFoldedPackage } from '../utils/freightDimensions';
+import { calcFoldedPackage, estimatePreliminaryMaterials } from '../utils/freightDimensions';
 
 interface StaircaseVisualizerProps {
   option: ProposalOption;
@@ -204,7 +204,7 @@ const Interactive3DStair: React.FC<{
   totalHeight: number;
   inputData?: CalculatorInput;
   treadMaterial?: 'madeira' | 'metal';
-}> = ({ option, totalHeight, inputData, treadMaterial = 'madeira' }) => {
+}> = ({ option, totalHeight, inputData, treadMaterial }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [hudOpacity, setHudOpacity] = useState(100);
   
@@ -213,7 +213,8 @@ const Interactive3DStair: React.FC<{
   const stairWidth = (option.stairWidth || 80) / 100;
   const treadDepth = (option.treadDepth || 25) / 100;
   const stepsCount = option.steps > 0 ? option.steps : 10;
-  const materialProp = treadMaterial;
+  // Sem a prop, usa o pisante escolhido na Calculadora (madeira = marrom; metal/chapas = aço)
+  const materialProp = treadMaterial || (inputData?.treadMaterial && inputData.treadMaterial !== 'wood' ? 'metal' : 'madeira');
 
   const stairDirection = inputData?.stairDirection || 'standard';
   const wallFixation = inputData?.wallFixation || 'left';
@@ -1499,6 +1500,18 @@ const StaircaseVisualizer: React.FC<StaircaseVisualizerProps> = ({
 const isGuardrailOnly = inputData?.quoteType === 'guardrail';
   const isLandingOnly = inputData?.quoteType === 'landing';
   const hideStairView = isGuardrailOnly || isLandingOnly;
+  // Peso, material e matéria-prima: só informativo nesta tela (fica fora do internalCanvasRef, então não vai pro PDF)
+  const estimate = estimatePreliminaryMaterials({
+      steps: option.steps > 0 ? option.steps : 10,
+      stepHeightCm: option.stepHeight > 0 ? option.stepHeight : (totalHeight / (option.steps || 10)),
+      treadDepthCm: option.treadDepth || 25,
+      widthCm: option.stairWidth || 80,
+      hasCorrimao: inputData?.hasCorrimao,
+      handrailHeight: inputData?.handrailHeight,
+      treadMaterial: inputData?.treadMaterial || (treadMaterial === 'metal' ? 'metal' : 'wood'),
+      woodType: inputData?.woodType,
+      landings: option.landings,
+  });
   if (printMode && !hideUI) {
       return (
         <div ref={internalCanvasRef} className="bg-white p-4 inline-block">
@@ -1579,6 +1592,27 @@ const isGuardrailOnly = inputData?.quoteType === 'guardrail';
         </div>
         
         <button onClick={onClose} className="absolute top-4 right-4 z-50 bg-red-600 text-white w-12 h-12 rounded-full font-black text-xl shadow-lg hover:bg-red-700">✕</button>
+
+        {/* Estimativa preliminar (2D e 3D): fora do canvas exportado e escondida durante a exportação */}
+        {!isExporting && !hideStairView && (
+            <div className="absolute top-24 left-4 z-10 w-72 bg-slate-900/95 text-white rounded-xl shadow-2xl border border-amber-500/40 p-4 backdrop-blur-sm" aria-label="Estimativa preliminar de materiais">
+                <div className="text-xs font-black tracking-wider text-amber-400 border-b border-amber-500/30 pb-2 mb-2">ESTIMATIVA PRELIMINAR (NÃO VAI NO PDF)</div>
+                <dl className="space-y-2 text-sm">
+                    <div className="flex justify-between gap-3">
+                        <dt className="text-slate-300">Peso total</dt>
+                        <dd className="font-bold">{estimate.weightKg.toFixed(1).replace('.', ',')} kg</dd>
+                    </div>
+                    <div>
+                        <dt className="text-slate-300">Material</dt>
+                        <dd className="font-semibold leading-snug">{estimate.material}</dd>
+                    </div>
+                    <div className="flex justify-between gap-3 border-t border-slate-700 pt-2">
+                        <dt className="text-slate-300">Matéria-prima (aço) aprox.</dt>
+                        <dd className="font-black text-amber-400">{estimate.rawMaterialCost.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</dd>
+                    </div>
+                </dl>
+            </div>
+        )}
 
         {/* --- CONTROLES FLUTUANTES (MODIFICADO PARA SER CARD SOBREPOSTO) --- */}
         {!isExporting && (

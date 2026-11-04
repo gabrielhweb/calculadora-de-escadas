@@ -4,6 +4,11 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-04 — [casa] — Visualizador 2D/3D: estimativa preliminar de peso, material e matéria-prima
+- **O que mudou:** nova função `estimatePreliminaryMaterials` em `freightDimensions.ts` (reaproveita `calcFoldedPackage` + `calcLandingsWeightKg`; custo = kg de aço × `STEEL_PRICE_PER_KG` 13,80). O visualizador mostra um quadro "ESTIMATIVA PRELIMINAR (NÃO VAI NO PDF)" com peso total, material (aço carbono 3mm + pisante) e custo aproximado do aço, no 2D e no 3D. O quadro fica fora do `internalCanvasRef` (área exportada) e some durante a exportação, então não entra em nenhum PDF. Também corrigido: o 3D desenhava pisante de madeira mesmo com metal escolhido (default `'madeira'` fixo); agora segue `inputData.treadMaterial`.
+- **Onde:** `src/utils/freightDimensions.ts`, `src/components/StaircaseVisualizer.tsx`.
+- **Pendente:** usuário decidir se tira peso/material/custo que **já existiam** em outros documentos: Ficha Técnica (peso por degrau e total), impressão da Tabela de Entregas (PESO ESCADA / CUSTO AÇO), contrato e proposta (material do pisante). A Tabela de Entregas usa outra conta de peso (sem dobradiças e corrimão: ex. 114,7 kg vs 140 kg).
+
 ### 2026-11-04 — [casa] — Fila: "Corrigir Vínculo" aparecia mesmo com cartão existente
 - **O que mudou:** testado logado no site: ao clicar em "Corrigir Vínculo" do Paulo Henrique, a checagem nova respondeu "já tem cartão na fila". Causa: o `updateItems` juntava `[orçamentos, contratos, cartões]` e o filtro de duplicados fica com o primeiro de cada `contractId`, então o contrato "solto" (status Falta assinar) escondia o cartão. Agora os cartões vêm antes dos contratos. Nenhum cartão foi criado no teste.
 - **Onde:** `src/pages/ProductionQueuePage.tsx` (`updateItems`).
