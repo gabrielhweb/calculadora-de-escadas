@@ -228,7 +228,9 @@ export default function ProductionQueue() {
                 };
             });
 
-            let all = [...loadedQuotes, ...loadedContracts, ...queueWithSyncedDates, ...missingContracts];
+            // Cartão da fila antes do contrato: o filtro de duplicados abaixo fica com o primeiro de cada contrato,
+            // e antes o contrato "solto" escondia o cartão (aparecia "Corrigir Vínculo" mesmo com cartão)
+            let all = [...loadedQuotes, ...queueWithSyncedDates, ...loadedContracts, ...missingContracts];
             
             // Deduplicate by contractId to avoid ghosts where a contract is in queue and also matched incorrectly
             const seenContracts = new Set();

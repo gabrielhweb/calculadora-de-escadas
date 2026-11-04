@@ -4,6 +4,12 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-04 — [casa] — Fila: "Corrigir Vínculo" aparecia mesmo com cartão existente
+- **O que mudou:** testado logado no site: ao clicar em "Corrigir Vínculo" do Paulo Henrique, a checagem nova respondeu "já tem cartão na fila". Causa: o `updateItems` juntava `[orçamentos, contratos, cartões]` e o filtro de duplicados fica com o primeiro de cada `contractId`, então o contrato "solto" (status Falta assinar) escondia o cartão. Agora os cartões vêm antes dos contratos. Nenhum cartão foi criado no teste.
+- **Onde:** `src/pages/ProductionQueuePage.tsx` (`updateItems`).
+- **Visto no console do site:** "Error fetching settings" e "Firestore Error [list] on saved_quotes: Missing or insufficient permissions" — as regras publicadas também não liberam listar `saved_quotes` (Orçamentos da Fila e Orçamentos Salvos podem estar vazios por isso).
+- **Pendente:** conferir no site que Paulo Henrique e Beatriz aparecem como cartão normal.
+
 ### 2026-11-04 — [casa] — Meus Contratos quebrava ao fazer login com a tela aberta (React #310)
 - **O que mudou:** os dois `useState` dos filtros (entrega/pagamento) ficavam depois do `if (!user) return "Acesso Restrito"`. Ao logar com a tela aberta, o número de hooks mudava e o React quebrava ("Algo deu errado… Minified React error #310"). Bug antigo (commit 9654bb9, março). Os hooks subiram pra antes do `return`. Conferido: nenhuma outra tela tem hook depois de `if (!user) return`.
 - **Onde:** `src/pages/ContractsList.tsx`.
