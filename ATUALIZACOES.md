@@ -4,6 +4,11 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-04 — [casa] — Contrato: descrição do produto numerada como 1.1
+- **O que mudou:** no PDF do contrato, a frase do objeto ("Escada articulada lateral...", "Escada fixa...", guarda-corpo ou adendo) agora começa com "1.1", logo abaixo de "1.Do objeto contratual.". As outras cláusulas já citavam "item 1.1". Pedido por print do WhatsApp.
+- **Onde:** `src/utils/contractGenerator.ts`.
+- **Pendente:** conferir um contrato gerado no site depois de subir.
+
 ### 2026-11-03 — [casa] — Painel de Visitas: salva em `contracts/painel_visitas` (erro de permissão)
 - **O que mudou:** o painel dava "Missing or insufficient permissions" porque as regras **publicadas** no Firestore não liberam a coleção `settings` (o `firestore.rules` do repositório libera, mas não é o que está no ar). Em vez de mexer nas regras, as visitas passaram pro documento `contracts/painel_visitas` com `isVisitPanel: true` (mesmo jeito que Compras guarda produtos em `contracts`). Meus Contratos e o Termo de Instalação ignoram esse documento; Tabela de Entregas e Fila já filtram por status. As visitas que ficaram no navegador sobem sozinhas ao abrir o painel.
 - **Onde:** `src/pages/VisitReceipt.tsx`, `src/pages/ContractsList.tsx`, `src/pages/InstallationReceipt.tsx`.

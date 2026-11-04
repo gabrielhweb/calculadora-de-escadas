@@ -210,7 +210,7 @@ export const generateContractPDF = (data: ContractData) => {
       stepsText = `- Com ${computedStructureSteps} degraus articulados com dimensões de ${stepH}cm de altura e pisante de ${treadMaterialStr} de ${tread}cm${dampersText}.`;
   }
   
-  addText(objText, 11, false, 'left');
+  addText(`1.1 ${objText}`, 11, false, 'left');
   if (stepsText) addText(stepsText, 11, false, 'left');
 
   // Adiciona a nota de exclusão se houver porta configurada nos desenhos
