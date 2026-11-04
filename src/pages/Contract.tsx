@@ -1666,6 +1666,7 @@ const Contract = () => {
           clientName,
           landings,
           wallFixation,
+          treadMaterial,
         });
       },
     );

@@ -18,6 +18,8 @@ export const DeliveriesTable: React.FC = () => {
     const { user } = useAuth();
     const [loading, setLoading] = useState(true);
     const [queueItems, setQueueItems] = useState<any[]>([]);
+    // Contratos sem transportadora em que alguém pediu pra ver os dados de frete (cotação antes de fechar)
+    const [freightOpen, setFreightOpen] = useState<Record<string, boolean>>({});
     const [savedQuotes, setSavedQuotes] = useState<any[]>([]);
     const [showValues, setShowValues] = useState(true);
 
@@ -186,7 +188,8 @@ export const DeliveriesTable: React.FC = () => {
         const inputData = parsedData?.inputData || parsedData;
         const selectedOption = parsedData?.selectedOption || parsedData;
         
-        let steps = getProp(parsedData, 'steps') ?? getProp(parsedData, 'desiredSteps') ?? getProp(parsedData, 'totalSteps') ?? getProp(parsedData, 'structureSteps') ?? getProp(parsedData, 'degraus');
+        // Degraus da estrutura primeiro (sem patamares), igual ao contrato e à ficha técnica
+        let steps = (Number(getProp(parsedData, 'structureSteps')) > 0 ? getProp(parsedData, 'structureSteps') : undefined) ?? getProp(parsedData, 'steps') ?? getProp(parsedData, 'desiredSteps') ?? getProp(parsedData, 'totalSteps') ?? getProp(parsedData, 'structureSteps') ?? getProp(parsedData, 'degraus');
         let tread = getProp(parsedData, 'treadDepth') ?? getProp(parsedData, 'treadDepthCm') ?? getProp(parsedData, 'tread') ?? getProp(parsedData, 'pisante') ?? getProp(parsedData, 'pisada');
         let height = getProp(parsedData, 'stepHeight') ?? getProp(parsedData, 'stepHeightCm') ?? getProp(parsedData, 'height') ?? getProp(parsedData, 'altura');
         let width = getProp(parsedData, 'stairWidth') ?? getProp(parsedData, 'widthCm') ?? getProp(parsedData, 'width') ?? getProp(parsedData, 'largura');
@@ -543,7 +546,8 @@ export const DeliveriesTable: React.FC = () => {
         }
 
         // Tenta extrair valores estruturados
-        let steps = extractNum(getProp(data, 'steps') ?? getProp(data, 'desiredSteps') ?? getProp(data, 'totalSteps') ?? getProp(data, 'structureSteps') ?? getProp(data, 'degraus') ?? contract?.totalSteps);
+        const structSteps = extractNum(getProp(data, 'structureSteps'));
+        let steps = structSteps > 0 ? structSteps : extractNum(getProp(data, 'steps') ?? getProp(data, 'desiredSteps') ?? getProp(data, 'totalSteps') ?? getProp(data, 'structureSteps') ?? getProp(data, 'degraus') ?? contract?.totalSteps);
         let tread = extractNum(getProp(data, 'treadDepth') ?? getProp(data, 'treadDepthCm') ?? getProp(data, 'tread') ?? getProp(data, 'pisante') ?? getProp(data, 'pisada') ?? contract?.treadDepth);
         let height = extractNum(getProp(data, 'stepHeight') ?? getProp(data, 'stepHeightCm') ?? getProp(data, 'height') ?? getProp(data, 'altura') ?? contract?.stepHeight);
         let width = extractNum(getProp(data, 'stairWidth') ?? getProp(data, 'widthCm') ?? getProp(data, 'width') ?? getProp(data, 'largura') ?? contract?.stairWidth);
@@ -914,7 +918,7 @@ export const DeliveriesTable: React.FC = () => {
                                     // Texto da transportadora só quando o envio é por transportadora (mesma regra do PDF do contrato)
                                     // ou quando alguém já editou o texto à mão nesse contrato
                                     const isTransportadora = String(data?.inputData?.logistics?.freightMode || data?.inputData?.freightMode || data?.logistics?.freightMode || data?.freightMode || '').toLowerCase().trim() === 'transportadora';
-                                    const showFreightQuote = isTransportadora || !!(contract.freightQuoteText && contract.freightQuoteText.trim() !== '');
+                                    const showFreightQuote = isTransportadora || !!(contract.freightQuoteText && contract.freightQuoteText.trim() !== '') || !!freightOpen[contract.id];
                                       const dateColor = getDateColorClass(contract.deliveryDate);
                                     
                                     const queueItem = queueItems.find(q => q.contractId === contract.id);
@@ -1027,7 +1031,15 @@ export const DeliveriesTable: React.FC = () => {
                                                 </div>
                                             </td>
                                             <td className="p-2 align-top text-sm">
-                                                {!showFreightQuote ? <span className="text-gray-500">-</span> : (
+                                                {!showFreightQuote ? (
+                                                    <button
+                                                        onClick={() => setFreightOpen(prev => ({ ...prev, [contract.id]: true }))}
+                                                        className="print-hidden inline-flex items-center gap-1 text-xs font-bold px-2 py-1 rounded bg-amber-100 hover:bg-amber-200 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200"
+                                                        title="Mostrar dados para cotar frete com transportadora (medidas e peso da escada fechada)"
+                                                    >
+                                                        <Icon name="truck" /> Dados p/ frete
+                                                    </button>
+                                                ) : (
                                                 <div>
                                                     {contract.freightQuoteText && (
                                                         <div className="flex justify-end mb-1 print-hidden">

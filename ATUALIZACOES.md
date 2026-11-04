@@ -4,6 +4,14 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-04 — [casa] — Degraus contados errado com guarda-corpo avulso, Chapa Xadrez na produção e botão de dados p/ frete
+- **O que mudou:**
+  1. **Degraus a menos na produção (caso Carla):** desenho de produção (`drawProductionPage`) e Ficha Técnica (`technicalPdfGenerator`, 2 lugares) faziam `degraus = total − landings.length`, contando guarda-corpo/portão **avulsos** como patamar. Contrato com escada + guarda-corpo avulso saía com 1 degrau a menos. Agora só patamares de verdade descontam. A Tabela de Entregas passou a mostrar `structureSteps` (degraus da estrutura) antes do total de peças, igual contrato e ficha. Obs.: o contrato salvo da Carla Polastro Fontolan tem 10 degraus (`desiredSteps` 10, opção 1); não achei no código um caminho que transforme 11 em 10 no contrato — se o orçamento era 11, o contrato foi gerado com 10.
+  2. **Chapa Xadrez na produção:** o desenho de produção não recebia o material (Chapa Xadrez usa o desenho liso, sem indicação). Agora mostra "PISANTE: CHAPA XADREZ" (ou madeira/metal/chapa vazada) abaixo do lado dos furos, vindo da Ficha Técnica e do botão de folha de produção do Contrato. O contrato já levava "CHAPA XADREZ" (`contractGenerator`, conferido no contrato da Hernandez/Carla que tem `chapa_xadrez`).
+  3. **Dados p/ frete:** na Tabela de Entregas, contratos sem transportadora ganharam o botão "Dados p/ frete" (mostra o texto de cotação na hora); no orçamento, cada opção tem "Dados p/ frete" que copia medidas e peso da escada fechada + CEP de destino (mesmo texto da transportadora).
+- **Onde:** `src/utils/productionPdfGenerator.ts`, `src/utils/technicalPdfGenerator.ts`, `src/pages/Contract.tsx`, `src/pages/DeliveriesTable.tsx`, `src/components/ProposalOptions.tsx`.
+- **Pendente:** usuário decidir se tira PESO/CUSTO AÇO da impressão da Tabela de Entregas (o pedido em texto diz que é proibido, mas antes ele pediu pra deixar como está). O texto de frete leva o peso (transportadora precisa).
+
 ### 2026-11-04 — [casa] — Visualizador 2D/3D: estimativa preliminar de peso, material e matéria-prima
 - **O que mudou:** nova função `estimatePreliminaryMaterials` em `freightDimensions.ts` (reaproveita `calcFoldedPackage` + `calcLandingsWeightKg`; custo = kg de aço × `STEEL_PRICE_PER_KG` 13,80). O visualizador mostra um quadro "ESTIMATIVA PRELIMINAR (NÃO VAI NO PDF)" com peso total, material (aço carbono 3mm + pisante) e custo aproximado do aço, no 2D e no 3D. O quadro fica fora do `internalCanvasRef` (área exportada) e some durante a exportação, então não entra em nenhum PDF. Também corrigido: o 3D desenhava pisante de madeira mesmo com metal escolhido (default `'madeira'` fixo); agora segue `inputData.treadMaterial`.
 - **Onde:** `src/utils/freightDimensions.ts`, `src/components/StaircaseVisualizer.tsx`.

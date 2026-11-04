@@ -10,12 +10,14 @@ export interface ProductionPdfProps {
     clientName: string;
     landings?: any[];
     wallFixation?: 'left' | 'right' | 'frontal';
+    treadMaterial?: string;
 }
 
 export const drawProductionPage = (doc: jsPDF, props: ProductionPdfProps) => {
-    const { totalSteps, stepHeightCm, treadDepthCm, widthCm, cutStepType, clientName, landings } = props;
+    const { totalSteps, stepHeightCm, treadDepthCm, widthCm, cutStepType, clientName, landings, treadMaterial } = props;
 
-    const numSteps = totalSteps - (landings?.length || 0);
+    // Guarda-corpo/portão avulsos vêm na lista de patamares mas não são degraus nem patamares
+    const numSteps = totalSteps - (landings?.filter((l: any) => !l?.isAccessoriesOnly).length || 0);
 
     const treadDepthMm = treadDepthCm > 100 ? Math.round(treadDepthCm) : Math.round(treadDepthCm * 10);
     const stepHeightMm = stepHeightCm > 100 ? Math.round(stepHeightCm) : Math.round(stepHeightCm * 10);
@@ -56,6 +58,14 @@ export const drawProductionPage = (doc: jsPDF, props: ProductionPdfProps) => {
     }
     
     doc.text(cutText, 10, 30 + nameHeightOffset); 
+
+    // Material do pisante sempre visível na produção (Chapa Xadrez usa o desenho liso, então precisa estar escrito)
+    const treadLabel: Record<string, string> = { chapa_xadrez: 'PISANTE: CHAPA XADREZ', chapa_vazada: 'PISANTE: CHAPA VAZADA', metal: 'PISANTE: METAL', wood: 'PISANTE: MADEIRA' };
+    if (treadMaterial && treadLabel[treadMaterial]) {
+        doc.setFontSize(12);
+        doc.text(treadLabel[treadMaterial], 10, 36 + nameHeightOffset);
+        doc.setFontSize(14);
+    }
 
     // Inserir a Imagem Limpa de Fundo
     const imgX = 5;

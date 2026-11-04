@@ -49,7 +49,8 @@ export const generateTechnicalDataText = (props: TechnicalDataProps) => {
   const stepTreadMM = treadMM;
   const stepTreadStr = stepTreadMM.toFixed(1).replace('.0', '');
 
-  const numLandings = landings.length;
+  // Guarda-corpo/portão avulsos não são patamares: não descontam degrau
+  const numLandings = landings.filter(l => !l.isAccessoriesOnly).length;
   const structureSteps = totalSteps - numLandings;
 
   let sideText = '';
@@ -121,7 +122,7 @@ export const generateMaterialDataText = (props: TechnicalDataProps) => {
     optionalItems
   } = props;
 
-  const numSteps = totalSteps - landings.length;
+  const numSteps = totalSteps - landings.filter(l => !l.isAccessoriesOnly).length;
   
   let report = `LISTA DE MATÉRIA PRIMA (ESTIMATIVA)\n`;
   report += `Cliente: ${clientName}\n`;
@@ -409,7 +410,8 @@ export const generateUnifiedTechnicalPDF = (props: TechnicalDataProps) => {
             treadDepthCm: props.treadDepthCm,
             widthCm: props.widthCm,
             cutStepType: finalCutType,
-            clientName: props.clientName
+            clientName: props.clientName,
+            treadMaterial: props.treadMaterial
         });
         hasFirstPageDrawn = true;
     }

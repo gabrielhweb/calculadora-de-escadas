@@ -7,6 +7,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useCarriers } from '../hooks/useCarriers';
 import Icon from './Icon';
+import { buildFreightQuoteText, resolveFreightInfo, copyTextToClipboard } from '../utils/freightQuoteText';
 
 interface ProposalOptionsProps {
   options: ProposalOption[];
@@ -999,6 +1000,21 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                                 className="text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 px-2 py-1 rounded mt-1 flex items-center gap-1 whitespace-nowrap shadow-sm transition-all"
                             >
                                 <Icon name="eye" /> Abrir Visualizador 3D
+                            </button>
+                            {/* Cotação de frete antes de fechar a venda: mesmo texto da Tabela de Entregas (medidas e peso da escada fechada) */}
+                            <button
+                                onClick={() => copyTextToClipboard(
+                                    buildFreightQuoteText({
+                                        userData: { zip: destinationCep },
+                                        invoiceValue: totalCost,
+                                        freightInfo: resolveFreightInfo(null, { inputData, selectedOption: activeOption }),
+                                    }),
+                                    'Dados para a transportadora copiados!'
+                                )}
+                                className="text-xs font-bold text-amber-800 bg-amber-100 hover:bg-amber-200 px-2 py-1 rounded mt-1 flex items-center gap-1 whitespace-nowrap shadow-sm transition-all"
+                                title="Copiar medidas e peso da escada fechada para cotar o frete com a transportadora"
+                            >
+                                <Icon name="truck" /> Dados p/ frete
                             </button>
                         </div>
                         <span className="text-2xl font-black text-green-700 dark:text-green-400">
