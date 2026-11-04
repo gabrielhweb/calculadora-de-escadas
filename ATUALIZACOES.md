@@ -4,6 +4,11 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-04 — [casa] — Meus Contratos: cards com frente de cartão metálico
+- **O que mudou:** a parte de cima de cada card virou uma "frente de cartão de crédito" (inspirada num vídeo que o usuário mandou): degradê metálico **grafite** quando está A Receber e **dourado** quando está Recebido, brilho que passa ao passar o mouse, "ZILINSKI" no canto, um chip, nome do cliente, datas e valor. Etiquetas e botões (Contrato, Ficha, G. Corpo, Recibo, Frete) continuam embaixo, iguais. Editar/Excluir aparecem ao passar o mouse, como antes.
+- **Onde:** `src/pages/ContractsList.tsx`.
+- **Pendente:** conferir logado no site (precisa subir). Não tem o carrossel do vídeo (cartões trocando de lado), só o visual. Os cards usam cantos arredondados, que o usuário disse não gostar (ver entrada de 30/10).
+
 ### 2026-11-04 — [casa] — Contrato: descrição do produto numerada como 1.1
 - **O que mudou:** no PDF do contrato, a frase do objeto ("Escada articulada lateral...", "Escada fixa...", guarda-corpo ou adendo) agora começa com "1.1", logo abaixo de "1.Do objeto contratual.". As outras cláusulas já citavam "item 1.1". Pedido por print do WhatsApp.
 - **Onde:** `src/utils/contractGenerator.ts`.

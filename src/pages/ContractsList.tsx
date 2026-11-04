@@ -775,41 +775,35 @@ export const ContractsList: React.FC = () => {
                         </div>
                     ) : (
                         columnContracts.map(contract => (
-                            <div key={contract.id} className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-600 hover:shadow-md transition-shadow group">
-                                <div className="flex justify-between items-start mb-2">
-                                    <h4 className="font-bold text-gray-900 dark:text-white truncate pr-2" title={contract.clientName}>
-                                        {contract.clientName}
-                                    </h4>
-                                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button 
-                                            onClick={() => openEditModal(contract)}
-                                            className="text-gray-400 hover:text-blue-500 transition-colors"
-                                            title="Editar"
-                                        >
-                                            <Icon name="pencil" />
-                                        </button>
-                                        <button 
-                                            onClick={() => deleteContract(contract.id)}
-                                            className="text-gray-400 hover:text-red-500 transition-colors"
-                                            title="Excluir"
-                                        >
-                                            <Icon name="trash" />
-                                        </button>
+                            <div key={contract.id} className="bg-white dark:bg-gray-700 p-3 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-600 hover:shadow-md transition-shadow group">
+                                {/* Frente em estilo cartão: grafite metálico = a receber, dourado metálico = recebido */}
+                                <div
+                                    className="relative overflow-hidden rounded-xl p-4 mb-3 text-white aspect-[1.586] flex flex-col justify-between shadow-lg"
+                                    style={{ background: contract.paymentStatus === 'recebido'
+                                        ? 'linear-gradient(135deg, #78350f 0%, #b45309 38%, #f59e0b 62%, #92400e 100%)'
+                                        : 'linear-gradient(135deg, #111827 0%, #374151 40%, #6b7280 62%, #1f2937 100%)' }}
+                                >
+                                    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_80%_10%,rgba(255,255,255,0.28),transparent_55%)]" />
+                                    <div className="pointer-events-none absolute inset-y-0 -left-1/2 w-1/2 bg-gradient-to-r from-transparent via-white/25 to-transparent skew-x-[-20deg] transition-transform duration-700 group-hover:translate-x-[300%]" />
+                                    <div className="relative flex justify-between items-start">
+                                        <span className="font-black tracking-[0.2em] text-xs uppercase drop-shadow">Zilinski</span>
+                                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+                                            <button onClick={() => openEditModal(contract)} className="text-white/80 hover:text-white" title="Editar" aria-label="Editar contrato">
+                                                <Icon name="pencil" />
+                                            </button>
+                                            <button onClick={() => deleteContract(contract.id)} className="text-white/80 hover:text-red-300" title="Excluir" aria-label="Excluir contrato">
+                                                <Icon name="trash" />
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
-                                
-                                <div className="flex items-center gap-2 mb-2 flex-wrap">
-                                        {contract.paymentStatus === 'recebido' ? (
-                                            <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 border border-green-200 dark:border-green-700"><Icon name="cash" /> Recebido</span>
-                                        ) : (
-                                            <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300 border border-red-200 dark:border-red-700"><Icon name="hourglass" /> A Receber</span>
-                                        )}
-                                        {contract.deliveryStatus === 'a_entregar' && (
-                                            <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300 border border-orange-200 dark:border-orange-700"><Icon name="truck" /> A Entregar</span>
-                                        )}
-                                    </div>
-                                    <div className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-                                    <p>Criado em: {(() => {
+                                    <div className="relative self-end w-9 h-7 rounded-md bg-gradient-to-br from-gray-100 via-gray-300 to-gray-400 border border-white/40 shadow-inner" aria-hidden="true" />
+                                    <div className="relative">
+                                        <h4 className="font-bold text-lg leading-tight truncate drop-shadow" title={contract.clientName}>
+                                            {contract.clientName}
+                                        </h4>
+                                        <div className="flex justify-between items-end mt-1 text-xs text-white/85">
+                                            <div>
+                                                <p>Criado em {(() => {
                                         try {
                                             if (!contract.createdAt) return 'Data não disponível';
                                             if (typeof (contract.createdAt as any).toDate === 'function') {
@@ -820,27 +814,39 @@ export const ContractsList: React.FC = () => {
                                             return 'Data inválida';
                                         }
                                     })()}</p>
-                                    {contract.deliveryDate && (
-                                        <p className="text-orange-600 dark:text-orange-400 font-semibold mt-1">
-                                            Entrega: {contract.deliveryDate.split('-').reverse().join('/')}
-                                        </p>
+                                                {contract.deliveryDate && (
+                                                    <p className="font-semibold text-white">Entrega: {contract.deliveryDate.split('-').reverse().join('/')}</p>
+                                                )}
+                                            </div>
+                                            <span className="text-base font-black text-white drop-shadow">
+                                                {(() => {
+                                                    let val = contract.totalValue;
+                                                    if (isNaN(Number(val)) || val === undefined || val === null) {
+                                                        try {
+                                                            let parsedData = typeof contract.contractData === 'string' ? JSON.parse(contract.contractData) : contract.contractData;
+                                                            while (typeof parsedData === 'string') parsedData = JSON.parse(parsedData);
+                                                            if (parsedData?.totalValue) val = parsedData.totalValue;
+                                                            else if (parsedData?.contractData?.totalValue) val = parsedData.contractData.totalValue;
+                                                            else if (parsedData?.contractData?.selectedOption?.totalPrice) val = parsedData.contractData.selectedOption.totalPrice;
+                                                            else if (parsedData?.finalStairPrice) val = (parsedData.finalStairPrice || 0) + (parsedData.finalLandingsPrice || 0);
+                                                        } catch(e) { val = 0; }
+                                                    }
+                                                    return formatCurrencyBRL(Number(val) || 0);
+                                                })()}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                    {contract.paymentStatus === 'recebido' ? (
+                                        <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 border border-green-200 dark:border-green-700"><Icon name="cash" /> Recebido</span>
+                                    ) : (
+                                        <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300 border border-red-200 dark:border-red-700"><Icon name="hourglass" /> A Receber</span>
                                     )}
-                                    <p className="font-semibold text-highlight mt-1">
-                                        {(() => {
-                                            let val = contract.totalValue;
-                                            if (isNaN(Number(val)) || val === undefined || val === null) {
-                                                try {
-                                                    let parsedData = typeof contract.contractData === 'string' ? JSON.parse(contract.contractData) : contract.contractData;
-                                                    while (typeof parsedData === 'string') parsedData = JSON.parse(parsedData);
-                                                    if (parsedData?.totalValue) val = parsedData.totalValue;
-                                                    else if (parsedData?.contractData?.totalValue) val = parsedData.contractData.totalValue;
-                                                    else if (parsedData?.contractData?.selectedOption?.totalPrice) val = parsedData.contractData.selectedOption.totalPrice;
-                                                    else if (parsedData?.finalStairPrice) val = (parsedData.finalStairPrice || 0) + (parsedData.finalLandingsPrice || 0);
-                                                } catch(e) { val = 0; }
-                                            }
-                                            return formatCurrencyBRL(Number(val) || 0);
-                                        })()}
-                                    </p>
+                                    {contract.deliveryStatus === 'a_entregar' && (
+                                        <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300 border border-orange-200 dark:border-orange-700"><Icon name="truck" /> A Entregar</span>
+                                    )}
                                 </div>
 
                                 {status === 'producao' && (
