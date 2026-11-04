@@ -4,6 +4,11 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-04 — [casa] — Descoberto: push no `main` = deploy automático no site
+- **O que mudou:** conferido o bundle publicado em https://calculadora-de-escadas-jxz3.vercel.app: ele já tem tudo até o commit 23789c2 (cards metálicos, visitas em `contracts/painel_visitas`, "Corrigir Vínculo" novo, visual novo da empresa). Ou seja, a Vercel publica sozinha a cada push no `main` — as entradas antigas que dizem "não subiu pra produção" estavam erradas. `/api/gemini` sem token responde 401 no ar (o `import './_auth.js'` funciona na Vercel). URL do site anotada no `CLAUDE.md` e regra 6 reescrita.
+- **Onde:** `CLAUDE.md`.
+- **Pendente:** usuário vai logar no site pelo navegador do app pra testar as telas logado.
+
 ### 2026-11-04 — [casa] — Fila: "Corrigir Vínculo" usa o sinal do contrato e não duplica
 - **O que mudou:** o botão "Corrigir Vínculo" (aparece quando um contrato não tem cartão na `production_queue`, ex.: salvo com "Adicionar à fila" desmarcado) agora usa o `downPayment` salvo no contrato (só divide 50/50 se não houver sinal) e confere antes se já existe cartão com aquele `contractId`, pra não duplicar. Casos vistos: Paulo Henrique, Beatriz Grance Rinn e Geraldo Ribeiro Costa (estão em "Falta assinar"). Usuário disse que não quer o carrossel nos cards de Meus Contratos.
 - **Onde:** `src/pages/ProductionQueuePage.tsx` (`fixQueueLink`).

@@ -16,7 +16,7 @@ Por isso estas regras valem em toda sessão:
 3. **Nunca** colocar senhas, chaves ou tokens em arquivo versionado. Segredo fica só no `.env` (local ou do servidor). Nunca pedir pro usuário colar senha/chave no chat: criar um script/atalho que grave direto no `.env`.
 4. Se o `git pull` der conflito, resolver **juntando as duas versões**. Nunca descartar o trabalho da outra máquina.
 5. Coisas que o usuário precisa fazer (cadastros, testes, contas externas) vão na lista **"⏳ Pendências do usuário"** abaixo, pra qualquer uma das máquinas lembrar.
-6. Deploy em produção só quando o usuário falar explicitamente ("pode subir"). Antes, fazer backup do arquivo no servidor.
+6. **Todo push no `main` publica sozinho no site** (a Vercel faz o deploy automático). Por isso, mudança que o usuário ainda não aprovou pra produção não vai pro `main`: fica sem commit ou num branch separado até ele falar "pode subir". Se algo quebrar, dá pra voltar o deploy anterior no painel da Vercel (Deployments → Promote/Rollback).
 7. Falar com o usuário em português informal (chamar de "mano"). Se tiver dúvida, perguntar.
 
 # 📍 Estado atual
@@ -26,7 +26,7 @@ Por isso estas regras valem em toda sessão:
 | Repositório | github.com/gabrielhweb/calculadora-de-escadas (branch `main`) |
 | Pasta local (empresa) | `C:\Users\sosob\Desktop\Zilinski\calculadora escada` |
 | Pasta local (casa) | `C:\Users\Micro\Projetos\calculadora-escadas` |
-| Hospedagem do site | Vercel (`vercel.json` com rewrite SPA; funções em `api/`) — URL de produção: ⚠️ não anotada ainda |
+| Hospedagem do site | Vercel (`vercel.json` com rewrite SPA; funções em `api/`) — site: **https://calculadora-de-escadas-jxz3.vercel.app** · painel: vercel.com/gabriel-silva-rodrigues-projects/calculadora-de-escadas. Deploy automático a cada push no `main` |
 | Banco principal | Firebase Firestore, projeto `gen-lang-client-0064759207` (config em `firebase-applet-config.json`, regras em `firestore.rules`) |
 | Coleções principais | `contracts`, `production_queue`, `saved_quotes`, `transportadoras`; visitas em `contracts/painel_visitas` (`isVisitPanel: true`; as regras publicadas não liberam `settings`) |
 | Login | Google (Firebase Auth, popup). Não funciona em `localhost` (domínio não autorizado). Lista de e-mails autorizados em `api/_auth.ts` (usada pelo site e pelas funções da Vercel); o Firestore também exige o uid na coleção `admins` |
@@ -55,10 +55,8 @@ Por isso estas regras valem em toda sessão:
 - [ ] Conferir no site: contrato da Andréia baixado em Meus Contratos agora sai com os degraus certos.
 - [ ] Testar o buscador da página Meus Contratos.
 - [ ] Explicar como devem ser "Modalidade de coleta" e "Tomador do frete" no texto da transportadora (hoje fixos).
-- [ ] Informar a URL de produção do site pra anotar aqui.
 - [ ] Decidir se restaura o `vite.config.ts` (necessário pra rodar local).
 - [ ] Conferir o visual novo (cores e ícones) nas páginas que pedem login: Meus Contratos, Controle de Contratos e Compras.
-- [ ] Falar "pode subir" quando quiser o visual novo no site.
 - [ ] Quando quiser, retomar a troca do estilo de "quadrados com ponta arredondada" (que o usuário não gosta) — mostrar/descrever o estilo que quer no lugar. Detalhes no Diário.
 
 # 🧱 Estrutura
