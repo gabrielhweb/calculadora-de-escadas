@@ -4,6 +4,11 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-04 — [casa] — Meus Contratos quebrava ao fazer login com a tela aberta (React #310)
+- **O que mudou:** os dois `useState` dos filtros (entrega/pagamento) ficavam depois do `if (!user) return "Acesso Restrito"`. Ao logar com a tela aberta, o número de hooks mudava e o React quebrava ("Algo deu errado… Minified React error #310"). Bug antigo (commit 9654bb9, março). Os hooks subiram pra antes do `return`. Conferido: nenhuma outra tela tem hook depois de `if (!user) return`.
+- **Onde:** `src/pages/ContractsList.tsx`.
+- **Pendente:** nada.
+
 ### 2026-11-04 — [casa] — Descoberto: push no `main` = deploy automático no site
 - **O que mudou:** conferido o bundle publicado em https://calculadora-de-escadas-jxz3.vercel.app: ele já tem tudo até o commit 23789c2 (cards metálicos, visitas em `contracts/painel_visitas`, "Corrigir Vínculo" novo, visual novo da empresa). Ou seja, a Vercel publica sozinha a cada push no `main` — as entradas antigas que dizem "não subiu pra produção" estavam erradas. `/api/gemini` sem token responde 401 no ar (o `import './_auth.js'` funciona na Vercel). URL do site anotada no `CLAUDE.md` e regra 6 reescrita.
 - **Onde:** `CLAUDE.md`.

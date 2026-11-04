@@ -695,6 +695,10 @@ export const ContractsList: React.FC = () => {
         }
     };
 
+    // Hooks antes do return de "Acesso Restrito": senão o React quebra (#310) quando o login acontece com a tela aberta
+    const [filterDelivery, setFilterDelivery] = useState<'todos' | 'em_producao' | 'a_entregar'>('todos');
+    const [filterPayment, setFilterPayment] = useState<'todos' | 'a_receber' | 'recebido'>('todos');
+
     if (!user) {
         return (
             <div className="max-w-7xl mx-auto p-4 sm:p-6 flex flex-col items-center justify-center h-[50vh]">
@@ -705,9 +709,6 @@ export const ContractsList: React.FC = () => {
             </div>
         );
     }
-
-    const [filterDelivery, setFilterDelivery] = useState<'todos' | 'em_producao' | 'a_entregar'>('todos');
-    const [filterPayment, setFilterPayment] = useState<'todos' | 'a_receber' | 'recebido'>('todos');
 
     const renderColumn = (status: ContractStatus, title: string, colorClass: string) => {
         let columnContracts = contracts.filter(c => {
