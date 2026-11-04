@@ -4,6 +4,11 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-04 — [casa] — Fila: "Corrigir Vínculo" usa o sinal do contrato e não duplica
+- **O que mudou:** o botão "Corrigir Vínculo" (aparece quando um contrato não tem cartão na `production_queue`, ex.: salvo com "Adicionar à fila" desmarcado) agora usa o `downPayment` salvo no contrato (só divide 50/50 se não houver sinal) e confere antes se já existe cartão com aquele `contractId`, pra não duplicar. Casos vistos: Paulo Henrique, Beatriz Grance Rinn e Geraldo Ribeiro Costa (estão em "Falta assinar"). Usuário disse que não quer o carrossel nos cards de Meus Contratos.
+- **Onde:** `src/pages/ProductionQueuePage.tsx` (`fixQueueLink`).
+- **Pendente:** depois de subir, clicar em "Corrigir Vínculo" nesses 3 (ou em "Produção →" em Meus Contratos quando assinarem) e conferir os valores no cartão.
+
 ### 2026-11-04 — [casa] — Meus Contratos: cards com frente de cartão metálico
 - **O que mudou:** a parte de cima de cada card virou uma "frente de cartão de crédito" (inspirada num vídeo que o usuário mandou): degradê metálico **grafite** quando está A Receber e **dourado** quando está Recebido, brilho que passa ao passar o mouse, "ZILINSKI" no canto, um chip, nome do cliente, datas e valor. Etiquetas e botões (Contrato, Ficha, G. Corpo, Recibo, Frete) continuam embaixo, iguais. Editar/Excluir aparecem ao passar o mouse, como antes.
 - **Onde:** `src/pages/ContractsList.tsx`.

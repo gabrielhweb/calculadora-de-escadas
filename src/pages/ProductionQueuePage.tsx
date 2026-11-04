@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, onSnapshot, doc, updateDoc, deleteDoc, setDoc, getDoc, getDocs, addDoc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, updateDoc, deleteDoc, setDoc, getDoc, getDocs, addDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ProductionOrder, SavedQuote, SavedContract, BoardStage, CustomCost } from '../types';
 import { formatCurrencyBRL } from '../utils';
@@ -789,16 +789,26 @@ export default function ProductionQueue() {
 
     const fixQueueLink = async (item: DashboardItem) => {
         try {
+            // Evita cartão duplicado se o botão for clicado duas vezes (ou por duas pessoas)
+            const existing = await getDocs(query(collection(db, 'production_queue'), where('contractId', '==', item.id)));
+            if (!existing.empty) {
+                alert("Esse contrato já tem cartão na fila. Atualize a página.");
+                return;
+            }
+
             let tVal = Number(item.originalData?.totalValue);
             if (isNaN(tVal)) tVal = 0;
-            
+            // Usa o sinal salvo no contrato; só divide ao meio se o contrato não tiver sinal
+            const savedDown = Number(item.originalData?.downPayment);
+            const downPayment = savedDown > 0 ? savedDown : tVal / 2;
+
             const newOrder: any = {
                 contractId: item.id,
                 createdAt: new Date().toISOString(),
                 clientName: item.title || 'Sem Nome',
                 deliveryDate: item.originalData?.deliveryDate || '',
-                downPayment: tVal / 2,
-                balanceDue: tVal / 2,
+                downPayment,
+                balanceDue: Math.max(0, tVal - downPayment),
                 status: 'in_queue',
                 boardStage: 'contrato',
                 location: item.originalData?.location || item.originalData?.customAddress || 'N/A',
