@@ -4,6 +4,11 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-06 — [casa] — Orçamento: "Dados p/ frete" já sai com nome, CPF e endereço
+- **O que mudou:** o formulário "Dados do Cliente" do orçamento (`UserDataForm`) repassa o que foi digitado (nome, CPF/CNPJ, rua, número, bairro, cidade, UF, CEP) pro botão "Dados p/ frete", que antes saía com "FALTA INFORMAÇÃO" nesses campos. CEP: usa o do formulário ou, se vazio, o "CEP de Destino" do frete. Pedido por vídeo. Testado no navegador.
+- **Onde:** `src/components/ProposalOptions.tsx`.
+- **Pendente:** nada.
+
 ### 2026-11-04 — [casa] — Degraus contados errado com guarda-corpo avulso, Chapa Xadrez na produção e botão de dados p/ frete
 - **O que mudou:**
   1. **Degraus a menos na produção (caso Carla):** desenho de produção (`drawProductionPage`) e Ficha Técnica (`technicalPdfGenerator`, 2 lugares) faziam `degraus = total − landings.length`, contando guarda-corpo/portão **avulsos** como patamar. Contrato com escada + guarda-corpo avulso saía com 1 degrau a menos. Agora só patamares de verdade descontam. A Tabela de Entregas passou a mostrar `structureSteps` (degraus da estrutura) antes do total de peças, igual contrato e ficha. Obs.: o contrato salvo da Carla Polastro Fontolan tem 10 degraus (`desiredSteps` 10, opção 1); não achei no código um caminho que transforme 11 em 10 no contrato — se o orçamento era 11, o contrato foi gerado com 10.

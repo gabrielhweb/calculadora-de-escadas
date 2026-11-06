@@ -77,7 +77,7 @@ const maskCEP = (value: string) => {
     .replace(/(-\d{3})\d+?$/, '$1');
 };
 
-const UserDataForm: React.FC<{ onSubmit: (data: UserData, includeDrawings: boolean) => void; initialZip?: string; baseTotal?: number }> = ({ onSubmit, initialZip, baseTotal }) => {
+const UserDataForm: React.FC<{ onSubmit: (data: UserData, includeDrawings: boolean) => void; initialZip?: string; baseTotal?: number; onDraftChange?: (draft: any) => void }> = ({ onSubmit, initialZip, baseTotal, onDraftChange }) => {
   const [personType, setPersonType] = useState<'pf' | 'pj'>('pf');
   const [name, setName] = useState('');
   const [docMain, setDocMain] = useState(''); // CPF ou CNPJ
@@ -91,6 +91,11 @@ const UserDataForm: React.FC<{ onSubmit: (data: UserData, includeDrawings: boole
   const [neighborhood, setNeighborhood] = useState('');
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
+
+  // Repassa o que já foi digitado pro botão "Dados p/ frete" (cotação com nome, CPF e endereço)
+  useEffect(() => {
+    onDraftChange?.({ name, cpf: docMain, street, number, neighborhood, city, state, zip });
+  }, [name, docMain, street, number, neighborhood, city, state, zip]);
   
   // Parcelamento e Juros
   const [installments, setInstallments] = useState(1);
@@ -483,6 +488,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
   // --- INICIALIZAÇÃO COM DADOS DA CALCULADORA ANTERIOR ---
   const [originCep, setOriginCep] = useState(inputData?.logistics?.originCep || '13104-096');
   const [destinationCep, setDestinationCep] = useState(inputData?.logistics?.destinationCep || '');
+  const [clientDraft, setClientDraft] = useState<any>({});
   const [destinationState, setDestinationState] = useState('');
   const { getAveragePriceForState, carriers, statePrices } = useCarriers();
   const [fuelPrice, setFuelPrice] = useState(inputData?.logistics?.fuelPrice.toString() || '6.20');
@@ -1005,7 +1011,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                             <button
                                 onClick={() => copyTextToClipboard(
                                     buildFreightQuoteText({
-                                        userData: { zip: destinationCep },
+                                        userData: { ...clientDraft, zip: clientDraft.zip || destinationCep },
                                         invoiceValue: totalCost,
                                         freightInfo: resolveFreightInfo(null, { inputData, selectedOption: activeOption }),
                                     }),
@@ -1441,6 +1447,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
       
       {/* Agora passamos o CEP de destino e o baseTotal (da primeira opção) para o formulário do cliente */}
       <UserDataForm 
+        onDraftChange={setClientDraft}
           onSubmit={handleProposalSubmit} 
           initialZip={destinationCep} 
           baseTotal={(() => {
