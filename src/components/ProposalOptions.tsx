@@ -958,9 +958,9 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 relative">
-      <div className="flex flex-wrap justify-between items-center gap-3 mb-6 border-b-2 border-highlight pb-4">
-          <h2 className="text-2xl font-black text-gray-900 dark:text-white">Opções Calculadas</h2>
+    <div className="of-plate p-6 sm:p-7 relative">
+      <div className="flex flex-wrap justify-between items-center gap-3 mb-6 border-b-2 border-gray-900 dark:border-gray-300 pb-3">
+          <h2 className="of-stencil text-2xl text-gray-900 dark:text-white">Opções Calculadas</h2>
           
           <div className="flex gap-2">
               <button 
@@ -993,7 +993,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
             return (
                 <div
                     key={activeOption.optionNumber}
-                    className={`p-5 rounded-lg border-2 shadow-sm transition-colors relative bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600 hover:border-highlight`}
+                    className={`p-5 rounded-none border-2 shadow-sm transition-colors relative bg-white dark:bg-gray-700/50 border-gray-200 dark:border-gray-600 hover:border-highlight`}
                 >
                     <div className="flex flex-wrap justify-between items-start gap-2 mb-3 border-b border-gray-200 dark:border-gray-600 pb-2">
                         <div>

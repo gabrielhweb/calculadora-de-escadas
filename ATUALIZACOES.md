@@ -4,6 +4,11 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-09 — [casa] — Estilo "Oficina" começou pela Calculadora + site branco por padrão
+- **O que mudou:** novas classes globais em `index.html`: `.of-stencil` (fonte Saira Stencil One, caixa alta), `.of-zebra` (faixa preta e amarela de obra) e `.of-plate` (placa de aço: canto reto, chapa cinza, 4 parafusos nos cantos feitos com `radial-gradient`; versão escura incluída). Aplicado na Central de Calculadoras: faixa zebrada + título em estêncil, painéis "Medidas" e "Opções Calculadas" como placas, botão "Calcular Opções" em estêncil com borda preta, cartão de opção com canto reto. **Tema claro virou o padrão**: o `Layout` usa a chave `theme_v2` (quem tinha escuro salvo começa no branco; o botão sol/lua continua).
+- **Onde:** `index.html`, `src/components/Layout.tsx`, `src/pages/Calculator.tsx`, `src/components/CalculatorForm.tsx`, `src/components/ProposalOptions.tsx`.
+- **Pendente:** usuário aprovar a Calculadora; depois espalhar as classes `of-*` pras outras telas (Contrato, Meus Contratos — mantendo os cartões metálicos —, Fila, Entregas, Visitas, Compras) e pro menu lateral.
+
 ### 2026-11-09 — [casa] — 3D volta à cara antiga; viga da parede com zigue-zague só em cima
 - **O que mudou:** a pedido do usuário, o 3D saiu do estilo planta azul e voltou ao visual anterior (aço preto, parede cinza, fundo claro) — `StaircaseVisualizer.tsx` restaurado da versão 4a336c3. A viga da parede continua sendo a chapa cortada, agora com **zigue-zague só em cima** (onde apoia cada degrau) e **reta embaixo**, paralela à inclinação. Os ícones das abas da Calculadora continuam em planta azul.
 - **Onde:** `src/components/StaircaseVisualizer.tsx`.

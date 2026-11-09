@@ -358,8 +358,8 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
           </div>
       </div>
       
-      <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 lg:sticky lg:top-6">
-      <h2 className="text-2xl font-black mb-6 text-gray-900 dark:text-white flex items-center border-b-2 border-highlight pb-4">
+      <div className="of-plate p-5 sm:p-7 lg:sticky lg:top-6">
+      <h2 className="of-stencil text-2xl mb-6 text-gray-900 dark:text-white flex items-center gap-2 border-b-2 border-gray-900 dark:border-gray-300 pb-3">
         <CalculatorIcon /> 
         Medidas
       </h2>
@@ -1633,7 +1633,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
 
         {error && <p className="text-red-600 text-sm font-bold bg-red-50 dark:bg-red-900/30 p-2 rounded border border-red-100 dark:border-red-900">{error}</p>}
 
-        <button type="submit" className="w-full bg-highlight text-white font-black py-4 px-4 rounded-md hover:bg-yellow-600 transition-all shadow-md flex items-center justify-center text-xl mt-6 uppercase tracking-wide">
+        <button type="submit" className="of-stencil w-full bg-amber-600 text-white py-4 px-4 rounded-none border-2 border-gray-900 hover:bg-amber-700 transition-all shadow-md flex items-center justify-center text-xl mt-6 uppercase tracking-wide">
           <CalculatorIcon />
           Calcular Opções
         </button>

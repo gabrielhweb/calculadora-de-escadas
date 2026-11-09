@@ -60,8 +60,8 @@ const Layout: React.FC = () => {
   // State initialization with localStorage check
   const [isDark, setIsDark] = useState(() => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('theme') === 'dark' || 
-        (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      // Site branco por padrão; só fica escuro se a pessoa escolher no botão sol/lua
+      return localStorage.getItem('theme_v2') === 'dark';
     }
     return false;
   });
@@ -71,10 +71,10 @@ const Layout: React.FC = () => {
     const root = window.document.documentElement;
     if (isDark) {
       root.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
+      localStorage.setItem('theme_v2', 'dark');
     } else {
       root.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
+      localStorage.setItem('theme_v2', 'light');
     }
   }, [isDark]);
 
