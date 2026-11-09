@@ -1005,6 +1005,18 @@ export const DeliveriesTable: React.FC = () => {
                                                 >
                                                     {address}
                                                 </div>
+                                                {address && address !== 'N/A' && (
+                                                    // Abre o Google Maps já com a rota até o endereço (no celular abre o app)
+                                                    <a
+                                                        href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="print-hidden inline-flex items-center gap-1 mt-1 text-xs font-bold text-amber-700 hover:text-amber-900 dark:text-amber-400"
+                                                        title="Abrir rota até o cliente no Google Maps"
+                                                    >
+                                                        <Icon name="pin" /> Rota no Maps
+                                                    </a>
+                                                )}
                                             </td>
                                             <td className="p-2 align-top text-sm font-semibold">
                                                 <div className="flex flex-col gap-1">

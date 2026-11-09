@@ -4,6 +4,11 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-09 — [casa] — "Rota no Maps" nos endereços da Tabela de Entregas e da Tabela de Visitas
+- **O que mudou:** embaixo de cada endereço aparece "📍 Rota no Maps", que abre o Google Maps já traçando a rota até o cliente (`google.com/maps/dir/?api=1&destination=<endereço>`; no celular abre o app). Usa o endereço escrito, não as coordenadas (que nas visitas costumam estar no padrão do centro de SP). Não aparece na impressão da Tabela de Entregas. Pedido por áudio.
+- **Onde:** `src/pages/DeliveriesTable.tsx`, `src/components/visitas/TabelaVisitasRow.tsx`.
+- **Pendente:** o áudio também cita uma tarefa do Mercado Livre/estoque que a Sofia ia passar — ainda não chegou.
+
 ### 2026-11-06 — [casa] — Orçamento: "Dados p/ frete" já sai com nome, CPF e endereço
 - **O que mudou:** o formulário "Dados do Cliente" do orçamento (`UserDataForm`) repassa o que foi digitado (nome, CPF/CNPJ, rua, número, bairro, cidade, UF, CEP) pro botão "Dados p/ frete", que antes saía com "FALTA INFORMAÇÃO" nesses campos. CEP: usa o do formulário ou, se vazio, o "CEP de Destino" do frete. Pedido por vídeo. Testado no navegador.
 - **Onde:** `src/components/ProposalOptions.tsx`.

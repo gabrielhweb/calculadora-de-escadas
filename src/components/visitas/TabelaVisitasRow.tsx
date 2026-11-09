@@ -116,8 +116,20 @@ export const TabelaVisitasRow: React.FC<TabelaVisitasRowProps> = ({
                 </div>
             </td>
 
-            <td className="p-3 text-sm text-gray-600 dark:text-gray-300 max-w-xs truncate" title={visita.endereco}>
-                {visita.endereco}
+            <td className="p-3 text-sm text-gray-600 dark:text-gray-300 max-w-xs" title={visita.endereco}>
+                <div className="truncate">{visita.endereco}</div>
+                {visita.endereco && (
+                    // Abre o Google Maps já com a rota até o endereço (no celular abre o app)
+                    <a
+                        href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(visita.endereco)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 mt-1 text-xs font-bold text-amber-700 hover:text-amber-900 dark:text-amber-400"
+                        title="Abrir rota até o cliente no Google Maps"
+                    >
+                        <Icon name="pin" /> Rota no Maps
+                    </a>
+                )}
             </td>
 
             <td className="p-3 text-center w-32">
