@@ -167,7 +167,7 @@ export default function Carriers() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {carriers.map(carrier => (
-                <div key={carrier.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-shadow">
+                <div key={carrier.id} className="of-plate bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-shadow">
                   <div className="p-5 border-b border-gray-100 dark:border-gray-700">
                     <h3 className="text-xl font-bold text-gray-800 dark:text-white truncate" title={carrier.name}>{carrier.name}</h3>
                     <p className="text-sm font-medium text-highlight mt-1">{carrier.baseLocation ? `Base: ${carrier.baseLocation}` : 'Base: Não informada'}</p>
@@ -214,7 +214,7 @@ export default function Carriers() {
       )}
 
       {activeTab === 'prices' && (
-         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+         <div className="of-plate bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
            <div className="p-5 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
              <h2 className="text-lg font-bold text-gray-800 dark:text-white">Preço Estimado por Estado (UF)</h2>
              <p className="text-sm text-gray-500 mt-1">Configure o valor médio de frete que deve ser usado no orçamento ao selecionar um estado de destino da carga.</p>

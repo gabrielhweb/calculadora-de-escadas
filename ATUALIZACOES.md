@@ -4,6 +4,11 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-09 — [casa] — Estilo Oficina espalhado pelo site
+- **O que mudou:** `PageTitle` (13 páginas) em estêncil com faixa zebrada embaixo (`.of-title`); menu lateral com faixa zebrada no topo, "ZILINSKI" e títulos de grupo em estêncil, item ativo preto com letra dourada; **canto reto em todo o site** (`:is(main, aside) :is(.rounded…)` no `index.html`), menos o que tem `.keep-round` (cartões metálicos de Meus Contratos); 28 painéis brancos com sombra viraram placas de aço parafusadas (`of-plate`) em Calculadora, Contrato, Transportadoras, Entregas, Fila, Orçamentos Salvos, Compras (5 telas) e Visitas. `.of-plate` agora tem prioridade sobre o `bg-white` do Tailwind (`html .of-plate`).
+- **Onde:** `index.html`, `src/components/PageTitle.tsx`, `src/components/Layout.tsx`, `src/pages/*`, `src/pages/Purchases/*`, `src/components/visitas/*`.
+- **Pendente:** telas com caixas em outro formato (Recibo Pagamento, Calculadora de Peso, Recibo Instalação) estão com canto reto mas sem parafuso; Recibo Instalação ficou de fora (tem a mudança de CPFs não commitada no arquivo). Usuário conferir as telas logado.
+
 ### 2026-11-09 — [casa] — Estilo "Oficina" começou pela Calculadora + site branco por padrão
 - **O que mudou:** novas classes globais em `index.html`: `.of-stencil` (fonte Saira Stencil One, caixa alta), `.of-zebra` (faixa preta e amarela de obra) e `.of-plate` (placa de aço: canto reto, chapa cinza, 4 parafusos nos cantos feitos com `radial-gradient`; versão escura incluída). Aplicado na Central de Calculadoras: faixa zebrada + título em estêncil, painéis "Medidas" e "Opções Calculadas" como placas, botão "Calcular Opções" em estêncil com borda preta, cartão de opção com canto reto. **Tema claro virou o padrão**: o `Layout` usa a chave `theme_v2` (quem tinha escuro salvo começa no branco; o botão sol/lua continua).
 - **Onde:** `index.html`, `src/components/Layout.tsx`, `src/pages/Calculator.tsx`, `src/components/CalculatorForm.tsx`, `src/components/ProposalOptions.tsx`.

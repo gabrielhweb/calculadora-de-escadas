@@ -74,7 +74,7 @@ export default function OrderHistory() {
                 </PageTitle>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+            <div className="of-plate bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
                 {loading ? (
                     <div className="p-8 text-center text-gray-500">Carregando histórico...</div>
                 ) : orders.length === 0 ? (

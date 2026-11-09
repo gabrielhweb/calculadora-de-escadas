@@ -191,7 +191,7 @@ export const TabelaVisitasView: React.FC<TabelaVisitasViewProps> = ({
     };
 
     return (
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="of-plate bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
             <TabelaVisitasHeader
                 totalVisitas={visitas.length}
                 loading={loading}

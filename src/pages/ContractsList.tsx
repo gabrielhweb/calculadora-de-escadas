@@ -776,10 +776,10 @@ export const ContractsList: React.FC = () => {
                         </div>
                     ) : (
                         columnContracts.map(contract => (
-                            <div key={contract.id} className="bg-white dark:bg-gray-700 p-3 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-600 hover:shadow-md transition-shadow group">
+                            <div key={contract.id} className="keep-round bg-white dark:bg-gray-700 p-3 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-600 hover:shadow-md transition-shadow group">
                                 {/* Frente em estilo cartão: grafite metálico = a receber, dourado metálico = recebido */}
                                 <div
-                                    className="relative overflow-hidden rounded-xl p-4 mb-3 text-white aspect-[1.586] flex flex-col justify-between shadow-lg"
+                                    className="keep-round relative overflow-hidden rounded-xl p-4 mb-3 text-white aspect-[1.586] flex flex-col justify-between shadow-lg"
                                     style={{ background: contract.paymentStatus === 'recebido'
                                         ? 'linear-gradient(135deg, #78350f 0%, #b45309 38%, #f59e0b 62%, #92400e 100%)'
                                         : 'linear-gradient(135deg, #111827 0%, #374151 40%, #6b7280 62%, #1f2937 100%)' }}

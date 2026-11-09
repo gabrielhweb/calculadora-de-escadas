@@ -1842,7 +1842,7 @@ const Contract = () => {
         </p>
       </header>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <div className="of-plate bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
         <div className="p-6 md:p-10 flex flex-col gap-10 max-w-4xl mx-auto">
           <div className="space-y-6">
             <SectionTitle title="1. Dados do Cliente" />
@@ -3315,7 +3315,7 @@ const Contract = () => {
 
 
 
-          <div className="mb-6 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mt-6">
+          <div className="of-plate mb-6 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mt-6">
             <h3 className="text-sm font-black text-gray-900 dark:text-gray-100 uppercase mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
               Formato do Contrato (O que será impresso)
             </h3>

@@ -126,7 +126,7 @@ export default function NewOrder() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Lado Esquerdo: Busca */}
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 h-fit">
+                <div className="of-plate bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 h-fit">
                     <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-4">Buscar Matéria Prima</h2>
                     <input 
                         type="text" 
@@ -173,7 +173,7 @@ export default function NewOrder() {
                 </div>
 
                 {/* Lado Direito: Carrinho */}
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col h-[70vh]">
+                <div className="of-plate bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col h-[70vh]">
                     <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-4">Itens do Pedido</h2>
                     
                     <div className="flex-1 overflow-y-auto pr-2">

@@ -93,7 +93,7 @@ const Layout: React.FC = () => {
 
   const linkClass = (path: string) =>
     `${isActive(path)
-      ? 'bg-amber-50 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 font-bold'
+      ? 'bg-gray-900 text-amber-400 dark:bg-black dark:text-amber-400 font-bold'
       : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/60 hover:text-gray-900 dark:hover:text-white'} flex-1 min-w-0 flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors`;
 
   const renderItem = (item: MenuItem) => (
@@ -133,6 +133,7 @@ const Layout: React.FC = () => {
       <aside
         className={`print:hidden fixed inset-y-0 left-0 z-50 w-64 flex flex-col bg-secondary dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-transform duration-200 lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
+        <div className="of-zebra" aria-hidden="true" />
         <div className="flex items-center justify-between px-4 py-4 border-b border-gray-100 dark:border-gray-700">
           <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 group">
             <div className="w-12 h-12 flex items-center justify-center transition-transform group-hover:scale-105">
@@ -150,7 +151,7 @@ const Layout: React.FC = () => {
               </svg>
             </div>
             <div className="flex flex-col">
-              <span className="font-black text-2xl tracking-tighter text-gray-900 dark:text-white leading-none">Zilinski</span>
+              <span className="of-stencil text-2xl text-gray-900 dark:text-white leading-none">Zilinski</span>
               <span className="text-[10px] text-highlight tracking-[0.3em] uppercase font-bold mt-1">Escadas</span>
             </div>
           </Link>
@@ -167,7 +168,7 @@ const Layout: React.FC = () => {
           {MENU.map((group) => (
             <div key={group.title || 'inicio'} className={group.title ? 'pt-3' : ''}>
               {group.title && (
-                <div className="px-3 pb-1 text-[11px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">{group.title}</div>
+                <div className="of-stencil px-3 pb-1 text-[11px] text-gray-500 dark:text-gray-400">{group.title}</div>
               )}
               <div className="space-y-0.5">{group.items.map(renderItem)}</div>
             </div>

@@ -133,7 +133,7 @@ export default function SupplierCatalog() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Formulário */}
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 h-fit">
+                <div className="of-plate bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 h-fit">
                     <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-4">
                         {editingId ? 'Editar Fornecedor' : 'Novo Fornecedor'}
                     </h2>
@@ -195,7 +195,7 @@ export default function SupplierCatalog() {
 
                 {/* Lista */}
                 <div className="lg:col-span-2">
-                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+                    <div className="of-plate bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
                         {loading ? (
                             <div className="p-8 text-center text-gray-500">Carregando fornecedores...</div>
                         ) : suppliers.length === 0 ? (

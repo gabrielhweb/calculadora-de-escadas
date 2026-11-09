@@ -313,7 +313,7 @@ function Calculator() {
               deliveryDays={deliveryDays} setDeliveryDays={setDeliveryDays}
             />
           ) : (
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg text-center shadow-sm border border-gray-100 dark:border-gray-700">
+            <div className="of-plate bg-white dark:bg-gray-800 p-6 rounded-lg text-center shadow-sm border border-gray-100 dark:border-gray-700">
                 <h3 className="text-lg font-bold text-gray-700 dark:text-gray-300">Aguardando Medidas</h3>
                 <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">Preencha o formulário ao lado para ver as opções.</p>
             </div>

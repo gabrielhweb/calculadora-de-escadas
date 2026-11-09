@@ -72,7 +72,7 @@ export default function PurchasesDashboard() {
                 </PageTitle>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <Link to="/compras/catalogo" className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 flex flex-col items-center justify-center text-center hover:shadow-md transition-shadow group">
+                    <Link to="/compras/catalogo" className="of-plate bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 flex flex-col items-center justify-center text-center hover:shadow-md transition-shadow group">
                         <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                             <span className="text-2xl"><Icon name="clipboard" /></span>
                         </div>
@@ -82,7 +82,7 @@ export default function PurchasesDashboard() {
                         </p>
                     </Link>
 
-                    <Link to="/compras/fornecedores" className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 flex flex-col items-center justify-center text-center hover:shadow-md transition-shadow group">
+                    <Link to="/compras/fornecedores" className="of-plate bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 flex flex-col items-center justify-center text-center hover:shadow-md transition-shadow group">
                         <div className="w-16 h-16 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                             <span className="text-2xl"><Icon name="factory" /></span>
                         </div>
@@ -92,7 +92,7 @@ export default function PurchasesDashboard() {
                         </p>
                     </Link>
 
-                    <Link to="/compras/novo-pedido" className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 flex flex-col items-center justify-center text-center hover:shadow-md transition-shadow group">
+                    <Link to="/compras/novo-pedido" className="of-plate bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 flex flex-col items-center justify-center text-center hover:shadow-md transition-shadow group">
                         <div className="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                             <span className="text-2xl"><Icon name="cart" /></span>
                         </div>
@@ -102,7 +102,7 @@ export default function PurchasesDashboard() {
                         </p>
                     </Link>
 
-                    <Link to="/compras/historico" className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 flex flex-col items-center justify-center text-center hover:shadow-md transition-shadow group">
+                    <Link to="/compras/historico" className="of-plate bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 flex flex-col items-center justify-center text-center hover:shadow-md transition-shadow group">
                         <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                             <span className="text-2xl"><Icon name="file" /></span>
                         </div>
@@ -114,7 +114,7 @@ export default function PurchasesDashboard() {
                 </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div className="of-plate bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                 <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-4">Configurações Financeiras</h2>
                 <form onSubmit={handleSave} className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div>
