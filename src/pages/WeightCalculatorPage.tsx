@@ -58,11 +58,11 @@ export default function WeightCalculatorPage() {
   return (
     <div className="p-6 h-[calc(100vh-64px)] overflow-y-auto pb-24">
       <div className="max-w-5xl mx-auto">
-        <div className="bg-white rounded-xl shadow p-6 mb-6">
+        <div className="of-plate bg-white rounded-xl shadow p-6 mb-6">
           <div className="flex items-center gap-3 mb-6">
             <span className="text-3xl"><Icon name="scale" /></span>
             <div>
-              <h2 className="text-2xl font-bold uppercase tracking-wider text-slate-800">Cálculo Rápido de Peso</h2>
+              <h2 className="of-stencil text-2xl text-slate-800">Cálculo Rápido de Peso</h2>
               <p className="text-slate-500 text-sm">Insira as medidas para calcular o peso da chapa e custo de material</p>
             </div>
           </div>

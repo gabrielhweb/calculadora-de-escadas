@@ -90,7 +90,7 @@ export default function CustomPaymentReceipt() {
 
   return (
     <div className="max-w-4xl mx-auto pb-12">
-      <div className="mb-6 flex justify-between items-center bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+      <div className="of-plate mb-6 flex justify-between items-center bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
         <div>
           <PageTitle info="Gera recibo de pagamento (entrada, parcela ou quitação) em PDF pra entregar ao cliente.">
             Gerador de Recibos
@@ -106,7 +106,7 @@ export default function CustomPaymentReceipt() {
         </button>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 p-6 md:p-8">
+      <div className="of-plate bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 p-6 md:p-8">
         <h2 className="text-xl font-bold mb-6 text-gray-800 dark:text-gray-200 border-b pb-2 dark:border-gray-700">Informações do Recibo</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

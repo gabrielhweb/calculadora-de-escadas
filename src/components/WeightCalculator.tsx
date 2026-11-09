@@ -88,7 +88,7 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
         <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-50">
           
           {/* Controls */}
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200 mb-8 flex flex-col md:flex-row gap-6 items-center justify-between">
+          <div className="of-plate bg-white p-6 rounded-lg shadow-sm border border-slate-200 mb-8 flex flex-col md:flex-row gap-6 items-center justify-between">
             <div>
               <h3 className="font-bold text-lg flex items-center gap-2 text-slate-700">
                 <span className="text-xl"><Icon name="ruler" /></span>
@@ -230,7 +230,7 @@ export const WeightCalculator: React.FC<WeightCalculatorProps> = ({
         <div className="flex-1 overflow-y-auto p-6 bg-slate-50">
           
           {/* Controls */}
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200 mb-8 flex flex-col md:flex-row gap-6 items-center justify-between">
+          <div className="of-plate bg-white p-6 rounded-lg shadow-sm border border-slate-200 mb-8 flex flex-col md:flex-row gap-6 items-center justify-between">
             <div>
               <h3 className="font-bold text-lg flex items-center gap-2 text-slate-700">
                 <span className="text-xl"><Icon name="ruler" /></span>

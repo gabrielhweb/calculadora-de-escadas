@@ -448,7 +448,7 @@ export default function InstallationReceipt() {
   return (
     <div className="max-w-5xl mx-auto p-4 md:p-6 animate-fade-in pb-16">
       {/* Header Card */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden mb-6">
+      <div className="of-plate bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden mb-6">
         <div className="bg-[#253c55] px-6 py-5 text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">

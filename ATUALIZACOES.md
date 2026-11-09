@@ -4,6 +4,11 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-09 — [casa] — Oficina: placas também em Recibo de Pagamento, Calculadora de Peso e Recibo de Instalação
+- **O que mudou:** os painéis principais dessas telas viraram placas de aço (`of-plate`) e o título da Calculadora de Peso ficou em estêncil. Os 3 cartões coloridos da Calculadora de Peso (Degraus/Patamares/Vigas, com faixa colorida em cima) ficaram como estão, só com canto reto. Usuário aprovou o estilo.
+- **Onde:** `src/pages/CustomPaymentReceipt.tsx`, `src/components/WeightCalculator.tsx`, `src/pages/WeightCalculatorPage.tsx`, `src/pages/InstallationReceipt.tsx` (só a linha da placa no commit; a retirada de CPFs continua sem commit).
+- **Pendente:** nada.
+
 ### 2026-11-09 — [casa] — Estilo Oficina espalhado pelo site
 - **O que mudou:** `PageTitle` (13 páginas) em estêncil com faixa zebrada embaixo (`.of-title`); menu lateral com faixa zebrada no topo, "ZILINSKI" e títulos de grupo em estêncil, item ativo preto com letra dourada; **canto reto em todo o site** (`:is(main, aside) :is(.rounded…)` no `index.html`), menos o que tem `.keep-round` (cartões metálicos de Meus Contratos); 28 painéis brancos com sombra viraram placas de aço parafusadas (`of-plate`) em Calculadora, Contrato, Transportadoras, Entregas, Fila, Orçamentos Salvos, Compras (5 telas) e Visitas. `.of-plate` agora tem prioridade sobre o `bg-white` do Tailwind (`html .of-plate`).
 - **Onde:** `index.html`, `src/components/PageTitle.tsx`, `src/components/Layout.tsx`, `src/pages/*`, `src/pages/Purchases/*`, `src/components/visitas/*`.
