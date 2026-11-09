@@ -4,6 +4,11 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-09 — [casa] — 3D volta à cara antiga; viga da parede com zigue-zague só em cima
+- **O que mudou:** a pedido do usuário, o 3D saiu do estilo planta azul e voltou ao visual anterior (aço preto, parede cinza, fundo claro) — `StaircaseVisualizer.tsx` restaurado da versão 4a336c3. A viga da parede continua sendo a chapa cortada, agora com **zigue-zague só em cima** (onde apoia cada degrau) e **reta embaixo**, paralela à inclinação. Os ícones das abas da Calculadora continuam em planta azul.
+- **Onde:** `src/components/StaircaseVisualizer.tsx`.
+- **Pendente:** usuário conferir no site; perguntar se os ícones azuis também voltam.
+
 ### 2026-11-09 — [casa] — 3D: viga da parede em zigue-zague, igual à escada real
 - **O que mudou:** com fotos de escadas reais (Instagram @zilinski.escadas + prints do usuário), a viga da parede deixou de ser uma chapa reta e virou a chapa cortada em zigue-zague (um "dente" por degrau, `extrudeGeometry` de um `THREE.Shape`), que aparece encostada na parede com a escada fechada e embaixo dos degraus com ela aberta. Corrimão (3 tubos, poucos postes), degrau de chapa com aba e viga de fora fina já batiam com as fotos.
 - **Onde:** `src/components/StaircaseVisualizer.tsx` (`StairModel`).

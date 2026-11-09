@@ -5,7 +5,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Html, Line, Edges } from '@react-three/drei';
+import { OrbitControls, Html, Line } from '@react-three/drei';
 import * as THREE from 'three';
 import { GuardrailPreview } from './GuardrailPreview';
 import { LandingPreview } from './LandingPreview';
@@ -31,15 +31,6 @@ interface StaircaseVisualizerProps {
   stairDirection?: 'standard' | 'mirrored'; 
   referenceDoor?: ReferenceDoor;
 }
-
-// Visual de planta azul (blueprint) no 3D: peça azul translúcida com contorno branco
-const BLUEPRINT_BG = '#1d4e89';
-const BlueprintMaterial: React.FC<{ fill?: string; opacity?: number }> = ({ fill = '#3b82c4', opacity = 0.35 }) => (
-  <>
-    <meshBasicMaterial color={fill} transparent opacity={opacity} depthWrite={false} />
-    <Edges color="#ffffff" threshold={15} />
-  </>
-);
 
 // Tipos para a Engine 3D Simples
 interface Point3D { x: number; y: number; z: number; }
@@ -106,7 +97,8 @@ const StairModel: React.FC<{
   const lipHeightM = 0.05;
   const treadThicknessM = materialProp === 'madeira' ? 0.03 : 0.006;
 
-  // Viga da parede igual à real: chapa cortada a laser em zigue-zague (um "dente" por degrau)
+  // Viga da parede igual à real: chapa cortada a laser com zigue-zague só em cima (onde apoia cada degrau)
+  // e reta embaixo, paralela à inclinação da escada
   const zigzagStringer = useMemo(() => {
     const run = totalLengthM / stepsCount;
     const top: [number, number][] = [];
@@ -115,10 +107,13 @@ const StairModel: React.FC<{
       const yc = -totalHeightM * (i + 0.5) / stepsCount;
       top.push([zc - run / 2, yc], [zc + run / 2, yc]);
     }
+    const [firstZ, firstY] = top[0];
+    const [lastZ, lastY] = top[top.length - 1];
     const shape = new THREE.Shape();
-    shape.moveTo(top[0][0], top[0][1]);
+    shape.moveTo(firstZ, firstY);
     top.slice(1).forEach(([z, y]) => shape.lineTo(z, y));
-    [...top].reverse().forEach(([z, y]) => shape.lineTo(z, y - stringerBandM));
+    shape.lineTo(lastZ, lastY - stringerBandM);
+    shape.lineTo(firstZ, firstY - stringerBandM);
     shape.closePath();
     return shape;
   }, [stepsCount, totalHeightM, totalLengthM, stringerBandM]);
@@ -127,10 +122,10 @@ const StairModel: React.FC<{
     // Base coordinate system: pivot at top landing.
     <group position={[0, totalHeightM, 0]}>
 
-      {/* VIGA DA PAREDE: chapa em zigue-zague no plano da parede (forma em Z/Y, espessura em X) */}
+      {/* VIGA DA PAREDE: chapa no plano da parede (forma em Z/Y, espessura em X) */}
       <mesh position={[wallX + plateThicknessM / 2, 0, 0]} rotation-y={-Math.PI / 2}>
         <extrudeGeometry args={[zigzagStringer, { depth: plateThicknessM, bevelEnabled: false }]} />
-        <BlueprintMaterial />
+        <meshStandardMaterial color={metallicColor} metalness={0.7} roughness={0.35} />
       </mesh>
 
       <group position={[wallX, -totalHeightM / 2, totalLengthM / 2]}>
@@ -138,11 +133,11 @@ const StairModel: React.FC<{
         {/* Chapas de Fixação na Parede (Apoios superior e inferior) */}
         <mesh position={[-0.01, totalHeightM / 2, -totalLengthM / 2]}>
           <boxGeometry args={[0.01, 0.30, 0.20]} />
-          <BlueprintMaterial />
+          <meshStandardMaterial color={metallicColor} metalness={0.7} roughness={0.3} />
         </mesh>
         <mesh position={[-0.01, -totalHeightM / 2, totalLengthM / 2]}>
           <boxGeometry args={[0.01, 0.30, 0.20]} />
-          <BlueprintMaterial />
+          <meshStandardMaterial color={metallicColor} metalness={0.7} roughness={0.3} />
         </mesh>
       </group>
 
@@ -155,7 +150,7 @@ const StairModel: React.FC<{
         <group position={[0, -totalHeightM / 2, totalLengthM / 2]}>
           <mesh rotation-x={slopeAngle}>
             <boxGeometry args={[plateThicknessM, 0.05, barLength]} />
-            <BlueprintMaterial />
+            <meshStandardMaterial color={metallicColor} metalness={0.7} roughness={0.3} />
           </mesh>
         </group>
 
@@ -166,7 +161,7 @@ const StairModel: React.FC<{
                <group key={`rail-${r}`} position={[0, -totalHeightM / 2 + h, totalLengthM / 2]}>
                  <mesh rotation-x={slopeAngle}>
                    <boxGeometry args={[handrailThicknessM, handrailThicknessM, barLength]} />
-                   <BlueprintMaterial />
+                   <meshStandardMaterial color={metallicColor} metalness={0.8} roughness={0.2} />
                  </mesh>
                </group>
              ))}
@@ -179,7 +174,7 @@ const StairModel: React.FC<{
                return (
                   <mesh key={`post-${i}`} position={[0, hingeY + handrailHeightM / 2, hingeZ]}>
                     <boxGeometry args={[supportThicknessM, handrailHeightM, supportThicknessM]} />
-                    <BlueprintMaterial />
+                    <meshStandardMaterial color={metallicColor} metalness={0.8} roughness={0.2} />
                   </mesh>
                );
              })}
@@ -200,18 +195,22 @@ const StairModel: React.FC<{
               {/* Piso do degrau */}
               <mesh position={[stairW / 2, 0, 0]}>
                 <boxGeometry args={[stairW, treadThicknessM, treadDepth]} />
-                <BlueprintMaterial fill={materialProp === 'madeira' ? '#7fb2e5' : '#3b82c4'} opacity={materialProp === 'madeira' ? 0.5 : 0.35} />
+                <meshStandardMaterial
+                  color={stepColor}
+                  metalness={materialProp === 'metal' ? 0.5 : 0.1}
+                  roughness={materialProp === 'metal' ? 0.4 : 0.8}
+                />
               </mesh>
               {/* Aba dobrada na frente do degrau */}
               <mesh position={[stairW / 2, -lipHeightM / 2, treadDepth / 2]}>
                 <boxGeometry args={[stairW, lipHeightM, 0.006]} />
-                <BlueprintMaterial />
+                <meshStandardMaterial color={metallicColor} metalness={0.6} roughness={0.4} />
               </mesh>
               {/* 4 dobradiças: 2 na viga da parede e 2 na viga de fora */}
               {[0, stairW].map(x => [-treadDepth / 3, treadDepth / 3].map(z => (
                 <mesh key={`h-${x}-${z}`} position={[x, 0, z]} rotation-x={Math.PI / 2}>
                   <cylinderGeometry args={[0.01, 0.01, 0.06, 8]} />
-                  <BlueprintMaterial />
+                  <meshStandardMaterial color={hingeColor} metalness={0.9} roughness={0.3} />
                 </mesh>
               )))}
             </animated.group>
@@ -266,8 +265,8 @@ const Interactive3DStair: React.FC<{
   const stringerBandM = ((treadDepthCm * stepHeightCm) / stepHypotenuseCm + 16.5) / 100;
 
   return (
-    <div className="relative w-full h-full" style={{ background: BLUEPRINT_BG }}>
-      <Canvas camera={{ position: [5 * scaleX, totalHeightM + 1, 5], fov: 50 }} style={{ width: '100%', height: '100%', background: BLUEPRINT_BG }}>
+    <div className="relative w-full h-full bg-slate-200">
+      <Canvas camera={{ position: [5 * scaleX, totalHeightM + 1, 5], fov: 50 }} style={{ width: '100%', height: '100%', background: '#e2e8f0' }}>
           <ambientLight intensity={0.6} />
           <directionalLight position={[5, 10, 5]} intensity={1.5} castShadow />
           <pointLight position={[-5, 5, -5]} intensity={0.5} />
@@ -300,12 +299,12 @@ const Interactive3DStair: React.FC<{
               {wallFixation !== 'frontal' ? (
                   <mesh position={[wallPositionX, totalHeightM / 2, totalLengthM / 2]}>
                       <boxGeometry args={[0.2, totalHeightM + 2, totalLengthM + 2]} />
-                      <BlueprintMaterial fill="#5a8cc9" opacity={0.12} />
+                      <meshStandardMaterial color="#cbd5e1" />
                   </mesh>
               ) : (
                   <mesh position={[0, totalHeightM / 2, -0.4]}>
                       <boxGeometry args={[stairWidth + 2, totalHeightM + 2, 0.2]} />
-                      <BlueprintMaterial fill="#5a8cc9" opacity={0.12} />
+                      <meshStandardMaterial color="#cbd5e1" />
                   </mesh>
               )}
           </group>
@@ -347,11 +346,10 @@ const Interactive3DStair: React.FC<{
           </group>
 
           {/* Floor */}
-          {/* Chão quadriculado de planta: linha a cada 25cm */}
-          <gridHelper
-            args={[Math.ceil(Math.max(stairWidth, totalLengthM) + 4), Math.ceil(Math.max(stairWidth, totalLengthM) + 4) * 4, '#ffffff', '#4f7fbf']}
-            position={[0, 0.001, totalLengthM / 2]}
-          />
+          <mesh position={[0, 0, totalLengthM / 2]} rotation-x={-Math.PI / 2}>
+              <planeGeometry args={[stairWidth + 4, totalLengthM + 4]} />
+              <meshStandardMaterial color="#cbd5e1" />
+          </mesh>
 
           {/* UI Hint */}
           <Html position={[0, totalHeightM + 0.5, 0]} center>
