@@ -4,6 +4,11 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-09 — [casa] — 3D: viga da parede em zigue-zague, igual à escada real
+- **O que mudou:** com fotos de escadas reais (Instagram @zilinski.escadas + prints do usuário), a viga da parede deixou de ser uma chapa reta e virou a chapa cortada em zigue-zague (um "dente" por degrau, `extrudeGeometry` de um `THREE.Shape`), que aparece encostada na parede com a escada fechada e embaixo dos degraus com ela aberta. Corrimão (3 tubos, poucos postes), degrau de chapa com aba e viga de fora fina já batiam com as fotos.
+- **Onde:** `src/components/StaircaseVisualizer.tsx` (`StairModel`).
+- **Pendente:** se o usuário mandar fotos de perto, dá pra refinar dobradiça e o pé do corrimão. Pela navegação do app não dá pra pausar vídeos do Instagram; vídeos mandados como arquivo (WhatsApp) funcionam.
+
 ### 2026-11-09 — [casa] — Ícones da Calculadora e 3D em estilo "planta azul" (blueprint)
 - **O que mudou:** os 4 ícones das abas da Central de Calculadoras ficam num quadrado azul quadriculado com traço branco (aba ativa com borda dourada). O 3D do visualizador ficou como planta: fundo azul `#1d4e89`, todas as peças com o mesmo material (`BlueprintMaterial`: azul translúcido + contorno branco com `Edges` do drei; pisante de madeira um pouco mais claro) e o chão virou quadriculado branco (linha a cada 25cm). Os outros desenhos (2D, guarda-corpo, patamar, PDFs) ficaram como estavam, a pedido do usuário.
 - **Contexto:** o usuário escolheu o estilo "Oficina" (faixa zebrada, placas de aço parafusadas, letra de estêncil) pro site num fundo branco, mantendo os cartões metálicos de Meus Contratos; ainda **não aplicado** — só os desenhos azuis por enquanto.

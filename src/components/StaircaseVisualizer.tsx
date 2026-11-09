@@ -106,16 +106,34 @@ const StairModel: React.FC<{
   const lipHeightM = 0.05;
   const treadThicknessM = materialProp === 'madeira' ? 0.03 : 0.006;
 
+  // Viga da parede igual à real: chapa cortada a laser em zigue-zague (um "dente" por degrau)
+  const zigzagStringer = useMemo(() => {
+    const run = totalLengthM / stepsCount;
+    const top: [number, number][] = [];
+    for (let i = 0; i < stepsCount; i++) {
+      const zc = totalLengthM * (i + 0.5) / stepsCount;
+      const yc = -totalHeightM * (i + 0.5) / stepsCount;
+      top.push([zc - run / 2, yc], [zc + run / 2, yc]);
+    }
+    const shape = new THREE.Shape();
+    shape.moveTo(top[0][0], top[0][1]);
+    top.slice(1).forEach(([z, y]) => shape.lineTo(z, y));
+    [...top].reverse().forEach(([z, y]) => shape.lineTo(z, y - stringerBandM));
+    shape.closePath();
+    return shape;
+  }, [stepsCount, totalHeightM, totalLengthM, stringerBandM]);
+
   return (
     // Base coordinate system: pivot at top landing.
     <group position={[0, totalHeightM, 0]}>
 
-      {/* VIGA DA PAREDE (chapa larga, fixa na parede) */}
+      {/* VIGA DA PAREDE: chapa em zigue-zague no plano da parede (forma em Z/Y, espessura em X) */}
+      <mesh position={[wallX + plateThicknessM / 2, 0, 0]} rotation-y={-Math.PI / 2}>
+        <extrudeGeometry args={[zigzagStringer, { depth: plateThicknessM, bevelEnabled: false }]} />
+        <BlueprintMaterial />
+      </mesh>
+
       <group position={[wallX, -totalHeightM / 2, totalLengthM / 2]}>
-        <mesh rotation-x={slopeAngle} position={[0, -stringerBandM / 2 * Math.cos(slopeAngle), -stringerBandM / 2 * Math.sin(slopeAngle)]}>
-          <boxGeometry args={[plateThicknessM, stringerBandM, barLength]} />
-          <BlueprintMaterial />
-        </mesh>
 
         {/* Chapas de Fixação na Parede (Apoios superior e inferior) */}
         <mesh position={[-0.01, totalHeightM / 2, -totalLengthM / 2]}>
