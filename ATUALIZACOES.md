@@ -4,6 +4,12 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-09 — [casa] — Ícones da Calculadora e 3D em estilo "planta azul" (blueprint)
+- **O que mudou:** os 4 ícones das abas da Central de Calculadoras ficam num quadrado azul quadriculado com traço branco (aba ativa com borda dourada). O 3D do visualizador ficou como planta: fundo azul `#1d4e89`, todas as peças com o mesmo material (`BlueprintMaterial`: azul translúcido + contorno branco com `Edges` do drei; pisante de madeira um pouco mais claro) e o chão virou quadriculado branco (linha a cada 25cm). Os outros desenhos (2D, guarda-corpo, patamar, PDFs) ficaram como estavam, a pedido do usuário.
+- **Contexto:** o usuário escolheu o estilo "Oficina" (faixa zebrada, placas de aço parafusadas, letra de estêncil) pro site num fundo branco, mantendo os cartões metálicos de Meus Contratos; ainda **não aplicado** — só os desenhos azuis por enquanto.
+- **Onde:** `src/pages/Calculator.tsx`, `src/components/StaircaseVisualizer.tsx`.
+- **Pendente:** deixar o modelo 3D mais parecido com as escadas reais — usuário vai mostrar fotos do Instagram no navegador do app. Confirmar se aplica o estilo Oficina no resto do site.
+
 ### 2026-11-09 — [casa] — "Rota no Maps" nos endereços da Tabela de Entregas e da Tabela de Visitas
 - **O que mudou:** embaixo de cada endereço aparece "📍 Rota no Maps", que abre o Google Maps já traçando a rota até o cliente (`google.com/maps/dir/?api=1&destination=<endereço>`; no celular abre o app). Usa o endereço escrito, não as coordenadas (que nas visitas costumam estar no padrão do centro de SP). Não aparece na impressão da Tabela de Entregas. Pedido por áudio.
 - **Onde:** `src/pages/DeliveriesTable.tsx`, `src/components/visitas/TabelaVisitasRow.tsx`.

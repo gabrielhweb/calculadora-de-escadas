@@ -248,9 +248,15 @@ function Calculator() {
                             onClick={() => {setActiveTab(tab.id); setInputData(null); setOptions([]);}}
                             className={`w-full px-2 pt-4 pb-3 -mb-px border-b-[3px] flex flex-col items-center justify-center gap-2 text-sm transition-colors ${active ? 'border-highlight text-gray-900 dark:text-white font-bold' : 'border-transparent text-gray-500 dark:text-gray-400 font-semibold hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800/60'}`}
                         >
-                            <svg viewBox="0 0 40 40" className={`w-10 h-10 ${active ? 'text-highlight' : 'text-gray-400 dark:text-gray-500'}`} fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
-                                <path d={tab.icon} />
-                            </svg>
+                            {/* Ícone em "planta azul": fundo azul quadriculado e traço branco */}
+                            <span
+                                className={`flex items-center justify-center w-14 h-14 transition-opacity ${active ? 'ring-2 ring-highlight ring-offset-2 ring-offset-white dark:ring-offset-gray-900' : 'opacity-60'}`}
+                                style={{ backgroundColor: '#1d4e89', backgroundImage: 'linear-gradient(#3b6fae 1px, transparent 1px), linear-gradient(90deg, #3b6fae 1px, transparent 1px)', backgroundSize: '7px 7px' }}
+                            >
+                                <svg viewBox="0 0 40 40" className="w-10 h-10 text-white" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+                                    <path d={tab.icon} />
+                                </svg>
+                            </span>
                             {tab.label}
                         </button>
                         <InfoTip text={tab.info} className="absolute top-2 right-2" />
