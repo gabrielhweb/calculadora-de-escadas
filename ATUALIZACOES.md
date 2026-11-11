@@ -4,6 +4,11 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-11 — [casa] — Contrato: "Gerar PDF" agora pergunta se quer salvar
+- **O que mudou:** a tela Gerar Contrato tem dois botões separados — "Gerar PDF" (só baixa) e "Salvar na Timeline" (grava no banco). O contrato do Hilton José Pereira Cardim (11/11) foi só baixado e não apareceu em Meus Contratos. Agora, depois de gerar o PDF, se o contrato ainda não foi salvo nessa tela, aparece "O PDF foi gerado, mas o contrato ainda NÃO está salvo no sistema. Salvar agora?" (na edição: "as alterações ainda NÃO foram salvas").
+- **Onde:** `src/pages/Contract.tsx` (`handleGeneratePDF`, estado `contractSaved`).
+- **Pendente:** cadastrar o contrato do Hilton no sistema (dados no PDF que o usuário mandou).
+
 ### 2026-11-09 — [casa] — Oficina: placas também em Recibo de Pagamento, Calculadora de Peso e Recibo de Instalação
 - **O que mudou:** os painéis principais dessas telas viraram placas de aço (`of-plate`) e o título da Calculadora de Peso ficou em estêncil. Os 3 cartões coloridos da Calculadora de Peso (Degraus/Patamares/Vigas, com faixa colorida em cima) ficaram como estão, só com canto reto. Usuário aprovou o estilo.
 - **Onde:** `src/pages/CustomPaymentReceipt.tsx`, `src/components/WeightCalculator.tsx`, `src/pages/WeightCalculatorPage.tsx`, `src/pages/InstallationReceipt.tsx` (só a linha da placa no commit; a retirada de CPFs continua sem commit).

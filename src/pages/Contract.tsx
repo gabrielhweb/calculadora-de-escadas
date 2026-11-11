@@ -465,6 +465,8 @@ const Contract = () => {
   const [stairCapacityText, setStairCapacityText] = useState("360 quilos");
 
   const [isSavingContract, setIsSavingContract] = useState(false);
+  // "Gerar PDF" não salva sozinho: guarda se o contrato já foi salvo nesta tela pra avisar quem só baixou o PDF
+  const [contractSaved, setContractSaved] = useState(false);
 
   const [warrantyText, setWarrantyText] = useState("um ano");
   const [deliveryText, setDeliveryText] = useState(""); // Se vazio, usa o default com a data
@@ -1353,6 +1355,7 @@ const Contract = () => {
           console.warn("Aviso ao sincronizar fila de produção na edição", e);
         }
 
+        setContractSaved(true);
         alert("Contrato atualizado com sucesso!");
         navigate("/contratos");
         return;
@@ -1447,6 +1450,7 @@ const Contract = () => {
         await setDoc(doc(db, "production_queue", newOrder.id), newOrder);
       }
 
+      setContractSaved(true);
       alert("Contrato salvo com sucesso na sua Timeline na Nuvem!");
     } catch (error) {
       handleFirestoreError(
@@ -1578,6 +1582,19 @@ const Contract = () => {
       deliveryText,
       deliveryDays,
     });
+
+    // Quem só clicava em "Gerar PDF" achava que o contrato estava salvo e ele sumia (ex.: Hilton, 11/11)
+    if (
+      !contractSaved &&
+      user &&
+      window.confirm(
+        location.state?.isEditing
+          ? "O PDF foi gerado, mas as alterações ainda NÃO foram salvas no sistema. Salvar agora?"
+          : "O PDF foi gerado, mas o contrato ainda NÃO está salvo no sistema (Meus Contratos). Salvar agora?",
+      )
+    ) {
+      handleSaveContract();
+    }
   };
 
   const handleCopyCotacaoFrete = async () => {
