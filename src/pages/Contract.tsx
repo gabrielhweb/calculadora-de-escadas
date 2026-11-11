@@ -1583,16 +1583,9 @@ const Contract = () => {
       deliveryDays,
     });
 
-    // Quem só clicava em "Gerar PDF" achava que o contrato estava salvo e ele sumia (ex.: Hilton, 11/11)
-    if (
-      !contractSaved &&
-      user &&
-      window.confirm(
-        location.state?.isEditing
-          ? "O PDF foi gerado, mas as alterações ainda NÃO foram salvas no sistema. Salvar agora?"
-          : "O PDF foi gerado, mas o contrato ainda NÃO está salvo no sistema (Meus Contratos). Salvar agora?",
-      )
-    ) {
+    // Um botão só: gerar o PDF também salva (antes eram dois e o contrato do Hilton, 11/11, só foi baixado).
+    // Depois de salvo, clicar de novo só gera o PDF, pra não duplicar o contrato.
+    if (!contractSaved) {
       handleSaveContract();
     }
   };
@@ -4228,16 +4221,16 @@ const Contract = () => {
             <div className="flex flex-col gap-4 mt-2">
               <div className="flex gap-4">
                 <button
-                  onClick={handleSaveContract}
+                  onClick={handleGeneratePDF}
                   disabled={isSavingContract}
-                  className={`flex-1 ${isSavingContract ? "bg-gray-400 cursor-not-allowed" : "bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"} text-gray-800 dark:text-white font-black py-4 rounded-lg shadow-lg transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2`}
+                  className={`flex-1 ${isSavingContract ? "bg-gray-400 cursor-not-allowed" : "bg-highlight hover:bg-yellow-600"} text-white font-black py-4 rounded-lg shadow-lg transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2`}
                 >
                   <span><Icon name="save" /></span>{" "}
                   {isSavingContract
                     ? "Salvando..."
                     : location.state?.isEditing
-                      ? "Salvar Alterações"
-                      : "Salvar na Timeline"}
+                      ? "Salvar Alterações e Gerar PDF"
+                      : "Salvar e Gerar PDF"}
                 </button>
                 <button
                   onClick={handleCopyCotacaoFrete}
@@ -4248,12 +4241,6 @@ const Contract = () => {
               </div>
 
               <div className="flex gap-4">
-                <button
-                  onClick={handleGeneratePDF}
-                  className="flex-1 bg-highlight text-white font-black py-4 rounded-lg shadow-lg hover:bg-yellow-600 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2"
-                >
-                  <span><Icon name="file" /></span> Gerar Contrato PDF
-                </button>
                 <button
                   onClick={handleGenerateAceiteObra}
                   className="flex-1 bg-amber-600 text-white font-black py-4 rounded-lg shadow-lg hover:bg-amber-700 transition-all text-lg uppercase tracking-wide flex justify-center items-center gap-2"

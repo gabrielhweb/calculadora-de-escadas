@@ -4,6 +4,11 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-11 — [casa] — Contrato: um botão só, "Salvar e Gerar PDF"
+- **O que mudou:** a pedido do usuário, "Salvar na Timeline" e "Gerar Contrato PDF" viraram um botão só, **"Salvar e Gerar PDF"** (na edição: "Salvar Alterações e Gerar PDF"): gera o PDF e grava no banco. Depois de salvo, clicar de novo só gera o PDF (não duplica). Saiu a pergunta "Salvar agora?" da entrada anterior. A validação agora é a do PDF (nome + endereço completo).
+- **Onde:** `src/pages/Contract.tsx`.
+- **Pendente:** cadastrar o contrato do Hilton (preencher pela tela; o CPF o usuário digita).
+
 ### 2026-11-11 — [casa] — Contrato: "Gerar PDF" agora pergunta se quer salvar
 - **O que mudou:** a tela Gerar Contrato tem dois botões separados — "Gerar PDF" (só baixa) e "Salvar na Timeline" (grava no banco). O contrato do Hilton José Pereira Cardim (11/11) foi só baixado e não apareceu em Meus Contratos. Agora, depois de gerar o PDF, se o contrato ainda não foi salvo nessa tela, aparece "O PDF foi gerado, mas o contrato ainda NÃO está salvo no sistema. Salvar agora?" (na edição: "as alterações ainda NÃO foram salvas").
 - **Onde:** `src/pages/Contract.tsx` (`handleGeneratePDF`, estado `contractSaved`).
