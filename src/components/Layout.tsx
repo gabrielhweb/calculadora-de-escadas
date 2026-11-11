@@ -9,6 +9,7 @@ type MenuItem = { to: string; label: string; icon: string; info: string };
 const MENU: { title?: string; items: MenuItem[] }[] = [
   { items: [
     { to: '/', label: 'Calculadoras', icon: 'calc', info: 'Calcula escada completa, patamar, guarda-corpo/portão e peso, e monta as opções de preço pro orçamento.' },
+    { to: '/dashboard', label: 'Dashboard', icon: 'chart', info: 'Gráfico de escadas fechadas por mês, faturamento e materiais. Só conta contratos que foram pra produção.' },
   ] },
   { title: 'Contratos', items: [
     { to: '/contrato', label: 'Gerar Contrato', icon: 'filePlus', info: 'Monta o contrato a partir de um orçamento, com os dados do cliente, pagamento e prazo.' },
@@ -40,6 +41,7 @@ const ICON_PATHS: Record<string, string> = {
   cart: 'M3 4h2l2.4 11h10.2L20 7H6.2M9 20a1 1 0 100-2 1 1 0 000 2zM17 20a1 1 0 100-2 1 1 0 000 2z',
   truck: 'M3 6h11v10H3zM14 9h4l3 3v4h-7M7 18.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM17 18.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z',
   table: 'M4 5h16v14H4zM4 10h16M4 15h16M10 5v14',
+  chart: 'M4 20h16M7 16v-4M12 16V8M17 16v-7',
 };
 
 const MenuIcon: React.FC<{ name: string; active: boolean }> = ({ name, active }) => (

@@ -4,6 +4,11 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-11 — [casa] — Nova página Dashboard (/dashboard)
+- **O que mudou:** página "Dashboard" no menu (abaixo de Calculadoras): escadas fechadas por mês com resumo mensal (igual ao gráfico manual que a equipe fazia), faturamento por mês, cartões do ano (fechadas, faturamento, ticket médio, em produção agora, falta assinar), material do pisante e seletor de ano. "Fechado" = status `producao` ou `entregue`, contado pelo mês do `createdAt` (aceita Timestamp, ISO e dd/mm/aaaa). Gráficos feitos com divs, sem biblioteca nova. Contas em `src/utils/dashboardStats.ts` (testadas com dados de exemplo).
+- **Onde:** `src/pages/DashboardPage.tsx`, `src/utils/dashboardStats.ts`, `src/App.tsx`, `src/components/Layout.tsx`.
+- **Pendente:** comparar com os números manuais da equipe (2026: Fev 10, Mar 13, Abr 2, Mai 13, Jun 11, Jul 17, Ago 8, Set 10, Out 14, Nov 4). Contratos cujo status voltou pra "falta assinar" ou foram apagados não contam.
+
 ### 2026-11-11 — [casa] — Contrato: um botão só, "Salvar e Gerar PDF"
 - **O que mudou:** a pedido do usuário, "Salvar na Timeline" e "Gerar Contrato PDF" viraram um botão só, **"Salvar e Gerar PDF"** (na edição: "Salvar Alterações e Gerar PDF"): gera o PDF e grava no banco. Depois de salvo, clicar de novo só gera o PDF (não duplica). Saiu a pergunta "Salvar agora?" da entrada anterior. A validação agora é a do PDF (nome + endereço completo).
 - **Onde:** `src/pages/Contract.tsx`.

@@ -19,6 +19,7 @@ import NewOrder from './pages/Purchases/NewOrder';
 import OrderHistory from './pages/Purchases/OrderHistory';
 import PrintOrder from './pages/Purchases/PrintOrder';
 import PainelVisitas from './pages/PainelVisitas';
+import DashboardPage from './pages/DashboardPage';
 import { AuthProvider } from './components/AuthProvider';
 import { useEffect } from 'react';
 import { getDocFromServer, doc } from 'firebase/firestore';
@@ -44,6 +45,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<Calculator />} />
+            <Route path="dashboard" element={<DashboardPage />} />
             <Route path="contrato" element={<Contract />} />
             <Route path="calculadora-peso" element={<WeightCalculatorPage />} />
             <Route path="salvos" element={<SavedQuotes />} />
