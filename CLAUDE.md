@@ -46,7 +46,9 @@ Por isso estas regras valem em toda sessão:
 
 - [ ] (Opcional) Publicar no Firebase a regra da coleção `settings` (Firestore → Regras): o Painel de Visitas já não depende dela, mas as "Configurações de custo" de Compras gravam lá. Bloco: `match /settings/{settingId} { allow read, write: if isAllowedUser(); }`.
 - [ ] Depois de subir pro site: testar logado o frete por IA, o "Calcular melhor rota" e o envio de e-mail da Fila (funções da Vercel agora exigem login).
-- [ ] Conferir no site os contratos de Chalita, Maria Helena e Bergamo (status e valores), que não são mais corrigidos automaticamente pelo código.
+- [ ] Beatriz Grance Rinn: em Meus Contratos está "Falta assinar", mas na Fila está "Contrato assinado e pagamento inicial feito" (50% pago). Se já assinou, clicar em "Produção" no cartão dela.
+- [ ] Hilton e Paulo Henrique: colocar a data de entrega na Tabela de Entregas e o CPF do destinatário (está vazio no texto da transportadora).
+- [ ] Confirmar se o Alexandre Bergamo já recebeu a escada (está como Entregue/Concluído).
 - [ ] Revogar no GitHub o token `ghp_...` antigo que estava na URL do remote (máquina de casa).
 - [ ] Testar o Painel de Visitas com dois logins: visita cadastrada num tem que aparecer no outro.
 - [ ] Revisar a conta do preço dos tubos do guarda-corpo (deixado pra depois).

@@ -4,6 +4,12 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-16 — [empresa] — Conferência dos contratos no site (só leitura)
+- **O que foi visto (logado, Meus Contratos + Fila + Tabela de Entregas):** Chalita R$ 7.463,25, 11 degraus + patamar retrátil, corte a laser — ok, sem duplicata. Maria Helena R$ 7.251,35, 13 degraus, corte a laser, entrega 04/12 — ok, sem duplicata. Bergamo R$ 7.215,25, Entregue/Concluído, 100% pago — ok, sem duplicata. Hilton cadastrado (R$ 7.258,00, 14 degraus). Paulo Henrique aparece normal na Fila. Carla Polastro com 10 degraus (igual ao contrato salvo). Willian Alves Melgaço aparece 2x, mas são pedidos diferentes (R$ 2.055,30 em soldagem e R$ 5.595,50 concluído).
+- **Fora do lugar:** Beatriz Grance Rinn "Falta assinar" em Meus Contratos × "Contrato assinado" na Fila; Hilton e Paulo Henrique sem data de entrega e sem CPF do destinatário no texto da transportadora.
+- **Onde:** nada alterado no código nem no banco; só `CLAUDE.md` (pendências).
+- **Pendente:** itens novos nas Pendências do usuário. Andréia continua sem conferir o PDF.
+
 ### 2026-11-11 — [casa] — Nova página Dashboard (/dashboard)
 - **O que mudou:** página "Dashboard" no menu (abaixo de Calculadoras): escadas fechadas por mês com resumo mensal (igual ao gráfico manual que a equipe fazia), faturamento por mês, cartões do ano (fechadas, faturamento, ticket médio, em produção agora, falta assinar), material do pisante e seletor de ano. "Fechado" = status `producao` ou `entregue`, contado pelo mês do `createdAt` (aceita Timestamp, ISO e dd/mm/aaaa). Gráficos feitos com divs, sem biblioteca nova. Contas em `src/utils/dashboardStats.ts` (testadas com dados de exemplo).
 - **Onde:** `src/pages/DashboardPage.tsx`, `src/utils/dashboardStats.ts`, `src/App.tsx`, `src/components/Layout.tsx`.
