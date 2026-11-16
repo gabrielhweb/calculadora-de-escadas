@@ -54,13 +54,11 @@ Não cobrar o usuário. **Toda vez que for escrever no Diário**, abrir o site l
 - [ ] Alexandre Bergamo: está como Entregue/Concluído — confirmar que já recebeu.
 
 ## Testes no site
-- [ ] Testar logado o frete por IA, o "Calcular melhor rota" e o envio de e-mail da Fila (funções da Vercel agora exigem login).
+- [ ] Testar o envio de e-mail da Fila (manda e-mail de verdade pro cliente, por isso não foi testado pelo Claude).
 - [ ] Testar o Painel de Visitas com dois logins: visita cadastrada num tem que aparecer no outro.
-- [ ] Testar o buscador da página Meus Contratos.
-- [ ] Conferir o visual novo nas páginas que pedem login: Meus Contratos, Controle de Contratos e Compras.
 
 ## Decisões / informações do usuário
-- [ ] (Opcional) Publicar no Firebase a regra da coleção `settings` (Firestore → Regras): as "Configurações de custo" de Compras gravam lá. Bloco: `match /settings/{settingId} { allow read, write: if isAllowedUser(); }`.
+- [ ] **Publicar no Firebase as regras de `saved_quotes` e `settings`** — passo a passo e prompt pronto pra IA do Firebase em `docs/REGRAS-FIREBASE.md`. Sem isso, Orçamentos Salvos e a parte "Orçamentos" da Fila ficam vazias e as configurações de Compras não salvam.
 - [ ] Decidir se restaura o `vite.config.ts` (só necessário pra rodar local).
 - [ ] Explicar como devem ser "Modalidade de coleta" e "Tomador do frete" no texto da transportadora (hoje fixos).
 - [ ] Revisar a conta do preço dos tubos do guarda-corpo (deixado pra depois).
