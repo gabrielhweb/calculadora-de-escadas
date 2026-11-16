@@ -4,6 +4,11 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-16 — [empresa] — Aviso: trabalho esperando "pode subir" no branch `melhorias-frete-email`
+- Frete por IA com plano B (a ferramenta Maps do Gemini está dando 429 de cota → agora usa distância do OSRM + pedágio pela IA), perguntas "quem paga o frete" / "leva ou a transportadora busca" no Gerar Contrato, ajuste do e-mail (reply_to comercial) e `vite.config.ts` recriado (só pra rodar local). Detalhes no Diário desse branch.
+- **Não mexer nesses arquivos no `main` antes de juntar o branch** (evita conflito): `api/gemini.ts`, `api/email.ts`, `src/utils/freightQuoteText.ts`, `src/pages/Contract.tsx`, `src/pages/ContractsList.tsx`, `src/pages/DeliveriesTable.tsx`.
+- **Pendente:** usuário falar "pode subir"; aí juntar o branch no `main` e dar push.
+
 ### 2026-11-16 — [empresa] — Testes no site logado + regras do Firebase documentadas
 - **Testado (site em produção, logado):** buscador de Meus Contratos ok (acha sem acento, por cidade e em maiúscula). Visual de Meus Contratos, Controle de Contratos e Compras ok. "Calcular melhor rota" (`/api/calcular-rota-diaria`) responde 200 usando OSRM (Google/Mapbox não configurados); a primeira e a última visita da lista ficam fixas (`source=first&destination=last`), só as do meio são reordenadas. Frete por IA (`/api/gemini`): pela tela deu 500 uma vez (~20 s, as duas tentativas falharam); chamado de novo direto respondeu 200 (98 km, R$ 22,40) — falha intermitente. Chave da IA do `.env` local funciona com `gemini-2.5-flash`. E-mail da Fila não testado (manda e-mail real).
 - **Achado:** as regras publicadas no Firebase bloqueiam `saved_quotes` e `settings` (console: "Missing or insufficient permissions"). O `firestore.rules` do repositório já libera as duas; falta publicar. Criado `docs/REGRAS-FIREBASE.md` com explicação, passo a passo e prompt pra IA do Firebase.
