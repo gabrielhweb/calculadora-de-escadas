@@ -15,7 +15,7 @@ Por isso estas regras valem em toda sessão:
    - fazer commit e `git push` logo em seguida. Nunca deixar alteração parada só numa máquina.
 3. **Nunca** colocar senhas, chaves ou tokens em arquivo versionado. Segredo fica só no `.env` (local ou do servidor). Nunca pedir pro usuário colar senha/chave no chat: criar um script/atalho que grave direto no `.env`.
 4. Se o `git pull` der conflito, resolver **juntando as duas versões**. Nunca descartar o trabalho da outra máquina.
-5. Coisas que o usuário precisa fazer (cadastros, testes, contas externas) vão na lista **"⏳ Pendências do usuário"** abaixo, pra qualquer uma das máquinas lembrar.
+5. Coisas que o usuário precisa fazer (cadastros, testes, contas externas) vão na lista **"⏳ Pendências do usuário"** abaixo, pra qualquer uma das máquinas lembrar. Os itens de **"👀 Acompanhar"** são conferidos no site a cada entrada nova do Diário.
 6. **Todo push no `main` publica sozinho no site** (a Vercel faz o deploy automático). Por isso, mudança que o usuário ainda não aprovou pra produção não vai pro `main`: fica sem commit ou num branch separado até ele falar "pode subir". Se algo quebrar, dá pra voltar o deploy anterior no painel da Vercel (Deployments → Promote/Rollback).
 7. Falar com o usuário em português informal (chamar de "mano"). Se tiver dúvida, perguntar.
 
@@ -44,22 +44,28 @@ Por isso estas regras valem em toda sessão:
 
 # ⏳ Pendências do usuário
 
-- [ ] (Opcional) Publicar no Firebase a regra da coleção `settings` (Firestore → Regras): o Painel de Visitas já não depende dela, mas as "Configurações de custo" de Compras gravam lá. Bloco: `match /settings/{settingId} { allow read, write: if isAllowedUser(); }`.
-- [ ] Depois de subir pro site: testar logado o frete por IA, o "Calcular melhor rota" e o envio de e-mail da Fila (funções da Vercel agora exigem login).
-- [ ] Beatriz Grance Rinn: em Meus Contratos está "Falta assinar", mas na Fila está "Contrato assinado e pagamento inicial feito" (50% pago). Se já assinou, clicar em "Produção" no cartão dela.
-- [ ] Hilton e Paulo Henrique: colocar a data de entrega na Tabela de Entregas e o CPF do destinatário (está vazio no texto da transportadora).
-- [ ] Confirmar se o Alexandre Bergamo já recebeu a escada (está como Entregue/Concluído).
-- [ ] Revogar no GitHub o token `ghp_...` antigo que estava na URL do remote (máquina de casa).
+## 🏠 Só na máquina de CASA
+- [ ] **Revogar no GitHub o token `ghp_...` antigo** que estava na URL do remote. Só dá pra fazer na máquina de casa — o Claude de casa deve lembrar o usuário disso no começo da sessão até ser feito.
+
+## 👀 Acompanhar (quem resolve é o cliente, no controle de contratos dele)
+Não cobrar o usuário. **Toda vez que for escrever no Diário**, abrir o site logado (Meus Contratos / Fila / Tabela de Entregas), ver se cada item abaixo já foi resolvido e anotar na entrada do Diário ("resolvido" ou "ainda pendente"). Quando resolvido, tirar daqui.
+- [ ] Beatriz Grance Rinn: em Meus Contratos está "Falta assinar", mas na Fila está "Contrato assinado e pagamento inicial feito" (50% pago).
+- [ ] Hilton e Paulo Henrique: sem data de entrega na Tabela de Entregas e sem CPF do destinatário no texto da transportadora.
+- [ ] Alexandre Bergamo: está como Entregue/Concluído — confirmar que já recebeu.
+
+## Testes no site
+- [ ] Testar logado o frete por IA, o "Calcular melhor rota" e o envio de e-mail da Fila (funções da Vercel agora exigem login).
 - [ ] Testar o Painel de Visitas com dois logins: visita cadastrada num tem que aparecer no outro.
-- [ ] Revisar a conta do preço dos tubos do guarda-corpo (deixado pra depois).
-- [ ] Mandar fotos/vídeos de perto da escada (viga, degrau, dobradiça, pé do poste do corrimão, chapas de fixação) ou logar no Instagram no navegador do app, pra deixar o 3D idêntico.
-- [ ] Informar o peso real da escada do Marco Peruchi pra conferir o peso calculado (deu 205 kg).
-- [ ] Conferir no site: contrato da Andréia baixado em Meus Contratos agora sai com os degraus certos.
 - [ ] Testar o buscador da página Meus Contratos.
+- [ ] Conferir o visual novo nas páginas que pedem login: Meus Contratos, Controle de Contratos e Compras.
+
+## Decisões / informações do usuário
+- [ ] (Opcional) Publicar no Firebase a regra da coleção `settings` (Firestore → Regras): as "Configurações de custo" de Compras gravam lá. Bloco: `match /settings/{settingId} { allow read, write: if isAllowedUser(); }`.
+- [ ] Decidir se restaura o `vite.config.ts` (só necessário pra rodar local).
 - [ ] Explicar como devem ser "Modalidade de coleta" e "Tomador do frete" no texto da transportadora (hoje fixos).
-- [ ] Decidir se restaura o `vite.config.ts` (necessário pra rodar local).
-- [ ] Conferir o visual novo (cores e ícones) nas páginas que pedem login: Meus Contratos, Controle de Contratos e Compras.
-- [ ] Quando quiser, retomar a troca do estilo de "quadrados com ponta arredondada" (que o usuário não gosta) — mostrar/descrever o estilo que quer no lugar. Detalhes no Diário.
+- [ ] Revisar a conta do preço dos tubos do guarda-corpo (deixado pra depois).
+- [ ] Usuário vai conferir se o 3D já está parecido com a escada real (acha que sim); se não, mandar fotos de perto.
+- [ ] Ver se o canto reto que a máquina de casa aplicou resolveu os "quadrados com ponta arredondada"; se sim, tirar este item.
 
 # 🧱 Estrutura
 
