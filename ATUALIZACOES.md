@@ -4,6 +4,11 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-16 — [empresa] — Tabela de Entregas vazia em outra conta (diagnóstico)
+- **Causa:** as regras do Firestore só liberam quem tem documento com o próprio UID na coleção `admins`. Lá só tem 2 documentos (um é gaguisilva15, `WSqKvTSG3HaelRBsFEsiaO1sGfD3`), mas `api/_auth.ts` autoriza 3 e-mails (zilinskidistribuidora, somarcilioz, gaguisilva15). A conta sem documento entra no site mas o banco devolve vazio (a Tabela de Entregas não mostra erro, só fica sem nada). Com a conta gaguisilva15 a tabela aparece completa (conferido).
+- **Onde:** nada mudou no código; pendência nova no `CLAUDE.md`.
+- **Pendente:** usuário criar o documento em `admins` com o UID da conta que está vazia.
+
 ### 2026-11-16 — [empresa] — Publicado: branch `melhorias-frete-email` juntado no `main` + regras do Firebase publicadas
 - Usuário publicou as regras no Firebase (aba **Segurança** do Firestore, no console novo). Conferido no site logado: sumiram os erros "Missing or insufficient permissions" de `saved_quotes` e "Error fetching settings" de Compras. A seção "Orçamentos" da Fila continua com 0 porque a coleção `saved_quotes` está vazia (a tela Orçamentos Salvos guarda no próprio aparelho).
 - Usuário mandou prosseguir: o branch abaixo foi juntado no `main` e publicado.
