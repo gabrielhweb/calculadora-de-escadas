@@ -4,6 +4,12 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-16 — [empresa] — Aviso "conta não liberada no banco"
+- **O que mudou:** quando alguém entra com e-mail autorizado mas sem documento na coleção `admins`, aparece no topo de todas as páginas um aviso amarelo com o e-mail da conta, o UID e botão "Copiar UID", explicando onde cadastrar (Firestore → Dados → `admins` → Adicionar documento). Detecta tentando ler 1 contrato e vendo se o Firestore responde `permission-denied`. Usuário aprovou subir ("pode colocar").
+- **Por quê:** a Tabela de Entregas aparecia vazia numa conta e não dava pra saber qual conta faltava (o site não consegue ler a lista de usuários nem a coleção `admins`).
+- **Onde:** `src/components/AdminAccessBanner.tsx` (novo), `src/components/Layout.tsx`.
+- **Pendente:** usuário entrar com a conta que fica vazia, copiar o UID do aviso e criar o documento em `admins`.
+
 ### 2026-11-16 — [empresa] — Tabela de Entregas vazia em outra conta (diagnóstico)
 - **Causa:** as regras do Firestore só liberam quem tem documento com o próprio UID na coleção `admins`. Lá só tem 2 documentos (um é gaguisilva15, `WSqKvTSG3HaelRBsFEsiaO1sGfD3`), mas `api/_auth.ts` autoriza 3 e-mails (zilinskidistribuidora, somarcilioz, gaguisilva15). A conta sem documento entra no site mas o banco devolve vazio (a Tabela de Entregas não mostra erro, só fica sem nada). Com a conta gaguisilva15 a tabela aparece completa (conferido).
 - **Onde:** nada mudou no código; pendência nova no `CLAUDE.md`.

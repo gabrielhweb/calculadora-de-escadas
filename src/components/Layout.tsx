@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from './AuthProvider';
 import InfoTip from './InfoTip';
+import AdminAccessBanner from './AdminAccessBanner';
 
 type MenuItem = { to: string; label: string; icon: string; info: string };
 
@@ -210,6 +211,7 @@ const Layout: React.FC = () => {
 
       <div className="flex-1 min-w-0 flex flex-col min-h-screen">
         <main className="flex-grow">
+          <AdminAccessBanner />
           <Outlet />
         </main>
 

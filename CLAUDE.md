@@ -58,7 +58,7 @@ Não cobrar o usuário. **Toda vez que for escrever no Diário**, abrir o site l
 - [ ] Testar o Painel de Visitas com dois logins: visita cadastrada num tem que aparecer no outro.
 
 ## Decisões / informações do usuário
-- [ ] **Liberar no Firestore a conta que vê a Tabela de Entregas vazia:** a coleção `admins` só tem 2 documentos (um é gaguisilva15 = `WSqKvTSG3HaelRBsFEsiaO1sGfD3`), mas 3 e-mails são autorizados em `api/_auth.ts`. Conta sem documento em `admins` faz login mas o banco devolve tudo vazio. Passo: Authentication → Usuários → copiar o UID da conta → Firestore → Dados → `admins` → Adicionar documento com esse UID como ID.
+- [ ] **Liberar no Firestore a conta que vê a Tabela de Entregas vazia:** a coleção `admins` só tem 2 documentos (um é gaguisilva15 = `WSqKvTSG3HaelRBsFEsiaO1sGfD3`), mas 3 e-mails são autorizados em `api/_auth.ts`. Conta sem documento em `admins` faz login mas o banco devolve tudo vazio. Entrando com a conta vazia, o site mostra um aviso amarelo com o UID (botão "Copiar UID"); criar em Firestore → Dados → `admins` um documento com esse UID como ID.
 - [ ] Testar no site o frete por IA (Calculadora) e as perguntas novas de transportadora no Gerar Contrato ("Como a escada chega na transportadora?" / "Quem paga o frete?").
 - [ ] Revisar a conta do preço dos tubos do guarda-corpo (deixado pra depois).
 - [ ] Usuário vai conferir se o 3D já está parecido com a escada real (acha que sim); se não, mandar fotos de perto.
