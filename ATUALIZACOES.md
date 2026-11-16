@@ -7,6 +7,9 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 ### 2026-11-16 — [empresa] — Publicado: branch `melhorias-frete-email` juntado no `main` + regras do Firebase publicadas
 - Usuário publicou as regras no Firebase (aba **Segurança** do Firestore, no console novo). Conferido no site logado: sumiram os erros "Missing or insufficient permissions" de `saved_quotes` e "Error fetching settings" de Compras. A seção "Orçamentos" da Fila continua com 0 porque a coleção `saved_quotes` está vazia (a tela Orçamentos Salvos guarda no próprio aparelho).
 - Usuário mandou prosseguir: o branch abaixo foi juntado no `main` e publicado.
+- **Testado no site depois do deploy:** perguntas "Como a escada chega na transportadora?" / "Quem paga o frete?" aparecem no Gerar Contrato ao escolher Transportadora. `/api/gemini` logado: Campinas→Itu 70,7 km / pedágio R$ 16,60 (3 s); Campinas→Goiânia 818,2 km / R$ 52,60 (2 s). Em produção a ferramenta Maps respondeu (a cota estourada era da chave do `.env` local); o plano B pelo OSRM fica pra quando ela falhar.
+- **Acompanhar:** Beatriz, Hilton/Paulo Henrique e Bergamo — não reconferidos nesta entrada (ainda pendentes na conferência de hoje).
+- **Pendente:** usuário testar as perguntas num contrato real de transportadora e o envio de e-mail da Fila.
 
 ### 2026-11-16 — [empresa] — Frete por IA mais confiável, perguntas de transportadora, e-mail e vite.config
 - **vite.config.ts recriado:** só serve pra rodar no computador (`npm run dev` / preview "dev" do `.claude/launch.json`). Em modo dev define `process.env` como `{}` (senão a página fica branca); no build da Vercel não muda nada (conferido com `vite build`).
