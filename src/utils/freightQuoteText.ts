@@ -95,9 +95,25 @@ interface FreightQuoteParams {
     userData: any;
     invoiceValue: number;
     freightInfo: string;
+    // Respostas da página Gerar Contrato; sem resposta fica o padrão (levamos até a base, remetente paga)
+    freightPickup?: string;
+    freightPayer?: string;
 }
 
-export const buildFreightQuoteText = ({ userData, invoiceValue, freightInfo }: FreightQuoteParams) => {
+export const FREIGHT_PICKUP_OPTIONS = [
+    { value: "base", label: "Nós levamos até a base da transportadora", text: "a mercadoria será levada até a base da transportadora" },
+    { value: "coleta", label: "A transportadora busca na fábrica", text: "coleta no endereço do remetente" },
+];
+
+export const FREIGHT_PAYER_OPTIONS = [
+    { value: "remetente", label: "Zilinski (remetente)", text: "remetente" },
+    { value: "destinatario", label: "Cliente (destinatário)", text: "destinatário" },
+];
+
+const optionText = (options: { value: string; text: string }[], value?: string) =>
+    (options.find(o => o.value === value) || options[0]).text;
+
+export const buildFreightQuoteText = ({ userData, invoiceValue, freightInfo, freightPickup, freightPayer }: FreightQuoteParams) => {
     const u = userData || {};
     const docInfo = formatDoc(u.cpf || '');
 
@@ -123,7 +139,7 @@ export const buildFreightQuoteText = ({ userData, invoiceValue, freightInfo }: F
     const weightText = dims.pesoKg > 0 ? `${Math.round(dims.pesoKg)} quilos` : MISSING_INFO;
 
     return `CNPJ do remetente: ${SENDER_CNPJ}
-Modalidade de coleta: a mercadoria será levada até a base da transportadora
+Modalidade de coleta: ${optionText(FREIGHT_PICKUP_OPTIONS, freightPickup)}
 CEP do remetente: ${SENDER_CEP}
 
 ${docInfo.label} destinatário: ${docInfo.value}
@@ -131,7 +147,7 @@ Nome: ${orMissing(u.name)}
 Endereço de entrega: ${addressLine1}
 ${addressLine2}
 Valor da nota fiscal: ${valueText}
-Tomador do frete: remetente
+Tomador do frete: ${optionText(FREIGHT_PAYER_OPTIONS, freightPayer)}
 
 Quantidade de volumes: 1
 Volume 1

@@ -34,12 +34,12 @@ Por isso estas regras valem em toda sessão:
 | Banco secundário | Supabase (`src/services/supabaseClient.ts`) e Postgres via `server.js` (`DATABASE_URL`) |
 | IA | Gemini (`api/gemini.ts`, `API_KEY`) |
 | Segredos | `.env` na raiz (não versionado). Variáveis usadas: `API_KEY`, `DATABASE_URL`, `SUPABASE_URL`, `SUPABASE_KEY`, `EMAILJS_*`, `GOOGLE_MAPS_API_KEY`, `MAPBOX_ACCESS_TOKEN`, `VITE_FIREBASE_API_KEY` |
-| Rodar local | ⚠️ `vite.config.ts` foi apagado no commit 5e36f51; sem ele a página fica branca ("process is not defined") |
+| Rodar local | `npm run dev` (ou preview "dev" do `.claude/launch.json`), porta 5173. `vite.config.ts` recriado no branch `melhorias-frete-email` (enquanto não for pro `main`, a página local fica branca). Login Google não funciona em localhost |
 
 ## Regras de negócio importantes
 
 - **Medidas de frete da escada fechada (prancha):** uma conta só em `src/utils/freightDimensions.ts` (`calcFoldedPackage`), usada na Tabela de Entregas, texto da transportadora, página de contrato, ficha técnica e 3D. Calibrada com escadas reais (Carlos Reginaldo 5,34 × 1,38 m / 140 kg; Marco Peruchi 7,44 × 1,30 m). Corrimão padrão 80 cm.
-- **Texto da transportadora:** `src/utils/freightQuoteText.ts`; dados do cliente buscados em todas as origens por `src/utils/clientInfo.ts`. Texto editado fica salvo no campo `freightQuoteText` do contrato; medidas editadas manualmente ficam em `hingesQty`.
+- **Texto da transportadora:** `src/utils/freightQuoteText.ts`; "Modalidade de coleta" e "Tomador do frete" saem por padrão "levada até a base da transportadora" / "remetente", mas o Gerar Contrato pergunta (campos `logistics.freightPickup` / `freightPayer`, branch `melhorias-frete-email`); dados do cliente buscados em todas as origens por `src/utils/clientInfo.ts`. Texto editado fica salvo no campo `freightQuoteText` do contrato; medidas editadas manualmente ficam em `hingesQty`.
 - **Contrato baixado em Meus Contratos** busca degraus/medidas em qualquer nível do JSON (igual à ficha técnica).
 
 # ⏳ Pendências do usuário
@@ -59,8 +59,7 @@ Não cobrar o usuário. **Toda vez que for escrever no Diário**, abrir o site l
 
 ## Decisões / informações do usuário
 - [ ] **Publicar no Firebase as regras de `saved_quotes` e `settings`** — passo a passo e prompt pronto pra IA do Firebase em `docs/REGRAS-FIREBASE.md`. Sem isso, Orçamentos Salvos e a parte "Orçamentos" da Fila ficam vazias e as configurações de Compras não salvam.
-- [ ] Decidir se restaura o `vite.config.ts` (só necessário pra rodar local).
-- [ ] Explicar como devem ser "Modalidade de coleta" e "Tomador do frete" no texto da transportadora (hoje fixos).
+- [ ] **Falar "pode subir"** pro branch `melhorias-frete-email`: frete por IA com plano B (OSRM), perguntas "quem paga o frete" / "leva ou a transportadora busca" no Gerar Contrato, ajuste do e-mail e `vite.config.ts`. Depois testar no site.
 - [ ] Revisar a conta do preço dos tubos do guarda-corpo (deixado pra depois).
 - [ ] Usuário vai conferir se o 3D já está parecido com a escada real (acha que sim); se não, mandar fotos de perto.
 - [ ] Ver se o canto reto que a máquina de casa aplicou resolveu os "quadrados com ponta arredondada"; se sim, tirar este item.

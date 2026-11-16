@@ -633,6 +633,8 @@ export const ContractsList: React.FC = () => {
                 userData: resolveClientInfo({ contract, parsedData: data, queueItem, quoteItem }),
                 invoiceValue: getInvoiceValue(data, contract, queueItem),
                 freightInfo,
+                freightPickup: data?.inputData?.logistics?.freightPickup,
+                freightPayer: data?.inputData?.logistics?.freightPayer,
             });
         }
         const warning = text.includes(MISSING_INFO) ? '\n\nAtenção: tem informação faltando no texto (marcada com "FALTA INFORMAÇÃO").' : '';
