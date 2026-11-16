@@ -33,11 +33,14 @@ export default async function handler(req: any, res: any) {
                 service_id: SERVICE_ID,
                 template_id: TEMPLATE_ID,
                 user_id: PUBLIC_KEY,
+                // Chave privada (opcional, só no .env da Vercel): o EmailJS recomenda pra envio pelo servidor
+                ...(process.env.EMAILJS_PRIVATE_KEY ? { accessToken: process.env.EMAILJS_PRIVATE_KEY } : {}),
                 template_params: {
                     to_email: email,
                     message: message,
                     from_name: "Zilinski Sistema",
-                    reply_to: email
+                    // Resposta do cliente vai pro e-mail comercial (antes voltava pro próprio cliente)
+                    reply_to: "comercialzilinski@gmail.com"
                 }
             })
         });
@@ -46,7 +49,11 @@ export default async function handler(req: any, res: any) {
             return res.status(200).json({ success: true });
         } else {
             const errorText = await response.text();
-            return res.status(response.status).json({ error: errorText });
+            console.error("EmailJS recusou:", response.status, errorText);
+            const hint = /non-browser/i.test(errorText)
+                ? " → No painel do EmailJS: Account → Security → ligar 'Allow EmailJS API for non-browser applications'."
+                : "";
+            return res.status(response.status).json({ error: errorText + hint });
         }
     } catch (error: any) {
         return res.status(500).json({ error: error.message || 'Erro desconhecido.' });

@@ -6,6 +6,8 @@ import { generateAceiteObraPDF } from "../utils/aceiteObraGenerator";
 import { getFreightDimensions } from "../utils/freightDimensions";
 import {
   buildFreightQuoteText,
+  FREIGHT_PICKUP_OPTIONS,
+  FREIGHT_PAYER_OPTIONS,
   copyTextToClipboard,
   MISSING_INFO,
 } from "../utils/freightQuoteText";
@@ -411,6 +413,9 @@ const Contract = () => {
   const [freightMode, setFreightMode] = useState<
     "empresa" | "transportadora" | "entrega" | "auto" | "manual" | "fixed"
   >("empresa");
+  // Só para transportadora: quem leva até a base e quem paga o frete (vai no texto da cotação)
+  const [freightPickup, setFreightPickup] = useState("base");
+  const [freightPayer, setFreightPayer] = useState("remetente");
   const [installationPrice, setInstallationPrice] = useState("0");
   const [extrasPrice, setExtrasPrice] = useState("0");
 
@@ -691,6 +696,8 @@ const Contract = () => {
                 | "fixed",
             );
           }
+          if (fallbackInput.logistics?.freightPickup) setFreightPickup(fallbackInput.logistics.freightPickup);
+          if (fallbackInput.logistics?.freightPayer) setFreightPayer(fallbackInput.logistics.freightPayer);
           setInstallationPrice(
             data.installationCost
               ? Number(data.installationCost).toFixed(2)
@@ -878,6 +885,8 @@ const Contract = () => {
           if (inputData.logistics?.freightMode) {
             setFreightMode(inputData.logistics.freightMode);
           }
+          if (inputData.logistics?.freightPickup) setFreightPickup(inputData.logistics.freightPickup);
+          if (inputData.logistics?.freightPayer) setFreightPayer(inputData.logistics.freightPayer);
           setInstallationPrice((Number(installationCost) || 0).toFixed(2));
         }
       }
@@ -1261,6 +1270,8 @@ const Contract = () => {
           logistics: {
             ...(originalInputData?.logistics || {}),
             freightMode: freightMode,
+            freightPickup,
+            freightPayer,
           },
         },
         freightCost: parseFloat(freightPrice) || 0,
@@ -1545,6 +1556,8 @@ const Contract = () => {
         logistics: {
           ...(originalInputData?.logistics || {}),
           freightMode: freightMode,
+          freightPickup,
+          freightPayer,
         },
       },
       freightCost: parseFloat(freightPrice) || 0,
@@ -1653,6 +1666,8 @@ const Contract = () => {
       userData: { name: clientName, cpf: clientDoc, street, number, neighborhood, city, state, zip },
       invoiceValue: valorTotalSemFrete,
       freightInfo,
+      freightPickup,
+      freightPayer,
     });
 
     const warning = quoteText.includes(MISSING_INFO)
@@ -1780,6 +1795,8 @@ const Contract = () => {
         logistics: {
           ...(originalInputData?.logistics || {}),
           freightMode: freightMode,
+          freightPickup,
+          freightPayer,
         },
       },
       freightCost: parseFloat(freightPrice) || 0,
@@ -3423,6 +3440,45 @@ const Contract = () => {
                   </button>
                 </div>
               </div>
+
+              {freightMode === "transportadora" && (
+                <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                      Como a escada chega na transportadora?
+                    </label>
+                    <div className="grid grid-cols-1 gap-2">
+                      {FREIGHT_PICKUP_OPTIONS.map((o) => (
+                        <button
+                          key={o.value}
+                          type="button"
+                          onClick={() => setFreightPickup(o.value)}
+                          className={`p-3 rounded-lg border-2 text-left text-sm transition-all ${freightPickup === o.value ? "border-highlight bg-highlight/10 dark:bg-highlight/20 font-bold text-gray-900 dark:text-white" : "border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:border-gray-300"}`}
+                        >
+                          {o.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                      Quem paga o frete?
+                    </label>
+                    <div className="grid grid-cols-1 gap-2">
+                      {FREIGHT_PAYER_OPTIONS.map((o) => (
+                        <button
+                          key={o.value}
+                          type="button"
+                          onClick={() => setFreightPayer(o.value)}
+                          className={`p-3 rounded-lg border-2 text-left text-sm transition-all ${freightPayer === o.value ? "border-highlight bg-highlight/10 dark:bg-highlight/20 font-bold text-gray-900 dark:text-white" : "border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:border-gray-300"}`}
+                        >
+                          {o.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <ContractInput
                 label="Frete + Pedágio (R$)"

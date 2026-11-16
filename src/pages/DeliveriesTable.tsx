@@ -914,6 +914,8 @@ export const DeliveriesTable: React.FC = () => {
                                             userData: resolveClientInfo({ contract, parsedData: data, queueItem: clientQueueItem, quoteItem: clientQuoteItem }),
                                             invoiceValue: getInvoiceValue(data, contract, clientQueueItem),
                                             freightInfo,
+                                            freightPickup: data?.inputData?.logistics?.freightPickup,
+                                            freightPayer: data?.inputData?.logistics?.freightPayer,
                                         });
                                     // Texto da transportadora só quando o envio é por transportadora (mesma regra do PDF do contrato)
                                     // ou quando alguém já editou o texto à mão nesse contrato
