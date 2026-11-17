@@ -33,7 +33,9 @@ export default function LaserInvoiceCheck() {
         // Contratos vêm das duas coleções que a Fila usa
         Promise.all(['production_queue', 'contracts'].map(c => getDocs(collection(db, c)))).then(snaps => {
             const list = snaps.flatMap(s => s.docs.map(d => stairFromContract(d.id, d.data()))).filter((s): s is StairRef => !!s && s.pieces.length > 0);
-            setStairs(list);
+            // o mesmo contrato costuma estar nas duas coleções com o mesmo id: fica o da Fila
+            const unique = [...new Map(list.reverse().map(s => [s.id, s])).values()];
+            setStairs(unique.sort((a, b) => a.name.trim().localeCompare(b.name.trim(), 'pt-BR')));
         });
         return onSnapshot(SAVED_DOC, s => setSaved(s.data()?.notas || {}));
     }, [user]);
