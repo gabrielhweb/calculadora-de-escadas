@@ -4,10 +4,10 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
-### 2026-11-17 — [casa] — Contrato: guarda-corpo avulso em L/U com todos os lados — branch `guarda-corpo-l`, NÃO publicado
+### 2026-11-17 — [casa] — Contrato: guarda-corpo avulso em L/U com todos os lados — publicado
 - Pedido em vídeo (contrato do Gustavo Storti): orçamento saía "Guarda-corpo em L, composto por dois lados: 85 cm / 150 cm", mas o PDF do contrato só mostrava o 1º lado (85 cm).
 - `src/utils/contractGenerator.ts` (lista de acessórios avulsos): com `guardrailFormat` L ou U agora escreve "Guarda-Corpo em L, composto por dois lados - Valor" e uma linha por lado. Formato normal continua igual.
-- Pendente: usuário falar "pode subir" e gerar de novo o contrato do Gustavo pra conferir. Acompanhar: não conferido (sem publicar).
+- Publicado com o "pode subir" do usuário. Pendente: gerar de novo o contrato do Gustavo pra conferir. Acompanhar: igual à entrada da Conferência do Laser (mesmo dia).
 
 ### 2026-11-17 — [casa] — Conferência do Corte a Laser (nota do Jefferson) — publicado
 - Nova tela **Compras → Conferência do Laser** (`/compras/conferencia`, `src/pages/Purchases/LaserInvoiceCheck.tsx`): sobe o PDF/foto da nota da Cia do Ferro (empresa do Jefferson), a IA lê (`readLaserInvoice` em `api/gemini.ts`, chamada com `invoiceBase64`), liga cada cliente da nota ao contrato pelo nome ("ESCADAS WAGNER FUIM / JAIR JOSÉ" → separa no "/") e cada peça à escada pela medida (`src/utils/laserInvoice.ts`). Mostra nota × conta do site por peça (vermelho acima de R$ 30), peça sem dono (ex.: cantoneiras), parcelas (= boletos) e salva em `settings/conferencia_jefferson` (lista de boletos a vencer e R$/kg de cada nota).
