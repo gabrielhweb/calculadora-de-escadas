@@ -297,7 +297,15 @@ export const generateContractPDF = (data: ContractData) => {
               } else if (acc.hasGuardrail || data.inputData.quoteType === 'guardrail') {
                   const gLen = acc.guardrailLength || acc.length || 100;
                   const gHei = acc.guardrailHeight || acc.height || 90;
-                  addText(`- Guarda-Corpo: ${gLen}cm de comprimento x ${gHei}cm de altura - Valor: ${accPrice}`, 11, false, 'left');
+                  // Em L/U lista cada lado, igual ao orçamento
+                  const sides = acc.guardrailFormat === 'U' ? [gLen, acc.guardrailLength2 || 0, acc.guardrailLength3 || 0]
+                      : acc.guardrailFormat === 'L' ? [gLen, acc.guardrailLength2 || 0] : null;
+                  if (sides) {
+                      addText(`- Guarda-Corpo em ${acc.guardrailFormat}, composto por ${sides.length === 2 ? 'dois' : 'três'} lados - Valor: ${accPrice}`, 11, false, 'left');
+                      sides.forEach((len, i) => addText(`    ${i + 1}º lado: ${len}cm de comprimento x ${gHei}cm de altura${i === sides.length - 1 ? '.' : ';'}`, 11, false, 'left'));
+                  } else {
+                      addText(`- Guarda-Corpo: ${gLen}cm de comprimento x ${gHei}cm de altura - Valor: ${accPrice}`, 11, false, 'left');
+                  }
               }
           });
       }
