@@ -57,8 +57,25 @@ export const calcLandingsWeightKg = (landings?: any[]) => {
     return areaM2 * (3.34 / 1000) * STEEL_DENSITY;
 };
 
-// Preço do aço usado nas outras estimativas (Tabela de Entregas, Fila, Calculadora de Peso)
-export const STEEL_PRICE_PER_KG = 13.80;
+// Preço do kg que o Jefferson (corte a laser) cobra; xadrez sai mais caro
+export const STEEL_PRICE_PER_KG = 14.24;
+const XADREZ_PRICE_PER_KG = 15.235;
+
+/**
+ * Custo do corte a laser da escada (2 vigas + degraus) do jeito que o Jefferson cobra:
+ * retângulo de cada chapa x espessura x 7,85 x R$/kg. Calibrado com os orçamentos
+ * de Paulo Henrique, Hilton e Nilce (11/2026), erro abaixo de R$ 10.
+ * shortcut: só 3 orçamentos e nenhum com patamar ou madeira; recalibrar quando tiver mais.
+ */
+export const estimateLaserCutCost = (p: { steps: number; treadDepthCm: number; stepHeightCm: number; widthCm: number; treadMaterial?: string }) => {
+    const { steps, treadDepthCm: t, stepHeightCm: h, widthCm: w } = p;
+    if (!(steps > 0 && t > 0 && h > 0 && w > 0)) return 0;
+    const hyp = Math.sqrt(t ** 2 + h ** 2);
+    const vigaKg = 2 * ((hyp * steps + 9) / 100) * ((t * h / hyp + 12.9) / 100) * CHAPA_M * STEEL_DENSITY;
+    const xadrez = p.treadMaterial === 'chapa_xadrez';
+    const degrausKg = steps * ((t + 6) / 100) * (w / 100) * (xadrez ? 0.003 : 0.00265) * STEEL_DENSITY;
+    return vigaKg * STEEL_PRICE_PER_KG + degrausKg * (xadrez ? XADREZ_PRICE_PER_KG : STEEL_PRICE_PER_KG);
+};
 
 const TREAD_MATERIAL_LABEL: Record<string, string> = {
     metal: 'Metal',
@@ -74,7 +91,7 @@ const WOOD_LABEL: Record<string, string> = {
 /**
  * Estimativa preliminar (fase de orçamento) de peso, material e custo de matéria-prima.
  * Só para os ecrãs de desenho 2D/3D: NÃO usar em nenhum gerador de PDF.
- * Custo = aço (escada + patamares) x preço do kg; a madeira dos pisantes não entra no custo.
+ * Custo = corte a laser da escada (estimateLaserCutCost) + patamares x preço do kg; a madeira dos pisantes não entra no custo.
  */
 export const estimatePreliminaryMaterials = (p: {
     steps: number; stepHeightCm: number; treadDepthCm: number; widthCm: number;
@@ -91,7 +108,7 @@ export const estimatePreliminaryMaterials = (p: {
         weightKg: steelKg,
         landingsKg,
         material: `Aço carbono chapa 3mm (vigas, degraus${handrailCm > 0 ? ', corrimão' : ''}${landingsKg > 0 ? ', patamares' : ''}) + pisante: ${tread}`,
-        rawMaterialCost: steelKg * STEEL_PRICE_PER_KG,
+        rawMaterialCost: estimateLaserCutCost({ steps: p.steps, treadDepthCm: p.treadDepthCm, stepHeightCm: p.stepHeightCm, widthCm: p.widthCm, treadMaterial: p.treadMaterial }) + landingsKg * STEEL_PRICE_PER_KG,
     };
 };
 

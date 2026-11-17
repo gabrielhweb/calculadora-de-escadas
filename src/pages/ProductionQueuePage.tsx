@@ -8,6 +8,7 @@ import { Link } from 'react-router-dom';
 import ExtraCostsModal from '../components/ExtraCostsModal';
 import { normalizeStr } from '../utils/fixDatabase';
 import PageTitle from '../components/PageTitle';
+import { estimateLaserCutCost, STEEL_PRICE_PER_KG } from '../utils/freightDimensions';
 
 enum OperationType {
   LIST = 'list',
@@ -416,26 +417,11 @@ export default function ProductionQueue() {
                 if (treadNum > 60) treadNum = treadNum / 10;
                 if (heightNum > 60) heightNum = heightNum / 10;
 
-                const STEEL_PRICE_PER_KG = 13.80;
                 const TUBE_PRICE_PER_METER = 10;
                 const STEEL_DENSITY = 7850;
-                const thicknessM = 3.0 / 1000;
 
                 let pesoAcoKg = 0;
-                if (stepsNum > 0 && treadNum > 0) {
-                    const stepAreaM2 = ((treadNum + 6) / 100) * (widthNum / 100);
-                    const stepsWeight = stepAreaM2 * thicknessM * stepsNum * STEEL_DENSITY;
-                    
-                    const h = heightNum > 0 ? heightNum : 19;
-                    const stepHypotenuseCm = Math.sqrt(Math.pow(treadNum, 2) + Math.pow(h, 2));
-                    const redLineCm = stepHypotenuseCm * stepsNum;
-                    const blueLineCm = (treadNum * h) / stepHypotenuseCm;
-                    const stringerWidthCm = blueLineCm + 16.5;
-                    const stringerAreaM2 = (redLineCm / 100) * (stringerWidthCm / 100) * 2;
-                    const stringerWeight = stringerAreaM2 * thicknessM * STEEL_DENSITY;
-                    
-                    pesoAcoKg += (stepsWeight + stringerWeight);
-                }
+                const laserCost = estimateLaserCutCost({ steps: stepsNum, treadDepthCm: treadNum, stepHeightCm: heightNum > 0 ? heightNum : 19, widthCm: widthNum, treadMaterial: getProp(pcd, 'treadMaterial') });
 
                 const landingsList = getProp(pcd, 'landings') || getProp(pcd, 'patamares');
                 if (landingsList && Array.isArray(landingsList)) {
@@ -517,7 +503,7 @@ export default function ProductionQueue() {
                     });
                 }
 
-                autoCost = (totalTubosLinear * TUBE_PRICE_PER_METER) + (pesoAcoKg * STEEL_PRICE_PER_KG);
+                autoCost = (totalTubosLinear * TUBE_PRICE_PER_METER) + laserCost + (pesoAcoKg * STEEL_PRICE_PER_KG);
 
                 // Estimativa de fabricação da escada (caso medidas não tenham sido salvas)
                 if (autoCost === 0 && val > 0) {

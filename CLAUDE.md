@@ -40,6 +40,7 @@ Por isso estas regras valem em toda sessão:
 
 - **Medidas de frete da escada fechada (prancha):** uma conta só em `src/utils/freightDimensions.ts` (`calcFoldedPackage`), usada na Tabela de Entregas, texto da transportadora, página de contrato, ficha técnica e 3D. Calibrada com escadas reais (Carlos Reginaldo 5,34 × 1,38 m / 140 kg; Marco Peruchi 7,44 × 1,30 m). Corrimão padrão 80 cm.
 - **Texto da transportadora:** `src/utils/freightQuoteText.ts`; "Modalidade de coleta" e "Tomador do frete" saem por padrão "levada até a base da transportadora" / "remetente", mas o Gerar Contrato pergunta (campos `logistics.freightPickup` / `freightPayer`); dados do cliente buscados em todas as origens por `src/utils/clientInfo.ts`. Texto editado fica salvo no campo `freightQuoteText` do contrato; medidas editadas manualmente ficam em `hingesQty`.
+- **Custo da escada (corte a laser do Jefferson):** `estimateLaserCutCost` em `src/utils/freightDimensions.ts`, usado no Controle de Contratos e no 3D. Retângulo de cada chapa × espessura × 7,85 × R$ 14,24/kg (xadrez R$ 15,235); degrau de metal 2,65 mm. Calibrado com 3 orçamentos (erro < R$ 10).
 - **Contrato baixado em Meus Contratos** busca degraus/medidas em qualquer nível do JSON (igual à ficha técnica).
 
 # ⏳ Pendências do usuário

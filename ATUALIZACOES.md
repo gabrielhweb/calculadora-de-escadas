@@ -4,6 +4,13 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-17 — [casa] — Conta do custo da escada igual à do Jefferson (corte a laser)
+- **O que mudou:** o custo de matéria-prima da escada (Controle de Contratos → "Custos Base Calculadora" e o painel de estimativa do 3D) agora usa a regra do Jefferson: retângulo de cada chapa × espessura × 7,85 × **R$ 14,24/kg** (xadrez R$ 15,235/kg). Viga = (hipotenusa × degraus + 9 cm) × (linha azul + 12,9 cm), 3 mm; degrau = (pisante + 6) × largura, **2,65 mm** no metal e 3 mm na xadrez. Patamar continua pelo peso, agora a R$ 14,24/kg (antes R$ 13,80).
+- **Por quê:** comparando com 3 orçamentos reais do Jefferson, a conta antiga errava até R$ 104 (Paulo +77,62, Hilton −16,10, Nilce +104,27). A nova erra Paulo −7,02, Hilton +1,66, Nilce +5,18.
+- **Onde:** `src/utils/freightDimensions.ts` (`estimateLaserCutCost`, `STEEL_PRICE_PER_KG = 14.24`), `src/pages/ProductionQueuePage.tsx`. A Calculadora de Peso (`WeightCalculator.tsx`) continua com R$ 13,80 próprio.
+- **Pendente:** usuário aprovou subir ("pode subir"). Calibrado com só 3 orçamentos, nenhum com patamar ou madeira: conferir com mais orçamentos. Tela de conferência Jefferson/boleto em Compras: esperando o usuário mandar um boleto de exemplo.
+- **Acompanhar:** Hilton e Paulo Henrique continuam sem data de entrega na Tabela de Entregas (ainda pendente). Beatriz e Bergamo não conferidos hoje.
+
 ### 2026-11-16 — [empresa] — Aviso "conta não liberada no banco"
 - **O que mudou:** quando alguém entra com e-mail autorizado mas sem documento na coleção `admins`, aparece no topo de todas as páginas um aviso amarelo com o e-mail da conta, o UID e botão "Copiar UID", explicando onde cadastrar (Firestore → Dados → `admins` → Adicionar documento). Detecta tentando ler 1 contrato e vendo se o Firestore responde `permission-denied`. Usuário aprovou subir ("pode colocar").
 - **Por quê:** a Tabela de Entregas aparecia vazia numa conta e não dava pra saber qual conta faltava (o site não consegue ler a lista de usuários nem a coleção `admins`).
