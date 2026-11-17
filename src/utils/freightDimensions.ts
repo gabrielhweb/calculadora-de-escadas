@@ -61,21 +61,36 @@ export const calcLandingsWeightKg = (landings?: any[]) => {
 export const STEEL_PRICE_PER_KG = 14.24;
 const XADREZ_PRICE_PER_KG = 15.235;
 
+export type LaserPiece = { kind: 'viga' | 'degrau'; lengthMm: number; widthMm: number; thicknessMm: number; qty: number; pricePerKg: number };
+
 /**
- * Custo do corte a laser da escada (2 vigas + degraus) do jeito que o Jefferson cobra:
- * retângulo de cada chapa x espessura x 7,85 x R$/kg. Calibrado com os orçamentos
- * de Paulo Henrique, Hilton e Nilce (11/2026), erro abaixo de R$ 10.
- * shortcut: só 3 orçamentos e nenhum com patamar ou madeira; recalibrar quando tiver mais.
+ * Chapas que o Jefferson corta pra escada (2 vigas + degraus), com a medida que vem no orçamento/nota.
+ * Degrau de metal liso é 2,65 mm; xadrez e o de madeira (chapa por baixo da madeira) são 3 mm.
+ * Conferido com as notas de Wagner, Jair e Cristiano (11/2026): viga erra no máximo 4 cm no comprimento.
  */
-export const estimateLaserCutCost = (p: { steps: number; treadDepthCm: number; stepHeightCm: number; widthCm: number; treadMaterial?: string }) => {
+export const laserCutPieces = (p: { steps: number; treadDepthCm: number; stepHeightCm: number; widthCm: number; treadMaterial?: string }): LaserPiece[] => {
     const { steps, treadDepthCm: t, stepHeightCm: h, widthCm: w } = p;
-    if (!(steps > 0 && t > 0 && h > 0 && w > 0)) return 0;
+    if (!(steps > 0 && t > 0 && h > 0 && w > 0)) return [];
     const hyp = Math.sqrt(t ** 2 + h ** 2);
-    const vigaKg = 2 * ((hyp * steps + 9) / 100) * ((t * h / hyp + 12.9) / 100) * CHAPA_M * STEEL_DENSITY;
     const xadrez = p.treadMaterial === 'chapa_xadrez';
-    const degrausKg = steps * ((t + 6) / 100) * (w / 100) * (xadrez ? 0.003 : 0.00265) * STEEL_DENSITY;
-    return vigaKg * STEEL_PRICE_PER_KG + degrausKg * (xadrez ? XADREZ_PRICE_PER_KG : STEEL_PRICE_PER_KG);
+    const metalLiso = p.treadMaterial === 'metal' || p.treadMaterial === 'chapa_vazada';
+    return [
+        { kind: 'viga', lengthMm: (hyp * steps + 9) * 10, widthMm: (t * h / hyp + 12.9) * 10, thicknessMm: 3, qty: 2, pricePerKg: STEEL_PRICE_PER_KG },
+        { kind: 'degrau', lengthMm: (t + 6) * 10, widthMm: w * 10, thicknessMm: metalLiso ? 2.65 : 3, qty: steps, pricePerKg: xadrez ? XADREZ_PRICE_PER_KG : STEEL_PRICE_PER_KG },
+    ];
 };
+
+/** Peso teórico da chapa (retângulo x espessura x 7,85). O Jefferson lança na nota ~3,2% a mais e cobra R$ 13,80/kg, que dá o mesmo que R$ 14,24 no peso teórico. */
+export const laserPieceKg = (pc: { lengthMm: number; widthMm: number; thicknessMm: number; qty: number }) =>
+    (pc.lengthMm / 1000) * (pc.widthMm / 1000) * (pc.thicknessMm / 1000) * STEEL_DENSITY * pc.qty;
+
+/**
+ * Custo do corte a laser da escada do jeito que o Jefferson cobra: retângulo de cada chapa x espessura x 7,85 x R$/kg.
+ * Calibrado com os orçamentos de Paulo Henrique, Hilton e Nilce e as notas de Wagner/Jair (11/2026), erro abaixo de R$ 10.
+ * shortcut: nenhum caso com patamar ainda; recalibrar quando tiver.
+ */
+export const estimateLaserCutCost = (p: Parameters<typeof laserCutPieces>[0]) =>
+    laserCutPieces(p).reduce((sum, pc) => sum + laserPieceKg(pc) * pc.pricePerKg, 0);
 
 const TREAD_MATERIAL_LABEL: Record<string, string> = {
     metal: 'Metal',

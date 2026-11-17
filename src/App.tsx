@@ -18,6 +18,7 @@ import SupplierCatalog from './pages/Purchases/SupplierCatalog';
 import NewOrder from './pages/Purchases/NewOrder';
 import OrderHistory from './pages/Purchases/OrderHistory';
 import PrintOrder from './pages/Purchases/PrintOrder';
+import LaserInvoiceCheck from './pages/Purchases/LaserInvoiceCheck';
 import PainelVisitas from './pages/PainelVisitas';
 import DashboardPage from './pages/DashboardPage';
 import { AuthProvider } from './components/AuthProvider';
@@ -63,6 +64,7 @@ function App() {
             <Route path="compras/fornecedores" element={<SupplierCatalog />} />
             <Route path="compras/novo-pedido" element={<NewOrder />} />
             <Route path="compras/historico" element={<OrderHistory />} />
+            <Route path="compras/conferencia" element={<LaserInvoiceCheck />} />
             <Route path="compras/imprimir/:id" element={<PrintOrder />} />
           </Route>
         </Routes>

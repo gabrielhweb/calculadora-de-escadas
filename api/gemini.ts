@@ -164,12 +164,45 @@ export const findRoute = async (apiKey: string, origin: string, destination: str
     return null;
 };
 
+// Lê a nota fiscal (PDF ou foto) do corte a laser e devolve os itens com medida, pra Conferência em Compras
+export const readLaserInvoice = async (apiKey: string, fileBase64: string, mimeType: string) => {
+    const ai = new GoogleGenAI({ apiKey });
+    const prompt = `Esta é uma nota fiscal (DANFE) de chapas de aço cortadas a laser para escadas.
+Responda SOMENTE um JSON, sem texto em volta, neste formato:
+{ "number": "19773", "issueDate": "2026-10-29", "total": 2847.75,
+  "clientsText": "texto das informações complementares que diz de quais escadas/clientes é (ex.: ESCADAS WAGNER FUIM / JAIR JOSÉ)",
+  "installments": [ { "n": "001", "due": "2026-11-13", "value": 711.90 } ],
+  "items": [ { "description": "descrição completa", "lengthMm": 3129, "widthMm": 280, "thicknessMm": 3.0, "qty": 2, "kg": 42.58, "total": 587.60 } ] }
+Regras: "3.129 X 280MM" quer dizer 3129 por 280 mm (o ponto é milhar). "FQ 2,65" é a espessura 2.65 mm.
+"COMP 150MM" num perfil L 60 X 25 quer dizer lengthMm 150 e widthMm 85 (soma das abas). qty é a quantidade de peças (PC), kg é a quantidade em KG da coluna QUANT.
+Datas em AAAA-MM-DD. Números com ponto decimal.`;
+    const result: any = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: [{ role: 'user', parts: [{ inlineData: { mimeType, data: fileBase64 } }, { text: prompt }] }],
+        config: { responseMimeType: 'application/json', thinkingConfig: { thinkingBudget: 0 } },
+    });
+    const json = JSON.parse(String(result.text || '').match(/\{[\s\S]*\}/)?.[0] || '{}');
+    if (!Array.isArray(json.items) || json.items.length === 0) throw new Error('Não achei itens na nota');
+    return json;
+};
+
 export default async function handler(req: any, res: any) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
 
     if (!(await requireAuthorizedUser(req, res))) return;
+
+    if (req.body?.invoiceBase64) {
+        const apiKey = process.env.API_KEY;
+        if (!apiKey) return res.status(500).json({ error: 'Erro de configuração: Chave de API inválida.' });
+        try {
+            return res.status(200).json(await readLaserInvoice(apiKey, req.body.invoiceBase64, req.body.mimeType || 'application/pdf'));
+        } catch (e: any) {
+            console.warn('Leitura da nota falhou:', String(e?.message || e).slice(0, 300));
+            return res.status(500).json({ error: 'Não consegui ler a nota. Tente de novo ou mande o PDF original.' });
+        }
+    }
 
     const { origin, destination, latitude, longitude } = req.body;
 

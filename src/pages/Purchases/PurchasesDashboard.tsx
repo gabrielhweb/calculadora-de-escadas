@@ -111,6 +111,16 @@ export default function PurchasesDashboard() {
                             Últimos pedidos de material feitos
                         </p>
                     </Link>
+
+                    <Link to="/compras/conferencia" className="of-plate bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 flex flex-col items-center justify-center text-center hover:shadow-md transition-shadow group">
+                        <div className="w-16 h-16 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                            <span className="text-2xl"><Icon name="clipboard" /></span>
+                        </div>
+                        <h2 className="text-lg font-bold text-gray-800 dark:text-white">Conferência do Laser</h2>
+                        <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">
+                            Nota do Jefferson × conta do site e boletos
+                        </p>
+                    </Link>
                 </div>
             </div>
 

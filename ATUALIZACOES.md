@@ -4,6 +4,13 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-17 — [casa] — Conferência do Corte a Laser (nota do Jefferson) — branch `conferencia-laser`, NÃO publicado
+- Nova tela **Compras → Conferência do Laser** (`/compras/conferencia`, `src/pages/Purchases/LaserInvoiceCheck.tsx`): sobe o PDF/foto da nota da Cia do Ferro (empresa do Jefferson), a IA lê (`readLaserInvoice` em `api/gemini.ts`, chamada com `invoiceBase64`), liga cada cliente da nota ao contrato pelo nome ("ESCADAS WAGNER FUIM / JAIR JOSÉ" → separa no "/") e cada peça à escada pela medida (`src/utils/laserInvoice.ts`). Mostra nota × conta do site por peça (vermelho acima de R$ 30), peça sem dono (ex.: cantoneiras), parcelas (= boletos) e salva em `settings/conferencia_jefferson` (lista de boletos a vencer e R$/kg de cada nota).
+- Lógica descoberta: nº do boleto = nº da nota + parcela + total de parcelas (2008612 = NF 20086, 1 de 2). Jefferson cobra R$ 13,80/kg sobre um peso ~3,2% acima do teórico = R$ 14,24 no teórico.
+- Conta mudada (`laserCutPieces` em `freightDimensions.ts`): degrau de **madeira** agora conta chapa de 3 mm (nota do Wagner); metal liso continua 2,65. Isso sobe o custo das escadas de madeira no Controle de Contratos quando publicar.
+- Testado: conta bate com notas de Wagner, Jair e Cristiano (até R$ 5 por peça) e os 3 orçamentos antigos; IA leu as 2 notas certinho (rodando local com a chave do `.env`). Tela não testada logada (login não funciona em localhost).
+- Pendente: usuário falar "pode subir" e testar no site; perguntar pro Jefferson das 80 cantoneiras L 60×25×150 (R$ 300) da NF 19773, que não estavam nos orçamentos. Acompanhar: não conferido nesta entrada (sem publicar).
+
 ### 2026-11-17 — [casa] — Conta do custo da escada igual à do Jefferson (corte a laser)
 - **O que mudou:** o custo de matéria-prima da escada (Controle de Contratos → "Custos Base Calculadora" e o painel de estimativa do 3D) agora usa a regra do Jefferson: retângulo de cada chapa × espessura × 7,85 × **R$ 14,24/kg** (xadrez R$ 15,235/kg). Viga = (hipotenusa × degraus + 9 cm) × (linha azul + 12,9 cm), 3 mm; degrau = (pisante + 6) × largura, **2,65 mm** no metal e 3 mm na xadrez. Patamar continua pelo peso, agora a R$ 14,24/kg (antes R$ 13,80).
 - **Por quê:** comparando com 3 orçamentos reais do Jefferson, a conta antiga errava até R$ 104 (Paulo +77,62, Hilton −16,10, Nilce +104,27). A nova erra Paulo −7,02, Hilton +1,66, Nilce +5,18.
