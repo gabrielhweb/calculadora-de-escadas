@@ -4,6 +4,10 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-18 — [empresa] — Publicado: cláusula 2.2 só com transportadora
+- Usuário falou "pode subir": branch `clausula-2-2` juntado no `main` e publicado (detalhes na entrada abaixo). Branch apagado.
+- **Pendente:** gerar de novo o contrato do Gustavo Storti; conferir um contrato novo com entrega nossa e um de transportadora.
+
 ### 2026-11-18 — [empresa] — Cláusula 2.2 só com transportadora (branch `clausula-2-2`, esperando "pode subir") + pendências
 - **Contrato (`src/utils/contractGenerator.ts`):** pedido da Sofia — a cláusula "2.2 Entregar o objeto ... no prazo estabelecido na transportadora acordada pelas partes" agora só sai quando a Forma de Entrega é Transportadora (aí continua 2.2 + 2.2.1). Sem transportadora sai só "2.2 O objeto deverá ser entregue conforme as características descritas..." (o antigo 2.2.1 vira 2.2). Tirado o ". ." duplicado no fim. O cálculo de `isTransportadora` subiu pra antes da cláusula 2. Testado gerando o PDF local nos dois modos. **Está no branch `clausula-2-2`**, não no `main`.
 - **Vídeo do Gustavo Storti:** é o caso do guarda-corpo em L que só mostrava 85 cm; o PDF do vídeo foi gerado antes da correção da máquina de casa (17/11). Testado local com guarda-corpo avulso em L 85 + 150: sai "Guarda-Corpo em L, composto por dois lados" com os dois lados. Falta só gerar de novo o contrato dele.

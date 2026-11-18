@@ -41,6 +41,7 @@ Por isso estas regras valem em toda sessão:
 - **Medidas de frete da escada fechada (prancha):** uma conta só em `src/utils/freightDimensions.ts` (`calcFoldedPackage`), usada na Tabela de Entregas, texto da transportadora, página de contrato, ficha técnica e 3D. Calibrada com escadas reais (Carlos Reginaldo 5,34 × 1,38 m / 140 kg; Marco Peruchi 7,44 × 1,30 m). Corrimão padrão 80 cm.
 - **Texto da transportadora:** `src/utils/freightQuoteText.ts`; "Modalidade de coleta" e "Tomador do frete" saem por padrão "levada até a base da transportadora" / "remetente", mas o Gerar Contrato pergunta (campos `logistics.freightPickup` / `freightPayer`); dados do cliente buscados em todas as origens por `src/utils/clientInfo.ts`. Texto editado fica salvo no campo `freightQuoteText` do contrato; medidas editadas manualmente ficam em `hingesQty`.
 - **Custo da escada (corte a laser do Jefferson / Cia do Ferro):** `laserCutPieces` / `estimateLaserCutCost` em `src/utils/freightDimensions.ts`, usado no Controle de Contratos, no 3D e na Conferência do Laser (`/compras/conferencia`, lê a nota pela IA e compara peça por peça; salva em `settings/conferencia_jefferson`). Retângulo de cada chapa × espessura × 7,85 × R$ 14,24/kg (xadrez R$ 15,235); degrau de metal liso 2,65 mm, xadrez e madeira 3 mm. Calibrado com 3 orçamentos e 3 notas (erro < R$ 10). Nº do boleto = nº da nota + parcela + total de parcelas.
+- **Cláusula 2.2 do contrato** (`contractGenerator.ts`): o prazo da transportadora só aparece quando a Forma de Entrega é Transportadora; nos outros casos a 2.2 é só "O objeto deverá ser entregue conforme...".
 - **Contrato baixado em Meus Contratos** busca degraus/medidas em qualquer nível do JSON (igual à ficha técnica).
 
 # ⏳ Pendências do usuário
@@ -59,7 +60,6 @@ Não cobrar o usuário. **Toda vez que for escrever no Diário**, abrir o site l
 - [ ] Testar o Painel de Visitas com dois logins: visita cadastrada num tem que aparecer no outro.
 
 ## Decisões / informações do usuário
-- [ ] **Falar "pode subir"** pro branch `clausula-2-2`: no contrato, a cláusula 2.2 (prazo da transportadora) só sai quando a entrega é por transportadora; sem transportadora sai só "2.2 O objeto deverá ser entregue conforme...". Tirado também o ". ." duplicado no fim.
 - [ ] Gerar de novo o contrato do Gustavo Storti pra conferir o guarda-corpo em L (o PDF antigo foi gerado antes da correção de 17/11).
 - [ ] Testar no site o frete por IA (Calculadora) e as perguntas novas de transportadora no Gerar Contrato ("Como a escada chega na transportadora?" / "Quem paga o frete?").
 - [ ] Revisar a conta do preço dos tubos do guarda-corpo (deixado pra depois).
