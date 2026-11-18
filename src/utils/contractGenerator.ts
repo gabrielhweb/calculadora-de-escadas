@@ -390,10 +390,24 @@ export const generateContractPDF = (data: ContractData) => {
   currentY += 5;
 
   // --- 2 a 5 (Cláusulas Padrão) ---
+  const freightModeStr = String(
+    data.inputData?.logistics?.freightMode || 
+    (data.inputData as any)?.freightMode || 
+    (data as any)?.logistics?.freightMode || 
+    (data as any)?.freightMode || 
+    ''
+  ).toLowerCase().trim();
+  const isTransportadora = freightModeStr === 'transportadora';
+
   addText('2.Das obrigações do(a) vendedor(a).', 11, true, 'left');
   addText('2.1 O(a) vendedor(a) declara ser o fabricante do objeto descrito no item 1.1.', 11, false, 'justify');
-  addText('2.2 Entregar o objeto de venda descrito no item 1.1 no prazo estabelecido na transportadora acordada pelas partes. .', 11, false, 'justify');
-  addText('2.2.1 O objeto deverá ser entregue conforme as características descritas e apresentadas no item 1.1 deste instrumento.', 11, false, 'justify');
+  // Prazo da transportadora só faz sentido quando o envio é por transportadora
+  if (isTransportadora) {
+      addText('2.2 Entregar o objeto de venda descrito no item 1.1 no prazo estabelecido na transportadora acordada pelas partes.', 11, false, 'justify');
+      addText('2.2.1 O objeto deverá ser entregue conforme as características descritas e apresentadas no item 1.1 deste instrumento.', 11, false, 'justify');
+  } else {
+      addText('2.2 O objeto deverá ser entregue conforme as características descritas e apresentadas no item 1.1 deste instrumento.', 11, false, 'justify');
+  }
   addText('2.3 Informar com veracidade as condições do objeto da venda.', 11, false, 'justify');
   addText('2.4 Entregar a nota fiscal e/ou comprovante de pagamento e quitação.', 11, false, 'justify');
   addText('2.5 É responsabilidade do vendedor zelar pelo bem/objeto até o momento de sua entrega.', 11, false, 'justify');
@@ -410,15 +424,6 @@ export const generateContractPDF = (data: ContractData) => {
   addText('3.7 Caso sejam necessários ajustes técnicos adicionais durante a instalação em razão das condições da parede ou estrutura do local, poderá haver acréscimo referente aos materiais e serviços complementares necessários.', 11, false, 'justify');
   addText('3.8 Este contrato terá validade de 15 (quinze) dias corridos, contados da data de seu envio ao(à) comprador(a). Caso não haja o pagamento inicial dentro desse período, será necessária a emissão de um novo contrato, podendo haver atualização dos valores, prazos e demais condições.', 11, false, 'justify');
   currentY += 5;
-
-  const freightModeStr = String(
-    data.inputData?.logistics?.freightMode || 
-    (data.inputData as any)?.freightMode || 
-    (data as any)?.logistics?.freightMode || 
-    (data as any)?.freightMode || 
-    ''
-  ).toLowerCase().trim();
-  const isTransportadora = freightModeStr === 'transportadora';
 
   addText('4. DO PRAZO DE ENTREGA', 11, true, 'left');
   
