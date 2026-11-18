@@ -29,7 +29,7 @@ Por isso estas regras valem em toda sessão:
 | Hospedagem do site | Vercel (`vercel.json` com rewrite SPA; funções em `api/`) — site: **https://calculadora-de-escadas-jxz3.vercel.app** · painel: vercel.com/gabriel-silva-rodrigues-projects/calculadora-de-escadas. Deploy automático a cada push no `main` |
 | Banco principal | Firebase Firestore, projeto `gen-lang-client-0064759207` (config em `firebase-applet-config.json`, regras em `firestore.rules`) |
 | Coleções principais | `contracts`, `production_queue`, `saved_quotes`, `transportadoras`; visitas em `contracts/painel_visitas` (`isVisitPanel: true`); configurações de Compras em `settings`. Regras publicadas no console ficam na aba **Segurança** do Firestore e batem com `firestore.rules` (16/11/2026) |
-| Login | Google (Firebase Auth, popup). Não funciona em `localhost` (domínio não autorizado). Lista de e-mails autorizados em `api/_auth.ts` (usada pelo site e pelas funções da Vercel); o Firestore também exige o uid na coleção `admins` |
+| Login | Google (Firebase Auth, popup). Não funciona em `localhost` (domínio não autorizado). Lista de e-mails autorizados em `api/_auth.ts` (usada pelo site e pelas funções da Vercel); o Firestore também exige o uid na coleção `admins` (os 3 e-mails cadastrados em 18/11/2026; conta sem cadastro vê um aviso amarelo com o UID) |
 | Funções da Vercel | `api/email`, `api/gemini`, `api/calcular-rota-diaria` exigem `Authorization: Bearer <token do Firebase>` de e-mail autorizado (`requireAuthorizedUser` em `api/_auth.ts`) |
 | Banco secundário | Supabase (`src/services/supabaseClient.ts`) e Postgres via `server.js` (`DATABASE_URL`) |
 | IA | Gemini (`api/gemini.ts`, `API_KEY`) |
@@ -59,7 +59,8 @@ Não cobrar o usuário. **Toda vez que for escrever no Diário**, abrir o site l
 - [ ] Testar o Painel de Visitas com dois logins: visita cadastrada num tem que aparecer no outro.
 
 ## Decisões / informações do usuário
-- [ ] **Liberar no Firestore a conta que vê a Tabela de Entregas vazia:** a coleção `admins` só tem 2 documentos (um é gaguisilva15 = `WSqKvTSG3HaelRBsFEsiaO1sGfD3`), mas 3 e-mails são autorizados em `api/_auth.ts`. Conta sem documento em `admins` faz login mas o banco devolve tudo vazio. Entrando com a conta vazia, o site mostra um aviso amarelo com o UID (botão "Copiar UID"); criar em Firestore → Dados → `admins` um documento com esse UID como ID.
+- [ ] **Falar "pode subir"** pro branch `clausula-2-2`: no contrato, a cláusula 2.2 (prazo da transportadora) só sai quando a entrega é por transportadora; sem transportadora sai só "2.2 O objeto deverá ser entregue conforme...". Tirado também o ". ." duplicado no fim.
+- [ ] Gerar de novo o contrato do Gustavo Storti pra conferir o guarda-corpo em L (o PDF antigo foi gerado antes da correção de 17/11).
 - [ ] Testar no site o frete por IA (Calculadora) e as perguntas novas de transportadora no Gerar Contrato ("Como a escada chega na transportadora?" / "Quem paga o frete?").
 - [ ] Revisar a conta do preço dos tubos do guarda-corpo (deixado pra depois).
 - [ ] Usuário vai conferir se o 3D já está parecido com a escada real (acha que sim); se não, mandar fotos de perto.

@@ -4,6 +4,13 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-18 — [empresa] — Cláusula 2.2 só com transportadora (branch `clausula-2-2`, esperando "pode subir") + pendências
+- **Contrato (`src/utils/contractGenerator.ts`):** pedido da Sofia — a cláusula "2.2 Entregar o objeto ... no prazo estabelecido na transportadora acordada pelas partes" agora só sai quando a Forma de Entrega é Transportadora (aí continua 2.2 + 2.2.1). Sem transportadora sai só "2.2 O objeto deverá ser entregue conforme as características descritas..." (o antigo 2.2.1 vira 2.2). Tirado o ". ." duplicado no fim. O cálculo de `isTransportadora` subiu pra antes da cláusula 2. Testado gerando o PDF local nos dois modos. **Está no branch `clausula-2-2`**, não no `main`.
+- **Vídeo do Gustavo Storti:** é o caso do guarda-corpo em L que só mostrava 85 cm; o PDF do vídeo foi gerado antes da correção da máquina de casa (17/11). Testado local com guarda-corpo avulso em L 85 + 150: sai "Guarda-Corpo em L, composto por dois lados" com os dois lados. Falta só gerar de novo o contrato dele.
+- **Pendências:** tirada a do `admins` (usuário cadastrou a 3ª conta: UID `On3F4M6baVb01C8g0fcceZtYJS62`). As 80 cantoneiras da NF 19773 do Jefferson eram de outro pedido: nada a fazer.
+- **Acompanhar:** Beatriz, Hilton/Paulo Henrique e Bergamo — não reconferidos nesta entrada (casa conferiu em 17/11: ainda pendentes).
+- **Pendente:** "pode subir" do branch `clausula-2-2`; depois juntar no `main`.
+
 ### 2026-11-17 — [casa] — Contrato: guarda-corpo avulso em L/U com todos os lados — publicado
 - Pedido em vídeo (contrato do Gustavo Storti): orçamento saía "Guarda-corpo em L, composto por dois lados: 85 cm / 150 cm", mas o PDF do contrato só mostrava o 1º lado (85 cm).
 - `src/utils/contractGenerator.ts` (lista de acessórios avulsos): com `guardrailFormat` L ou U agora escreve "Guarda-Corpo em L, composto por dois lados - Valor" e uma linha por lado. Formato normal continua igual.
