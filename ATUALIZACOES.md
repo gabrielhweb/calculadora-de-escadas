@@ -4,6 +4,14 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-19 — [casa] — Barra lateral: nome "Barra Lateral de Fixação" e valor separado da escada — branch `barra-lateral`, NÃO publicado
+- Pedido da Sofia (WhatsApp): o orçamento/contrato dizia "Escada com Barra Lateral - R$ 498" (parecia duas coisas) e o valor não somava no total.
+- Causa: o total da opção já vem com a barra somada. No Gerar Contrato vindo do orçamento (`src/pages/Contract.tsx`), o "Valor Escada" ficava com os 498 dentro e a caixinha da barra ficava desmarcada. Além disso, o "aplicar correção" do pisante (`handleApplyCorrection` em `ProposalOptions.tsx`) recalculava o preço sem barra e sem avulsos, e o total base mandado pro formulário do cliente ignorava a barra quando tinha preço manual.
+- Correção: o contrato separa a barra do Valor Escada e marca a caixinha com o valor do orçamento (também no carregamento de contrato salvo sem `finalStairPrice`); a correção do pisante só troca o preço dos degraus; o total base usa o `totalPrice` da opção. Texto agora é "Barra Lateral de Fixação" no orçamento (`ProposalDocument.tsx`) e no contrato (`contractGenerator.ts`).
+- Testado local: calculadora com preço manual 460 × 11 + barra 498 + instalação 310 → Contrato Opção 1 mostrou Valor Escada R$ 5.060, barra R$ 498 marcada, total R$ 5.868. Criado `.claude/launch.json` (preview "dev").
+- O vídeo do guarda-corpo em L que a Sofia mandou de novo é o mesmo de 17/11 (já corrigido).
+- Pendente: "pode subir"; contratos já salvos antes disso que tinham barra continuam com o valor antigo. Acompanhar: não reconferido (sem publicar).
+
 ### 2026-11-19 — [casa] — Impressão da Tabela de Entregas mais apertada + escolha da orientação — publicado
 - Pedido: no celular saíam só 2 contratos por folha, com muito espaço sobrando. Causas: a `.editable-cell` tinha `min-height: 40px` e padding também na impressão; o texto da transportadora e as colunas de fabricação (mono) saíam grandes; e o navegador pulava pra próxima folha quando o cliente não cabia inteiro.
 - `src/pages/DeliveriesTable.tsx`, `@media print`: sem altura mínima nem padding na célula editável, textos longos em 9px, linhas podem continuar na folha seguinte (`break-inside: auto`), margem 8 mm. Simulado no site: as linhas ficaram de 30% a 40% mais baixas. Novo seletor **Folha deitada / Folha em pé** ao lado do Imprimir (lembrado no navegador, `localStorage` `entregas_orientacao`); em pé, no celular, imprime com largura 1000 em vez de 1400.

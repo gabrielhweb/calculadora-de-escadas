@@ -661,8 +661,9 @@ const Contract = () => {
               0,
             );
             setLandingsPrice(totalL.toFixed(2));
+            const sideBar = fallbackInput.hasStairSideBar ? Number(fallbackInput.stairSideBarPrice) || 0 : 0;
             setStairPrice(
-              (Number(fallbackOption.totalPrice || 0) - totalL).toFixed(2),
+              (Number(fallbackOption.totalPrice || 0) - totalL - sideBar).toFixed(2),
             );
           }
 
@@ -840,6 +841,11 @@ const Contract = () => {
             setUserManuallyChangedCut(true);
           }
 
+          // A barra lateral vem somada no total da opção: separa pra ela sair como item próprio
+          const sideBar = inputData?.hasStairSideBar ? Number(inputData.stairSideBarPrice) || 0 : 0;
+          setHasStairSideBar(!!inputData?.hasStairSideBar);
+          setStairSideBarPrice(String(sideBar));
+
           if (
             selectedOption.landings &&
             Array.isArray(selectedOption.landings) &&
@@ -855,12 +861,12 @@ const Contract = () => {
             );
             setLandingsPrice(totalL.toFixed(2));
             setStairPrice(
-              (Number(selectedOption.totalPrice || 0) - totalL).toFixed(2),
+              (Number(selectedOption.totalPrice || 0) - totalL - sideBar).toFixed(2),
             );
           } else {
             setLandings([]);
             setLandingsPrice("0");
-            setStairPrice(Number(selectedOption.totalPrice || 0).toFixed(2));
+            setStairPrice((Number(selectedOption.totalPrice || 0) - sideBar).toFixed(2));
           }
 
           if (

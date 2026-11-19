@@ -213,7 +213,7 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
             currentY += 6;
 
             if (inputData.hasStairSideBar) {
-                doc.text(`- Escada com Barra Lateral:`, pageMargin, currentY);
+                doc.text(`- Barra Lateral de Fixação:`, pageMargin, currentY);
                 doc.text(sideBarPrice > 0 ? formatCurrencyBRL(sideBarPrice) : 'Incluso', pageWidth - pageMargin, currentY, { align: 'right' });
                 currentY += 6;
             }

@@ -349,7 +349,7 @@ export const generateContractPDF = (data: ContractData) => {
   }
   
   if (data.hasStairSideBar) {
-      addText(`-Escada com Barra Lateral: ${formatCurrencyBRL(data.stairSideBarPrice || 0)}`, 11, false, 'left');
+      addText(`-Barra Lateral de Fixação: ${formatCurrencyBRL(data.stairSideBarPrice || 0)}`, 11, false, 'left');
   }
   
   const structureTotal = (data.finalStairPrice || 0) + (data.finalLandingsPrice || 0) + (data.finalGuardrailPrice || 0) + (data.finalGatePrice || 0) + (data.hasStairSideBar ? (data.stairSideBarPrice || 0) : 0);

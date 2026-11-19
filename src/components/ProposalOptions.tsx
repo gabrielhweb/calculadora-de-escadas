@@ -582,15 +582,11 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
       const original = options.find(o => o.optionNumber === optionNum);
       if (!original) return;
 
-      // Recalcula preço
-      let newTotalPrice = 0;
-      if (inputData?.customStepPrice && inputData.customStepPrice > 0) {
-          newTotalPrice += inputData.customStepPrice * original.structureSteps;
-      } else {
-          newTotalPrice += calculateTotalPrice(original.stairWidth, newTread, original.structureSteps);
-      }
-      const landingsPrice = original.landings.reduce((acc, l) => acc + (l.isAccessoriesOnly ? 0 : l.price), 0);
-      newTotalPrice += landingsPrice;
+      // Recalcula só o preço dos degraus; patamares, barra lateral e avulsos continuam no total
+      const stepsPrice = (tread: number) => (inputData?.customStepPrice && inputData.customStepPrice > 0)
+          ? inputData.customStepPrice * original.structureSteps
+          : calculateTotalPrice(original.stairWidth, tread, original.structureSteps);
+      const newTotalPrice = original.totalPrice - stepsPrice(original.treadDepth) + stepsPrice(newTread);
 
       const newOption: ProposalOption = {
           ...original,
@@ -1454,18 +1450,8 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
               if (options.length === 0) return 0;
               const firstOpt = options[0];
               const activeFirst = overriddenOptions[firstOpt.optionNumber] || firstOpt;
-              
-              const basePrice = getBasePrice(activeFirst.stairWidth);
-              const multiplier = getMultiplier(activeFirst.treadDepth);
-              const calculatedUnitPrice = basePrice * multiplier;
-              const landingsPrice = activeFirst.landings.reduce((acc, l) => acc + (l.isAccessoriesOnly ? 0 : l.price), 0);
-              const structureStepsPrice = calculatedUnitPrice * activeFirst.structureSteps;
-              const hasCustomPrice = inputData?.customStepPrice && inputData.customStepPrice > 0;
-              
-              // Recalcula o totalPrice real (mesma lógica usada na renderização)
-              const realTotalPrice = hasCustomPrice ? (inputData.customStepPrice! * activeFirst.structureSteps) + landingsPrice : activeFirst.totalPrice;
-
-              return realTotalPrice + freightCost + tollCost + finalInstallationCost + extrasCost;
+              // totalPrice já tem o preço manual, patamares, barra lateral e avulsos
+              return activeFirst.totalPrice + freightCost + tollCost + finalInstallationCost + extrasCost;
           })()} 
       />
 
