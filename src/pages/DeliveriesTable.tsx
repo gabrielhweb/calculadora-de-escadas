@@ -22,6 +22,9 @@ export const DeliveriesTable: React.FC = () => {
     const [freightOpen, setFreightOpen] = useState<Record<string, boolean>>({});
     const [savedQuotes, setSavedQuotes] = useState<any[]>([]);
     const [showValues, setShowValues] = useState(true);
+    const [orientation, setOrientation] = useState<'landscape' | 'portrait'>(() => {
+        try { return localStorage.getItem('entregas_orientacao') === 'portrait' ? 'portrait' : 'landscape'; } catch { return 'landscape'; }
+    });
 
     // Orçamentos salvos: usados para achar CPF/CEP/endereço de contratos antigos
     useEffect(() => {
@@ -82,7 +85,7 @@ export const DeliveriesTable: React.FC = () => {
         const meta = document.querySelector('meta[name="viewport"]');
         const original = meta?.getAttribute('content');
         if (!meta || window.innerWidth >= 1200) return window.print();
-        meta.setAttribute('content', 'width=1400');
+        meta.setAttribute('content', orientation === 'portrait' ? 'width=1000' : 'width=1400');
         window.addEventListener('afterprint', () => meta.setAttribute('content', original || ''), { once: true });
         setTimeout(() => window.print(), 300);
     };
@@ -773,7 +776,7 @@ export const DeliveriesTable: React.FC = () => {
             <style>
                 {`
                 @media print {
-                    @page { size: landscape; margin: 10mm; }
+                    @page { size: A4 ${orientation}; margin: 8mm; }
                     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background-color: white !important; }
                     html .of-plate { background: white !important; box-shadow: none !important; }
                     .print-hidden { display: none !important; }
@@ -784,7 +787,11 @@ export const DeliveriesTable: React.FC = () => {
                     nav, header, footer { display: none !important; }
                     main { padding: 0 !important; margin: 0 !important; }
                     
-                    .editable-cell { border: none !important; outline: none !important; min-height: 20px; white-space: pre-wrap; word-break: break-word; }
+                    .editable-cell { border: none !important; outline: none !important; min-height: 0 !important; padding: 0 !important; white-space: pre-wrap; word-break: break-word; }
+                    /* Folha cheia: o cliente pode continuar na folha seguinte em vez de pular e deixar espaço em branco */
+                    .print-table tr, .print-table td { break-inside: auto !important; page-break-inside: auto !important; }
+                    .print-table td { line-height: 1.2; }
+                    .print-table td.font-mono, .print-table td .whitespace-pre-line { font-size: 9px !important; }
                     .date-picker-wrapper input[type="date"] { display: none !important; }
                     .date-display { background: transparent !important; color: black !important; border: none !important; padding: 0 !important; font-weight: bold; }
                 }
@@ -836,7 +843,21 @@ export const DeliveriesTable: React.FC = () => {
                     >
                         {showValues ? <><Icon name="eye" /> Valores Visíveis</> : <><Icon name="eyeOff" /> Valores Ocultos</>}
                     </button>
-                    <button 
+                    <select
+                        value={orientation}
+                        onChange={(e) => {
+                            const v = e.target.value as 'landscape' | 'portrait';
+                            setOrientation(v);
+                            try { localStorage.setItem('entregas_orientacao', v); } catch { /* sem armazenamento: vale só agora */ }
+                        }}
+                        className="px-3 py-2.5 rounded-lg font-bold border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+                        title="Orientação da folha na impressão"
+                        aria-label="Orientação da folha"
+                    >
+                        <option value="landscape">Folha deitada</option>
+                        <option value="portrait">Folha em pé</option>
+                    </select>
+                    <button
                         onClick={handlePrint}
                         className="bg-amber-600 hover:bg-amber-700 text-white px-5 py-2.5 rounded-lg font-bold shadow-md flex items-center gap-2 transition-colors"
                     >
