@@ -4,10 +4,10 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
-### 2026-11-19 — [casa] — Impressão da Tabela de Entregas mais apertada + escolha da orientação — branch `impressao-folha`, NÃO publicado
+### 2026-11-19 — [casa] — Impressão da Tabela de Entregas mais apertada + escolha da orientação — publicado
 - Pedido: no celular saíam só 2 contratos por folha, com muito espaço sobrando. Causas: a `.editable-cell` tinha `min-height: 40px` e padding também na impressão; o texto da transportadora e as colunas de fabricação (mono) saíam grandes; e o navegador pulava pra próxima folha quando o cliente não cabia inteiro.
 - `src/pages/DeliveriesTable.tsx`, `@media print`: sem altura mínima nem padding na célula editável, textos longos em 9px, linhas podem continuar na folha seguinte (`break-inside: auto`), margem 8 mm. Simulado no site: as linhas ficaram de 30% a 40% mais baixas. Novo seletor **Folha deitada / Folha em pé** ao lado do Imprimir (lembrado no navegador, `localStorage` `entregas_orientacao`); em pé, no celular, imprime com largura 1000 em vez de 1400.
-- Pendente: "pode subir" e testar imprimindo pelo celular. Acompanhar: não reconferido (sem publicar).
+- Publicado com o "pode subir" do usuário. Pendente: testar imprimindo pelo celular. Acompanhar: não reconferido nesta entrada (casa conferiu em 17/11: ainda pendentes).
 
 ### 2026-11-19 — [casa] — Impressão da Tabela de Entregas pelo celular — publicado
 - Pedido em áudio: imprimir a tabela pelo celular saía manchado/diferente do PC. Causa: o "Imprimir" usa o `window.print()` do navegador, que no celular monta a página na largura da tela (375 px). Aí a tabela fica espremida, cada cliente ocupa quase uma página e as colunas da direita somem. Além disso, o fundo cinza da `.of-plate` (estilo Oficina) saía impresso, porque a regra `html .of-plate` ganhava do `print:bg-white` e a página força `print-color-adjust: exact`.
