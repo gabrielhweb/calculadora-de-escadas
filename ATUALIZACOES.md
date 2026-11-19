@@ -4,11 +4,11 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
-### 2026-11-19 — [casa] — Guarda-corpo do patamar numa linha só, com comprimento — branch `guarda-corpo-patamar`, NÃO publicado
+### 2026-11-19 — [casa] — Guarda-corpo do patamar numa linha só, com comprimento — publicado
 - Pedido da Sofia: patamar com guarda-corpo reto 70 × 90 saía "Guarda-Corpo Lateral" + "Guarda-Corpo com 90cm de altura" (parecia dois e sem comprimento).
 - `ProposalDocument.tsx` (orçamento) e `contractGenerator.ts` (contrato): quando o patamar tem guarda-corpo cadastrado, não sai mais a linha "Lateral/Frontal"; o reto sai "Guarda-Corpo de 70cm de comprimento x 90cm de altura" (sem comprimento, continua "com 90cm de altura"). L/U continuam iguais.
 - Testado gerando o PDF do contrato local (vite-node) com patamar + guarda-corpo reto 70 × 90.
-- Pendente: "pode subir". Acompanhar: não reconferido (sem publicar).
+- Publicado com o "pode subir" do usuário. Acompanhar: não reconferido nesta entrada (casa conferiu em 17/11: ainda pendentes).
 
 ### 2026-11-19 — [casa] — Barra lateral: nome "Barra Lateral de Fixação" e valor separado da escada — publicado
 - Pedido da Sofia (WhatsApp): o orçamento/contrato dizia "Escada com Barra Lateral - R$ 498" (parecia duas coisas) e o valor não somava no total.
