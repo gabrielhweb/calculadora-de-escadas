@@ -4,6 +4,12 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-19 — [casa] — "Sem corrimão" no orçamento e no contrato — branch `sem-corrimao`, NÃO publicado
+- Pedido da Sofia: desmarcando "A escada possui corrimão?" (`hasCorrimao`), o texto continuava "com corrimão de 80cm".
+- `src/utils.ts` (`generateProposalDescription`, orçamento): com `hasCorrimao === false` sai "e sem corrimão". `src/utils/contractGenerator.ts` (objeto do contrato): "com corrimão de 80cm" era fixo; agora sai "e sem corrimão" ou "com corrimão de {handrailHeight || 80}cm" (antes ignorava a altura escolhida).
+- Testado local (vite-node): orçamento com e sem corrimão e PDF do contrato sem corrimão.
+- Pendente: "pode subir". Acompanhar: não reconferido (sem publicar).
+
 ### 2026-11-19 — [casa] — Guarda-corpo do patamar numa linha só, com comprimento — publicado
 - Pedido da Sofia: patamar com guarda-corpo reto 70 × 90 saía "Guarda-Corpo Lateral" + "Guarda-Corpo com 90cm de altura" (parecia dois e sem comprimento).
 - `ProposalDocument.tsx` (orçamento) e `contractGenerator.ts` (contrato): quando o patamar tem guarda-corpo cadastrado, não sai mais a linha "Lateral/Frontal"; o reto sai "Guarda-Corpo de 70cm de comprimento x 90cm de altura" (sem comprimento, continua "com 90cm de altura"). L/U continuam iguais.

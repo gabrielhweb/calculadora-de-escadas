@@ -194,6 +194,8 @@ export const generateContractPDF = (data: ContractData) => {
   const numLandings = data.selectedOption.landings ? data.selectedOption.landings.filter(l => !l.isAccessoriesOnly).length : 0;
   const computedStructureSteps = data.selectedOption.structureSteps ?? (data.selectedOption.steps - numLandings);
 
+  // "A escada possui corrimão?" desmarcado no orçamento = sem corrimão
+  const handrailText = data.inputData.hasCorrimao === false ? 'e sem corrimão' : `e com corrimão de ${data.inputData.handrailHeight || 80}cm`;
   let objText = '';
   let stepsText = '';
   if (data.inputData.quoteType === 'guardrail') {
@@ -203,10 +205,10 @@ export const generateContractPDF = (data: ContractData) => {
       objText = `Estrutura metálica complementar (Adendo de Projeto) fabricada em aço carbono com corte à laser, conforme itens descritos abaixo.`;
       stepsText = ``;
   } else if (data.inputData.isFixedStair) {
-      objText = `Escada fixa em aço carbono com corte à laser, com medidas de: ${alturaM}m de altura, ${compM}m de comprimento, ${widthM}m de largura e com corrimão de 80cm.`;
+      objText = `Escada fixa em aço carbono com corte à laser, com medidas de: ${alturaM}m de altura, ${compM}m de comprimento, ${widthM}m de largura ${handrailText}.`;
       stepsText = `- Com ${computedStructureSteps} degraus fixos com dimensões de ${stepH}cm de altura e pisante de ${treadMaterialStr} de ${tread}cm.`;
   } else {
-      objText = `Escada articulada lateral em aço carbono com corte à laser, ${fixationText}, com medidas de: ${alturaM}m de altura, ${compM}m de comprimento, ${widthM}m de largura e com corrimão de 80cm.`;
+      objText = `Escada articulada lateral em aço carbono com corte à laser, ${fixationText}, com medidas de: ${alturaM}m de altura, ${compM}m de comprimento, ${widthM}m de largura ${handrailText}.`;
       stepsText = `- Com ${computedStructureSteps} degraus articulados com dimensões de ${stepH}cm de altura e pisante de ${treadMaterialStr} de ${tread}cm${dampersText}.`;
   }
   

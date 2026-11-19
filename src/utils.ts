@@ -219,6 +219,7 @@ export const generateProposalDescription = (inputData: any, opt: any): string =>
         const sideText = sideMap[inputData.handrailSide || 'both'] || 'nos dois lados';
         handrailDesc = `e com corrimão articulado ${sideText} de ${hrHeight} centímetros`;
     }
+    if (inputData.hasCorrimao === false && inputData.quoteType !== 'landing') handrailDesc = 'e sem corrimão';
 
     const alturaM = (inputData.totalHeight / 100).toFixed(2).replace('.', ',');
     const compM = (opt.totalLength / 100).toFixed(2).replace('.', ',');
