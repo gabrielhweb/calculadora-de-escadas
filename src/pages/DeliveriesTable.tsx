@@ -78,7 +78,13 @@ export const DeliveriesTable: React.FC = () => {
     }, [user]);
 
     const handlePrint = () => {
-        window.print();
+        // No celular a impressão usa a largura da tela e espreme a tabela: imprime com largura de PC e volta depois
+        const meta = document.querySelector('meta[name="viewport"]');
+        const original = meta?.getAttribute('content');
+        if (!meta || window.innerWidth >= 1200) return window.print();
+        meta.setAttribute('content', 'width=1400');
+        window.addEventListener('afterprint', () => meta.setAttribute('content', original || ''), { once: true });
+        setTimeout(() => window.print(), 300);
     };
 
 
@@ -769,6 +775,7 @@ export const DeliveriesTable: React.FC = () => {
                 @media print {
                     @page { size: landscape; margin: 10mm; }
                     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background-color: white !important; }
+                    html .of-plate { background: white !important; box-shadow: none !important; }
                     .print-hidden { display: none !important; }
                     .print-table { width: 100% !important; border-collapse: collapse; font-size: 11px !important; color: black; }
                     .print-table th, .print-table td { border: 1px solid #000 !important; padding: 4px !important; }
