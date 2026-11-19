@@ -276,13 +276,15 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
                 currentY += (splitDesc.length * 5) + 1;
 
                 // Agora imprime os acessórios anexados a este patamar em linhas abaixo
-                if (landing.hasSideGuardrail && landing.hasFrontGuardrail) {
+                // com guarda-corpo cadastrado, a linha dele já descreve tudo: não repete "Lateral/Frontal"
+                const sideOnly = !landing.hasGuardrail;
+                if (sideOnly && landing.hasSideGuardrail && landing.hasFrontGuardrail) {
                     doc.text("- Guarda-Corpo Lateral e Frontal", pageMargin + 5, currentY);
                     currentY += 5;
-                } else if (landing.hasSideGuardrail) {
+                } else if (sideOnly && landing.hasSideGuardrail) {
                     doc.text("- Guarda-Corpo Lateral", pageMargin + 5, currentY);
                     currentY += 5;
-                } else if (landing.hasFrontGuardrail) {
+                } else if (sideOnly && landing.hasFrontGuardrail) {
                     doc.text("- Guarda-Corpo Frontal", pageMargin + 5, currentY);
                     currentY += 5;
                 }
@@ -294,7 +296,9 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
                     } else if (landing.guardrailFormat === 'U') {
                         gDesc = `- Guarda-corpo em U, composto por três lados:\n    1º lado: ${landing.guardrailLength || 0}cm de comprimento x ${landing.guardrailHeight || 90}cm de altura;\n    2º lado: ${landing.guardrailLength2 || 0}cm de comprimento x ${landing.guardrailHeight || 90}cm de altura;\n    3º lado: ${landing.guardrailLength3 || 0}cm de comprimento x ${landing.guardrailHeight || 90}cm de altura.`;
                     } else {
-                        gDesc = `- Guarda-Corpo com ${landing.guardrailHeight || 90}cm de altura`;
+                        gDesc = Number(landing.guardrailLength) > 0
+                            ? `- Guarda-Corpo de ${landing.guardrailLength}cm de comprimento x ${landing.guardrailHeight || 90}cm de altura`
+                            : `- Guarda-Corpo com ${landing.guardrailHeight || 90}cm de altura`;
                     }
                     const splitGDesc = doc.splitTextToSize(gDesc, availableWidth);
                     doc.text(splitGDesc, pageMargin + 5, currentY);

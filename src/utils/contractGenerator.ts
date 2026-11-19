@@ -249,11 +249,13 @@ export const generateContractPDF = (data: ContractData) => {
           
           addText(`- Patamar (${typeText} - ${dirText})${bracketText}: ${flushText} de ${lM}m de comprimento x ${wM}m de largura`, 11, false, 'left');
 
-            if (landing.hasSideGuardrail && landing.hasFrontGuardrail) {
+            // com guarda-corpo cadastrado, a linha dele já descreve tudo: não repete "Lateral/Frontal"
+            const sideOnly = !landing.hasGuardrail;
+            if (sideOnly && landing.hasSideGuardrail && landing.hasFrontGuardrail) {
                 addText("    - Guarda-Corpo Lateral e Frontal", 11, false, 'left');
-            } else if (landing.hasSideGuardrail) {
+            } else if (sideOnly && landing.hasSideGuardrail) {
                 addText("    - Guarda-Corpo Lateral", 11, false, 'left');
-            } else if (landing.hasFrontGuardrail) {
+            } else if (sideOnly && landing.hasFrontGuardrail) {
                 addText("    - Guarda-Corpo Frontal", 11, false, 'left');
             }
 
@@ -268,7 +270,9 @@ export const generateContractPDF = (data: ContractData) => {
     2º lado: ${landing.guardrailLength2 || 0}cm de comprimento x ${landing.guardrailHeight || 90}cm de altura;
     3º lado: ${landing.guardrailLength3 || 0}cm de comprimento x ${landing.guardrailHeight || 90}cm de altura.`, 11, false, 'left');
                 } else {
-                    addText(`    - Guarda-Corpo com ${landing.guardrailHeight || 90}cm de altura`, 11, false, 'left');
+                    addText(Number(landing.guardrailLength) > 0
+                        ? `    - Guarda-Corpo de ${landing.guardrailLength}cm de comprimento x ${landing.guardrailHeight || 90}cm de altura`
+                        : `    - Guarda-Corpo com ${landing.guardrailHeight || 90}cm de altura`, 11, false, 'left');
                 }
             }
 

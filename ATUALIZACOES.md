@@ -4,6 +4,12 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-19 — [casa] — Guarda-corpo do patamar numa linha só, com comprimento — branch `guarda-corpo-patamar`, NÃO publicado
+- Pedido da Sofia: patamar com guarda-corpo reto 70 × 90 saía "Guarda-Corpo Lateral" + "Guarda-Corpo com 90cm de altura" (parecia dois e sem comprimento).
+- `ProposalDocument.tsx` (orçamento) e `contractGenerator.ts` (contrato): quando o patamar tem guarda-corpo cadastrado, não sai mais a linha "Lateral/Frontal"; o reto sai "Guarda-Corpo de 70cm de comprimento x 90cm de altura" (sem comprimento, continua "com 90cm de altura"). L/U continuam iguais.
+- Testado gerando o PDF do contrato local (vite-node) com patamar + guarda-corpo reto 70 × 90.
+- Pendente: "pode subir". Acompanhar: não reconferido (sem publicar).
+
 ### 2026-11-19 — [casa] — Barra lateral: nome "Barra Lateral de Fixação" e valor separado da escada — publicado
 - Pedido da Sofia (WhatsApp): o orçamento/contrato dizia "Escada com Barra Lateral - R$ 498" (parecia duas coisas) e o valor não somava no total.
 - Causa: o total da opção já vem com a barra somada. No Gerar Contrato vindo do orçamento (`src/pages/Contract.tsx`), o "Valor Escada" ficava com os 498 dentro e a caixinha da barra ficava desmarcada. Além disso, o "aplicar correção" do pisante (`handleApplyCorrection` em `ProposalOptions.tsx`) recalculava o preço sem barra e sem avulsos, e o total base mandado pro formulário do cliente ignorava a barra quando tinha preço manual.
