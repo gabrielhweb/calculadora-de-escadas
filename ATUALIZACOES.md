@@ -4,10 +4,10 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
-### 2026-11-19 — [casa] — Impressão da Tabela de Entregas pelo celular — branch `impressao-celular`, NÃO publicado
+### 2026-11-19 — [casa] — Impressão da Tabela de Entregas pelo celular — publicado
 - Pedido em áudio: imprimir a tabela pelo celular saía manchado/diferente do PC. Causa: o "Imprimir" usa o `window.print()` do navegador, que no celular monta a página na largura da tela (375 px). Aí a tabela fica espremida, cada cliente ocupa quase uma página e as colunas da direita somem. Além disso, o fundo cinza da `.of-plate` (estilo Oficina) saía impresso, porque a regra `html .of-plate` ganhava do `print:bg-white` e a página força `print-color-adjust: exact`.
 - `src/pages/DeliveriesTable.tsx`: no celular o `handlePrint` troca a meta viewport pra `width=1400` antes de imprimir e volta no `afterprint`; no `@media print` a `.of-plate` fica branca e sem sombra. Simulado no navegador do app: em 1400 px cabem todas as colunas, com fundo branco.
-- Pendente: usuário falar "pode subir" e testar imprimindo pelo celular de verdade (Android e iPhone tratam o `afterprint` diferente; se a página ficar pequena depois de imprimir, é só recarregar). Acompanhar: não reconferido (sem publicar).
+- Publicado com o "pode subir" do usuário. Pendente: testar imprimindo pelo celular de verdade (Android e iPhone tratam o `afterprint` diferente; se a página ficar pequena depois de imprimir, é só recarregar). Acompanhar: não reconferido nesta entrada (casa conferiu em 17/11: ainda pendentes).
 
 ### 2026-11-18 — [empresa] — Publicado: cláusula 2.2 só com transportadora
 - Usuário falou "pode subir": branch `clausula-2-2` juntado no `main` e publicado (detalhes na entrada abaixo). Branch apagado.
