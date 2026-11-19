@@ -397,7 +397,13 @@ export const ContractsList: React.FC = () => {
             const { getDoc, setDoc } = await import('firebase/firestore');
             const contractRef = doc(db, 'contracts', id);
             await updateDoc(contractRef, { status: newStatus });
-            
+
+            // Entregue aqui = Concluído no Controle de Contratos
+            if (newStatus === 'entregue') {
+                const linked = await getDocs(query(collection(db, 'production_queue'), where('contractId', '==', id)));
+                await Promise.all(linked.docs.map(d => updateDoc(d.ref, { boardStage: 'concluido', status: 'completed' })));
+            }
+
             if (newStatus === 'producao') {
                 const contractSnap = await getDoc(contractRef);
                 const contractData = contractSnap.data() as SavedContract;

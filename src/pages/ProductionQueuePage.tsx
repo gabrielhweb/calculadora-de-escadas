@@ -824,6 +824,19 @@ export default function ProductionQueue() {
                 else updates.status = 'in_queue';
                 await updateDoc(doc(db, 'production_queue', item.id), updates);
 
+                // Concluído aqui = entregue no contrato (sai da Tabela de Entregas); voltando de Concluído, volta pra produção
+                const contractId = item.originalData?.contractId;
+                if (contractId) {
+                    if (newStage === 'concluido') {
+                        await updateDoc(doc(db, 'contracts', contractId), { status: 'entregue' }).catch(e => console.error('Erro ao marcar contrato como entregue:', e));
+                    } else {
+                        const snap = await getDoc(doc(db, 'contracts', contractId)).catch(() => null);
+                        if (snap?.data()?.status === 'entregue') {
+                            await updateDoc(doc(db, 'contracts', contractId), { status: 'producao' }).catch(e => console.error('Erro ao voltar contrato pra produção:', e));
+                        }
+                    }
+                }
+
                 const clientEmail = item.originalData?.clientEmail || item.originalData?.userData?.email;
                 if (clientEmail) {
                     const firstName = item.title.split(' ')[0];

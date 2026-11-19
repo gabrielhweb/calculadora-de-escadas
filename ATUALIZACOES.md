@@ -4,6 +4,13 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-19 — [casa] — Entregue ↔ Concluído ligado entre as telas — branch `status-sincronizado`, NÃO publicado
+- Pedido da Sofia: mudar a etapa num lugar tem que mudar nos outros (Controle de Contratos, Meus Contratos e Tabela de Entregas).
+- Antes: a Tabela de Entregas lê `contracts.status == 'producao'`, o Controle de Contratos lê `production_queue.boardStage`/`status`, e uma tela não mexia na outra.
+- Agora: no **Controle de Contratos** (`ProductionQueuePage.tsx`, `moveItem`), mover pra Concluído grava `contracts.status = 'entregue'` no contrato ligado (`contractId`), e ele sai da Tabela; tirar de Concluído volta o contrato pra `producao` se ele estava entregue. Na **Tabela de Entregas** (`DeliveriesTable.tsx`), "Entregue ✓" também põe a fila em `boardStage: 'concluido'` / `status: 'completed'` (liga por `contractId` e, na fila antiga sem `contractId`, pelo nome, igual à coluna de status). Em **Meus Contratos** (`ContractsList.tsx`), mover pra Entregue também conclui a fila.
+- Não testado com dados (mexeria em contratos reais); tipos ok. Mover em Meus Contratos de Entregue de volta pra Produção não reabre a fila (decidir se precisa).
+- Pendente: "pode subir" e testar com um contrato que já foi entregue de verdade. Acompanhar: não reconferido (sem publicar).
+
 ### 2026-11-19 — [casa] — "Sem corrimão" no orçamento e no contrato — publicado
 - Pedido da Sofia: desmarcando "A escada possui corrimão?" (`hasCorrimao`), o texto continuava "com corrimão de 80cm".
 - `src/utils.ts` (`generateProposalDescription`, orçamento): com `hasCorrimao === false` sai "e sem corrimão". `src/utils/contractGenerator.ts` (objeto do contrato): "com corrimão de 80cm" era fixo; agora sai "e sem corrimão" ou "com corrimão de {handrailHeight || 80}cm" (antes ignorava a altura escolhida).

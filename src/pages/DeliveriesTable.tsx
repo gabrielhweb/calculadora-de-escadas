@@ -737,6 +737,11 @@ export const DeliveriesTable: React.FC = () => {
             try {
                 const docRef = doc(db, 'contracts', id);
                 await updateDoc(docRef, { status: 'entregue' });
+                // No Controle de Contratos a escada vai junto pra Concluído
+                // fila antiga sem contractId: liga pelo nome, igual à coluna de status desta tabela
+                const clientNorm = normalizeName(contracts.find(c => c.id === id)?.clientName);
+                const linked = queueItems.filter(q => q.contractId === id || (!q.contractId && clientNorm && normalizeName(q.clientName) === clientNorm));
+                await Promise.all(linked.map(q => updateDoc(doc(db, 'production_queue', q.id), { boardStage: 'concluido', status: 'completed' })));
             } catch (error) {
                 console.error("Erro ao marcar como entregue:", error);
             }
