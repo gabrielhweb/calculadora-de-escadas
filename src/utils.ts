@@ -183,7 +183,9 @@ export const generateProposalDescription = (inputData: any, opt: any): string =>
     let descriptionTitle = inputData.quoteType === 'landing' ? "Patamar sob medida em aço carbono" : "Escada articulada lateral em aço carbono";
     let hrHeight = inputData.handrailHeight || 80;
     let handrailDesc = inputData.quoteType === 'landing' ? "" : `e com corrimão de ${hrHeight} centímetros`;
-    let damperDesc = inputData.quoteType === 'landing' ? "" : ` com ${inputData.dampers} amortecedores de alívio`;
+    // Fixação frontal não leva amortecedor; com 0 amortecedores também não escreve nada
+    const isFrontal = inputData.wallFixation === 'frontal' || /frontal/i.test(inputData.stairGeometry || '');
+    let damperDesc = (inputData.quoteType === 'landing' || isFrontal || !(Number(inputData.dampers) > 0)) ? "" : ` com ${inputData.dampers} amortecedores de alívio`;
 
     let fixationText = "";
     if (inputData.isFixedStair) {

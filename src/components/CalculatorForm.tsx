@@ -143,12 +143,12 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
   const [doorDistance, setDoorDistance] = useState('100'); // Distância do início da escada
   const [doorPosition, setDoorPosition] = useState<'ground' | 'upper'>('upper'); // Padrão: Laje
 
-  // Efeito para garantir que amortecedores sejam 0 se tiver rodinhas ou for escada fixa
+  // Efeito para garantir que amortecedores sejam 0 se tiver rodinhas, for escada fixa ou fixação frontal (frontal não leva amortecedor)
   useEffect(() => {
-      if (hasWheels || isFixedStair) {
+      if (hasWheels || isFixedStair || wallFixation === 'frontal') {
           setDampers('0');
       }
-  }, [hasWheels, isFixedStair]);
+  }, [hasWheels, isFixedStair, wallFixation]);
 
   // Handlers para Itens Extras e Patamares
   const handleAddItem = () => {
@@ -258,7 +258,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
     const slabThickInCm = parseFloat(slabThickness) || 0;
 
     let finalDampers = 0;
-    if (!hasWheels) {
+    if (!hasWheels && wallFixation !== 'frontal') {
         const dampersInt = parseInt(dampers, 10);
         finalDampers = isNaN(dampersInt) ? 0 : dampersInt;
     }
@@ -282,7 +282,7 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
         treadDepth: depthInCm,
         treadMaterial: treadMaterial,
         woodType: treadMaterial === 'wood' ? woodType : undefined,
-        dampers: Number(dampers) || 0,
+        dampers: wallFixation === 'frontal' ? 0 : (Number(dampers) || 0),
         hasWheels: hasWheels,
         isFixedStair: isFixedStair,
         handrailSide: hasWheels ? handrailSide : undefined,
@@ -743,9 +743,9 @@ const CalculatorForm: React.FC<CalculatorFormProps> = ({ onCalculate, mode = 'st
                 value={dampers} 
                 onChange={e => setDampers(e.target.value)} 
                 unit="un"
-                helperText={(hasWheels || isFixedStair) ? "Desativado" : "Aceita 0"}
+                helperText={wallFixation === 'frontal' ? "Frontal não leva" : (hasWheels || isFixedStair) ? "Desativado" : "Aceita 0"}
                 tooltip="Borrachas instaladas entre a estrutura da escada e a parede."
-                disabled={hasWheels || isFixedStair}
+                disabled={hasWheels || isFixedStair || wallFixation === 'frontal'}
             />
             <InputField 
                 label="Preço/Degrau" 
