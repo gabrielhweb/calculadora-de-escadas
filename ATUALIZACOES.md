@@ -4,6 +4,14 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-23 — [empresa] — Escada com fixação frontal não leva amortecedor (branch `frontal-sem-amortecedor`, esperando "pode subir")
+- **O que mudou:** escolhendo "Fixação Frontal", o campo Amortecedores fica 0 e travado ("Frontal não leva") na Calculadora e no Gerar Contrato; o texto do orçamento (`generateProposalDescription` em `src/utils.ts`) e o PDF do contrato (`contractGenerator.ts`) não escrevem "com X amortecedores de alívio" quando é frontal (também reconhece `stairGeometry` "Fixação Frontal"). O orçamento também não escreve mais "com 0 amortecedores".
+- **Bug corrigido junto:** no Gerar Contrato, 0 amortecedores virava 4 ao salvar (`parseFloat(dampers) || 4`) e ao carregar (`|| "4"`); agora 0 fica 0.
+- **Testado local:** texto do orçamento e PDF do contrato com frontal (sem amortecedor) e parede esquerda (com 4); na Calculadora o campo vai pra 0 travado ao clicar Frontal e destrava ao voltar pra parede (fica 0 até digitar).
+- **Onde:** `src/components/CalculatorForm.tsx`, `src/pages/Contract.tsx`, `src/utils.ts`, `src/utils/contractGenerator.ts`. **Está no branch `frontal-sem-amortecedor`, não no `main`.**
+- **Acompanhar:** conferido hoje mais cedo (Hilton/Paulo sem data, Bergamo Entregue).
+- **Pendente:** "pode subir"; depois juntar no `main`.
+
 ### 2026-11-23 — [empresa] — Conferência dos itens de Acompanhar (site logado)
 - **Beatriz Grance Rinn:** resolvido — Meus Contratos mostra "Em Produção" e a Fila "Contrato assinado e pagamento inicial feito" (50% PIX). Saiu da lista.
 - **Hilton e Paulo Henrique:** CPF do destinatário já aparece no texto da transportadora (resolvido). Data de entrega na Tabela de Entregas ainda vazia ("Selecionar Data") — ainda pendente.
