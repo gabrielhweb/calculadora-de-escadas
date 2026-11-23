@@ -51,8 +51,7 @@ Por isso estas regras valem em toda sessão:
 
 ## 👀 Acompanhar (quem resolve é o cliente, no controle de contratos dele)
 Não cobrar o usuário. **Toda vez que for escrever no Diário**, abrir o site logado (Meus Contratos / Fila / Tabela de Entregas), ver se cada item abaixo já foi resolvido e anotar na entrada do Diário ("resolvido" ou "ainda pendente"). Quando resolvido, tirar daqui.
-- [ ] Beatriz Grance Rinn: em Meus Contratos está "Falta assinar", mas na Fila está "Contrato assinado e pagamento inicial feito" (50% pago).
-- [ ] Hilton e Paulo Henrique: sem data de entrega na Tabela de Entregas e sem CPF do destinatário no texto da transportadora.
+- [ ] Hilton e Paulo Henrique: sem data de entrega na Tabela de Entregas (o CPF do destinatário já aparece, conferido em 23/11).
 - [ ] Alexandre Bergamo: está como Entregue/Concluído — confirmar que já recebeu.
 
 ## Testes no site

@@ -4,6 +4,12 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-23 — [empresa] — Conferência dos itens de Acompanhar (site logado)
+- **Beatriz Grance Rinn:** resolvido — Meus Contratos mostra "Em Produção" e a Fila "Contrato assinado e pagamento inicial feito" (50% PIX). Saiu da lista.
+- **Hilton e Paulo Henrique:** CPF do destinatário já aparece no texto da transportadora (resolvido). Data de entrega na Tabela de Entregas ainda vazia ("Selecionar Data") — ainda pendente.
+- **Alexandre Bergamo:** continua Entregue em Meus Contratos e Concluído na Fila (100% pago); recebimento não dá pra confirmar pelo site — ainda pendente.
+- **Onde:** `CLAUDE.md` (Acompanhar). Nada mudou no código.
+
 ### 2026-11-23 — [empresa] — Pendências: testes novos de casa passados pro CLAUDE.md
 - **O que mudou:** os pendentes que a máquina de casa deixou só no Diário em 19/11 foram pra lista de Pendências: imprimir a Tabela de Entregas pelo celular, testar Entregue/Concluído sincronizado nas 3 telas, decidir se voltar de Entregue pra Produção em Meus Contratos reabre a fila, contratos antigos com barra lateral.
 - **Também:** o `.claude/launch.json` local (não versionado) foi apagado pra receber o de casa (faz a mesma coisa: `npm run dev`, porta 5173).
