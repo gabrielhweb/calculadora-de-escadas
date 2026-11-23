@@ -58,8 +58,12 @@ Não cobrar o usuário. **Toda vez que for escrever no Diário**, abrir o site l
 ## Testes no site
 - [ ] Testar o envio de e-mail da Fila (manda e-mail de verdade pro cliente, por isso não foi testado pelo Claude).
 - [ ] Testar o Painel de Visitas com dois logins: visita cadastrada num tem que aparecer no outro.
+- [ ] Imprimir a Tabela de Entregas pelo celular (Android/iPhone) e ver se sai com todas as colunas e fundo branco; testar o seletor Folha deitada / em pé.
+- [ ] Marcar como Entregue/Concluído um contrato já entregue de verdade e ver se muda nas 3 telas (Controle de Contratos, Meus Contratos e Tabela de Entregas).
 
 ## Decisões / informações do usuário
+- [ ] Decidir se, em Meus Contratos, voltar um contrato de Entregue pra Produção também deve reabrir ele no Controle de Contratos (hoje não reabre).
+- [ ] Contratos salvos antes de 19/11 com barra lateral continuam com o valor antigo: gerar de novo se precisar.
 - [ ] Gerar de novo o contrato do Gustavo Storti pra conferir o guarda-corpo em L (o PDF antigo foi gerado antes da correção de 17/11).
 - [ ] Testar no site o frete por IA (Calculadora) e as perguntas novas de transportadora no Gerar Contrato ("Como a escada chega na transportadora?" / "Quem paga o frete?").
 - [ ] Revisar a conta do preço dos tubos do guarda-corpo (deixado pra depois).

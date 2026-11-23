@@ -4,6 +4,13 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-23 — [empresa] — Pendências: testes novos de casa passados pro CLAUDE.md
+- **O que mudou:** os pendentes que a máquina de casa deixou só no Diário em 19/11 foram pra lista de Pendências: imprimir a Tabela de Entregas pelo celular, testar Entregue/Concluído sincronizado nas 3 telas, decidir se voltar de Entregue pra Produção em Meus Contratos reabre a fila, contratos antigos com barra lateral.
+- **Também:** o `.claude/launch.json` local (não versionado) foi apagado pra receber o de casa (faz a mesma coisa: `npm run dev`, porta 5173).
+- **Acompanhar:** não deu pra conferir — o navegador do app está deslogado ("Acesso Restrito"). Última conferência (casa, 17/11): Beatriz, Hilton/Paulo e Bergamo ainda pendentes.
+- **Onde:** `CLAUDE.md`.
+- **Pendente:** nada novo além da lista.
+
 ### 2026-11-19 — [casa] — Entregue ↔ Concluído ligado entre as telas — publicado
 - Pedido da Sofia: mudar a etapa num lugar tem que mudar nos outros (Controle de Contratos, Meus Contratos e Tabela de Entregas).
 - Antes: a Tabela de Entregas lê `contracts.status == 'producao'`, o Controle de Contratos lê `production_queue.boardStage`/`status`, e uma tela não mexia na outra.
