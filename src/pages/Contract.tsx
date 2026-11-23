@@ -392,12 +392,12 @@ const Contract = () => {
     );
   };
 
-  // Efeito para zerar amortecedores caso rodinhas sejam selecionadas ou seja fixa
+  // Efeito para zerar amortecedores caso rodinhas sejam selecionadas, seja fixa ou fixação frontal (frontal não leva amortecedor)
   useEffect(() => {
-    if (hasWheels || isFixedStair) {
+    if (hasWheels || isFixedStair || wallFixation === "frontal") {
       setDampers("0");
     }
-  }, [hasWheels, isFixedStair]);
+  }, [hasWheels, isFixedStair, wallFixation]);
 
   // Inputs para adicionar novo item
   const [newItemName, setNewItemName] = useState("");
@@ -605,7 +605,7 @@ const Contract = () => {
               fallbackOption.totalLength || fallbackOption.comprimento || "300",
             ),
           );
-          setDampers(String(fallbackInput.dampers || "4"));
+          setDampers(String(fallbackInput.dampers ?? "4"));
           setHasStairSideBar(!!fallbackInput.hasStairSideBar);
           if (fallbackInput.hasStairSideBar && fallbackInput.stairSideBarPrice)
             setStairSideBarPrice(String(fallbackInput.stairSideBarPrice));
@@ -822,7 +822,7 @@ const Contract = () => {
           setStepHeight(Number(selectedOption.stepHeight || 20).toFixed(2));
           setTreadDepth(Number(selectedOption.treadDepth || 25).toFixed(2));
           setTotalLength(String(selectedOption.totalLength || "300"));
-          setDampers(String(inputData.dampers || "4"));
+          setDampers(String(inputData.dampers ?? "4"));
           setStairDirection(
             String(inputData.stairDirection || "standard") as any,
           );
@@ -1262,7 +1262,7 @@ const Contract = () => {
           desiredSteps: totalStepsNum,
           stairWidth: parseFloat(width) || 0,
           treadDepth: parseFloat(treadDepth) || 0,
-          dampers: parseFloat(dampers) || 4,
+          dampers: Number.isFinite(parseFloat(dampers)) ? parseFloat(dampers) : 4,
           optionalItems: optionalItems,
           landings: landings,
           treadMaterial: treadMaterial,
@@ -1548,7 +1548,7 @@ const Contract = () => {
         desiredSteps: totalStepsNum,
         stairWidth: parseFloat(width) || 0,
         treadDepth: parseFloat(treadDepth) || 0,
-        dampers: parseFloat(dampers) || 4,
+        dampers: Number.isFinite(parseFloat(dampers)) ? parseFloat(dampers) : 4,
         optionalItems: optionalItems,
         landings: landings,
         treadMaterial: treadMaterial,
@@ -1787,7 +1787,7 @@ const Contract = () => {
         desiredSteps: totalStepsNum,
         stairWidth: parseFloat(width) || 0,
         treadDepth: parseFloat(treadDepth) || 0,
-        dampers: parseFloat(dampers) || 4,
+        dampers: Number.isFinite(parseFloat(dampers)) ? parseFloat(dampers) : 4,
         optionalItems: optionalItems,
         landings: landings,
         treadMaterial: treadMaterial,
@@ -2193,7 +2193,7 @@ const Contract = () => {
                           value={dampers}
                           onChange={(e: any) => setDampers(e.target.value)}
                           type="number"
-                          disabled={hasWheels || isFixedStair}
+                          disabled={hasWheels || isFixedStair || wallFixation === "frontal"}
                         />
                       </div>
 

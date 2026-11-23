@@ -184,7 +184,9 @@ export const generateContractPDF = (data: ContractData) => {
   }
 
   let dampersText = '';
-  const dampers = Number(data.inputData.dampers) || 0;
+  // Fixação frontal não leva amortecedor
+  const isFrontal = effectiveWall === 'frontal' || /frontal/i.test(data.inputData?.stairGeometry || '');
+  const dampers = isFrontal ? 0 : (Number(data.inputData.dampers) || 0);
   if (dampers > 0) {
       dampersText = ` com ${dampers} amortecedores de alívio`;
   } else if (data.inputData.hasWheels) {
