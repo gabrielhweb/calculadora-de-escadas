@@ -4,6 +4,10 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-23 — [empresa] — Publicado: frontal sem amortecedor
+- Usuário falou "pode subir": branch `frontal-sem-amortecedor` juntado no `main` e publicado (detalhes na entrada abaixo). Branch apagado.
+- **Pendente:** fazer um orçamento e um contrato com Fixação Frontal no site pra conferir.
+
 ### 2026-11-23 — [empresa] — Escada com fixação frontal não leva amortecedor (branch `frontal-sem-amortecedor`, esperando "pode subir")
 - **O que mudou:** escolhendo "Fixação Frontal", o campo Amortecedores fica 0 e travado ("Frontal não leva") na Calculadora e no Gerar Contrato; o texto do orçamento (`generateProposalDescription` em `src/utils.ts`) e o PDF do contrato (`contractGenerator.ts`) não escrevem "com X amortecedores de alívio" quando é frontal (também reconhece `stairGeometry` "Fixação Frontal"). O orçamento também não escreve mais "com 0 amortecedores".
 - **Bug corrigido junto:** no Gerar Contrato, 0 amortecedores virava 4 ao salvar (`parseFloat(dampers) || 4`) e ao carregar (`|| "4"`); agora 0 fica 0.

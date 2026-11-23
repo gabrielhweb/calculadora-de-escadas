@@ -42,6 +42,7 @@ Por isso estas regras valem em toda sessão:
 - **Texto da transportadora:** `src/utils/freightQuoteText.ts`; "Modalidade de coleta" e "Tomador do frete" saem por padrão "levada até a base da transportadora" / "remetente", mas o Gerar Contrato pergunta (campos `logistics.freightPickup` / `freightPayer`); dados do cliente buscados em todas as origens por `src/utils/clientInfo.ts`. Texto editado fica salvo no campo `freightQuoteText` do contrato; medidas editadas manualmente ficam em `hingesQty`.
 - **Custo da escada (corte a laser do Jefferson / Cia do Ferro):** `laserCutPieces` / `estimateLaserCutCost` em `src/utils/freightDimensions.ts`, usado no Controle de Contratos, no 3D e na Conferência do Laser (`/compras/conferencia`, lê a nota pela IA e compara peça por peça; salva em `settings/conferencia_jefferson`). Retângulo de cada chapa × espessura × 7,85 × R$ 14,24/kg (xadrez R$ 15,235); degrau de metal liso 2,65 mm, xadrez e madeira 3 mm. Calibrado com 3 orçamentos e 3 notas (erro < R$ 10). Nº do boleto = nº da nota + parcela + total de parcelas.
 - **Cláusula 2.2 do contrato** (`contractGenerator.ts`): o prazo da transportadora só aparece quando a Forma de Entrega é Transportadora; nos outros casos a 2.2 é só "O objeto deverá ser entregue conforme...".
+- **Fixação frontal não leva amortecedor:** Calculadora e Gerar Contrato zeram e travam o campo; orçamento (`generateProposalDescription`) e contrato (`contractGenerator.ts`) não escrevem amortecedor quando é frontal.
 - **Contrato baixado em Meus Contratos** busca degraus/medidas em qualquer nível do JSON (igual à ficha técnica).
 
 # ⏳ Pendências do usuário
@@ -61,7 +62,6 @@ Não cobrar o usuário. **Toda vez que for escrever no Diário**, abrir o site l
 - [ ] Marcar como Entregue/Concluído um contrato já entregue de verdade e ver se muda nas 3 telas (Controle de Contratos, Meus Contratos e Tabela de Entregas).
 
 ## Decisões / informações do usuário
-- [ ] **Falar "pode subir"** pro branch `frontal-sem-amortecedor` (escada frontal sem amortecedor no orçamento e no contrato).
 - [ ] Decidir se, em Meus Contratos, voltar um contrato de Entregue pra Produção também deve reabrir ele no Controle de Contratos (hoje não reabre).
 - [ ] Contratos salvos antes de 19/11 com barra lateral continuam com o valor antigo: gerar de novo se precisar.
 - [ ] Gerar de novo o contrato do Gustavo Storti pra conferir o guarda-corpo em L (o PDF antigo foi gerado antes da correção de 17/11).
