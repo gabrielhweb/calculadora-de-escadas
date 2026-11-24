@@ -10,7 +10,7 @@ export default async function handler(req: any, res: any) {
 
     if (!(await requireAuthorizedUser(req, res))) return;
 
-    const { address, zip } = req.body || {};
+    const { address, zip, number } = req.body || {};
     const cep = String(zip || '').replace(/\D/g, '');
     const text = String(address || '').replace(/,?\s*CEP:?\s*[\d.-]+/i, '').trim();
 
@@ -34,7 +34,7 @@ export default async function handler(req: any, res: any) {
 
     for (const place of attempts) {
         try {
-            const found = await geocode(place);
+            const found = await geocode(place, number);
             return res.status(200).json(found);
         } catch (e: any) {
             console.warn('Geocode falhou para', place, '-', e?.message || e);

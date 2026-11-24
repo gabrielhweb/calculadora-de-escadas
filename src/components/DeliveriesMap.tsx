@@ -1,45 +1,33 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { auth } from '../firebase';
 import Icon from './Icon';
+import { DeliveryGeo, DeliveryMapItem, nearbyDeliveries } from '../utils/deliveryGeo';
 
-// Mapa da Tabela de Entregas: um ponto por entrega e, ao escolher uma, o círculo do raio
-// (padrão 40 km, editável) com a lista das entregas que caem dentro dele.
-// As coordenadas vêm do CEP/endereço (api/geocode) e ficam salvas no contrato (deliveryGeo),
-// junto com o endereço usado: se o endereço mudar, busca de novo.
-
-export interface DeliveryGeo { lat: number; lng: number; key: string; label?: string }
-
-export interface DeliveryMapItem {
-  id: string;
-  name: string;
-  address: string;
-  zip?: string;
-  deliveryDate?: string;
-  geo?: DeliveryGeo;
-}
+// Mapa da Tabela de Entregas: divisa dos estados, um ponto por entrega e, ao escolher uma,
+// o círculo do raio com a lista das entregas que caem dentro dele. Dá pra aproximar até a rua.
+// As coordenadas e o raio vêm da Tabela (src/utils/deliveryGeo.ts).
 
 interface Props {
   items: DeliveryMapItem[];
+  coords: Record<string, DeliveryGeo>;
+  failed: Record<string, string>;
+  progress: { done: number; total: number } | null;
+  radiusKm: number;
+  onRadiusChange: (km: number) => void;
+  initialSelectedId?: string | null;
   onClose: () => void;
-  onSaveGeo: (id: string, geo: DeliveryGeo) => void;
 }
 
-const RADIUS_STORAGE_KEY = 'entregas_raio_km';
-const DEFAULT_RADIUS_KM = 40;
-
-const geoKey = (item: DeliveryMapItem) => `${(item.zip || '').replace(/\D/g, '')}|${item.address.trim().toLowerCase()}`;
-
-// Distância em linha reta (km) entre dois pontos
-const distanceKm = (a: { lat: number; lng: number }, b: { lat: number; lng: number }) => {
-  const R = 6371;
-  const toRad = (d: number) => (d * Math.PI) / 180;
-  const dLat = toRad(b.lat - a.lat);
-  const dLng = toRad(b.lng - a.lng);
-  const h = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
-  return 2 * R * Math.asin(Math.sqrt(h));
+// Malha dos estados do IBGE (oficial, grátis); o código da área é o código IBGE da UF
+const IBGE_STATES_URL = 'https://servicodados.ibge.gov.br/api/v3/malhas/paises/BR?formato=application/vnd.geo%2Bjson&intrarregiao=UF&qualidade=minima';
+const UF_BY_IBGE_CODE: Record<string, string> = {
+  '11': 'RO', '12': 'AC', '13': 'AM', '14': 'RR', '15': 'PA', '16': 'AP', '17': 'TO',
+  '21': 'MA', '22': 'PI', '23': 'CE', '24': 'RN', '25': 'PB', '26': 'PE', '27': 'AL', '28': 'SE', '29': 'BA',
+  '31': 'MG', '32': 'ES', '33': 'RJ', '35': 'SP', '41': 'PR', '42': 'SC', '43': 'RS',
+  '50': 'MS', '51': 'MT', '52': 'GO', '53': 'DF',
 };
+let statesCache: any = null;
 
 const formatDate = (iso?: string) => {
   if (!iso) return 'sem data';
@@ -47,66 +35,14 @@ const formatDate = (iso?: string) => {
   return d && m && y ? `${d}/${m}/${y}` : iso;
 };
 
-const DeliveriesMap: React.FC<Props> = ({ items, onClose, onSaveGeo }) => {
+const DeliveriesMap: React.FC<Props> = ({ items, coords, failed, progress, radiusKm, onRadiusChange, initialSelectedId, onClose }) => {
   const mapDivRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const layerRef = useRef<L.LayerGroup | null>(null);
   const fittedRef = useRef(false);
   // Muda quando a caixa do mapa ganha/muda de tamanho (o Leaflet precisa medir de novo)
   const [mapSize, setMapSize] = useState(0);
-
-  // Coordenadas já conhecidas (salvas no contrato com o mesmo endereço) + as achadas agora
-  const [coords, setCoords] = useState<Record<string, DeliveryGeo>>(() => {
-    const initial: Record<string, DeliveryGeo> = {};
-    items.forEach(it => { if (it.geo && it.geo.key === geoKey(it)) initial[it.id] = it.geo; });
-    return initial;
-  });
-  const [failed, setFailed] = useState<Record<string, string>>({});
-  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [radiusKm, setRadiusKm] = useState<number>(() => {
-    try {
-      const saved = Number(localStorage.getItem(RADIUS_STORAGE_KEY));
-      return saved > 0 ? saved : DEFAULT_RADIUS_KM;
-    } catch {
-      return DEFAULT_RADIUS_KM;
-    }
-  });
-
-  // Busca as coordenadas que faltam, uma de cada vez (o serviço de mapas pede calma)
-  useEffect(() => {
-    let cancelled = false;
-    const missing = items.filter(it => !coords[it.id] && (it.address.trim() || it.zip));
-    if (missing.length === 0) return;
-    (async () => {
-      setProgress({ done: 0, total: missing.length });
-      for (let i = 0; i < missing.length; i++) {
-        if (cancelled) return;
-        const it = missing[i];
-        try {
-          const token = await auth.currentUser?.getIdToken();
-          const res = await fetch('/api/geocode', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-            body: JSON.stringify({ address: it.address, zip: it.zip }),
-          });
-          const data = await res.json().catch(() => ({}));
-          if (!res.ok || typeof data.lat !== 'number') throw new Error(data.error || 'não encontrado');
-          const geo: DeliveryGeo = { lat: data.lat, lng: data.lng, key: geoKey(it), label: data.label };
-          if (cancelled) return;
-          setCoords(prev => ({ ...prev, [it.id]: geo }));
-          onSaveGeo(it.id, geo);
-        } catch (e: any) {
-          if (!cancelled) setFailed(prev => ({ ...prev, [it.id]: e?.message || 'erro' }));
-        }
-        if (!cancelled) setProgress({ done: i + 1, total: missing.length });
-      }
-      if (!cancelled) setProgress(null);
-    })();
-    return () => { cancelled = true; };
-    // Só ao abrir o mapa: novas entregas aparecem na próxima vez que abrir
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const [selectedId, setSelectedId] = useState<string | null>(initialSelectedId || null);
 
   // Cria o mapa uma vez
   useEffect(() => {
@@ -119,11 +55,30 @@ const DeliveriesMap: React.FC<Props> = ({ items, onClose, onSaveGeo }) => {
       minZoom: 4,
     }).setView([-15, -50], 4);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 18,
+      maxZoom: 19,
       noWrap: true,
       bounds: southAmerica,
-      attribution: '&copy; OpenStreetMap',
+      attribution: '&copy; OpenStreetMap · Estados: IBGE',
     }).addTo(map);
+
+    // Divisa dos estados por cima do mapa
+    const statesPane = map.createPane('estados');
+    statesPane.style.zIndex = '350';
+    statesPane.style.pointerEvents = 'none';
+    const drawStates = (geojson: any) => {
+      if (!mapRef.current) return;
+      L.geoJSON(geojson, {
+        pane: 'estados',
+        style: { color: '#92400e', weight: 1.6, opacity: 0.8, fill: false },
+        onEachFeature: (feature, layer) => {
+          const uf = UF_BY_IBGE_CODE[String(feature?.properties?.codarea)];
+          if (uf) layer.bindTooltip(uf, { permanent: true, direction: 'center', className: 'uf-label' });
+        },
+      }).addTo(map);
+    };
+    if (statesCache) drawStates(statesCache);
+    else fetch(IBGE_STATES_URL).then(r => r.json()).then(g => { statesCache = g; drawStates(g); }).catch(() => { /* sem divisa: o mapa funciona igual */ });
+
     layerRef.current = L.layerGroup().addTo(map);
     mapRef.current = map;
     const observer = new ResizeObserver(() => {
@@ -136,16 +91,8 @@ const DeliveriesMap: React.FC<Props> = ({ items, onClose, onSaveGeo }) => {
 
   const located = useMemo(() => items.filter(it => coords[it.id]), [items, coords]);
   const selected = selectedId && coords[selectedId] ? items.find(it => it.id === selectedId) || null : null;
-
-  const nearby = useMemo(() => {
-    if (!selected) return [];
-    const center = coords[selected.id];
-    return located
-      .filter(it => it.id !== selected.id)
-      .map(it => ({ item: it, km: distanceKm(center, coords[it.id]) }))
-      .filter(x => x.km <= radiusKm)
-      .sort((a, b) => a.km - b.km);
-  }, [selected, located, coords, radiusKm]);
+  const nearbyById = useMemo(() => nearbyDeliveries(items, coords, radiusKm), [items, coords, radiusKm]);
+  const nearby = selected ? nearbyById[selected.id] || [] : [];
 
   // Desenha pontos e círculo sempre que algo muda
   useEffect(() => {
@@ -169,7 +116,7 @@ const DeliveriesMap: React.FC<Props> = ({ items, onClose, onSaveGeo }) => {
       const c = coords[it.id];
       const isSelected = selected?.id === it.id;
       const isNear = nearbyIds.has(it.id);
-      const marker = L.circleMarker([c.lat, c.lng], {
+      L.circleMarker([c.lat, c.lng], {
         radius: isSelected ? 10 : 7,
         color: '#ffffff',
         weight: 2,
@@ -177,11 +124,11 @@ const DeliveriesMap: React.FC<Props> = ({ items, onClose, onSaveGeo }) => {
         fillOpacity: 0.95,
       })
         .bindTooltip(`${it.name} — ${formatDate(it.deliveryDate)}`)
-        .on('click', () => setSelectedId(it.id));
-      marker.addTo(layer);
+        .on('click', () => setSelectedId(it.id))
+        .addTo(layer);
     });
 
-    if (!fittedRef.current && located.length > 0 && map.getSize().x > 0 && map.getSize().y > 0) {
+    if (!fittedRef.current && located.length > 0 && map.getSize().x > 0 && map.getSize().y > 0 && !selected) {
       const bounds = L.latLngBounds(located.map(it => [coords[it.id].lat, coords[it.id].lng] as [number, number]));
       map.fitBounds(bounds.pad(0.2), { maxZoom: 11 });
       if (!progress) fittedRef.current = true;
@@ -194,18 +141,19 @@ const DeliveriesMap: React.FC<Props> = ({ items, onClose, onSaveGeo }) => {
     if (!map || !selected || map.getSize().x === 0 || map.getSize().y === 0) return;
     const c = coords[selected.id];
     map.fitBounds(L.latLng(c.lat, c.lng).toBounds(radiusKm * 2000).pad(0.1));
+    fittedRef.current = true;
   }, [selectedId, radiusKm, mapSize]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const changeRadius = (value: number) => {
-    const v = value > 0 ? value : DEFAULT_RADIUS_KM;
-    setRadiusKm(v);
-    try { localStorage.setItem(RADIUS_STORAGE_KEY, String(v)); } catch { /* sem armazenamento: vale só agora */ }
+  const zoomToStreet = (id: string) => {
+    const c = coords[id];
+    if (c && mapRef.current) mapRef.current.setView([c.lat, c.lng], 17);
   };
 
   const notLocated = items.filter(it => !coords[it.id]);
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-stretch justify-center p-2 sm:p-6 print-hidden" onClick={onClose}>
+      <style>{`.uf-label{background:transparent;border:0;box-shadow:none;color:#92400e;font-weight:800;font-size:11px;padding:0}.uf-label:before{display:none}`}</style>
       <div
         className="bg-white dark:bg-gray-800 w-full max-w-7xl flex flex-col shadow-2xl border border-gray-300 dark:border-gray-700"
         onClick={e => e.stopPropagation()}
@@ -221,7 +169,7 @@ const DeliveriesMap: React.FC<Props> = ({ items, onClose, onSaveGeo }) => {
                 type="number"
                 min={1}
                 value={radiusKm}
-                onChange={e => changeRadius(Number(e.target.value))}
+                onChange={e => onRadiusChange(Number(e.target.value))}
                 className="w-20 px-2 py-1 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               />
               km
@@ -252,7 +200,14 @@ const DeliveriesMap: React.FC<Props> = ({ items, onClose, onSaveGeo }) => {
                   ← Ver todas
                 </button>
                 <p className="font-bold text-gray-900 dark:text-white">{selected.name}</p>
-                <p className="text-gray-500 dark:text-gray-400 mb-3">{formatDate(selected.deliveryDate)} · {selected.address}</p>
+                <p className="text-gray-500 dark:text-gray-400 mb-2">{formatDate(selected.deliveryDate)} · {selected.address}</p>
+                <button
+                  type="button"
+                  onClick={() => zoomToStreet(selected.id)}
+                  className="mb-3 px-3 py-1 bg-gray-800 hover:bg-gray-900 text-white text-xs font-bold inline-flex items-center gap-1"
+                >
+                  <Icon name="pin" /> Ver a rua
+                </button>
                 <p className="font-bold text-gray-800 dark:text-gray-200 mb-2">
                   {nearby.length === 0
                     ? `Nenhuma outra entrega até ${radiusKm} km`
@@ -278,6 +233,9 @@ const DeliveriesMap: React.FC<Props> = ({ items, onClose, onSaveGeo }) => {
                     <li key={it.id}>
                       <button type="button" onClick={() => setSelectedId(it.id)} className="w-full text-left py-2 hover:bg-gray-50 dark:hover:bg-gray-700">
                         <span className="font-semibold text-gray-900 dark:text-white">{it.name}</span>
+                        {(nearbyById[it.id]?.length || 0) > 0 && (
+                          <span className="float-right text-xs font-bold text-amber-700 dark:text-amber-400">{nearbyById[it.id].length} perto</span>
+                        )}
                         <span className="block text-xs text-gray-500 dark:text-gray-400">{formatDate(it.deliveryDate)} · {coords[it.id].label || it.address}</span>
                       </button>
                     </li>

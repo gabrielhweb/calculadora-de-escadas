@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, lazy } from 'react';
+import React, { useState, useEffect, useMemo, Suspense, lazy } from 'react';
 import { collection, query, where, onSnapshot, doc, updateDoc, addDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../components/AuthProvider';
@@ -12,7 +12,7 @@ import { resolveFreightInfo, buildFreightQuoteText, getInvoiceValue, copyTextToC
 import { resolveClientInfo, normalizeName } from '../utils/clientInfo';
 import PageTitle from '../components/PageTitle';
 import Icon from '../components/Icon';
-import type { DeliveryMapItem, DeliveryGeo } from '../components/DeliveriesMap';
+import { DeliveryMapItem, useDeliveryGeocoding, nearbyDeliveries, readSavedRadius, saveRadius } from '../utils/deliveryGeo';
 
 // O mapa (Leaflet) só é baixado quando alguém abre
 const DeliveriesMap = lazy(() => import('../components/DeliveriesMap'));
@@ -27,6 +27,8 @@ export const DeliveriesTable: React.FC = () => {
     const [savedQuotes, setSavedQuotes] = useState<any[]>([]);
     const [showValues, setShowValues] = useState(true);
     const [showMap, setShowMap] = useState(false);
+    const [mapFocusId, setMapFocusId] = useState<string | null>(null);
+    const [radiusKm, setRadiusKm] = useState(readSavedRadius);
     const [orientation, setOrientation] = useState<'landscape' | 'portrait'>(() => {
         try { return localStorage.getItem('entregas_orientacao') === 'portrait' ? 'portrait' : 'landscape'; } catch { return 'landscape'; }
     });
@@ -781,6 +783,34 @@ export const DeliveriesTable: React.FC = () => {
         }
     };
 
+    // Localização de cada entrega (mapa + aviso "perto de outra entrega" na coluna Localização)
+    const mapItems = useMemo(() => contracts.map((contract): DeliveryMapItem => {
+        // Mesmo endereço que aparece na coluna Localização
+        const data = parseContractData(contract.contractData, contract);
+        const hasCustom = !!contract.customAddress?.trim();
+        const address = hasCustom ? contract.customAddress! : getFullAddress(data?.userData);
+        return {
+            id: contract.id,
+            name: contract.clientName || data?.userData?.name || 'Sem nome',
+            address: address || '',
+            zip: hasCustom ? undefined : data?.userData?.zip,
+            number: hasCustom ? undefined : data?.userData?.number,
+            deliveryDate: contract.deliveryDate,
+            geo: (contract as any).deliveryGeo,
+        };
+    }), [contracts]); // eslint-disable-line react-hooks/exhaustive-deps
+    const { coords: geoCoords, failed: geoFailed, progress: geoProgress } = useDeliveryGeocoding(
+        mapItems,
+        (id, geo) => handleUpdateContract(id, 'deliveryGeo', geo),
+        !!user && !loading,
+    );
+    const nearbyById = useMemo(() => nearbyDeliveries(mapItems, geoCoords, radiusKm), [mapItems, geoCoords, radiusKm]);
+    const changeRadius = (km: number) => {
+        if (!(km > 0)) return;
+        setRadiusKm(km);
+        saveRadius(km);
+    };
+
     return (
         <div className="max-w-[1400px] mx-auto p-4 sm:p-6 print:p-0">
             <style>
@@ -868,7 +898,7 @@ export const DeliveriesTable: React.FC = () => {
                         <option value="portrait">Folha em pé</option>
                     </select>
                     <button
-                        onClick={() => setShowMap(true)}
+                        onClick={() => { setMapFocusId(null); setShowMap(true); }}
                         className="bg-gray-800 hover:bg-gray-900 text-white px-5 py-2.5 rounded-lg font-bold shadow-md flex items-center gap-2 transition-colors"
                         title="Ver as entregas no mapa e quem está perto de quem"
                     >
@@ -886,21 +916,14 @@ export const DeliveriesTable: React.FC = () => {
             {showMap && (
                 <Suspense fallback={<div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center text-white font-bold print-hidden">Abrindo o mapa...</div>}>
                     <DeliveriesMap
-                        items={contracts.map((contract): DeliveryMapItem => {
-                            // Mesmo endereço que aparece na coluna Localização
-                            const data = parseContractData(contract.contractData, contract);
-                            const address = (contract.customAddress !== undefined && contract.customAddress.trim() !== '') ? contract.customAddress : getFullAddress(data?.userData);
-                            return {
-                                id: contract.id,
-                                name: contract.clientName || data?.userData?.name || 'Sem nome',
-                                address: address || '',
-                                zip: contract.customAddress?.trim() ? undefined : data?.userData?.zip,
-                                deliveryDate: contract.deliveryDate,
-                                geo: (contract as any).deliveryGeo,
-                            };
-                        })}
-                        onClose={() => setShowMap(false)}
-                        onSaveGeo={(id: string, geo: DeliveryGeo) => handleUpdateContract(id, 'deliveryGeo', geo)}
+                        items={mapItems}
+                        coords={geoCoords}
+                        failed={geoFailed}
+                        progress={geoProgress}
+                        radiusKm={radiusKm}
+                        onRadiusChange={changeRadius}
+                        initialSelectedId={mapFocusId}
+                        onClose={() => { setShowMap(false); setMapFocusId(null); }}
                     />
                 </Suspense>
             )}
@@ -1074,6 +1097,18 @@ export const DeliveriesTable: React.FC = () => {
                                                 >
                                                     {address}
                                                 </div>
+                                                {(nearbyById[contract.id]?.length || 0) > 0 && (
+                                                    // Outras entregas dentro do raio (o mesmo do mapa): dá pra juntar na mesma viagem
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => { setMapFocusId(contract.id); setShowMap(true); }}
+                                                        className="print-hidden block w-full text-left mt-1 px-2 py-1 bg-amber-50 border border-amber-300 text-amber-900 dark:bg-amber-900/30 dark:border-amber-700 dark:text-amber-100 text-xs"
+                                                        title="Ver no mapa"
+                                                    >
+                                                        <strong>📍 Até {radiusKm} km:</strong>{' '}
+                                                        {nearbyById[contract.id].map(n => `${n.item.name} (${n.km.toFixed(0)} km)`).join(', ')}
+                                                    </button>
+                                                )}
                                                 {address && address !== 'N/A' && (
                                                     // Abre o Google Maps já com a rota até o endereço (no celular abre o app)
                                                     <a

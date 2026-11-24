@@ -10,15 +10,18 @@ export const fetchJson = async (url: string, timeoutMs = 8000) => {
     return r.json();
 };
 
-export const geocode = async (place: string) => {
+// streetNumber (opcional): com CEP de rua, tenta primeiro a casa exata (rua + número)
+export const geocode = async (place: string, streetNumber?: string) => {
     const queries: string[] = [];
     const cep = place.replace(/\D/g, '');
     const isCep = cep.length === 8 && /^[\d\s.-]+$/.test(place.trim());
+    const num = String(streetNumber || '').trim();
     let label = place;
     if (isCep) {
         // CEP geral de cidade (ex.: 13300-000) não existe no ViaCEP: aí busca pelo CEP direto no OpenStreetMap
         const v: any = await fetchJson(`https://viacep.com.br/ws/${cep}/json/`).catch(() => ({ erro: true }));
         if (!v.erro) {
+            if (v.logradouro && num) queries.push(`${v.logradouro}, ${num}, ${v.localidade}, ${v.uf}`);
             if (v.logradouro) queries.push(`${v.logradouro}, ${v.localidade}, ${v.uf}`);
             queries.push(`${v.localidade}, ${v.uf}`);
             label = `${v.localidade}/${v.uf}`;
