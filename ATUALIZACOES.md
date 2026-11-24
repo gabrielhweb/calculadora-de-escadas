@@ -4,6 +4,11 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-24 — [empresa] — Publicado: raio editável das entregas
+- Usuário falou "pode subir": branch `raio-entregas` juntado no `main` e publicado (detalhes na entrada abaixo). Branch apagado.
+- **Acompanhar:** não conferido (navegador do app deslogado); última conferência em 23/11.
+- **Pendente:** usuário testar no site o campo "Perto até __ km" e o mapa.
+
 ### 2026-11-24 — [empresa] — Raio das entregas editável de verdade (branch `raio-entregas`, esperando "pode subir")
 - **Problema:** usuário achou que 40 km pega gente demais e não conseguia mudar o raio: apagando o número do campo ele voltava sozinho pra 40.
 - **O que mudou:** campo novo `src/components/RadiusInput.tsx` (dá pra apagar e digitar, aceita vírgula), usado no mapa e também na **própria Tabela de Entregas** ("Perto até __ km", do lado do botão Mapa). Na coluna Localização, quando não tem ninguém perto, aparece em cinza "Nenhuma entrega até X km", "Endereço não achado no mapa" ou "Localizando no mapa..."; embaixo do título aparece "Localizando os endereços no mapa... N/T" enquanto busca.
