@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { collection, query, where, onSnapshot, doc, updateDoc, addDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../components/AuthProvider';
@@ -12,6 +12,10 @@ import { resolveFreightInfo, buildFreightQuoteText, getInvoiceValue, copyTextToC
 import { resolveClientInfo, normalizeName } from '../utils/clientInfo';
 import PageTitle from '../components/PageTitle';
 import Icon from '../components/Icon';
+import type { DeliveryMapItem, DeliveryGeo } from '../components/DeliveriesMap';
+
+// O mapa (Leaflet) só é baixado quando alguém abre
+const DeliveriesMap = lazy(() => import('../components/DeliveriesMap'));
 
 export const DeliveriesTable: React.FC = () => {
     const [contracts, setContracts] = useState<SavedContract[]>([]);
@@ -22,6 +26,7 @@ export const DeliveriesTable: React.FC = () => {
     const [freightOpen, setFreightOpen] = useState<Record<string, boolean>>({});
     const [savedQuotes, setSavedQuotes] = useState<any[]>([]);
     const [showValues, setShowValues] = useState(true);
+    const [showMap, setShowMap] = useState(false);
     const [orientation, setOrientation] = useState<'landscape' | 'portrait'>(() => {
         try { return localStorage.getItem('entregas_orientacao') === 'portrait' ? 'portrait' : 'landscape'; } catch { return 'landscape'; }
     });
@@ -863,6 +868,13 @@ export const DeliveriesTable: React.FC = () => {
                         <option value="portrait">Folha em pé</option>
                     </select>
                     <button
+                        onClick={() => setShowMap(true)}
+                        className="bg-gray-800 hover:bg-gray-900 text-white px-5 py-2.5 rounded-lg font-bold shadow-md flex items-center gap-2 transition-colors"
+                        title="Ver as entregas no mapa e quem está perto de quem"
+                    >
+                        <Icon name="pin" /> Mapa
+                    </button>
+                    <button
                         onClick={handlePrint}
                         className="bg-amber-600 hover:bg-amber-700 text-white px-5 py-2.5 rounded-lg font-bold shadow-md flex items-center gap-2 transition-colors"
                     >
@@ -870,6 +882,28 @@ export const DeliveriesTable: React.FC = () => {
                     </button>
                 </div>
             </div>
+
+            {showMap && (
+                <Suspense fallback={<div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center text-white font-bold print-hidden">Abrindo o mapa...</div>}>
+                    <DeliveriesMap
+                        items={contracts.map((contract): DeliveryMapItem => {
+                            // Mesmo endereço que aparece na coluna Localização
+                            const data = parseContractData(contract.contractData, contract);
+                            const address = (contract.customAddress !== undefined && contract.customAddress.trim() !== '') ? contract.customAddress : getFullAddress(data?.userData);
+                            return {
+                                id: contract.id,
+                                name: contract.clientName || data?.userData?.name || 'Sem nome',
+                                address: address || '',
+                                zip: contract.customAddress?.trim() ? undefined : data?.userData?.zip,
+                                deliveryDate: contract.deliveryDate,
+                                geo: (contract as any).deliveryGeo,
+                            };
+                        })}
+                        onClose={() => setShowMap(false)}
+                        onSaveGeo={(id: string, geo: DeliveryGeo) => handleUpdateContract(id, 'deliveryGeo', geo)}
+                    />
+                </Suspense>
+            )}
 
             {loading ? (
                 <div className="text-center py-10 print-hidden">Carregando contratos...</div>
