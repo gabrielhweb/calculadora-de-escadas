@@ -4,6 +4,14 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-24 — [empresa] — Mapa das entregas: estados, rua e aviso na tabela (branch `mapa-entregas`, esperando "pode subir")
+- **O que mudou:** o mapa agora mostra a **divisa dos estados** com a sigla (malha oficial do IBGE) e tem o botão **Ver a rua**, que aproxima até a rua da entrega escolhida. Na **própria Tabela de Entregas**, a coluna Localização mostra um aviso amarelo "📍 Até 40 km: Fulano (16 km), ..." quando tem outra entrega dentro do raio; clicando, abre o mapa já nela. O raio é o mesmo do mapa (editável, fica salvo no navegador).
+- **Localização mais precisa:** a busca usa também o número da casa (rua + número pelo CEP). As entregas já localizadas antes são buscadas de novo uma vez (o número entrou na chave do endereço). A busca roda sozinha com a tabela aberta, uma entrega por vez.
+- **Testado local:** mapa com entregas de teste (São Paulo × Osasco 16 km dentro de 40; Guarujá e Curitiba fora), divisa e siglas dos estados, zoom na rua com o ponto vermelho; `tsc` e build ok. Aviso da tabela não deu pra ver local (login não funciona em localhost).
+- **Onde:** `src/utils/deliveryGeo.ts` (novo: tipos, distância, raio, busca das coordenadas), `src/components/DeliveriesMap.tsx`, `src/pages/DeliveriesTable.tsx`, `api/_geo.ts`, `api/geocode.ts`. **Está no branch `mapa-entregas`, não no `main`.**
+- **Acompanhar:** conferido em 23/11 (Hilton/Paulo sem data, Bergamo Entregue); sem mudança no código deles.
+- **Pendente:** "pode subir"; depois abrir a Tabela logado no site e ver os avisos.
+
 ### 2026-11-24 — [empresa] — Mapa das entregas com raio (branch `mapa-entregas`, esperando "pode subir")
 - **O que mudou:** botão **Mapa** na Tabela de Entregas abre um mapa (Leaflet + OpenStreetMap, grátis) com um ponto por entrega da tabela. Clicando numa entrega (no mapa ou na lista ao lado) aparece o círculo do raio e a lista das entregas dentro dele, com a distância em linha reta. Raio editável, padrão **40 km** (lembrado no navegador, `localStorage` `entregas_raio_km`). Mapa travado na América do Sul (abre no Brasil, zoom mínimo 4). Entrega sem endereço ou não achada aparece em "Fora do mapa".
 - **Coordenadas:** nova função `api/geocode.ts` (exige login): tenta pelo CEP (ViaCEP → OpenStreetMap), depois pelo endereço escrito, por último cidade/UF. Salva no contrato em `deliveryGeo` `{lat, lng, key, label}`; `key` = CEP + endereço usados, se mudar busca de novo. Busca uma por vez (o serviço pede calma), só as que faltam. A busca por CEP saiu do `api/gemini.ts` pra `api/_geo.ts` (usada pelo frete e pelo mapa, sem mudar o frete).
