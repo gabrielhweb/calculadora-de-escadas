@@ -62,7 +62,7 @@ Não cobrar o usuário. **Toda vez que for escrever no Diário**, abrir o site l
 - [ ] Marcar como Entregue/Concluído um contrato já entregue de verdade e ver se muda nas 3 telas (Controle de Contratos, Meus Contratos e Tabela de Entregas).
 
 ## Decisões / informações do usuário
-- [ ] **Falar "pode subir"** pro branch `mapa-entregas` (botão Mapa na Tabela de Entregas com divisa dos estados e zoom até a rua; aviso "📍 Até 40 km" na coluna Localização; raio editável).
+- [ ] Testar no site o **Mapa** da Tabela de Entregas (divisa dos estados, Ver a rua) e o aviso "📍 Até 40 km" na coluna Localização. Usuário relatou em 24/11 que não estava conseguindo logar.
 - [ ] Decidir se, em Meus Contratos, voltar um contrato de Entregue pra Produção também deve reabrir ele no Controle de Contratos (hoje não reabre).
 - [ ] Contratos salvos antes de 19/11 com barra lateral continuam com o valor antigo: gerar de novo se precisar.
 - [ ] Gerar de novo o contrato do Gustavo Storti pra conferir o guarda-corpo em L (o PDF antigo foi gerado antes da correção de 17/11).

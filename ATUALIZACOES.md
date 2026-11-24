@@ -4,6 +4,11 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-24 — [empresa] — Publicado: mapa das entregas
+- Usuário falou "pode subir": branch `mapa-entregas` juntado no `main` e publicado (deploy da Vercel ok). Branch apagado. Detalhes nas duas entradas abaixo.
+- **Acompanhar:** não conferido agora (usuário sem conseguir logar); última conferência em 23/11.
+- **Pendente:** usuário abrir a Tabela de Entregas logado e testar o mapa e os avisos "📍 Até 40 km". Ele relatou que **não está conseguindo fazer login** — ver o motivo se continuar.
+
 ### 2026-11-24 — [empresa] — Mapa das entregas: estados, rua e aviso na tabela (branch `mapa-entregas`, esperando "pode subir")
 - **O que mudou:** o mapa agora mostra a **divisa dos estados** com a sigla (malha oficial do IBGE) e tem o botão **Ver a rua**, que aproxima até a rua da entrega escolhida. Na **própria Tabela de Entregas**, a coluna Localização mostra um aviso amarelo "📍 Até 40 km: Fulano (16 km), ..." quando tem outra entrega dentro do raio; clicando, abre o mapa já nela. O raio é o mesmo do mapa (editável, fica salvo no navegador).
 - **Localização mais precisa:** a busca usa também o número da casa (rua + número pelo CEP). As entregas já localizadas antes são buscadas de novo uma vez (o número entrou na chave do endereço). A busca roda sozinha com a tabela aberta, uma entrega por vez.
