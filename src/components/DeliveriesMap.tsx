@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import Icon from './Icon';
+import RadiusInput from './RadiusInput';
 import { DeliveryGeo, DeliveryMapItem, nearbyDeliveries } from '../utils/deliveryGeo';
 
 // Mapa da Tabela de Entregas: divisa dos estados, um ponto por entrega e, ao escolher uma,
@@ -165,13 +166,7 @@ const DeliveriesMap: React.FC<Props> = ({ items, coords, failed, progress, radiu
           <div className="flex items-center gap-3">
             <label className="text-sm font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2">
               Raio
-              <input
-                type="number"
-                min={1}
-                value={radiusKm}
-                onChange={e => onRadiusChange(Number(e.target.value))}
-                className="w-20 px-2 py-1 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              />
+              <RadiusInput value={radiusKm} onChange={onRadiusChange} />
               km
             </label>
             <button

@@ -12,6 +12,7 @@ import { resolveFreightInfo, buildFreightQuoteText, getInvoiceValue, copyTextToC
 import { resolveClientInfo, normalizeName } from '../utils/clientInfo';
 import PageTitle from '../components/PageTitle';
 import Icon from '../components/Icon';
+import RadiusInput from '../components/RadiusInput';
 import { DeliveryMapItem, useDeliveryGeocoding, nearbyDeliveries, readSavedRadius, saveRadius } from '../utils/deliveryGeo';
 
 // O mapa (Leaflet) só é baixado quando alguém abre
@@ -868,6 +869,11 @@ export const DeliveriesTable: React.FC = () => {
                       Tabela de Entregas
                     </PageTitle>
                     <p className="text-gray-500 dark:text-gray-400">Clique nas observações ou nas datas para alterar. O sistema salvará automaticamente.</p>
+                    {geoProgress && (
+                        <p className="print-hidden text-sm font-bold text-amber-700 dark:text-amber-400">
+                            Localizando os endereços no mapa... {geoProgress.done}/{geoProgress.total}
+                        </p>
+                    )}
                 </div>
                 <div className="flex gap-2">
                     <button 
@@ -897,6 +903,14 @@ export const DeliveriesTable: React.FC = () => {
                         <option value="landscape">Folha deitada</option>
                         <option value="portrait">Folha em pé</option>
                     </select>
+                    <label
+                        className="px-3 py-1.5 rounded-lg font-bold border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 flex items-center gap-2 text-sm"
+                        title="Distância pra avisar, na coluna Localização, as entregas que ficam perto uma da outra"
+                    >
+                        Perto até
+                        <RadiusInput value={radiusKm} onChange={changeRadius} />
+                        km
+                    </label>
                     <button
                         onClick={() => { setMapFocusId(null); setShowMap(true); }}
                         className="bg-gray-800 hover:bg-gray-900 text-white px-5 py-2.5 rounded-lg font-bold shadow-md flex items-center gap-2 transition-colors"
@@ -1108,6 +1122,16 @@ export const DeliveriesTable: React.FC = () => {
                                                         <strong>📍 Até {radiusKm} km:</strong>{' '}
                                                         {nearbyById[contract.id].map(n => `${n.item.name} (${n.km.toFixed(0)} km)`).join(', ')}
                                                     </button>
+                                                )}
+                                                {/* Situação da localização quando não tem ninguém perto (pra saber que conferiu) */}
+                                                {!(nearbyById[contract.id]?.length) && (
+                                                    <span className="print-hidden block mt-1 text-xs text-gray-400 dark:text-gray-500">
+                                                        {geoCoords[contract.id]
+                                                            ? `Nenhuma entrega até ${radiusKm} km`
+                                                            : geoFailed[contract.id]
+                                                                ? 'Endereço não achado no mapa'
+                                                                : geoProgress ? 'Localizando no mapa...' : ''}
+                                                    </span>
                                                 )}
                                                 {address && address !== 'N/A' && (
                                                     // Abre o Google Maps já com a rota até o endereço (no celular abre o app)
