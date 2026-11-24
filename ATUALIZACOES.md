@@ -4,6 +4,14 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-24 — [empresa] — Raio das entregas editável de verdade (branch `raio-entregas`, esperando "pode subir")
+- **Problema:** usuário achou que 40 km pega gente demais e não conseguia mudar o raio: apagando o número do campo ele voltava sozinho pra 40.
+- **O que mudou:** campo novo `src/components/RadiusInput.tsx` (dá pra apagar e digitar, aceita vírgula), usado no mapa e também na **própria Tabela de Entregas** ("Perto até __ km", do lado do botão Mapa). Na coluna Localização, quando não tem ninguém perto, aparece em cinza "Nenhuma entrega até X km", "Endereço não achado no mapa" ou "Localizando no mapa..."; embaixo do título aparece "Localizando os endereços no mapa... N/T" enquanto busca.
+- **Testado local:** campo apagado e digitado 15 → raio 15; build ok. Não testado logado.
+- **Onde:** `src/components/RadiusInput.tsx` (novo), `src/components/DeliveriesMap.tsx`, `src/pages/DeliveriesTable.tsx`. **Está no branch `raio-entregas`, não no `main`.**
+- **Acompanhar:** não conferido (navegador do app deslogado no site); última conferência em 23/11.
+- **Pendente:** "pode subir".
+
 ### 2026-11-24 — [empresa] — Publicado: mapa das entregas
 - Usuário falou "pode subir": branch `mapa-entregas` juntado no `main` e publicado (deploy da Vercel ok). Branch apagado. Detalhes nas duas entradas abaixo.
 - **Acompanhar:** não conferido agora (usuário sem conseguir logar); última conferência em 23/11.
