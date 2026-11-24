@@ -4,6 +4,13 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-24 — [empresa] — Mapa das entregas com raio (branch `mapa-entregas`, esperando "pode subir")
+- **O que mudou:** botão **Mapa** na Tabela de Entregas abre um mapa (Leaflet + OpenStreetMap, grátis) com um ponto por entrega da tabela. Clicando numa entrega (no mapa ou na lista ao lado) aparece o círculo do raio e a lista das entregas dentro dele, com a distância em linha reta. Raio editável, padrão **40 km** (lembrado no navegador, `localStorage` `entregas_raio_km`). Mapa travado na América do Sul (abre no Brasil, zoom mínimo 4). Entrega sem endereço ou não achada aparece em "Fora do mapa".
+- **Coordenadas:** nova função `api/geocode.ts` (exige login): tenta pelo CEP (ViaCEP → OpenStreetMap), depois pelo endereço escrito, por último cidade/UF. Salva no contrato em `deliveryGeo` `{lat, lng, key, label}`; `key` = CEP + endereço usados, se mudar busca de novo. Busca uma por vez (o serviço pede calma), só as que faltam. A busca por CEP saiu do `api/gemini.ts` pra `api/_geo.ts` (usada pelo frete e pelo mapa, sem mudar o frete).
+- **Testado local:** CEPs de Guarujá, Camaçari e Goiânia acharam; endereço escrito sem CEP cai na cidade. Mapa com 4 entregas de teste: Osasco × São Paulo 26 km (dentro de 40), Guarujá 78 km (entra com 100). Não testado logado (login não funciona em localhost) — a busca de coordenadas pelo site só vai ser testada depois de publicar. `npm run build` ok (o mapa é baixado só quando abre).
+- **Onde:** `src/components/DeliveriesMap.tsx` (novo), `src/pages/DeliveriesTable.tsx`, `api/geocode.ts` (novo), `api/_geo.ts` (novo), `api/gemini.ts`, `package.json` (`leaflet`, `@types/leaflet`). **Está no branch `mapa-entregas`, não no `main`.**
+- **Pendente:** "pode subir"; depois abrir o mapa logado no site (primeira vez demora uns segundos por entrega pra localizar).
+
 ### 2026-11-23 — [empresa] — Publicado: frontal sem amortecedor
 - Usuário falou "pode subir": branch `frontal-sem-amortecedor` juntado no `main` e publicado (detalhes na entrada abaixo). Branch apagado.
 - **Pendente:** fazer um orçamento e um contrato com Fixação Frontal no site pra conferir.
