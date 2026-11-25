@@ -4,6 +4,11 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-25 — [reserva] — PC reserva configurado
+- Notebook Dell Inspiron 7348 (`DESKTOP-AE1KSDD`) cadastrado como **PC reserva**: regra das máquinas e tabela "📍 Estado atual" do `CLAUDE.md` atualizadas (etiqueta `[reserva]` no Diário).
+- Instalados Node 22 e Git; repositório clonado em `C:\Users\gagui\Downloads\calculadora-de-escadas\calculadora-escadas`; `.env` local criado e preenchido pelo usuário (mesmas 6 variáveis das outras máquinas; sem `EMAILJS_*`, que só ficam na Vercel). `npm install` e `npm run build` ok nesta máquina.
+- Só documentação, nenhum código mudou. Acompanhar: não conferido (sem login no site nesta sessão).
+
 ### 2026-11-25 — [casa] — Escada com rodinhas sem "degraus articulados" — publicado
 - Vídeo da Sofia: Avanço Frontal / Rodinha com fixação frontal saía no orçamento "Com 12 degraus articulados com dimensões...". Degrau de escada com rodinha não é articulado.
 - Agora sai "Com 12 degraus com dimensões..." no orçamento (`src/utils.ts`, `degrausLabel`) e no contrato (`contractGenerator.ts`, `stepsText`). Escada articulada normal e fixa não mudaram.

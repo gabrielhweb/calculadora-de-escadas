@@ -4,7 +4,7 @@ Sistema interno da Zilinski Escadas: calculadora de escadas, propostas, contrato
 
 # Regras de trabalho em duas máquinas (OBRIGATÓRIO)
 
-Este projeto é trabalhado por **duas instâncias do Claude Code em máquinas diferentes** (empresa e casa).
+Este projeto é trabalhado por **duas instâncias do Claude Code em máquinas diferentes** (empresa e casa), mais um **PC reserva** usado só quando nenhuma das duas está disponível (as mesmas regras valem pra ele; no Diário, usar a etiqueta `[reserva]`).
 A memória de cada Claude fica só na máquina dele. O que as duas compartilham é **este repositório git**.
 Por isso estas regras valem em toda sessão:
 
@@ -26,6 +26,7 @@ Por isso estas regras valem em toda sessão:
 | Repositório | github.com/gabrielhweb/calculadora-de-escadas (branch `main`) |
 | Pasta local (empresa) | `C:\Users\sosob\Desktop\Zilinski\calculadora escada` |
 | Pasta local (casa) | `C:\Users\Micro\Projetos\calculadora-escadas` |
+| Pasta local (reserva) | `C:\Users\gagui\Downloads\calculadora-de-escadas\calculadora-escadas` — notebook Dell Inspiron 7348 (`DESKTOP-AE1KSDD`, i7-5500U, 8 GB RAM, Windows 10), Node 22 + Git. A pasta `calculadora-de-escadas-main` do lado é uma cópia antiga em ZIP: não usar |
 | Hospedagem do site | Vercel (`vercel.json` com rewrite SPA; funções em `api/`) — site: **https://calculadora-de-escadas-jxz3.vercel.app** · painel: vercel.com/gabriel-silva-rodrigues-projects/calculadora-de-escadas. Deploy automático a cada push no `main` |
 | Banco principal | Firebase Firestore, projeto `gen-lang-client-0064759207` (config em `firebase-applet-config.json`, regras em `firestore.rules`) |
 | Coleções principais | `contracts`, `production_queue`, `saved_quotes`, `transportadoras`; visitas em `contracts/painel_visitas` (`isVisitPanel: true`); configurações de Compras em `settings`. Regras publicadas no console ficam na aba **Segurança** do Firestore e batem com `firestore.rules` (16/11/2026) |
