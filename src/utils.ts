@@ -254,7 +254,8 @@ export const generateProposalDescription = (inputData: any, opt: any): string =>
         materialText = 'de chapa vazada';
     }
     
-    const degrausLabel = inputData.isFixedStair ? 'degraus fixos' : 'degraus articulados';
+    // Escada com rodinhas: os degraus não são articulados
+    const degrausLabel = inputData.isFixedStair ? 'degraus fixos' : inputData.hasWheels ? 'degraus' : 'degraus articulados';
     const text2 = `-Com ${opt.structureSteps} ${degrausLabel} com dimensões de ${stepH} centímetros de altura e pisante ${materialText} de ${tread} centímetros${damperDesc}.`;
     
     let fullText = `${text1}\n\n${text2}`;

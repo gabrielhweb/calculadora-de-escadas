@@ -4,6 +4,11 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-25 — [casa] — Escada com rodinhas sem "degraus articulados" — publicado
+- Vídeo da Sofia: Avanço Frontal / Rodinha com fixação frontal saía no orçamento "Com 12 degraus articulados com dimensões...". Degrau de escada com rodinha não é articulado.
+- Agora sai "Com 12 degraus com dimensões..." no orçamento (`src/utils.ts`, `degrausLabel`) e no contrato (`contractGenerator.ts`, `stepsText`). Escada articulada normal e fixa não mudaram.
+- Publicado com o "pode subir" do usuário. Pendente: conferir um orçamento com rodinha no site. Acompanhar: não reconferido nesta entrada.
+
 ### 2026-11-25 — [casa] — Instalação em local de fácil ou difícil acesso — publicado
 - Pedido em áudio (Sofia, 24/11): poder dizer no orçamento que o valor da instalação é pra local de difícil acesso (ex.: prédio no 11º andar, R$ 700), e isso aparecer no contrato e na Tabela de Entregas pro pai dela.
 - Campo novo `inputData.installationHardAccess` (`types.ts`). **Calculadora** (`ProposalOptions.tsx`): seletor "Local da instalação: Fácil/Difícil acesso" embaixo do valor da instalação (`Calculator.tsx` passa `setInputData`; o efeito de logística agora só roda quando a logística muda, pra trocar o acesso não zerar o frete). **Orçamento** (`ProposalDocument.tsx`): "Instalação (Local de difícil acesso)" e aviso vermelho "O valor da instalação já considera um local de difícil acesso". **Gerar Contrato** (`Contract.tsx`): o mesmo seletor embaixo da instalação (vem marcado do orçamento). **Contrato** (`contractGenerator.ts`): "Instalação R$ X (Valor para local de difícil acesso)". **Tabela de Entregas**: "⚠ LOCAL DE DIFÍCIL ACESSO" no topo da coluna Atenção.
