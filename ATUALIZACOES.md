@@ -4,6 +4,11 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-25 — [casa] — Contrato da escada com rodinhas: "Escada articulada com rodinhas" — publicado
+- Print da Sofia: Avanço Frontal / Rodinha com fixação frontal saía no contrato "1.1 Escada articulada lateral em aço carbono...". Agora sai "Escada articulada com rodinhas em aço carbono...", igual ao orçamento (`contractGenerator.ts`, `objText`). Sem rodinha continua "articulada lateral". Publicado com o "pode subir".
+- Vídeo da Sofia (Meus Contratos): Fabio Chalita, Jair José Alves e Carla Polastro estavam em "Falta Assinar" mas ontem estavam em Produção. Conferido no site: **não são cópias**, cada um tem um contrato só (`c1QDAMNW0PohZywDKGnz`, `1792001412244`, `1791537832742`) com `status: falta_assinar`, e os pedidos na Fila continuam (Carla e Jair em Corte, Fábio em Pronta). Só o botão "← Voltar" do card muda pra Falta Assinar; provável clique sem querer. O Claude não pôde mudar o status no banco (bloqueado); usuário vai clicar em "Produção →" nos três (não cria pedido novo porque já existe). **Não usar a lixeira** nesses cards: ela apaga também o pedido da Fila.
+- Pendente: usuário passar os três pra Produção. Acompanhar: não reconferido nesta entrada.
+
 ### 2026-11-25 — [reserva] — PC reserva configurado
 - Notebook Dell Inspiron 7348 (`DESKTOP-AE1KSDD`) cadastrado como **PC reserva**: regra das máquinas e tabela "📍 Estado atual" do `CLAUDE.md` atualizadas (etiqueta `[reserva]` no Diário).
 - Instalados Node 22 e Git; repositório clonado em `C:\Users\gagui\Downloads\calculadora-de-escadas\calculadora-escadas`; `.env` local criado e preenchido pelo usuário (mesmas 6 variáveis das outras máquinas; sem `EMAILJS_*`, que só ficam na Vercel). `npm install` e `npm run build` ok nesta máquina.

@@ -210,7 +210,7 @@ export const generateContractPDF = (data: ContractData) => {
       objText = `Escada fixa em aço carbono com corte à laser, com medidas de: ${alturaM}m de altura, ${compM}m de comprimento, ${widthM}m de largura ${handrailText}.`;
       stepsText = `- Com ${computedStructureSteps} degraus fixos com dimensões de ${stepH}cm de altura e pisante de ${treadMaterialStr} de ${tread}cm.`;
   } else {
-      objText = `Escada articulada lateral em aço carbono com corte à laser, ${fixationText}, com medidas de: ${alturaM}m de altura, ${compM}m de comprimento, ${widthM}m de largura ${handrailText}.`;
+      objText = `${data.inputData.hasWheels ? 'Escada articulada com rodinhas' : 'Escada articulada lateral'} em aço carbono com corte à laser, ${fixationText}, com medidas de: ${alturaM}m de altura, ${compM}m de comprimento, ${widthM}m de largura ${handrailText}.`;
       stepsText = `- Com ${computedStructureSteps} ${data.inputData.hasWheels ? 'degraus' : 'degraus articulados'} com dimensões de ${stepH}cm de altura e pisante de ${treadMaterialStr} de ${tread}cm${dampersText}.`;
   }
   
