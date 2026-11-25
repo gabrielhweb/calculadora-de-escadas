@@ -311,6 +311,7 @@ function Calculator() {
               installationCost={installationCost} setInstallationCost={setInstallationCost}
               freightMode={freightMode} setFreightMode={setFreightMode}
               deliveryDays={deliveryDays} setDeliveryDays={setDeliveryDays}
+              setInputData={setInputData}
             />
           ) : (
             <div className="of-plate bg-white dark:bg-gray-800 p-6 rounded-lg text-center shadow-sm border border-gray-100 dark:border-gray-700">

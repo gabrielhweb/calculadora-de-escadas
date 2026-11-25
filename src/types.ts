@@ -76,6 +76,7 @@ export type QuoteType = 'stair' | 'landing' | 'guardrail';
 
 export interface CalculatorInput {
   quoteType?: QuoteType;
+  installationHardAccess?: boolean; // instalação em local de difícil acesso (prédio alto, içar...)
   standaloneGuardrails?: any[];
   totalHeight: number; // in cm
   desiredSteps: number;

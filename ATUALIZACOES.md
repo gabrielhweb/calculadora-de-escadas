@@ -4,6 +4,13 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-25 — [casa] — Instalação em local de fácil ou difícil acesso — branch `acesso-instalacao`, NÃO publicado
+- Pedido em áudio (Sofia, 24/11): poder dizer no orçamento que o valor da instalação é pra local de difícil acesso (ex.: prédio no 11º andar, R$ 700), e isso aparecer no contrato e na Tabela de Entregas pro pai dela.
+- Campo novo `inputData.installationHardAccess` (`types.ts`). **Calculadora** (`ProposalOptions.tsx`): seletor "Local da instalação: Fácil/Difícil acesso" embaixo do valor da instalação (`Calculator.tsx` passa `setInputData`; o efeito de logística agora só roda quando a logística muda, pra trocar o acesso não zerar o frete). **Orçamento** (`ProposalDocument.tsx`): "Instalação (Local de difícil acesso)" e aviso vermelho "O valor da instalação já considera um local de difícil acesso". **Gerar Contrato** (`Contract.tsx`): o mesmo seletor embaixo da instalação (vem marcado do orçamento). **Contrato** (`contractGenerator.ts`): "Instalação R$ X (Valor para local de difícil acesso)". **Tabela de Entregas**: "⚠ LOCAL DE DIFÍCIL ACESSO" no topo da coluna Atenção.
+- Testado local: calculadora → difícil acesso → Contrato Opção 1 veio com "Difícil acesso"; PDF do contrato (vite-node) sai "Valor para local de difícil acesso". PDF do orçamento e Tabela de Entregas não vistos (Tabela precisa de login).
+- `npm install` rodado nesta máquina (leaflet do mapa); lockfile não mudou no commit.
+- Pendente: "pode subir". Acompanhar: não reconferido (sem publicar).
+
 ### 2026-11-24 — [empresa] — Publicado: raio editável das entregas
 - Usuário falou "pode subir": branch `raio-entregas` juntado no `main` e publicado (detalhes na entrada abaixo). Branch apagado.
 - **Acompanhar:** não conferido (navegador do app deslogado); última conferência em 23/11.

@@ -25,6 +25,7 @@ interface ProposalOptionsProps {
   setFreightMode: (mode: 'auto' | 'manual' | 'fixed' | 'transportadora') => void;
   deliveryDays?: number;
   setDeliveryDays?: (days: number) => void;
+  setInputData?: (data: CalculatorInput) => void;
 }
 
 const BRAZIL_STATES = [
@@ -482,7 +483,8 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
     freightMode,
     setFreightMode,
     deliveryDays,
-    setDeliveryDays
+    setDeliveryDays,
+    setInputData
 }) => {
     
   // --- INICIALIZAÇÃO COM DADOS DA CALCULADORA ANTERIOR ---
@@ -540,7 +542,7 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
           setConsumption(inputData.logistics.consumption.toString());
           setFreightMode('auto');
       }
-  }, [inputData]);
+  }, [inputData?.logistics]); // só logística: trocar "fácil/difícil acesso" não pode zerar o frete escolhido
 
   const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>, setCep: (value: string) => void) => {
     let { value } = e.target;
@@ -1429,6 +1431,20 @@ const ProposalOptions: React.FC<ProposalOptionsProps> = ({
                 <input type="number" value={installationCost} onChange={e => setInstallationCost(parseFloat(e.target.value) || 0)} disabled={!isInstallationIncluded} className="w-24 bg-white dark:bg-gray-800 text-black dark:text-white p-2 rounded-md border-2 border-gray-300 dark:border-gray-600 font-bold disabled:bg-gray-100 disabled:text-gray-400" step="10" min="0"/>
             </div>
           </div>
+          {isInstallationIncluded && inputData && setInputData && (
+            <div className="flex items-center justify-between mb-4 -mt-2">
+              <label htmlFor="installationAccess" className="text-sm font-bold text-gray-700 dark:text-gray-300">Local da instalação</label>
+              <select
+                id="installationAccess"
+                value={inputData.installationHardAccess ? 'dificil' : 'facil'}
+                onChange={e => setInputData({ ...inputData, installationHardAccess: e.target.value === 'dificil' })}
+                className="bg-white dark:bg-gray-800 text-black dark:text-white p-2 rounded-md border-2 border-gray-300 dark:border-gray-600 font-bold"
+              >
+                <option value="facil">Fácil acesso</option>
+                <option value="dificil">Difícil acesso</option>
+              </select>
+            </div>
+          )}
           <div className="flex items-center justify-between border-t border-gray-200 dark:border-gray-600 pt-4">
             <label htmlFor="deliveryDays" className="flex items-center select-none">
               <span className="text-gray-900 dark:text-white font-bold uppercase">Dias Úteis para Entrega:</span>

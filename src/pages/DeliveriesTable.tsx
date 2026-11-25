@@ -1221,7 +1221,10 @@ export const DeliveriesTable: React.FC = () => {
                                                 )}
                                             </td>
                                             <td className="p-2 align-top text-sm text-red-600 dark:text-red-400 print:text-red-600 font-semibold print:!text-red-600 print:font-bold">
-                                                <div 
+                                                {getProp(data, 'installationHardAccess') === true && (
+                                                    <div className="font-black uppercase mb-1">⚠ Local de difícil acesso</div>
+                                                )}
+                                                <div
                                                     className="editable-cell" 
                                                     contentEditable 
                                                     suppressContentEditableWarning

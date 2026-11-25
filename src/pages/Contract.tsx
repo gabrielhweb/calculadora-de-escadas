@@ -3533,6 +3533,18 @@ const Contract = () => {
                     ? "Valor fixo para locais de fácil acesso."
                     : "Valor personalizado (manual)."}
                 </p>
+                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mt-3 mb-1" htmlFor="installationAccess">
+                  Local da instalação
+                </label>
+                <select
+                  id="installationAccess"
+                  value={originalInputData?.installationHardAccess ? "dificil" : "facil"}
+                  onChange={(e) => setOriginalInputData((prev: any) => ({ ...(prev || {}), installationHardAccess: e.target.value === "dificil" }))}
+                  className="w-full p-3 rounded border bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-black dark:text-white font-medium"
+                >
+                  <option value="facil">Fácil acesso</option>
+                  <option value="dificil">Difícil acesso (sai no contrato e na Tabela de Entregas)</option>
+                </select>
               </div>
             </div>
           </div>

@@ -380,7 +380,7 @@ export const generateContractPDF = (data: ContractData) => {
   }
 
   if (data.installationCost > 0) {
-      addText(`-Instalação ${formatCurrencyBRL(data.installationCost)} (Valor para local de fácil acesso)`, 11, false, 'left');
+      addText(`-Instalação ${formatCurrencyBRL(data.installationCost)} (Valor para local de ${data.inputData.installationHardAccess ? 'difícil' : 'fácil'} acesso)`, 11, false, 'left');
   } else {
       addText(`-Instalação: POR CONTA DO CLIENTE`, 11, false, 'left');
   }

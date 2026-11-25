@@ -330,7 +330,7 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
 
         // Instalação
         if (installationCost > 0) {
-             doc.text(`- Instalação (Local de fácil acesso):`, pageMargin, currentY);
+             doc.text(`- Instalação (Local de ${inputData.installationHardAccess ? 'difícil' : 'fácil'} acesso):`, pageMargin, currentY);
              doc.text(formatCurrencyBRL(installationCost), pageWidth - pageMargin, currentY, { align: 'right' });
         } else {
              doc.text(`- Instalação:`, pageMargin, currentY);
@@ -380,7 +380,10 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
             doc.setFont('helvetica', 'italic');
             doc.setTextColor(220, 38, 38); // Vermelho
             
-            if (installationCost > 0) {
+            if (installationCost > 0 && inputData.installationHardAccess) {
+                doc.text('Atenção: O valor da instalação já considera um local de difícil acesso.', pageMargin, currentY);
+                currentY += 6;
+            } else if (installationCost > 0) {
                 doc.text('Atenção: O valor da instalação considera um local de fácil acesso.', pageMargin, currentY);
                 currentY += 4;
                 doc.text('Caso seja necessário içar o produto ou levá-lo desmontado, o valor será diferente.', pageMargin, currentY);
