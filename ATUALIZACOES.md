@@ -4,6 +4,11 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-26 — [reserva] — Os 3 contratos "duplicados" voltaram pra Produção
+- Usuário pediu pra excluir Fábio Chalita, Jair José Alves e Carla Polastro (em Falta Assinar) porque "ela já colocou em outro lugar". Conferido logado no site: **não havia cópia** — cada um tinha um contrato só em Meus Contratos e uma linha só no Controle de Contratos (o "outro lugar"). A lixeira apagaria também essas linhas da Fila, então **não foi excluído nada**.
+- O usuário clicou em "Produção →" nos três. Conferido: agora estão em **Em Produção** (Falta Assinar ficou com 4), e no Controle de Contratos continuam uma vez cada, na mesma etapa (Carla e Jair em Corte, Fábio em Soldagem concluída). O card "Prazos de Entrega" já aparece no site (0, ninguém tem Pago em ainda).
+- Acompanhar (conferido logado): Hilton e Paulo Henrique **ainda sem data** na Tabela de Entregas; Alexandre Bergamo continua em Entregue em Meus Contratos (recebimento não dá pra confirmar pelo site).
+
 ### 2026-11-26 — [reserva] — Controle de Contratos: "Pago em" + prazo em dias úteis — publicado
 - Áudio da Sofia (26/11): hoje ela usa um site de fora pra contar 30 dias úteis a partir do pagamento do sinal. Quer pôr no nosso site só a data que o cliente pagou e o site mostrar o prazo, e isso servir pra saber quantas escadas fechou e quantas tem que entregar por mês. Vídeo dela mostrando a coluna "Prazo" do Monday.
 - **O que mudou** (`src/pages/ProductionQueuePage.tsx`, novo `src/utils/businessDays.ts`): colunas novas **"Pago em"** (data, salva `paymentDate` na fila e no contrato) e **"Prazo (dias úteis)"** = Pago em + `deliveryDays` do contrato (padrão 30), sem sábado, domingo e feriados nacionais (com Sexta-feira Santa). Mostra a data e "Faltam X dias út." / "Vence hoje" / "Atrasado X" (amarelo ≤ 5, vermelho atrasado, verde concluído). Preencher o Pago em também preenche a **Data entrega** se ela estiver vazia (ou ainda for o prazo da data antiga). O filtro Semana/Mês/Personalizado agora conta o pedido como fechado no dia do **Pago em** (sem ele, usa a criação, como antes). Card novo **"Prazos de Entrega"**: quantas escadas vencem no período e quantas ainda não foram concluídas. Filtro "Esta Semana" ganhou fim (domingo a sábado).
