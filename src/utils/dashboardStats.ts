@@ -1,4 +1,5 @@
 // Contas do Dashboard: contratos fechados (foram pra produção) por mês, faturamento e material.
+import { addBusinessDays, parseISODate } from './businessDays';
 
 export const MONTHS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 export const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
@@ -25,21 +26,38 @@ export const contractValue = (c: any) => {
 
 const TREAD_LABELS: Record<string, string> = { wood: 'Madeira', metal: 'Metal', chapa_xadrez: 'Chapa Xadrez', chapa_vazada: 'Chapa Vazada' };
 
+const parsedData = (c: any): any => {
+    try {
+        let d: any = c?.contractData;
+        for (let i = 0; i < 5 && typeof d === 'string'; i++) d = JSON.parse(d);
+        return d && typeof d === 'object' ? d : null;
+    } catch { return null; /* contrato antigo sem JSON válido */ }
+};
+
 const treadOf = (c: any): string => {
     let raw = c?.treadMaterial;
-    if (!raw && c?.contractData) {
-        try {
-            let d: any = c.contractData;
-            for (let i = 0; i < 5 && typeof d === 'string'; i++) d = JSON.parse(d);
-            raw = d?.inputData?.treadMaterial || d?.contractData?.inputData?.treadMaterial;
-        } catch { /* contrato antigo sem JSON válido */ }
+    if (!raw) {
+        const d = parsedData(c);
+        raw = d?.inputData?.treadMaterial || d?.contractData?.inputData?.treadMaterial;
     }
     return TREAD_LABELS[raw] || 'Não informado';
+};
+
+// Prazo final: "Pago em" + dias úteis do contrato (padrão 30), igual ao Controle de Contratos; sem Pago em, a Data entrega
+export const dueDateOf = (c: any): Date | null => {
+    if (c?.paymentDate) {
+        const days = Number(parsedData(c)?.deliveryDays);
+        const iso = addBusinessDays(c.paymentDate, days > 0 ? days : 30);
+        if (iso) return parseISODate(iso);
+    }
+    return parseISODate(c?.deliveryDate) || parseContractDate(c?.deliveryDate);
 };
 
 export const buildDashboardStats = (contracts: any[], year: number) => {
     const closedByMonth = Array(12).fill(0);
     const revenueByMonth = Array(12).fill(0);
+    const dueByMonth = Array(12).fill(0);       // ainda em produção, prazo final cai no mês
+    const deliveredByMonth = Array(12).fill(0); // entregues, pela Data entrega
     const treadCount: Record<string, number> = {};
     let closedYear = 0, revenueYear = 0, inProduction = 0, toSign = 0;
     const years = new Set<number>();
@@ -49,7 +67,15 @@ export const buildDashboardStats = (contracts: any[], year: number) => {
         const status = c?.status || 'producao';
         if (status === 'producao') inProduction++;
         if (status === 'falta_assinar' || status === 'pendente') toSign++;
-        const date = parseContractDate(c?.createdAt);
+        if (status === 'entregue') {
+            const d = parseISODate(c?.deliveryDate) || dueDateOf(c);
+            if (d && d.getFullYear() === year) deliveredByMonth[d.getMonth()]++;
+        } else if (status === 'producao') {
+            const due = dueDateOf(c);
+            if (due && due.getFullYear() === year) dueByMonth[due.getMonth()]++;
+        }
+        // Fechado no dia que pagou o sinal ("Pago em"); sem ele, na criação do contrato
+        const date = parseISODate(c?.paymentDate) || parseContractDate(c?.createdAt);
         if (!date) continue;
         if (isClosedContract({ status })) years.add(date.getFullYear());
         if (!isClosedContract({ status }) || date.getFullYear() !== year) continue;
@@ -64,7 +90,7 @@ export const buildDashboardStats = (contracts: any[], year: number) => {
     }
 
     return {
-        closedByMonth, revenueByMonth, closedYear, revenueYear,
+        closedByMonth, revenueByMonth, dueByMonth, deliveredByMonth, closedYear, revenueYear,
         averageTicket: closedYear ? revenueYear / closedYear : 0,
         inProduction, toSign,
         treads: Object.entries(treadCount).sort((a, b) => b[1] - a[1]),

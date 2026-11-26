@@ -62,7 +62,7 @@ export default function DashboardPage() {
     <div className="max-w-7xl mx-auto p-4 sm:p-8 space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <PageTitle info="Escadas vendidas por mês (contratos que foram pra produção ou já entregues, pela data em que o contrato foi criado), faturamento e materiais.">Dashboard</PageTitle>
+          <PageTitle info="Escadas vendidas por mês (contratos que foram pra produção ou já entregues, pelo Pago em do Controle de Contratos; sem ele, pela criação do contrato), quantas têm prazo de entrega no mês e quantas foram entregues, faturamento e materiais.">Dashboard</PageTitle>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Contratos fechados = foram pra produção (falta assinar não conta).</p>
         </div>
         <label className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-200">
@@ -86,16 +86,31 @@ export default function DashboardPage() {
         <BarChart values={stats.closedByMonth} color="#15803d" />
         <h3 className="of-stencil text-base text-gray-900 dark:text-white mt-8 mb-3">Resumo mensal</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8">
-          {MONTH_NAMES.map((name, i) => (
-            <div key={name} className={`flex justify-between px-3 py-2 text-sm ${i % 2 === 0 ? 'bg-white/70 dark:bg-gray-700/40' : ''}`}>
-              <span className="text-gray-700 dark:text-gray-200">
-                {name}{year === now.getFullYear() && i >= now.getMonth() ? '*' : ''}
-              </span>
-              <span className="font-black text-green-700 dark:text-green-400">{stats.closedByMonth[i]}</span>
+          {[0, 1].map((col) => (
+            <div key={col}>
+              <div className="grid grid-cols-[1fr_auto_auto_auto] gap-x-4 px-3 py-1 text-[11px] font-bold uppercase text-gray-500 dark:text-gray-400">
+                <span>Mês</span><span className="text-green-700 dark:text-green-400">Vendidas</span><span className="text-amber-600 dark:text-amber-400">A entregar</span><span className="text-blue-700 dark:text-blue-400">Entregues</span>
+              </div>
+              {MONTH_NAMES.slice(col * 6, col * 6 + 6).map((name, j) => {
+                const i = col * 6 + j;
+                return (
+                  <div key={name} className={`grid grid-cols-[1fr_auto_auto_auto] gap-x-4 px-3 py-2 text-sm ${j % 2 === 0 ? 'bg-white/70 dark:bg-gray-700/40' : ''}`}>
+                    <span className="text-gray-700 dark:text-gray-200">
+                      {name}{year === now.getFullYear() && i >= now.getMonth() ? '*' : ''}
+                    </span>
+                    <span className="w-[62px] text-right font-black text-green-700 dark:text-green-400">{stats.closedByMonth[i]}</span>
+                    <span className="w-[72px] text-right font-black text-amber-600 dark:text-amber-400">{stats.dueByMonth[i]}</span>
+                    <span className="w-[66px] text-right font-black text-blue-700 dark:text-blue-400">{stats.deliveredByMonth[i]}</span>
+                  </div>
+                );
+              })}
             </div>
           ))}
         </div>
-        {year === now.getFullYear() && <p className="text-[11px] text-gray-500 mt-2">* mês em andamento ou ainda não chegou</p>}
+        <p className="text-[11px] text-gray-500 mt-2">
+          Vendidas = fechadas no mês (Pago em). A entregar = ainda em produção com prazo final (Pago em + dias úteis) no mês. Entregues = marcadas como entregues, pela data de entrega.
+          {year === now.getFullYear() && ' * mês em andamento ou ainda não chegou.'}
+        </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

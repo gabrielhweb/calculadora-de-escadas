@@ -4,6 +4,12 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-26 — [casa] — Dashboard: vendidas / a entregar / entregues por mês pelo "Pago em" — publicado
+- Pedido (lista da Sofia): sinalizar a data de pagamento, somar 30 dias úteis, aparecer o prazo final, e isso ligado ao resumo de quantas foram vendidas no mês, quantas entregues, e na tabela de produção. O "Pago em" + prazo + Data entrega automática + card "Prazos de Entrega" no Controle de Contratos já tinham sido feitos pelo PC reserva; faltava o resumo do **Dashboard**.
+- `src/utils/dashboardStats.ts`: "fechada" conta no mês do **Pago em** (sem ele, criação do contrato, como antes); novo `dueDateOf` (Pago em + `deliveryDays` do contrato, padrão 30 dias úteis, igual ao Controle; sem Pago em usa a Data entrega); novos `dueByMonth` (em produção com prazo final no mês) e `deliveredByMonth` (status entregue, pela Data entrega).
+- `src/pages/DashboardPage.tsx`: "Resumo mensal" agora tem 3 colunas por mês: **Vendidas / A entregar / Entregues**, com legenda.
+- Testado: conta com contratos de exemplo (vite-node + asserts, incluindo prazo que vira o ano); `tsc` ok. Tela não vista (precisa de login). Publicado com o "pode subir". Pendente: Sofia conferir o Resumo mensal no Dashboard. Acompanhar: não reconferido nesta entrada.
+
 ### 2026-11-26 — [casa] — Contrato do Maylon Kelson Hessel corrigido no site (patamar fixo)
 - Sofia: o contrato do Maylon (id `1795124290491`, criado 19/11) saiu como patamar retrátil; o certo (PDF assinado, feito à mão) é **Patamar Fixo (com mão francesa)**, 0,60 × 1,00 m, guarda-corpo em L 40/60 × 90.
 - Conferido no site: só o `type` do patamar estava errado (`articulated`). Preços (escada 4.800, patamar 1.625, guarda-corpo avulso 1.216, frete 320, instalação 380, total 7.923,95 com 5% pix), medidas, mãos francesas e guarda-corpos batiam com o PDF.
