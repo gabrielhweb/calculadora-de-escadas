@@ -4,6 +4,12 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-26 — [casa] — Contrato do Maylon Kelson Hessel corrigido no site (patamar fixo)
+- Sofia: o contrato do Maylon (id `1795124290491`, criado 19/11) saiu como patamar retrátil; o certo (PDF assinado, feito à mão) é **Patamar Fixo (com mão francesa)**, 0,60 × 1,00 m, guarda-corpo em L 40/60 × 90.
+- Conferido no site: só o `type` do patamar estava errado (`articulated`). Preços (escada 4.800, patamar 1.625, guarda-corpo avulso 1.216, frete 320, instalação 380, total 7.923,95 com 5% pix), medidas, mãos francesas e guarda-corpos batiam com o PDF.
+- Corrigido pelo próprio site (Meus Contratos → lápis → Edição Avançada): `"type": "articulated"` → `"fixed"` em `selectedOption.landings[0]` e `inputData.landings[0]`. Conferido depois de salvar: fixo nos dois, valores iguais, status continua Falta Assinar. O salvar do modal também grava `pisante/altura/largura/degraus` e deixa `createdAt` 19/11 à meia-noite (normal desse modal).
+- Nenhum código mudou. Pendente: Sofia conferir a ficha de produção do Maylon. Acompanhar: não reconferido nesta entrada.
+
 ### 2026-11-26 — [casa] — "Pago em" do Controle de Contratos: dá pra limpar — publicado
 - Print do usuário: testando o "Pago em" na Juliana Menin Silberschmidt ficou "09/12/0001", prazo e Data entrega "22/01/1902" (Atrasado 31646 dias út.), e não conseguia deixar em branco.
 - Causa: o campo de data salvava a cada tecla (enquanto digita o ano manda `0001-12-09`) e já gravava a Data entrega com o prazo; ao apagar, a Data entrega de 1902 ficava.
