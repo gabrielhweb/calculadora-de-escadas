@@ -4,6 +4,12 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-26 — [casa] — "Pago em" do Controle de Contratos: dá pra limpar — publicado
+- Print do usuário: testando o "Pago em" na Juliana Menin Silberschmidt ficou "09/12/0001", prazo e Data entrega "22/01/1902" (Atrasado 31646 dias út.), e não conseguia deixar em branco.
+- Causa: o campo de data salvava a cada tecla (enquanto digita o ano manda `0001-12-09`) e já gravava a Data entrega com o prazo; ao apagar, a Data entrega de 1902 ficava.
+- `ProductionQueuePage.tsx` (`handleUpdatePaymentDate`): ignora data com ano < 2000 (só salva data completa ou vazio); limpar o Pago em também limpa a Data entrega quando ela é o prazo calculado; botão "×" do lado do campo pra limpar.
+- `tsc` ok; não testado na tela (precisa de login). Publicado com o "pode subir". Pendente: o usuário clicar no "×" da Juliana (limpa o Pago em e a Data entrega 1902 juntos). Acompanhar: não reconferido nesta entrada.
+
 ### 2026-11-26 — [reserva] — Os 3 contratos "duplicados" voltaram pra Produção
 - Usuário pediu pra excluir Fábio Chalita, Jair José Alves e Carla Polastro (em Falta Assinar) porque "ela já colocou em outro lugar". Conferido logado no site: **não havia cópia** — cada um tinha um contrato só em Meus Contratos e uma linha só no Controle de Contratos (o "outro lugar"). A lixeira apagaria também essas linhas da Fila, então **não foi excluído nada**.
 - O usuário clicou em "Produção →" nos três. Conferido: agora estão em **Em Produção** (Falta Assinar ficou com 4), e no Controle de Contratos continuam uma vez cada, na mesma etapa (Carla e Jair em Corte, Fábio em Soldagem concluída). O card "Prazos de Entrega" já aparece no site (0, ninguém tem Pago em ainda).

@@ -960,6 +960,8 @@ export default function ProductionQueue() {
     // Se a Data entrega estiver vazia (ou ainda for o prazo calculado da data antiga), preenche com o novo prazo.
     const handleUpdatePaymentDate = async (item: DashboardItem, newDate: string) => {
         if (item.source !== 'queue') return;
+        // Enquanto digita o ano o campo manda datas tipo 0001-12-09: só salva data completa ou vazio
+        if (newDate && Number(newDate.slice(0, 4)) < 2000) return;
         const days = getDeliveryDays(item);
         const oldDeadline = getDeadline(item);
         const newDeadline = newDate ? addBusinessDays(newDate, days) : null;
@@ -967,6 +969,9 @@ export default function ProductionQueue() {
         const updates: Record<string, any> = { paymentDate: newDate };
         if (newDeadline && (!currentDelivery || currentDelivery === oldDeadline)) {
             updates.deliveryDate = newDeadline;
+        } else if (!newDate && oldDeadline && currentDelivery === oldDeadline) {
+            // Limpou o Pago em: a Data entrega que veio do prazo sai junto
+            updates.deliveryDate = '';
         }
         try {
             await updateDoc(doc(db, 'production_queue', item.id), updates);
@@ -1293,13 +1298,25 @@ export default function ProductionQueue() {
                                                             </td>
                                                             <td className="px-4 py-3">
                                                                 {item.source === 'queue' ? (
-                                                                    <input
-                                                                        type="date"
-                                                                        value={item.originalData.paymentDate || ''}
-                                                                        onChange={(e) => handleUpdatePaymentDate(item, e.target.value)}
-                                                                        title="Dia que o cliente pagou o sinal"
-                                                                        className="w-full text-xs bg-transparent border-none p-0 focus:ring-0 text-gray-700 dark:text-gray-300 cursor-pointer"
-                                                                    />
+                                                                    <div className="flex items-center gap-1">
+                                                                        <input
+                                                                            type="date"
+                                                                            value={item.originalData.paymentDate || ''}
+                                                                            onChange={(e) => handleUpdatePaymentDate(item, e.target.value)}
+                                                                            title="Dia que o cliente pagou o sinal"
+                                                                            className="w-full text-xs bg-transparent border-none p-0 focus:ring-0 text-gray-700 dark:text-gray-300 cursor-pointer"
+                                                                        />
+                                                                        {item.originalData.paymentDate && (
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => handleUpdatePaymentDate(item, '')}
+                                                                                title="Limpar Pago em"
+                                                                                className="text-gray-400 hover:text-red-500 text-sm leading-none px-1"
+                                                                            >
+                                                                                ×
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
                                                                 ) : (
                                                                     <span className="text-gray-400">-</span>
                                                                 )}
