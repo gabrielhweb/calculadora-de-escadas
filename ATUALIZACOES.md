@@ -4,6 +4,12 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-26 — [reserva] — Contrato da escada com rodinhas: "Escada de avanço frontal" — publicado
+- Print da Sofia de novo (contrato com Fixação FRONTAL e rodinhas saindo "Escada articulada lateral"). O print era de um PDF gerado antes da correção de casa (25/11), mas o usuário pediu outro texto: agora o item 1.1 do contrato sai **"Escada de avanço frontal em aço carbono..."** (`contractGenerator.ts`, `objText`). Sem rodinha continua "Escada articulada lateral".
+- O orçamento (`src/utils.ts`, `descriptionTitle`) continua "Escada articulada com rodinhas em aço carbono" — não mexido, perguntar ao usuário se troca também.
+- Testado: `tsc --noEmit` ok. PDF não gerado nesta máquina. Contratos já baixados antes não mudam: precisa gerar de novo.
+- Publicado com o "pode subir" do usuário. Pendente: gerar de novo o contrato da Sofia e conferir o PDF. Acompanhar: não reconferido nesta entrada.
+
 ### 2026-11-25 — [casa] — Contrato da escada com rodinhas: "Escada articulada com rodinhas" — publicado
 - Print da Sofia: Avanço Frontal / Rodinha com fixação frontal saía no contrato "1.1 Escada articulada lateral em aço carbono...". Agora sai "Escada articulada com rodinhas em aço carbono...", igual ao orçamento (`contractGenerator.ts`, `objText`). Sem rodinha continua "articulada lateral". Publicado com o "pode subir".
 - Vídeo da Sofia (Meus Contratos): Fabio Chalita, Jair José Alves e Carla Polastro estavam em "Falta Assinar" mas ontem estavam em Produção. Conferido no site: **não são cópias**, cada um tem um contrato só (`c1QDAMNW0PohZywDKGnz`, `1792001412244`, `1791537832742`) com `status: falta_assinar`, e os pedidos na Fila continuam (Carla e Jair em Corte, Fábio em Pronta). Só o botão "← Voltar" do card muda pra Falta Assinar; provável clique sem querer. O Claude não pôde mudar o status no banco (bloqueado); usuário vai clicar em "Produção →" nos três (não cria pedido novo porque já existe). **Não usar a lixeira** nesses cards: ela apaga também o pedido da Fila.
