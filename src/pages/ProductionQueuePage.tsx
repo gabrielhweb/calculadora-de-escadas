@@ -9,6 +9,21 @@ import ExtraCostsModal from '../components/ExtraCostsModal';
 import { normalizeStr } from '../utils/fixDatabase';
 import PageTitle from '../components/PageTitle';
 import { estimateLaserCutCost, STEEL_PRICE_PER_KG } from '../utils/freightDimensions';
+import { addBusinessDays, businessDaysUntil, formatBR, parseISODate } from '../utils/businessDays';
+
+// Prazo do contrato em dias úteis (campo "Prazo de entrega" do Gerar Contrato; padrão 30)
+const getDeliveryDays = (item: { originalData?: any }): number => {
+    const od = item.originalData || {};
+    const raw = od.parsedContractData?.deliveryDays ?? od.deliveryDays;
+    const n = Number(raw);
+    return n > 0 ? n : 30;
+};
+
+// Data limite = "Pago em" + prazo em dias úteis
+const getDeadline = (item: { originalData?: any }): string | null => {
+    const paid = item.originalData?.paymentDate;
+    return paid ? addBusinessDays(paid, getDeliveryDays(item)) : null;
+};
 
 enum OperationType {
   LIST = 'list',
@@ -161,6 +176,9 @@ export default function ProductionQueue() {
                 if (contractData) {
                     if (contractData.deliveryDate) {
                         q.originalData.deliveryDate = contractData.deliveryDate;
+                    }
+                    if (contractData.paymentDate) {
+                        q.originalData.paymentDate = contractData.paymentDate;
                     }
                     if (contractData.customAddress) {
                         q.originalData.location = contractData.customAddress;
@@ -645,14 +663,42 @@ export default function ProductionQueue() {
     }, [user, globalSettings]);
 
     // Filtering Logic
-    const filteredItems = items.filter(item => {
-        if (stageFilter !== 'all' && item.stage !== stageFilter) {
-            return false;
-        }
-
+    // A data cai no período escolhido no filtro (Esta Semana / Este Mês / Personalizado)?
+    const isInPeriod = (itemDate: Date): boolean => {
         if (timeFilter === 'all') return true;
-        
-        let itemDate = new Date(item.createdAt);
+        if (isNaN(itemDate.getTime())) return false;
+        const today = new Date();
+        if (timeFilter === 'month') {
+            return itemDate.getMonth() === today.getMonth() && itemDate.getFullYear() === today.getFullYear();
+        } else if (timeFilter === 'week') {
+            const start = new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay());
+            const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 7);
+            return itemDate >= start && itemDate < end;
+        } else if (timeFilter === 'custom') {
+            let passStart = true;
+            let passEnd = true;
+            if (customStart) {
+                const s = parseISODate(customStart) || new Date(customStart);
+                s.setHours(0, 0, 0, 0);
+                passStart = itemDate >= s;
+            }
+            if (customEnd) {
+                const e = parseISODate(customEnd) || new Date(customEnd);
+                e.setHours(23, 59, 59, 999);
+                passEnd = itemDate <= e;
+            }
+            return passStart && passEnd;
+        }
+        return true;
+    };
+
+    const stageItems = items.filter(item => stageFilter === 'all' || item.stage === stageFilter);
+
+    const filteredItems = stageItems.filter(item => {
+        if (timeFilter === 'all') return true;
+
+        // Fechado = dia que o cliente pagou o sinal ("Pago em"); sem essa data, usa a criação do contrato
+        let itemDate = parseISODate(item.originalData?.paymentDate) || new Date(item.createdAt);
         if (isNaN(itemDate.getTime()) && typeof item.createdAt === 'string') {
             const parts = item.createdAt.split('/');
             if (parts.length === 3) {
@@ -662,35 +708,21 @@ export default function ProductionQueue() {
                 itemDate = new Date(year, month, day);
             }
         }
-        const today = new Date();
-        
-        if (timeFilter === 'month') {
-            return itemDate.getMonth() === today.getMonth() && itemDate.getFullYear() === today.getFullYear();
-        } else if (timeFilter === 'week') {
-            const firstDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
-            return itemDate >= firstDayOfWeek;
-        } else if (timeFilter === 'custom') {
-            let passStart = true;
-            let passEnd = true;
-            if (customStart) {
-                const s = new Date(customStart);
-                s.setHours(0, 0, 0, 0);
-                passStart = itemDate >= s;
-            }
-            if (customEnd) {
-                const e = new Date(customEnd);
-                e.setHours(23, 59, 59, 999);
-                passEnd = itemDate <= e;
-            }
-            return passStart && passEnd;
-        }
-        return true;
+        return isInPeriod(itemDate);
     });
 
     const revenueItems = filteredItems.filter(i => i.source === 'queue' || i.source === 'contract');
     const totalRevenue = revenueItems.reduce((acc, i) => acc + (i.value || 0), 0);
     const totalProfit = revenueItems.reduce((acc, i) => acc + (i.profit || 0), 0);
     const totalCost = revenueItems.reduce((acc, i) => acc + (i.cost || 0), 0);
+
+    // Escadas com prazo de entrega (Pago em + dias úteis) dentro do período
+    const deadlineItems = stageItems.filter(i => {
+        if (i.source !== 'queue') return false;
+        const dl = parseISODate(getDeadline(i));
+        return !!dl && isInPeriod(dl);
+    });
+    const deadlinePending = deadlineItems.filter(i => i.stage !== 'concluido').length;
 
     const handleAddCost = async (item: DashboardItem, name: string, strValue: string) => {
         if (!name || !strValue) return;
@@ -924,6 +956,32 @@ export default function ProductionQueue() {
         }
     };
 
+    // "Pago em": dia que o cliente pagou o sinal. Salva na fila e no contrato.
+    // Se a Data entrega estiver vazia (ou ainda for o prazo calculado da data antiga), preenche com o novo prazo.
+    const handleUpdatePaymentDate = async (item: DashboardItem, newDate: string) => {
+        if (item.source !== 'queue') return;
+        const days = getDeliveryDays(item);
+        const oldDeadline = getDeadline(item);
+        const newDeadline = newDate ? addBusinessDays(newDate, days) : null;
+        const currentDelivery = item.originalData?.deliveryDate || '';
+        const updates: Record<string, any> = { paymentDate: newDate };
+        if (newDeadline && (!currentDelivery || currentDelivery === oldDeadline)) {
+            updates.deliveryDate = newDeadline;
+        }
+        try {
+            await updateDoc(doc(db, 'production_queue', item.id), updates);
+            if (item.originalData.contractId) {
+                try {
+                    await updateDoc(doc(db, 'contracts', item.originalData.contractId), updates);
+                } catch (e) {
+                    console.warn('Contrato original não encontrado para sincronizar a data do pagamento.', e);
+                }
+            }
+        } catch (error) {
+            handleFirestoreError(error, OperationType.UPDATE, 'sync_payment_date');
+        }
+    };
+
     const handleUpdateField = async (item: DashboardItem, field: 'clientName' | 'location' | 'clientEmail', value: string) => {
         try {
             if (item.source === 'queue') {
@@ -1070,7 +1128,7 @@ export default function ProductionQueue() {
             )}
 
             {/* Top Stats Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
                 <div className="of-plate bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col">
                     <span className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Pedidos Fechados</span>
                     <span className="text-3xl font-black text-gray-900 dark:text-white">{revenueItems.length}</span>
@@ -1086,6 +1144,11 @@ export default function ProductionQueue() {
                 <div className="of-plate bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col">
                     <span className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Lucro Líquido</span>
                     <span className="text-3xl font-black text-green-500 dark:text-green-400">{formatCurrencyBRL(totalProfit)}</span>
+                </div>
+                <div className="of-plate bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col" title="Escadas cujo prazo (Pago em + dias úteis) cai no período escolhido">
+                    <span className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Prazos de Entrega</span>
+                    <span className="text-3xl font-black text-amber-600 dark:text-amber-400">{deadlineItems.length}</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">{deadlinePending} ainda não concluída{deadlinePending === 1 ? '' : 's'}</span>
                 </div>
             </div>
 
@@ -1114,6 +1177,8 @@ export default function ProductionQueue() {
                                             <th className="px-4 py-3 font-normal min-w-[200px]">Tarefa</th>
                                             <th className="px-4 py-3 font-normal w-40 text-center">Status</th>
                                             <th className="px-4 py-3 font-normal">Local</th>
+                                            <th className="px-4 py-3 font-normal w-32" title="Dia que o cliente pagou o sinal. O prazo é contado a partir daqui.">Pago em</th>
+                                            <th className="px-4 py-3 font-normal w-36" title="Pago em + prazo do contrato em dias úteis (sem sábado, domingo e feriados nacionais)">Prazo (dias úteis)</th>
                                             <th className="px-4 py-3 font-normal w-32">Data entrega</th>
                                             <th className="px-4 py-3 font-normal text-right">Valor venda</th>
                                             <th className="px-4 py-3 font-normal w-32 text-center">PAGO</th>
@@ -1124,7 +1189,7 @@ export default function ProductionQueue() {
                                     <tbody className="divide-y divide-gray-100 dark:divide-gray-700/50">
                                         {groupItems.length === 0 ? (
                                             <tr>
-                                                <td colSpan={9} className="px-4 py-8 text-center text-gray-400">
+                                                <td colSpan={11} className="px-4 py-8 text-center text-gray-400">
                                                     Nenhuma tarefa nesta etapa.
                                                 </td>
                                             </tr>
@@ -1228,7 +1293,43 @@ export default function ProductionQueue() {
                                                             </td>
                                                             <td className="px-4 py-3">
                                                                 {item.source === 'queue' ? (
-                                                                    <input 
+                                                                    <input
+                                                                        type="date"
+                                                                        value={item.originalData.paymentDate || ''}
+                                                                        onChange={(e) => handleUpdatePaymentDate(item, e.target.value)}
+                                                                        title="Dia que o cliente pagou o sinal"
+                                                                        className="w-full text-xs bg-transparent border-none p-0 focus:ring-0 text-gray-700 dark:text-gray-300 cursor-pointer"
+                                                                    />
+                                                                ) : (
+                                                                    <span className="text-gray-400">-</span>
+                                                                )}
+                                                            </td>
+                                                            <td className="px-4 py-3 text-xs">
+                                                                {(() => {
+                                                                    if (item.source !== 'queue') return <span className="text-gray-400">-</span>;
+                                                                    const deadline = getDeadline(item);
+                                                                    const days = getDeliveryDays(item);
+                                                                    if (!deadline) return <span className="text-gray-400" title="Preencha o Pago em">{days} dias úteis</span>;
+                                                                    const left = item.stage === 'concluido' ? null : businessDaysUntil(deadline);
+                                                                    const color = left === null ? 'text-green-600 dark:text-green-400'
+                                                                        : left < 0 ? 'text-red-600 dark:text-red-400'
+                                                                        : left <= 5 ? 'text-amber-600 dark:text-amber-400'
+                                                                        : 'text-gray-600 dark:text-gray-300';
+                                                                    const label = left === null ? 'Concluído'
+                                                                        : left < 0 ? `Atrasado ${-left} dia${left === -1 ? '' : 's'} út.`
+                                                                        : left === 0 ? 'Vence hoje'
+                                                                        : `Faltam ${left} dia${left === 1 ? '' : 's'} út.`;
+                                                                    return (
+                                                                        <div title={`${days} dias úteis a partir de ${formatBR(item.originalData.paymentDate)}`}>
+                                                                            <div className="font-bold text-gray-800 dark:text-gray-100">{formatBR(deadline)}</div>
+                                                                            <div className={`text-[11px] font-bold ${color}`}>{label}</div>
+                                                                        </div>
+                                                                    );
+                                                                })()}
+                                                            </td>
+                                                            <td className="px-4 py-3">
+                                                                {item.source === 'queue' ? (
+                                                                    <input
                                                                         type="date"
                                                                         value={item.originalData.deliveryDate || ''}
                                                                         onChange={(e) => handleUpdateDeliveryDate(item, e.target.value)}
@@ -1289,7 +1390,7 @@ export default function ProductionQueue() {
                                                         {/* Expanded Area for Costs */}
                                                         {isExpanded && (item.source === 'queue' || item.source === 'contract') && (
                                                             <tr>
-                                                                <td colSpan={9} className="p-0 border-b border-gray-200 dark:border-gray-700">
+                                                                <td colSpan={11} className="p-0 border-b border-gray-200 dark:border-gray-700">
                                                                     <div className="bg-blue-50/50 dark:bg-blue-900/10 p-6 shadow-inner border-y border-blue-100 dark:border-blue-800/50 flex flex-col gap-6">
                                                                         
                                                                         {/* Top: Resumo do Projeto */}

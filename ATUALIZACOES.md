@@ -4,6 +4,13 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-26 — [reserva] — Controle de Contratos: "Pago em" + prazo em dias úteis — publicado
+- Áudio da Sofia (26/11): hoje ela usa um site de fora pra contar 30 dias úteis a partir do pagamento do sinal. Quer pôr no nosso site só a data que o cliente pagou e o site mostrar o prazo, e isso servir pra saber quantas escadas fechou e quantas tem que entregar por mês. Vídeo dela mostrando a coluna "Prazo" do Monday.
+- **O que mudou** (`src/pages/ProductionQueuePage.tsx`, novo `src/utils/businessDays.ts`): colunas novas **"Pago em"** (data, salva `paymentDate` na fila e no contrato) e **"Prazo (dias úteis)"** = Pago em + `deliveryDays` do contrato (padrão 30), sem sábado, domingo e feriados nacionais (com Sexta-feira Santa). Mostra a data e "Faltam X dias út." / "Vence hoje" / "Atrasado X" (amarelo ≤ 5, vermelho atrasado, verde concluído). Preencher o Pago em também preenche a **Data entrega** se ela estiver vazia (ou ainda for o prazo da data antiga). O filtro Semana/Mês/Personalizado agora conta o pedido como fechado no dia do **Pago em** (sem ele, usa a criação, como antes). Card novo **"Prazos de Entrega"**: quantas escadas vencem no período e quantas ainda não foram concluídas. Filtro "Esta Semana" ganhou fim (domingo a sábado).
+- Testado: conta dos dias úteis conferida (26/11/2026 + 30 = 11/01/2027, pulando Natal e Ano Novo; Sexta Santa 2026 = 03/04); `tsc` e build ok. Tela não vista com dados (precisa de login; localhost não loga).
+- **Os 3 contratos "duplicados"** (vídeo de 25/11 14:47 = Fábio Chalita, Jair José Alves, Carla Polastro em Falta Assinar): é o mesmo vídeo que casa conferiu — cada um tem um contrato só e o pedido na Fila. **Não excluídos**: a lixeira apaga também o pedido da Fila. Perguntado ao usuário.
+- Publicado com o "pode subir" do usuário. Pendente: Sofia testar o Pago em; decidir se Carnaval/Corpus Christi contam como feriado. Acompanhar: não conferido (navegador do app deslogado).
+
 ### 2026-11-26 — [reserva] — Contrato da escada com rodinhas: "Escada de avanço frontal" — publicado
 - Print da Sofia de novo (contrato com Fixação FRONTAL e rodinhas saindo "Escada articulada lateral"). O print era de um PDF gerado antes da correção de casa (25/11), mas o usuário pediu outro texto: agora o item 1.1 do contrato sai **"Escada de avanço frontal em aço carbono..."** (`contractGenerator.ts`, `objText`). Sem rodinha continua "Escada articulada lateral".
 - O orçamento (`src/utils.ts`, `descriptionTitle`) continua "Escada articulada com rodinhas em aço carbono" — não mexido, perguntar ao usuário se troca também.

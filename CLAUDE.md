@@ -45,6 +45,7 @@ Por isso estas regras valem em toda sessão:
 - **Cláusula 2.2 do contrato** (`contractGenerator.ts`): o prazo da transportadora só aparece quando a Forma de Entrega é Transportadora; nos outros casos a 2.2 é só "O objeto deverá ser entregue conforme...".
 - **Fixação frontal não leva amortecedor:** Calculadora e Gerar Contrato zeram e travam o campo; orçamento (`generateProposalDescription`) e contrato (`contractGenerator.ts`) não escrevem amortecedor quando é frontal.
 - **Contrato baixado em Meus Contratos** busca degraus/medidas em qualquer nível do JSON (igual à ficha técnica).
+- **Prazo de entrega (Controle de Contratos):** "Pago em" (`paymentDate`, na fila e no contrato) + `deliveryDays` do contrato (padrão 30) em dias úteis = prazo. Conta em `src/utils/businessDays.ts`: sem sábado/domingo e feriados nacionais (Sexta-feira Santa incluída; Carnaval e Corpus Christi não). O filtro de período considera o pedido fechado no dia do Pago em.
 
 # ⏳ Pendências do usuário
 
