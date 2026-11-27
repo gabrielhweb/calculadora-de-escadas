@@ -9,7 +9,7 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 - Conferido no site: igual ao Maylon, só o `type` do patamar estava `articulated`. Valores, medidas e guarda-corpo batiam. Corrigido pelo site (Meus Contratos → lápis → Edição Avançada): `"articulated"` → `"fixed"` em `selectedOption.landings[0]` e `inputData.landings[0]`. Conferido depois de recarregar: fixo nos dois, valores iguais.
 - **Efeito colateral achado:** o Salvar desse modal mudou o "Criado em" do Eduardo de 17/11 pra **16/11**. Causa: `ContractsList.tsx` convertia a data do campo com `new Date('AAAA-MM-DD')` (meia-noite UTC = 21h do dia anterior no Brasil), então todo Salvar voltava 1 dia. Corrigido no código: o campo abre com a data no horário local, e se não for mexido o Salvar mantém o `createdAt` original; data mudada vira meio-dia local. `tsc` ok.
 - No contrato salvo o guarda-corpo não tem altura (`guardrailHeight` vazio), então o PDF gerado pelo site sai com 90 cm, e o assinado diz 70 cm. Não mexido; perguntar.
-- Publicado com o "pode subir" do usuário. Pendente: voltar o "Criado em" do Eduardo pra 17/11 pelo Editar. Acompanhar: não reconferido nesta entrada.
+- Publicado com o "pode subir" do usuário. Depois do deploy: "Criado em" do Eduardo voltado pra 17/11 pelo Editar, e conferido que abrir e Salvar sem mexer mantém 17/11 (patamar continua fixo, total 7.489,80). Pendente: altura do guarda-corpo (70 cm no PDF assinado, vazio no salvo = 90). Acompanhar: não reconferido nesta entrada.
 
 ### 2026-11-27 — [casa] — Orçamento: "válido por 3 dias" — publicado
 - Áudio da Sofia (27/11): pôr no fim dos orçamentos que o orçamento vale por 3 dias (por causa de aumento de preço).
