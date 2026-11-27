@@ -4,6 +4,11 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-27 — [casa] — Orçamento: "válido por 3 dias" — publicado
+- Áudio da Sofia (27/11): pôr no fim dos orçamentos que o orçamento vale por 3 dias (por causa de aumento de preço).
+- `ProposalDocument.tsx`: última linha do PDF do orçamento, em negrito, "Orçamento válido por 3 dias a partir da data de emissão." (pula de página se não couber). A data de emissão já sai no topo ("Data:").
+- `tsc` ok; PDF não gerado. Publicado com o "pode subir". Pendente: Sofia gerar um orçamento e ver a linha no fim. Acompanhar: não reconferido nesta entrada.
+
 ### 2026-11-26 — [casa] — Dashboard: vendidas / a entregar / entregues por mês pelo "Pago em" — publicado
 - Pedido (lista da Sofia): sinalizar a data de pagamento, somar 30 dias úteis, aparecer o prazo final, e isso ligado ao resumo de quantas foram vendidas no mês, quantas entregues, e na tabela de produção. O "Pago em" + prazo + Data entrega automática + card "Prazos de Entrega" no Controle de Contratos já tinham sido feitos pelo PC reserva; faltava o resumo do **Dashboard**.
 - `src/utils/dashboardStats.ts`: "fechada" conta no mês do **Pago em** (sem ele, criação do contrato, como antes); novo `dueDateOf` (Pago em + `deliveryDays` do contrato, padrão 30 dias úteis, igual ao Controle; sem Pago em usa a Data entrega); novos `dueByMonth` (em produção com prazo final no mês) e `deliveredByMonth` (status entregue, pela Data entrega).

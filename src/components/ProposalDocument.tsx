@@ -537,7 +537,12 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ options, use
         return y;
     };
 
-    printOrientacoes(currentY);
+    currentY = printOrientacoes(currentY) + 2;
+
+    if (currentY > pageHeight - 20) { doc.addPage(); currentY = 20; }
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Orçamento válido por 3 dias a partir da data de emissão.', pageMargin, currentY);
 
     return doc;
   }, [options, userData, inputData, freightCost, tollCost, installationCost, selectedOptionIndices]);
