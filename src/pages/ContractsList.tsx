@@ -70,6 +70,12 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
 const normalizeSearch = (text: any) =>
     String(text || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 
+// Date -> "AAAA-MM-DD" no hor\u00e1rio local (pro <input type="date">)
+const toLocalDateInput = (d: Date): string => {
+    if (isNaN(d.getTime())) d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
 export const ContractsList: React.FC = () => {
     const [contracts, setContracts] = useState<SavedContract[]>([]);
     const { user } = useAuth();
@@ -79,6 +85,8 @@ export const ContractsList: React.FC = () => {
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [editingContract, setEditingContract] = useState<SavedContract | null>(null);
+    // Data que o campo mostrou ao abrir o Editar: se não mudar, o Salvar mantém o createdAt original
+    const [editingOriginalDate, setEditingOriginalDate] = useState('');
     const [receiptModalOpen, setReceiptModalOpen] = useState(false);
     const [selectedContractForReceipt, setSelectedContractForReceipt] = useState<SavedContract | null>(null);
     const [formData, setFormData] = useState({
@@ -233,18 +241,19 @@ export const ContractsList: React.FC = () => {
 
         let dateString = '';
         try {
+            // Data no horário do Brasil (toISOString usava UTC: contrato feito à noite aparecia no dia seguinte)
             if (contract.createdAt) {
-                if (typeof (contract.createdAt as any).toDate === 'function') {
-                    dateString = (contract.createdAt as any).toDate().toISOString().split('T')[0];
-                } else {
-                    dateString = new Date(contract.createdAt).toISOString().split('T')[0];
-                }
+                const d = typeof (contract.createdAt as any).toDate === 'function'
+                    ? (contract.createdAt as any).toDate()
+                    : new Date(contract.createdAt);
+                dateString = toLocalDateInput(d);
             } else {
-                dateString = new Date().toISOString().split('T')[0];
+                dateString = toLocalDateInput(new Date());
             }
         } catch (e) {
-            dateString = new Date().toISOString().split('T')[0];
+            dateString = toLocalDateInput(new Date());
         }
+        setEditingOriginalDate(dateString);
 
         const getProp = (key: string) => {
             if (parsed?.selectedOption && parsed.selectedOption[key] !== undefined && parsed.selectedOption[key] !== '') return parsed.selectedOption[key];
@@ -321,8 +330,14 @@ export const ContractsList: React.FC = () => {
 
             let finalDate = new Date().toISOString();
             try {
-                if (formData.createdAt) {
-                    finalDate = new Date(formData.createdAt).toISOString();
+                if (editingContract?.createdAt && formData.createdAt === editingOriginalDate) {
+                    // Data não mexida: mantém a original com a hora (antes cada Salvar voltava 1 dia: Eduardo Pato 17/11 -> 16/11)
+                    const orig = editingContract.createdAt as any;
+                    finalDate = typeof orig.toDate === 'function' ? orig.toDate().toISOString() : new Date(orig).toISOString();
+                } else if (formData.createdAt) {
+                    // "AAAA-MM-DD" do campo = meio-dia no horário local (new Date('AAAA-MM-DD') é meia-noite UTC = dia anterior no Brasil)
+                    const [y, m, d] = formData.createdAt.split('-').map(Number);
+                    finalDate = new Date(y, m - 1, d, 12).toISOString();
                 }
             } catch (e) {
                 console.error("Data inválida", e);

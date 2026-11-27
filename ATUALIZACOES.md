@@ -4,6 +4,13 @@ Registro do que cada máquina (empresa / casa) mudou no projeto. Ler antes de co
 
 # Diário
 
+### 2026-11-27 — [reserva] — Contrato do Eduardo Simões Pato corrigido (patamar fixo) + Editar não volta mais a data 1 dia — publicado
+- Sofia: outro contrato que saiu com patamar retrátil em vez de fixo. PDF assinado (17/11): **Patamar Fixo Rente a Laje 1,20 × 0,80 m**, guarda-corpo em L 80/120 × 70 cm, escada 5.390, patamar 1.754, frete 340, instalação 400, total 7.489,80 (5% pix).
+- Conferido no site: igual ao Maylon, só o `type` do patamar estava `articulated`. Valores, medidas e guarda-corpo batiam. Corrigido pelo site (Meus Contratos → lápis → Edição Avançada): `"articulated"` → `"fixed"` em `selectedOption.landings[0]` e `inputData.landings[0]`. Conferido depois de recarregar: fixo nos dois, valores iguais.
+- **Efeito colateral achado:** o Salvar desse modal mudou o "Criado em" do Eduardo de 17/11 pra **16/11**. Causa: `ContractsList.tsx` convertia a data do campo com `new Date('AAAA-MM-DD')` (meia-noite UTC = 21h do dia anterior no Brasil), então todo Salvar voltava 1 dia. Corrigido no código: o campo abre com a data no horário local, e se não for mexido o Salvar mantém o `createdAt` original; data mudada vira meio-dia local. `tsc` ok.
+- No contrato salvo o guarda-corpo não tem altura (`guardrailHeight` vazio), então o PDF gerado pelo site sai com 90 cm, e o assinado diz 70 cm. Não mexido; perguntar.
+- Publicado com o "pode subir" do usuário. Pendente: voltar o "Criado em" do Eduardo pra 17/11 pelo Editar. Acompanhar: não reconferido nesta entrada.
+
 ### 2026-11-27 — [casa] — Orçamento: "válido por 3 dias" — publicado
 - Áudio da Sofia (27/11): pôr no fim dos orçamentos que o orçamento vale por 3 dias (por causa de aumento de preço).
 - `ProposalDocument.tsx`: última linha do PDF do orçamento, em negrito, "Orçamento válido por 3 dias a partir da data de emissão." (pula de página se não couber). A data de emissão já sai no topo ("Data:").
